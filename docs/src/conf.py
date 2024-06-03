@@ -46,7 +46,6 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.autosectionlabel',
     'sphinx_rtd_theme',
-    'sphinx_collapse',
     'myst_parser',
     'sphinxcontrib.mermaid',
     'sphinxcontrib.plantuml'
