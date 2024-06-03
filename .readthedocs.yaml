@@ -22,10 +22,6 @@ build:
       # Install dependencies with 'docs' dependency group. If you do not have docs group, please omit it
       # https://python-poetry.org/docs/managing-dependencies/#dependency-groups
       - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --with docs
-      # - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry run python -m pip install .
-      - rm -rf docs/src/_generated_pages/*.rst && rm -rf docs/src/_generated_pages/img/*.png
-      - (cd docs; VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry run python generate_pages.py)
-      - rm -rf docs/src/_code/*.rst && poetry run sphinx-apidoc -t docs/src/_templates -o docs/src/_code -M -f -d 2 images/ska-mid-cbf-emulators-emulator/ska_mid_cbf_emulator/ images/ska-mid-cbf-emulators-emulator/ska_mid_cbf_emulator/tests/*
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

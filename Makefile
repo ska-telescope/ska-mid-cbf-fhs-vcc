@@ -5,6 +5,23 @@
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
 
+# W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
+PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503
+
+# F0002, F0010: Astroid errors. Not our problem.
+# E0401: Import errors. Ignore for now until we figure out our actual project structure.
+# E0611: Name not found in module. This occurs in our pipeline because the image we pull down uses an older version of Python; we should remove this immediately once we have our image building to CAR.
+PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010
+PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010
+
+#
+# include makefile to pick up the standard Make targets, e.g., 'make build'
+# build, 'make push' docker push procedure, etc. The other Make targets
+# ('make interactive', 'make test', etc.) are defined in this file.
+#
+
+include .make/*.mk
+
 all: test lint
 
 # The following steps copy across useful output to this volume which can
@@ -28,29 +45,3 @@ lint:
 
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
 
-#
-# include makefile to pick up the standard Make targets, e.g., 'make build'
-# build, 'make push' docker push procedure, etc. The other Make targets
-# ('make interactive', 'make test', etc.) are defined in this file.
-#
-
-# include OCI Images support
-include .make/oci.mk
-
-# include k8s support
-include .make/k8s.mk
-
-# include Helm Chart support
-include .make/helm.mk
-
-# Include Python support
-include .make/python.mk
-
-# include raw support
-include .make/raw.mk
-
-# include core make support
-include .make/base.mk
-
-# include your own private variables for custom deployment configuration
--include PrivateRules.mak
