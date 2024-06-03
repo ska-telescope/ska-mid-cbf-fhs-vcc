@@ -1,0 +1,45 @@
+*.py[cod]
+*.egg-info
+*.eggs
+.ipynb_checkpoints
+*.crt
+*.cer
+*.cer*
+*.crt*
+
+build
+dist
+.cache
+__pycache__
+
+Pipfile.lock
+
+htmlcov
+.coverage
+coverage.xml
+.pytest_cache
+*,cover
+
+docs/_build
+docs/src/_build
+docs/src/_code/*.rst
+docs/src/_generated_pages/*.rst
+docs/src/_generated_pages/img/*.png
+docs/apidocs
+
+# ide
+.idea
+.eclipse
+.vscode
+
+# cmake
+CMakeFiles
+_deps
+CMakeCache.txt
+*.cmake
+*.so
+src/api/test/**/*_test
+
+# logging
+images/ska-mid-cbf-emulators-efk/data/*
+*.log
