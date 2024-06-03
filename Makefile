@@ -5,6 +5,8 @@
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
 
+-include PrivateRules.mak
+
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
 PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503
 
@@ -14,6 +16,7 @@ PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503
 PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010
 PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010
 
+POETRY_PYTHON_RUNNER = poetry run python3.12 -m
 #
 # include makefile to pick up the standard Make targets, e.g., 'make build'
 # build, 'make push' docker push procedure, etc. The other Make targets
