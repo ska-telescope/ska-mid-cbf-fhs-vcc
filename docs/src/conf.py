@@ -20,7 +20,6 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
-import sphinx_rtd_theme
 
 def setup(app):
     app.add_css_file('css/custom.css')
@@ -35,8 +34,8 @@ def setup(app):
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.napoleon',
+extensions = [
+    'sphinx.ext.napoleon',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
@@ -45,7 +44,17 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-              'recommonmark']
+    'sphinx.ext.autosectionlabel',
+    'sphinx_rtd_theme',
+    'sphinx_collapse',
+    'myst_parser',
+    'sphinxcontrib.mermaid',
+    'sphinxcontrib.plantuml'
+    ]
+
+# Ignore duplicate label warnings
+suppress_warnings = ['autosectionlabel.*']
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -60,9 +69,9 @@ source_suffix = ['.rst', '.md']
 master_doc = 'index'
 
 # General information about the project.
-project = 'developer.skatelescope.org'
-copyright = '2018, SKA Organization'
-author = 'Marco Bartolini'
+project = 'SKA Mid.CBF FHS VCC'
+copyright = '2024, SKA Organization'
+author = 'Jason Turner'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -85,6 +94,16 @@ language = 'En-en'
 # This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = []
 
+# Packages to ignore importing of these packages when building the documentation
+autodoc_mock_imports = [
+    'PyTango',
+    'tango',
+    'ska_tango_base',
+    'jsonschema',
+    'numpy',
+    'plotly'
+]
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
@@ -97,7 +116,7 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'ska_ser_sphinx_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -145,7 +164,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'developerskatelescopeorgdoc'
+htmlhelp_basename = 'SKA_MidCBF_FHS_VCC'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -223,4 +242,9 @@ epub_exclude_files = ['search.html']
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {
+    "rtd": ("https://docs.readthedocs.io/en/stable/", None),
+    "python": ("https://docs.python.org/3/", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
+}
+
