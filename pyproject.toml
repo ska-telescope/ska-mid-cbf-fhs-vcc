@@ -10,8 +10,7 @@ authors = [
 license = "BSD license"
 readme = "README.md"
 packages = [
-    { include = "ska_mid_cbf_emulator", from = "images/ska-mid-cbf-emulators-emulator" },
-    { include = "ska_mid_cbf_emulators", from = "src" }
+    { include = "ska-mid-cbf-fhs-vcc", from = "src" }
 ]
 
 
