@@ -22,11 +22,11 @@ Public API Documentation
 Functions
 ---------
 
-.. automodule:: ska.skeleton
+.. automodule:: ska.midcbf.fhs.vcc
     :members:
 
 Classes
 -------
-.. autoclass:: ska.skeleton.SKA
+.. autoclass:: ska.midcbf.fhs.vcc.SKA
     :noindex:
     :members:
