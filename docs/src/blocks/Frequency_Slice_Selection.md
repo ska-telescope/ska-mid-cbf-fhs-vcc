@@ -1,17 +1,28 @@
 # Frequency Slice Selection (Circuit Switch)
 
-The circuit switch is used to select one of $N$ inputs to be copied to one or more of $M$ outputs. The selection is controlled by register, and is static (i.e. not packet switched).
+A circuit switch is used to select one of $N$ inputs to be copied to one or more of $M$ outputs. The selection is controlled by register, and is static (i.e. not packet switched).
 
-No restrictions on $N$ or $M$.
+The values of $N$ and $M$ are positive integers greater or equal to 1.
 
-It is a fairly generic component. Simply copies an input to an output. Any output can get data from any input - fully cross connected. Outputs can get data from the same input at the same time: duplicating a stream.
+This is a fairly generic component. It simply copies an input to an output. An output can only get data from a single input.
+
+There may be some restrictions on which inputs can be connected to which outputs. This will be dependent on the instance. If an illegal connection is requested an exception will be raised.
+
+Known instances:
+  1. A Freqency Slice Selection from VCC channelisers, has 10 inputs from the B123_Channeliser and 30 inputs from the B45 Channelisers. These 40 inputs can go to any of the 26 outputs, however the 10 inputs from the B123 channeliser cannot be used when any of the 30 inputs vrom the B45 channeliser are in use, and vis-versa. This clash will naturally be avoided because the VCC will be operating in band 1/2/3 mode or Band 4/5 mode.
+  2. A fully-connected circuit switch has no restrictions; any output can get data from any input. 
+
+Different outputs can get data from the same input at the same time: duplicating a stream.
+
 ## Data Path Interface
+The datapath transports streams of data of a generic type `T`. 
+Where `T` could be complex sample streams (as in the VCC), or packet streams (in visibility transport) as two examples.
 
 ### Input
-$N$ input streams of whatever. All the same type. Could be sample streams (in the VCC), or packet streams (in visibility transport).
-
+$N$ input streams of type `T`.
+.
 ### Output
-$M$ output streams, same type as input stream.
+$M$ output streams of type `T`.
 
 ## Low Level Driver API
 ### Structs
@@ -52,5 +63,6 @@ $M$ output streams, same type as input stream.
 - Can call as many times as required. Disconnects immediately.
 
 #### `status(clear: bool, struct &status)`
-- for each lane in "number of outputs":
-  - return the input.
+- populate the status struct:
+  - for each stream in "number of outputs":
+    - return the input.

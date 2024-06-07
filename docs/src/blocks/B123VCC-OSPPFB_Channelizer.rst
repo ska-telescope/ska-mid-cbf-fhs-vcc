@@ -4,14 +4,16 @@
 .. todo::
     - Insert todo's here
 
-**************************
 B123VCC-OSPPFB Channeliser 
-**************************
+###########################
 
-This block is an oversampling polyphase filter bank (OSPPFB). It breaks a 'wideband' signal into multiple (10) channels each representing an equal proportion of the input spectrum. 
 
-The `oversampling_factor = 10/9`. This means that the total bandwidth out is 1.1111 times more than the input. The transition bands of the output channels overlap with the pass bands of adjacent channels. This way we can recover the full bandwidth across the "frequency slices", ignoring the transition bands.
-## Data Path Interface
+This block is an oversampling polyphase filter bank (OSPPFB). It breaks a 'wideband' signal into multiple (e.g. 10) channels each representing an equal proportion of the input spectrum. 
+
+The `oversampling_factor` (e.g. 10/9). This means that the total bandwidth out is (e.g. 1.1111 times) more than the input. The transition bands (where the filter frequency response transitions from the stop band to the pass band) of a output channels' spectrum, overlaps with the pass band of the adjacent channel. This allows the recover of the full bandwidth across the "frequency slices", ignoring the transition bands.
+
+Data Path Interface
+*******************
 
 Input
 =====
