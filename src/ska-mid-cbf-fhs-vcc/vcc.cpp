@@ -104,7 +104,7 @@ void VCC_20::status(bool clear, Status& status) {
             // float intrinsic_gain = 1.0f/(0.9475f * std::sqrt(20.0f));
             float gain = comb_gain * intrinsic_gain;
 
-            status.gains[channel + pol * 10] = gain;
+            status.gains[channel + pol * VCC_20::channels_out] = gain;
 
             std::cout << "Read shift: " << shift << ", scale: " << scale
                       << ", calculated gain: " << gain << " for channel: " << channel 
