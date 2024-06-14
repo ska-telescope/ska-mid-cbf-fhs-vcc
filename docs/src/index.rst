@@ -55,12 +55,12 @@ Guides for the various Software controlable blocks in the Firmware. These descri
 
 For the VCC-only stage of the bitstream, the APIs for the blocks in the top half of the image will exist:
 
-* 200Gb :doc:`blocks/Ethernet MAC`
+* 200Gb :doc:`blocks/Ethernet_MAC`
 * :doc:`blocks/Packet_Validation`
 * :doc:`blocks/Wideband_Input_Buffer`
-* Wideband Shifter 
-* B45VCC-OSPFFB Channeliser
+* :doc:`blocks/Wideband_Frequency_Shifter`
 * :doc:`blocks/B123VCC-OSPPFB_Channelizer`
+* B45VCC-OSPFFB Channeliser - see B123VCC-OSPPFB_Channelizer
 * :doc:`blocks/Frequency_Slice_Selection`
 * FS RFI Detection and Flagging
 
@@ -83,5 +83,7 @@ Finally for the VCC-PSS-TB stage of the bitstream, the APIs for the blocks in th
   blocks/Ethernet_MAC
   blocks/Packet_Validation
   blocks/Wideband_Input_Buffer
+  blocks/Wideband_Frequency_Shifter
   blocks/B123VCC-OSPPFB_Channelizer
   blocks/Frequency_Slice_Selection
+  blocks/Template_Block
