@@ -36,6 +36,16 @@
   package/guide
 
 
+
+.. toctree::
+  :maxdepth: 2
+  :caption: ICD
+  :hidden:
+
+  icd/icd
+
+
+
 Project-name documentation HEADING
 ==================================
 
