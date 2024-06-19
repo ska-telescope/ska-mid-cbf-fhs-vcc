@@ -1,9 +1,12 @@
 ## FHS-VCC top level device - ICD (DRAFT)
 
 ### Design decisions:
-On the new Agilex architecture switching band device for a VCC can be done without reimaging, with that in mind the need for a VCC controller that has many Band devices is not required. Thus for this ICD the functionality between what was previously the DS-VCC-Controller and the DSVccBand1and2 has been merged namely the `ConfigureBand()` merged with the `SetInternalParameters()` function as they were called in close sequence by the control software and attributes for both are now shared.
+On the new Agilex architecture switching frequency bands for a VCC can be done without reimaging the device, the previous design had a top level device controller and a device per band, with it now being easier to switch bands that design can be simplified to have one top level device per VCC. Thus for this ICD the functionality between what was previously the DS-VCC-Controller and the DSVccBand1and2 has been merged. The main function merger was  between the `ConfigureBand()` and the `SetInternalParameters()` functions, both of which were called in close sequence by the control software but, were previously on different devices servers. The attributes for both are now shared.
 
-Also the need for a VCC base class has also been reduced at the top level therefore the attributes are merged into the one core class. The need for inheritance may be occur for a base class for channelizer devices and composition when the PSS is further explored.
+Also the need for a VCC base class has also been reduced at the top level therefore the attributes are merged into the one core class.
+#### Questions:
+1. Are there any functions that need to be run at the VCC Unit level (6-VCCs) or at the level of FPGA encompassing 3-VCCs?
+2. Not seeing a receptorID or a subarray attribute should that be added?
 ### Device Attributes
 Potentially not required = (?)
 
@@ -32,15 +35,23 @@ Potentially not required = (?)
  Configure parameters for the next scan(s). Parameters are propagated down to low-level device servers. Sets the state to CONFIGURING, if the inputted JSON can be successfully parsed the state is set to READY.
 ##### Parameters:
 
-| name                             | type                                                                                 | description                                                                                                                                                   |
-| -------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `config_id`                      | string                                                                               | Identifier of the current scan configuration                                                                                                                  |
-| `frequency_band` (?)             | string                                                                               | May not be REQUIRED as it's should have been set by `ConfigureBand()` prior                                                                                   |
-| `frequency_band_offset_stream_1` | long                                                                                 | See `frequencyBandOffset` attribute description                                                                                                               |
-| `frequency_band_offset_stream_2` | long                                                                                 | See `frequencyBandOffset` attribute description                                                                                                               |
-| `fsp`                            | `FSPDescriptor[]{fsp_id: string, frequency_slide_id: string, function_mode: string}` | Requires a list of FSPs to configure the Frequency Slice Selector (FSS) to stream the relevant Frequency Slice to it's matching FSP via the `fsp.id` with FSS |
-| `band_5_tuning or stream_tuning` | Array of Floats                                                                      | Center frequency for the band-of-interest. Required if band is 5a or 5b; not specified for other bands                                                        |
-| `rfi_flagging_mask`              | placeholder                                                                          |                                                                                                                                                               |
+| name                             | type                                   | description                                                                                                                         |
+| -------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `config_id`                      | string                                 | Identifier of the current scan configuration                                                                                        |
+| `frequency_band` (?)             | string                                 | May not be REQUIRED as it's should have been set by `ConfigureBand()` command prior                                                 |
+| `frequency_band_offset_stream_1` | long                                   | See `frequencyBandOffset` attribute description                                                                                     |
+| `frequency_band_offset_stream_2` | long                                   | See `frequencyBandOffset` attribute description                                                                                     |
+| `fsp`                            | Array of JSON Objects (FSPDescriptors) | Requires a list of FSPs to configure the Frequency Slice Selector (FSS) to stream the relevant Frequency Slice to it's matching FSP |
+| `band_5_tuning or stream_tuning` | Array of Floats                        | Center frequency for the band-of-interest. Required if band is 5a or 5b; not specified for other bands                              |
+| `rfi_flagging_mask`              | placeholder                            |                                                                                                                                     |
+
+**FSP Descriptors Attribute Definition**:
+
+| Name                 | Type   | Description                        |
+| -------------------- | ------ | ---------------------------------- |
+| `fsp_id`             | string | Identifier of the FSP              |
+| `frequency_slice_id` | string | Identifier of the frequency slice  |
+| `function_mode`      | string | Function mode of the specified FSP |
 
 #### `Scan()`
 **Description**: Start the scan using the last set of parameters passed via the `ConfigureScan()` command. The state is then set to SCANNING.
