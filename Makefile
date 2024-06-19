@@ -7,6 +7,48 @@ SHELL = /bin/bash
 
 -include PrivateRules.mak
 
+#
+# Project makefile for ska-mid-cbf-mcs project. 
+PROJECT = ska-mid-cbf-fhs-vcc
+
+KUBE_NAMESPACE ?= ska-mid-cbf## KUBE_NAMESPACE defines the Kubernetes Namespace that will be deployed to using Helm
+SDP_KUBE_NAMESPACE ?= ska-mid-cbf-sdp##namespace to be used
+DASHBOARD ?= webjive-dash.dump
+CLUSTER_DOMAIN ?= cluster.local
+
+HELM_RELEASE ?= test##H ELM_RELEASE is the release that all Kubernetes resources will be labelled with
+
+HELM_CHART ?= ska-mid-cbf-umbrella## HELM_CHART the chart name
+K8S_CHART ?= $(HELM_CHART)
+TANGO_DATABASE = tango-databaseds-$(HELM_RELEASE)
+TANGO_HOST = $(TANGO_DATABASE):10000## TANGO_HOST is an input!
+
+K8S_UMBRELLA_CHART_PATH ?= ./charts/ska-mid-cbf-umbrella
+
+CI_REGISTRY ?= gitlab.com/ska-telescope/ska-mid-cbf-fhs-vcc
+
+CI_PROJECT_DIR ?= .
+
+KUBE_CONFIG_BASE64 ?=  ## base64 encoded kubectl credentials for KUBECONFIG
+KUBECONFIG ?= /etc/deploy/config ## KUBECONFIG location
+
+# this assumes host and talon board 1g ethernet is on the 192.168 subnet
+#HOST_IP = $(shell ip a 2> /dev/null | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | grep 192.168) 
+JIVE ?= false# Enable jive
+TARANTA ?= false# Enable Taranta
+MINIKUBE ?= true ## Minikube or not
+EXPOSE_All_DS ?= false ## Expose All Tango Services to the external network (enable Loadbalancer service)
+SKA_TANGO_OPERATOR ?= false
+ITANGO_ENABLED ?= true## ITango enabled in ska-tango-base
+
+K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
+	--set global.exposeAllDS=$(EXPOSE_All_DS) \
+	--set global.tango_host=$(TANGO_HOST) \
+	--set global.cluster_domain=$(CLUSTER_DOMAIN) \
+	--set global.operator=$(SKA_TANGO_OPERATOR) \
+	--set ska-tango-base.itango.enabled=$(ITANGO_ENABLED) \
+	--set ska-mid-cbf-fhs-vcc.hostInfo.clusterDomain=$(CLUSTER_DOMAIN)
+
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
 PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503
 
