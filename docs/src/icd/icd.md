@@ -4,7 +4,7 @@
 2. Also the need for a VCC base class has also been reduced at the top level therefore the attributes are merged into the one core class.
 3. I decided not to merge the functionality between the `Unconfigure()` commands in the the Controller and the band device because that would mean setting the device state to `IDLE` and then immediately setting it to `DISABLE`. Calling `Unconfigure()` will set the state to IDLE and if the VCC needs to be disabled an additional call to `Disable()` will be required.
 #### Scenario Diagram:
-![alt text](/docs/src/diagrams/VCC-scenario-diagram.png "Title")
+![alt text](../diagrams/VCC-scenario-diagram.png "Title")
 #### Questions:
 1. Are there any functions that need to be run at the VCC Unit level (6-VCCs) or at the level of FPGA encompassing 3-VCCs? Say any power switch actions
 2. Not seeing a receptorID or a subarray attribute does that need to be added?
