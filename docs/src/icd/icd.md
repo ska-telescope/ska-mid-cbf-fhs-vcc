@@ -33,9 +33,9 @@ Potentially not required = (?)
 | `macFQDN`                      | DevString                                                                                                                                                   | R          | FQDN for Ethernet Media Access Control (MAC) lower level device likely only needed for testing purposes in loopback mode                                     |
 
 ### Functions
-#### `ConfigureScan()`
+#### `ConfigureScan(DevString)`
  Configure parameters for the next scan(s). Parameters are propagated down to low-level device servers. Sets the state to CONFIGURING, if the inputted JSON can be successfully parsed the state is set to READY.
-##### Parameters:
+##### JSON Parameter Definition:
 
 | name                               | type                                   | description                                                                                                                         |
 | ---------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -56,16 +56,16 @@ Potentially not required = (?)
 | `frequency_slice_id` | string | Identifier of the frequency slice  |
 | `function_mode`      | string | Function mode of the specified FSP |
 
-#### `Scan()`
+#### `Scan(DevString)`
 **Description**: Start the scan using the last set of parameters passed via the `ConfigureScan()` command. The state is then set to SCANNING.
 ##### Parameters:
 | Name     | Type   | Description                    |
 | -------- | ------ | ------------------------------ |
 | `scanId` | string | Identifier of the current scan |
 
-#### `ConfigureBand()`
+#### `ConfigureBand(DevString)`
 **Description**: Configure the VCC device for a specific band and connect to the relevant lower level devices specifically the relevant band channelizer. Sets the state to ON.
-##### Parameters
+##### JSON Parameter Defintion:
 
 | name                | type                                                                   | description                                                                                                                     |
 | ------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
