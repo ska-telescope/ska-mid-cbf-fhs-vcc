@@ -1,0 +1,58 @@
+@startuml VCC-Control
+participant "MCS" as mcs
+participant "VCC Controller" as controller
+participant "WIB" as wib
+participant "Wide-band Shifter" as shifter
+participant "Band123Channelizer" as channelizer
+participant "Band45Channelizer" as channelizer45
+participant "FS Selection" as cs
+
+mcs -> controller : ConfigureBand()
+activate controller #LightSeaGreen
+controller -> channelizer : Set gain values
+activate channelizer #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> controller : Set state ON
+return #LimeGreen (RespCode.OK, details)
+
+mcs -> controller : ConfigureScan()
+activate controller #LightSeaGreen
+controller -> controller : State set to CONFIGURING
+controller -> wib : Set RecieveEnable=true, StreamRate, \n PacketRate and the NoiseDiodeTransitionHoldoffCount
+activate wib #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> shifter : Set the FrequencyShift
+activate shifter #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> channelizer : Set the FrameCount
+activate channelizer #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> cs : Set the InputSelect
+activate cs #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> wib : Verify Configuration
+activate wib #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller ->  controller : Set state to READY
+return #LimeGreen (RespCode.OK, details)
+
+mcs -> controller : Scan()
+activate controller #LightSeaGreen
+controller -> controller : Set the state to SCANNING
+return #LimeGreen (RespCode.OK, details)
+
+mcs -> controller : EndScan()
+activate controller #LightSeaGreen
+controller -> controller : Set the state to READY
+return #LimeGreen (RespCode.OK, details)
+
+
+mcs -> controller : Unconfigure()
+activate controller #LightSeaGreen
+controller -> controller : Reset attributes to defaults
+controller -> wib : Set RecieveEnable = false
+activate wib #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> controller : Set the state to IDLE
+return #LimeGreen (RespCode.OK, details)
+@enduml
