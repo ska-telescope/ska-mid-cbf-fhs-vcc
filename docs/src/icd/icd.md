@@ -2,7 +2,7 @@
 ### Design decisions:
 1. On the new Agilex architecture switching frequency bands for a VCC can be done without reimaging the device, the previous design had a top level device controller and a device per band, with it now being easier to switch bands that design can be simplified to have one top level device per VCC. Thus for this ICD the functionality between what was previously the DS-VCC-Controller and the DSVccBand1and2 has been merged. The main function merger was  between the `ConfigureBand()` and the `SetInternalParameters()` functions, both of which were called in close sequence by the control software but, were previously on different devices servers. The attributes for both are now shared.
 2. Also the need for a VCC base class has also been reduced at the top level therefore the attributes are merged into the one core class.
-3. I decided not to merge the functionality between the `Unconfigure()` commands in the the Controller and the band device because that would mean setting the device state to `IDLE` and then immediately setting it to `DISABLE`. Therefore, the control software will have to additionally call disable if it wants to disable the VCC device in future.
+3. I decided not to merge the functionality between the `Unconfigure()` commands in the the Controller and the band device because that would mean setting the device state to `IDLE` and then immediately setting it to `DISABLE`. Calling `Unconfigure()` will set the state to IDLE and if the VCC needs to be disabled an additional call to `Disable()` will be required.
 #### Scenario Diagram:
 ![alt text](/docs/src/diagrams/VCC-scenario-diagram.png "Title")
 #### Questions:
