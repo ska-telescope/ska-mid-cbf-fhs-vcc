@@ -59,6 +59,9 @@ PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010
 PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010
 
 POETRY_PYTHON_RUNNER = poetry run python3.12 -m
+
+PYTHON_LINT_TARGET = ./src/
+
 #
 # include makefile to pick up the standard Make targets, e.g., 'make build'
 # build, 'make push' docker push procedure, etc. The other Make targets
@@ -87,6 +90,9 @@ lint:
 
 
 .PHONY: all test lint
+
+fix-python-imports:
+	$(POETRY_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)
 
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
 

@@ -5,5 +5,8 @@ dependencies:
 - name: ska-tango-base
   repository: https://artefact.skao.int/repository/helm-internal
   version: 0.4.9
-digest: sha256:e84ae58e1a19b2720e9bd4b229e1fb5eec076e64a96dead4d75962e7a88ea4aa
-generated: "2024-06-19T15:32:43.724078318-03:00"
+- name: ska-mid-cbf-fhs-vcc
+  repository: file://../ska-mid-cbf-fhs-vcc
+  version: 0.0.1
+digest: sha256:a8a7ca46bdd3a188aceed8a1d774a544ef8b436f99ca8d16301268fb6ea425ea
+generated: "2024-06-24T13:05:28.337059371-03:00"
