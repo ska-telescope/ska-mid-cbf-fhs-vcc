@@ -6,26 +6,27 @@ from ska_mid_cbf_fhs_vcc.mac.common.mac_component_manager_base import MacStatus,
 class MacEmulatorApi(FhsBaseApiInterface):
     
     # TODO have a way to dynamically grab the emulator host / port values from the emulator config file
-    def __init__(self, instance_name: str, hostName: str = "localhost", port: str = "8000") -> None:
-        self.address = f"{hostName}:{port}"
+    def __init__(self, instance_name: str, hostName: str = "localhost", port: str = "5001") -> None:
         self._instance_name = instance_name
+        self.base_url = f"{hostName}:{port}/{instance_name}"
+
         
     def recover(self) -> None:
-        return super().recover()
+        response = requests.post(f'{self.base_url}/recover')
     
-    def configure(self, config: MacConfig) -> None:
-        return super().configure(config)
+    def configure(self, config: str) -> None:
+        response = requests.post(f'{self.base_url}/configure', json=config)
     
     def start(self) -> int:
-        return 0
+        response = requests.get(f'{self.base_url}/start')
     
     def stop(self, force: bool = False) -> int:
-        return 0
+        response = requests.get(f'{self.base_url}/stop')
     
-    def deconfigure(self, config) -> None:
-        return super().deconfigure(config)
+    def deconfigure(self, config: str) -> None:
+        response = requests.post(f'{self.base_url}/deconfigure', json=config)
     
     def status(self, status: MacStatus, clear: bool = False) -> None:
-        return super().status(status, clear)
+        response = requests.get(f'{self.base_url}/status/clear={clear}')
     
     
