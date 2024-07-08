@@ -6,7 +6,6 @@ from ska_control_model import SimulationMode
 from ska_tango_base.base.base_component_manager import BaseComponentManager
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import FastCommand, SubmittedSlowCommand
-from ska_tango_base.obs.obs_device import SKAObsDevice
 from tango.server import attribute, command, device_property
 
 from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
@@ -14,7 +13,7 @@ from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
 
 
 
-class MacBase(FhsBaseDevice, SKAObsDevice):
+class MacBase(FhsBaseDevice):
     
     # -----------------
     # Device Properties
@@ -36,7 +35,7 @@ class MacBase(FhsBaseDevice, SKAObsDevice):
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
             health_state_callback=self._update_health_state,
-            communication_state_callback=self._communication_state_changed,
+            #communication_state_callback=self._communication_state_changed,
             obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
         )
@@ -57,7 +56,7 @@ class MacBase(FhsBaseDevice, SKAObsDevice):
         return [[result_code_message], [command_id]]
     
     @command(
-        dtype_in="DevString"
+        dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
         doc_in="Configuration json.",
     )
@@ -82,7 +81,7 @@ class MacBase(FhsBaseDevice, SKAObsDevice):
         pass
     
     @command(
-        dtype_in="DevString"
+        dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
         doc_in="Configuration json.",
     )
@@ -93,7 +92,7 @@ class MacBase(FhsBaseDevice, SKAObsDevice):
         return [[result_code_message], [command_id]]
     
     @command(
-        dtype_in="DevString"
+        dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
         doc_in="Mac configuration.",
     )

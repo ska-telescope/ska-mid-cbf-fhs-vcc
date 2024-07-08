@@ -1,6 +1,7 @@
 from __future__ import annotations  # allow forward references in type hints
 
 from dataclasses import dataclass
+import functools
 from typing import Any
 
 import numpy as np
@@ -11,8 +12,8 @@ from threading import Event, Lock
 from typing import Any, Callable, Optional, cast
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManageBase
-import tango
 from ska_control_model import (
+    ObsState,
     ResultCode,
     TaskStatus
 )
@@ -71,7 +72,6 @@ class MacComponentManagerBase(FhsComponentManageBase):
     def __init__(
         self: MacComponentManagerBase, 
         *args: Any, 
-        obs_command_running_callback: Callable[[str, bool], None],
         mac_id: str,
         packet_validation_fqdn: str,
         mac_status: mac_status,
@@ -79,14 +79,12 @@ class MacComponentManagerBase(FhsComponentManageBase):
         **kwargs: Any
     ) -> None:
         
-
-        
         self._mac_id = mac_id
         self._packet_validation_fqdn = packet_validation_fqdn
         self.mac_status = mac_status
         self.mac_config = mac_config
         
-        self._mac_api = MacApi(mac_id)
+        self._mac_api = MacApi(mac_id)  #TODO add way to get host / port info
         super().__init__(*args, **kwargs)
         
     ###
@@ -128,7 +126,7 @@ class MacComponentManagerBase(FhsComponentManageBase):
     ) -> tuple[TaskStatus, str]:
         self.logger.debug(f"Component state: {self.component_state}")
         return self.submit_task(
-            self._configure,
+            self._recover,
             args=[argin],
             is_cmd_allowed=self.is_recover_allowed,
             task_callback=task_callback
@@ -141,9 +139,13 @@ class MacComponentManagerBase(FhsComponentManageBase):
     ) -> tuple[TaskStatus, str]:
         self.logger.debug(f"Component state: {self.component_state}")
         return self.submit_task(
-            self._configure,
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="configure",
+                command_thread=self._configure,
+            ),
             args=[argin, False],
-            is_cmd_allowed=self.is_configure_band_allowed,
+            is_cmd_allowed=self.is_configure_allowed,
             task_callback=task_callback
         )
         
@@ -153,7 +155,11 @@ class MacComponentManagerBase(FhsComponentManageBase):
     ) -> tuple[TaskStatus, str]:
         self.logger.debug(f"Component state: {self.communication_state}")
         return self.submit_task(
-            self._start,
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="starting",
+                command_thread=self._start,
+            ),
             is_cmd_allowed = self.is_start_allowed,
             task_callback=task_callback
         )
@@ -165,7 +171,11 @@ class MacComponentManagerBase(FhsComponentManageBase):
     ) -> tuple[TaskStatus, str]:
         self.logger.debug(f"Component state: {self.communication_state}")
         return self.submit_task(
-            self._stop,
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="stopping",
+                command_thread=self._stop,
+            ),
             is_cmd_allowed = self.is_stop_allowed,
             task_callback=task_callback
         )
@@ -177,7 +187,11 @@ class MacComponentManagerBase(FhsComponentManageBase):
     ) -> tuple[TaskStatus, str]:
         self.logger.debug(f"Component state: {self.component_state}")
         return self.submit_task(
-            self._configure,
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="deconfigure",
+                command_thread=self._configure,
+            ),
             args=[argin, True],
             is_cmd_allowed=self.is_deconfigure_allowed,
             task_callback=task_callback
@@ -234,7 +248,7 @@ class MacComponentManagerBase(FhsComponentManageBase):
         taskStatus = TaskStatus.FAILED
 
         task_callback(status=TaskStatus.IN_PROGRESS)
-
+        
         try:
             #TODO add schema validation
             configuration = MacConfig(argin)
@@ -244,9 +258,6 @@ class MacComponentManagerBase(FhsComponentManageBase):
             else:
                 self._mac_api.deconfigure(configuration)
                 resultCode = (ResultCode.OK, "Deconfigure Mac completed OK")
-
-            # Update the components configured state to true
-            self._update_component_state(configured = not deconfigure)
             
             # set the result code and status to OK / Completed on successful configuration
             taskStatus = TaskStatus.COMPLETED

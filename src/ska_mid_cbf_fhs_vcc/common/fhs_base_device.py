@@ -2,145 +2,37 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import enum
 from typing import Any, Callable, Optional, cast
 
 import numpy as np
 import tango
-from ska_control_model import SimulationMode
+from ska_control_model import ObsState, SimulationMode
 from ska_tango_base.base.base_component_manager import BaseComponentManager
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import FastCommand, SubmittedSlowCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
 from tango.server import attribute, command, device_property
 from transitions import Machine
+from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
 
-
-class CbfSubElementObsStateMachine(Machine):
-    """
-    The observation state machine used by a generic FHS base class sub-element ObsDevice.
-
-    NOTE: entirely taken from ska-mid-cbd-mcs which in turn was taken from ska-csp-lmc-base CspSubElementObsStateMachine,
-    to decouple FSH-VCC from their ska-tango-base version dependency
-
-    """
-
-    def __init__(
-        self, callback: Optional[Callable] = None, **extra_kwargs: Any
-    ) -> None:
-        """
-        Initialise the model.
-
-        :param callback: A callback to be called when the state changes
-        :param extra_kwargs: Additional keywords arguments to pass to super class
-            initialiser (useful for graphing)
-        """
-        self._callback = callback
-
-        states = [
-            "IDLE",
-            "CONFIGURING",  # device CONFIGURING but component is unconfigured
-            "DECONFIGURING",  # device CONFIGURING but component is unconfigured
-            "STARTING",
-            "ACCEPTING_DATA",
-            "STOPPING",
-            "RESETTING",
-            "RESET",
-            "FAULT",
-        ]
-        transitions = [
-            {
-                "source": "*",
-                "trigger": "component_obsfault",
-                "dest": "FAULT",
-            },
-            {
-                "source": "IDLE",
-                "trigger": "configure_invoked",
-                "dest": "CONFIGURING",
-            },                
-            {
-                "source": "IDLE",
-                "trigger": "unconfigure_invoked",
-                "dest": "UNCONFIGURING",
-            },
-            {
-                "source": "CONFIGURING",
-                "trigger": "configure_completed",
-                "dest": "IDLE",
-            },
-            {
-                "source": "UNCONFIGURING",
-                "trigger": "unconfigure_completed",
-                "dest": "IDLE",
-            },
-            {
-                "source": "IDLE",
-                "trigger": "starting_invoked",
-                "dest": "STARTING",
-            },
-            {
-                "source": "STARTING",
-                "trigger": "starting_invoked",
-                "dest": "ACCEPTING_DATA",
-            },
-            {
-                "source": "ACCEPTING_DATA",
-                "trigger": "stopping_invoked",
-                "dest": "STOPPING",
-            },
-            {
-                "source": "STOPPING",
-                "trigger": "stopping_invoked",
-                "dest": "IDLE",
-            }
-        ]
-        super().__init__(
-            states=states,
-            initial="IDLE",
-            transitions=transitions,
-            after_state_change=self._state_changed,
-            **extra_kwargs,
-        )
-        self._state_changed()
-
-    def _state_changed(self) -> None:
-        """
-        State machine callback that is called every time the obs_state changes.
-
-        Responsible for ensuring that callbacks are called.
-        """
-        if self._callback is not None:
-            self._callback(self.state)
 
 class FhsBaseDevice(ABC, SKAObsDevice):
     
     PacketValidationFqdn = device_property(dtype="str")
 
-    
-    # @abstractmethod
-    # def recover(self) -> None:
-    #     pass
-    
-    # @abstractmethod
-    # def configure(self, config) -> None:
-    #     pass
-    
-    # @abstractmethod
-    # def start(self) -> int:
-    #     pass
-    
-    # @abstractmethod
-    # def stop(self) -> int:
-    #     pass
-    
-    # @abstractmethod
-    # def deconfigure(self, config) -> None:
-    #     pass
-    
-    # @abstractmethod
-    # def status(self, clear: bool, status) -> None:
-    #     pass
-    
+    def _init_state_model(self: FhsBaseDevice) -> None:
+        """Set up the state model for the device."""
+        super()._init_state_model()
+
+        # supplying the reduced observing state machine defined above
+        self.obs_state_model = FhsObsStateModel(
+            logger=self.logger,
+            callback=self._update_obs_state,
+            state_machine_factory=FhsObsStateMachine,
+        )
+        
+
     def init_command_objects(self: FhsBaseDevice) -> None:
         """Set up the command objects."""
         super().init_command_objects()
@@ -163,6 +55,52 @@ class FhsBaseDevice(ABC, SKAObsDevice):
                     logger=self.logger,
                 ),
             )
+
+    def _obs_command_running(
+        self: FhsBaseDevice, hook: str, running: bool
+    ) -> None:
+        """
+        Callback provided to component manager to drive the obs state model into
+        transitioning states during the relevant command's submitted thread.
+
+        :param hook: the observing command-specific hook
+        :param running: True when thread begins, False when thread completes
+        """
+        action = "invoked" if running else "completed"
+        self.obs_state_model.perform_action(f"{hook}_{action}")
+
+    
+    def _component_state_changed(
+        self: FhsBaseDevice,
+        fault: Optional[bool] = None,
+        configured: Optional[bool] = None
+    ) -> None:
+
+        if fault is not None:
+            if fault:
+                self.obs_state_model.perform_action("component_obsfault")
+            # NOTE: to recover from obsfault, ObsReset or Restart must be invoked
+            
+            
+    def _update_obs_state(self: FhsBaseDevice, obs_state: ObsState) -> None:
+        """
+        Perform Tango operations in response to a change in obsState.
+
+        This helper method is passed to the observation state model as a
+        callback, so that the model can trigger actions in the Tango
+        device.
+
+        Overridden here to supply new ObsState value to component manager property
+
+        :param obs_state: the new obs_state value
+        """
+        self.logger.debug(f"ObsState updating to {ObsState(obs_state).name}")
+        super()._update_obs_state(obs_state=obs_state)
+        
+        # set the obstate in the component_manager
+        if hasattr(self, "component_manager"):
+            self.component_manager.obs_state = obs_state
+
             
 # ----------
 # Run server
