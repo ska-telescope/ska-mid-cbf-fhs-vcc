@@ -4,6 +4,10 @@ ENV local_cert_path="/certs"
 ENV img_cert_folder="own-certificates"
 ENV primary_cert_name="MDA-cert-bundle"
 
+# Set the timezone to avoid geolocation setting
+ENV TZ=Etc/GMT
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 #copy over pip file to allow python extension downloads
 COPY /pip.conf /etc/pip.conf
 
@@ -41,7 +45,20 @@ RUN update-ca-certificates
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
-RUN apt-get update && apt-get install -y build-essential
+RUN apt-get update && apt-get install -y build-essential curl software-properties-common git vim
+
+# # ############################################
+# # # Python 3.12
+# # ############################################
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get update && apt install python3.12 python3.12-dev python3.12-distutils python3.12-venv -y && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 
+
+RUN python3.12 -m ensurepip --upgrade && \
+    python3.12 -m pip install --upgrade pip && \
+    python3.12 -m pip install --upgrade setuptools && \
+    python3.12 -m pip install certifi
 
 # # # ############################################
 # # # # Poetry - update to use latest version 
@@ -51,3 +68,16 @@ RUN rm -f /usr/local/bin/poetry
 RUN ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
 
 RUN poetry config virtualenvs.create false
+
+WORKDIR /opt
+
+# Get boogie and rm the last line of the __init__.py in the ../sardara/widgets folder as it causes the program to crash when it runs looking for a custom module that doesn't exist
+RUN git clone https://gitlab.com/nurbldoff/boogie.git && sed -i '$ d' /opt/boogie/boogie/plugins/sardana/widgets/__init__.py
+
+WORKDIR /opt/boogie
+
+RUN pip install .
+
+WORKDIR /opt
+
+ENV TANGO_HOST=127.0.0.1:10000

@@ -1,7 +1,7 @@
 from __future__ import annotations  # allow forward references in type hints
 
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 from ska_control_model import HealthState
 from ska_tango_base.executor.executor_component_manager import (
     TaskExecutorComponentManager,
@@ -11,15 +11,12 @@ from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import ObsState
 class FhsComponentManageBase(TaskExecutorComponentManager):
     def __init__(self: TaskExecutorComponentManager, 
                 *args: Any, 
-                name: str,
                 attr_change_callback: Callable[[str, Any], None] | None = None,
                 attr_archive_callback: Callable[[str, Any], None] | None = None,
                 health_state_callback: Callable[[HealthState], None] | None = None,
                 obs_command_running_callback: Callable[[str, bool], None],
                 max_queue_size: int = 32, 
                 **kwargs: Any) -> None:
-        
-        self._name = name
 
         self._component_state = {
             "starting": None,

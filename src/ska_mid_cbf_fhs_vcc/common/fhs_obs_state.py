@@ -8,7 +8,6 @@
 # See LICENSE.txt for more info.
 """This module defines an enumerated type for observing state."""
 
-import enum
 import logging
 from typing import Any, Callable, Final, Optional
 

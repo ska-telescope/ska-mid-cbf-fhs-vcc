@@ -6,20 +6,15 @@ from typing import Any
 
 import numpy as np
 
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
-from threading import Event, Lock
-from typing import Any, Callable, Optional, cast
+from typing import Any, Callable, Optional
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManageBase
 from ska_control_model import (
-    ObsState,
     ResultCode,
     TaskStatus
 )
 
-from ska_tango_testing import context
-from ska_mid_cbf_fhs_vcc.mac.common.mac_base_device import mac_status, mac_config
+
 from ska_mid_cbf_fhs_vcc.api.mac_api_wrapper import MacApi
 
 @dataclass
@@ -73,18 +68,14 @@ class MacComponentManagerBase(FhsComponentManageBase):
         self: MacComponentManagerBase, 
         *args: Any, 
         mac_id: str,
-        packet_validation_fqdn: str,
-        mac_status: mac_status,
-        mac_config: mac_config,
         **kwargs: Any
     ) -> None:
         
         self._mac_id = mac_id
-        self._packet_validation_fqdn = packet_validation_fqdn
-        self.mac_status = mac_status
-        self.mac_config = mac_config
         
-        self._mac_api = MacApi(mac_id)  #TODO add way to get host / port info
+        #TODO add way to get host / port info
+        self._mac_api = MacApi(instance_name=mac_id)  
+        
         super().__init__(*args, **kwargs)
         
     ###
@@ -281,6 +272,7 @@ class MacComponentManagerBase(FhsComponentManageBase):
         
         try:
             self._mac_api.start()
+            resultCode = (ResultCode.OK, "Start Mac completed OK")
         except Exception as ex:
             resultCode = (ResultCode.FAILED, f"Unable to start mac: {str(ex)}")
             self._push_component_state_update(fault=True)
@@ -302,6 +294,7 @@ class MacComponentManagerBase(FhsComponentManageBase):
         
         try:
             self._mac_api.stop(force)
+            resultCode = (ResultCode.OK, "Stop Mac completed OK")
         except Exception as ex:
             resultCode = (ResultCode.FAILED, f"Unable to stop mac: {str(ex)}")
             self._push_component_state_update(fault=True)
@@ -314,7 +307,6 @@ class MacComponentManagerBase(FhsComponentManageBase):
     
     def _status(
         self: MacComponentManagerBase,
-        argin: str,
         clear: bool = False,
         task_callback: Optional[Callable] = None,
     ) -> None:
@@ -323,10 +315,12 @@ class MacComponentManagerBase(FhsComponentManageBase):
         taskStatus = TaskStatus.FAILED
         
         try:
-            status = MacStatus(argin)
-            self._mac_api.status(status, clear)
+            status = MacStatus()
+            resultStr = self._mac_api.status(status, clear)
+            resultCode = (ResultCode.OK, f"Start Mac completed OK\nStatus : \n{resultStr}")
+
         except Exception as ex:
-            resultCode = (ResultCode.FAILED, f"Unable to stop mac: {str(ex)}")
+            resultCode = (ResultCode.FAILED, f"Unable to get status fo mac: {str(ex)}")
             self._push_component_state_update(fault=True)
         
         task_callback(

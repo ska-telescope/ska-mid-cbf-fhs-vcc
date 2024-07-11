@@ -3,10 +3,8 @@ from __future__ import annotations
 from ska_mid_cbf_fhs_vcc.mac.common.mac_component_manager_base import MacComponentManagerBase
 import tango
 from ska_control_model import SimulationMode
-from ska_tango_base.base.base_component_manager import BaseComponentManager
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
-from ska_tango_base.commands import FastCommand, SubmittedSlowCommand
-from tango.server import attribute, command, device_property
+from tango.server import command
 
 from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
 
@@ -15,22 +13,15 @@ from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
 
 class MacBase(FhsBaseDevice):
     
-    # -----------------
-    # Device Properties
-    # -----------------
-    ds_id = device_property(dtype="str")
-    ds_version_num = device_property(dtype="str")
-    ds_gitlab_hash = device_property(dtype="str")
-    
-    
-    
 
+    
     
     def create_component_manager(self: MacBase) -> MacComponentManagerBase:
         # NOTE: using component manager default of SimulationMode.TRUE,
         # as self._simulation_mode at this point during init_device()
         # SimulationMode.FALSE
         return MacComponentManagerBase(
+            mac_id=self.device_id,
             logger=self.logger,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
@@ -97,5 +88,35 @@ class MacBase(FhsBaseDevice):
         doc_in="Mac configuration.",
     )
     @tango.DebugIt()
-    def status(self: MacBase, status: str, clear: bool) -> DevVarLongStringArrayType:
-        pass
+    def status(self: MacBase, clear: bool) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="Status")
+        result_code_message, command_id = command_handler(clear)
+        return [[result_code_message], [command_id]]
+    
+    class InitCommand(FhsBaseDevice.InitCommand):
+        """
+        A class for the Vcc's init_device() "command".
+        """
+
+        def do(
+            self: MacBase.InitCommand,
+            *args: any,
+            **kwargs: any,
+        ) -> DevVarLongStringArrayType:
+            """
+            Stateless hook for device initialisation.
+
+            :return: A tuple containing a return code and a string
+                message indicating status. The message is for
+                information purpose only.
+            :rtype: (ResultCode, str)
+            """
+            (result_code, msg) = super().do(*args, **kwargs)
+
+            return (result_code, msg)
+        
+def main(args=None, **kwargs):
+    return MacBase.run_server(args=args or None, **kwargs)
+
+if __name__ == "__main__":
+    main()

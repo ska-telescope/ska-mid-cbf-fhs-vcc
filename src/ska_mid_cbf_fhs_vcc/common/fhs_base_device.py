@@ -1,26 +1,58 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-import enum
-from typing import Any, Callable, Optional, cast
+from typing import Any, Optional, cast
 
 import numpy as np
-import tango
-from ska_control_model import ObsState, SimulationMode
-from ska_tango_base.base.base_component_manager import BaseComponentManager
+from ska_control_model import ObsState, ResultCode
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
-from ska_tango_base.commands import FastCommand, SubmittedSlowCommand
+from ska_tango_base.commands import SubmittedSlowCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
 from tango.server import attribute, command, device_property
-from transitions import Machine
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
 
 
-class FhsBaseDevice(ABC, SKAObsDevice):
+class FhsBaseDevice(SKAObsDevice):
     
-    PacketValidationFqdn = device_property(dtype="str")
+    # -----------------
+    # Device Properties
+    # -----------------
+    device_id = device_property(dtype="str")
+    device_version_num = device_property(dtype="str")
+    device_gitlab_hash = device_property(dtype="str")
+   
+    @attribute(  # type: ignore[misc]  # "Untyped decorator makes function untyped"
+        dtype="str", doc="The observing device ID."
+    )
+    def device_id(self: FhsBaseDevice) -> int:
+        """
+        Read the device's ID.
 
+        :return: the current device_id value
+        """
+        return self.device_id
+    
+    @attribute(  # type: ignore[misc]  # "Untyped decorator makes function untyped"
+        dtype="str", doc="The observing device version number."
+    )
+    def device_version_num(self: FhsBaseDevice) -> int:
+        """
+        Read the device's ID.
+
+        :return: the current device_version_num value
+        """
+        return self.device_version_num 
+
+    @attribute(  # type: ignore[misc]  # "Untyped decorator makes function untyped"
+        dtype="str", doc="The observing device githash from repo."
+    )
+    def device_gitlab_hash(self: FhsBaseDevice) -> int:
+        """
+        Read the device's ID.
+
+        :return: the current device_gitlab_hash value
+        """
+        return self.device_gitlab_hash 
+    
     def _init_state_model(self: FhsBaseDevice) -> None:
         """Set up the state model for the device."""
         super()._init_state_model()
@@ -100,6 +132,33 @@ class FhsBaseDevice(ABC, SKAObsDevice):
         # set the obstate in the component_manager
         if hasattr(self, "component_manager"):
             self.component_manager.obs_state = obs_state
+
+    class InitCommand(SKAObsDevice.InitCommand):
+        # pylint: disable=protected-access  # command classes are friend classes
+        """A class for the CbfObsDevice's init_device() "command"."""
+
+        def do(
+            self: FhsBaseDevice.InitCommand,
+            *args: Any,
+            **kwargs: Any,
+        ) -> tuple[ResultCode, str]:
+            """
+            Stateless hook for device initialisation.
+
+            :param args: positional arguments to this do method
+            :param kwargs: keyword arguments to this do method
+
+            :return: A tuple containing a return code and a string
+                message indicating status. The message is for
+                information purpose only.
+            """
+            (result_code, msg) = super().do(*args, **kwargs)
+
+
+            self._device._obs_state = ObsState.IDLE
+            self._device._commanded_obs_state = ObsState.IDLE
+
+            return (result_code, msg)
 
             
 # ----------

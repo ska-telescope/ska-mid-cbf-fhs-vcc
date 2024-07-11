@@ -42,5 +42,5 @@ class FhsBaseApiInterface(ABC):
         raise NotImplementedError('Method is abstract')
 
     @abstractmethod
-    def status(self, status, clear: bool = False) -> None:
+    def status(self, status, clear: bool = False) -> str:
         raise NotImplementedError('Method is abstract')

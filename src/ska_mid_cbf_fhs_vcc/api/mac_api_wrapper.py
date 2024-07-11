@@ -19,4 +19,7 @@ class MacApi(FhsBaseApiInterface):
         return self._mac_api.stop(force)
     
     def deconfigure(self, config) -> None:
-        return super().deconfigure(config)
+        return self._mac_api().deconfigure(config)
+    
+    def status(self, status, clear: bool = False) -> str:
+        raise self._mac_api.status(status, clear);

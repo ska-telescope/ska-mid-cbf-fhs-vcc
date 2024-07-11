@@ -1,7 +1,6 @@
 import requests
 
 from ska_mid_cbf_fhs_vcc.api.common.interfaces.fhs_base_api_interface import FhsBaseApiInterface
-from ska_mid_cbf_fhs_vcc.mac.common.mac_component_manager_base import MacStatus, MacConfig
 
 class MacEmulatorApi(FhsBaseApiInterface):
     
@@ -25,8 +24,10 @@ class MacEmulatorApi(FhsBaseApiInterface):
     
     def deconfigure(self, config: str) -> None:
         response = requests.post(f'{self.base_url}/deconfigure', json=config)
+        
     
-    def status(self, status: MacStatus, clear: bool = False) -> None:
-        response = requests.get(f'{self.base_url}/status/clear={clear}')
+    def status(self, status, clear: bool = False) -> str:
+        response = requests.get(f'{self.base_url}/status/clear={clear}')    
+        return response.json
     
     
