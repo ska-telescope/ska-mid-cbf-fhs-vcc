@@ -21,12 +21,3 @@ ska-tango-base:
     enabled: false
   tangodb:
     use_pv: false
-
-ska-taranta:
-  enabled: false
-
-ska-taranta-auth:
-  enabled: false
-
-ska-dashboard-repo:
-  enabled: false

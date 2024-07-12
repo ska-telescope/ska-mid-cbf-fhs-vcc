@@ -14,7 +14,7 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-Mac200='ska_mid_cbf_fhs_vcc.mac.common.mac_base_device:main'
+MacBase='ska_mid_cbf_fhs_vcc.mac.common.mac_base_device:main'
 
 
 [tool.poetry.dependencies]

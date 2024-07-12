@@ -5,8 +5,14 @@ dependencies:
 - name: ska-tango-base
   repository: https://artefact.skao.int/repository/helm-internal
   version: 0.4.9
+- name: ska-taranta
+  repository: https://artefact.skao.int/repository/helm-internal
+  version: 1.0.29
+- name: ska-taranta-auth
+  repository: https://artefact.skao.int/repository/helm-internal
+  version: 0.1.5
 - name: ska-mid-cbf-fhs-vcc
   repository: file://../ska-mid-cbf-fhs-vcc
   version: 0.0.1
-digest: sha256:a8a7ca46bdd3a188aceed8a1d774a544ef8b436f99ca8d16301268fb6ea425ea
-generated: "2024-06-24T13:05:28.337059371-03:00"
+digest: sha256:3df1025c48fe3cf7b12b4e72e0364ab07772f8665ad9ca85ce04a761d59cfd84
+generated: "2024-07-11T21:01:39.932642108-03:00"

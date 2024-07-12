@@ -10,12 +10,14 @@ from typing import Any, Callable, Optional
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManageBase
 from ska_control_model import (
+    CommunicationStatus,
     ResultCode,
     TaskStatus
 )
 
 
 from ska_mid_cbf_fhs_vcc.api.mac_api_wrapper import MacApi
+import tango
 
 @dataclass
 class MacConfig:
@@ -78,37 +80,44 @@ class MacComponentManagerBase(FhsComponentManageBase):
         
         super().__init__(*args, **kwargs)
         
-    ###
-    #  Public Commands
-    ###
+    ##
+    # Public Commands
+    ##
         
     # TODO Determine what needs to be communicated with here
-    # def start_communicating(self: MacComponentManagerBase) -> None:
-    #     """Establish communication with the component, then start monitoring."""
-    #     if self._communication_state == CommunicationStatus.ESTABLISHED:
-    #         self.logger.info("Already communicating.")
-    #         return
-    #     try:
-    #         self._talon_lru_proxy = context.DeviceProxy(
-    #             # Unsure what im connecting to here? 
-    #         )
-    #     except tango.DevFailed:
-    #         self._update_communication_state(
-    #             communication_state=CommunicationStatus.NOT_ESTABLISHED
-    #         )
-    #         self.logger.error(
-    #             f"Error in Mac {self._mac_id} proxy connection"
-    #         )
-    #         return
+    def start_communicating(self: MacComponentManagerBase) -> None:
+        """Establish communication with the component, then start monitoring."""
+        if self._communication_state == CommunicationStatus.ESTABLISHED:
+            self.logger.info("Already communicating.")
+            return
+        # try:
+        #     pass
+        #     # self._talon_lru_proxy = context.DeviceProxy(
+        #     #     # Unsure what im connecting to here? 
+        #     # )
+        # except tango.DevFailed:
+        #     self._update_communication_state(
+        #         communication_state=CommunicationStatus.NOT_ESTABLISHED
+        #     )
+        #     self.logger.error(
+        #         f"Error in Mac {self._mac_id} proxy connection"
+        #     )
+        #     return
 
-    #     super().start_communicating()
-    #     self._update_component_state(power=self._get_power_state())
+        super().start_communicating()
+        # self._update_component_state(power=self._get_power_state())
         
 
 
     #####
     # Command Functions
     #####
+    
+    def test_cmd(
+        self: MacComponentManagerBase,
+        task_callback: Optional[Callable] = None
+    ) -> tuple[TaskStatus, str]:
+        return [TaskStatus.COMPLETED, 'Test Complete']
     
     def recover(
         self: MacComponentManagerBase,

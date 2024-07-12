@@ -1,8 +1,8 @@
-name: mac200
+name: macbase
 function: media-interface
 domain: sensing
-command: "Mac200"
-instances: ["mac200"]
+command: "MacBase"
+instances: ["macbase"]
 depends_on:
   - device: sys/database/2
 readinessProbe:
@@ -20,11 +20,11 @@ livenessProbe:
 server:
   name: "MacBase"
   instances:
-  - name: "mac200"
+  - name: "macbase"
     classes:
     - name: "MacBase"
       devices:
-      - name: "fhs-01/mac200/001"
+      - name: "fhs-01/macbase/001"
         properties:
           - name: "device_id"
             values:

@@ -23,7 +23,7 @@ class FhsBaseDevice(SKAObsDevice):
     @attribute(  # type: ignore[misc]  # "Untyped decorator makes function untyped"
         dtype="str", doc="The observing device ID."
     )
-    def device_id(self: FhsBaseDevice) -> int:
+    def device_id(self: FhsBaseDevice) -> str:
         """
         Read the device's ID.
 
@@ -34,7 +34,7 @@ class FhsBaseDevice(SKAObsDevice):
     @attribute(  # type: ignore[misc]  # "Untyped decorator makes function untyped"
         dtype="str", doc="The observing device version number."
     )
-    def device_version_num(self: FhsBaseDevice) -> int:
+    def device_version_num(self: FhsBaseDevice) -> str:
         """
         Read the device's ID.
 
@@ -45,7 +45,7 @@ class FhsBaseDevice(SKAObsDevice):
     @attribute(  # type: ignore[misc]  # "Untyped decorator makes function untyped"
         dtype="str", doc="The observing device githash from repo."
     )
-    def device_gitlab_hash(self: FhsBaseDevice) -> int:
+    def device_gitlab_hash(self: FhsBaseDevice) -> str:
         """
         Read the device's ID.
 
@@ -65,28 +65,28 @@ class FhsBaseDevice(SKAObsDevice):
         )
         
 
-    def init_command_objects(self: FhsBaseDevice) -> None:
-        """Set up the command objects."""
-        super().init_command_objects()
+    # def init_command_objects(self: FhsBaseDevice) -> None:
+    #     """Set up the command objects."""
+    #     super().init_command_objects()
 
-        for command_name, method_name in [
-            ("Recover", "recover"),
-            ("Configure", "configure"),
-            ("Start", "start"),
-            ("Stop", "stop"),
-            ("Deconfigure", "configure"),
-            ("Status", "status"),
-        ]:
-            self.register_command_object(
-                command_name,
-                SubmittedSlowCommand(
-                    command_name=command_name,
-                    command_tracker=self._command_tracker,
-                    component_manager=self.component_manager,
-                    method_name=method_name,
-                    logger=self.logger,
-                ),
-            )
+    #     for command_name, method_name in [
+    #         ("Recover", "recover"),
+    #         ("Configure", "configure"),
+    #         ("Start", "start"),
+    #         ("Stop", "stop"),
+    #         ("Deconfigure", "configure"),
+    #         ("Status", "status"),
+    #     ]:
+    #         self.register_command_object(
+    #             command_name,
+    #             SubmittedSlowCommand(
+    #                 command_name=command_name,
+    #                 command_tracker=self._command_tracker,
+    #                 component_manager=self.component_manager,
+    #                 method_name=method_name,
+    #                 logger=self.logger,
+    #             ),
+    #         )
 
     def _obs_command_running(
         self: FhsBaseDevice, hook: str, running: bool

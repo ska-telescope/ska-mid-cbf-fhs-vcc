@@ -46,9 +46,9 @@ resources:
     ephemeral-storage: 256Mi
 
 deviceServers:
-  mac200:
+  macbase:
     enabled: true
-    file: "data/mac200.yaml"
+    file: "data/macbase.yaml"
     
 nodeSelector: {}
 
