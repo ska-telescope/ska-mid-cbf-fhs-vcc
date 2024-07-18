@@ -8,6 +8,7 @@
 # See LICENSE.txt for more info.
 """This module defines an enumerated type for observing state."""
 
+import enum
 import logging
 from typing import Any, Callable, Final, Optional
 
@@ -17,29 +18,6 @@ from transitions.extensions import LockedMachine as Machine
 from ska_control_model.faults import StateModelError
 from ska_control_model.utils import for_testing_only
 
-
-# class ObsState(enum.IntEnum):
-#     """Python enumerated type for observing state."""
-
-#     IDLE = 0
-
-#     CONFIGURING = 1
-
-#     DECONFIGURING = 2
-
-#     STARTING = 3
-
-#     RUNNING = 4
-
-#     STOPPING = 5
-
-#     RESETTING = 6
-
-#     RESET = 7
-
-#     RESETTING = 8
-
-#     FAULT = 9
 
 class FhsObsStateMachine(Machine):
     """
@@ -70,7 +48,6 @@ class FhsObsStateMachine(Machine):
             "RUNNING",
             "STOPPING",
             "RESETTING",
-            "RESET",
             "FAULT",
         ]
         transitions = [
@@ -120,12 +97,12 @@ class FhsObsStateMachine(Machine):
                 "dest": "IDLE",
             },
             {
-                "source": "FAULT",
-                "trigger": "reset_completed",
-                "dest": "RESET",
+                "source": ["FAULT", "RUNNING", "IDLE"],
+                "trigger": "reset_invoked",
+                "dest": "RESETTING",
             },
             {
-                "source": "RESET",
+                "source": ["FAULT", "RUNNING", "IDLE", "RESETTING"],
                 "trigger": "reset_completed",
                 "dest": "IDLE",
             },
@@ -185,10 +162,9 @@ class FhsObsStateModel:
             "CONFIGURING": ObsState.CONFIGURING,  
             "DECONFIGURING": ObsState.CONFIGURING, 
             "STARTING": ObsState.READY,
-            "RUNNING": ObsState.READY,
+            "RUNNING": ObsState.SCANNING,
             "STOPPING": ObsState.READY,
-            "RESETTING": ObsState.CONFIGURING,
-            "RESET": ObsState.READY,
+            "RESETTING": ObsState.RESETTING,
             "FAULT": ObsState.FAULT,
     }
 

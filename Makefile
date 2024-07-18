@@ -37,7 +37,7 @@ KUBECONFIG ?= /etc/deploy/config ## KUBECONFIG location
 JIVE ?= false# Enable jive
 TARANTA ?= true# Enable Taranta
 MINIKUBE ?= true ## Minikube or not
-EXPOSE_All_DS ?= false ## Expose All Tango Services to the external network (enable Loadbalancer service)
+EXPOSE_All_DS ?= true ## Expose All Tango Services to the external network (enable Loadbalancer service)
 SKA_TANGO_OPERATOR ?= false
 ITANGO_ENABLED ?= true## ITango enabled in ska-tango-base
 
@@ -48,7 +48,7 @@ TARANTA_PARAMS = --set ska-taranta.enabled=$(TARANTA) \
 ifneq ($(MINIKUBE),)
 ifneq ($(MINIKUBE),true)
 TARANTA_PARAMS = --set ska-taranta.enabled=$(TARANTA) \
-				 --set ska-taranta-auth.enabled=false \
+				 --set ska-taranta-auth.enabled=true \
 				 --set ska-dashboard-repo.enabled=false
 endif
 endif

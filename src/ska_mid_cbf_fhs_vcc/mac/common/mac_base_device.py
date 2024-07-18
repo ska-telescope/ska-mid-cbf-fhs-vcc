@@ -2,15 +2,12 @@ from __future__ import annotations
 
 from ska_mid_cbf_fhs_vcc.mac.common.mac_component_manager_base import MacComponentManagerBase
 import tango
-from ska_control_model import SimulationMode
+from ska_control_model import ResultCode, SimulationMode
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import SubmittedSlowCommand
 from tango.server import command
 
 from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
-
-
-
 
 class MacBase(FhsBaseDevice):
     
@@ -30,6 +27,7 @@ class MacBase(FhsBaseDevice):
             communication_state_callback=self._communication_state_changed,
             obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
+            
         )
     
     def always_executed_hook(self: MacBase) -> None:
@@ -59,66 +57,68 @@ class MacBase(FhsBaseDevice):
     )
     @tango.DebugIt()
     def TestCmd(self: MacBase) -> DevVarLongStringArrayType:
-        self.logger.log('TEST CMD RUNNING')
-        command_handler = self.get_command_object(command_name="TestCmd")
-        result_code_message, command_id  = command_handler()
-        return [[result_code_message], [command_id]] 
+         return (
+            [ResultCode.OK],
+            [
+                "TEST CMD OKAY."
+            ],
+        )
     
-    # @command(
-    #     dtype_out="DevVarLongStringArray",
-    # )
-    # @tango.DebugIt()
-    # def recover(self: MacBase) -> DevVarLongStringArrayType:
-    #     command_handler = self.get_command_object(command_name="Recover")
-    #     result_code_message, command_id = command_handler()
-    #     return [[result_code_message], [command_id]]
+    @command(
+        dtype_out="DevVarLongStringArray",
+    )
+    @tango.DebugIt()
+    def recover(self: MacBase) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="Recover")
+        result_code_message, command_id = command_handler()
+        return [[result_code_message], [command_id]]
     
-    # @command(
-    #     dtype_in="DevString",
-    #     dtype_out="DevVarLongStringArray",
-    #     doc_in="Configuration json.",
-    # )
-    # @tango.DebugIt()
-    # def configure(self: MacBase, config: str) -> DevVarLongStringArrayType:
-    #     command_handler = self.get_command_object(command_name="Configure")
-    #     result_code_message, command_id = command_handler(config)
-    #     return [[result_code_message], [command_id]]
+    @command(
+        dtype_in="DevString",
+        dtype_out="DevVarLongStringArray",
+        doc_in="Configuration json.",
+    )
+    @tango.DebugIt()
+    def configure(self: MacBase, config: str) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="Configure")
+        result_code_message, command_id = command_handler(config)
+        return [[result_code_message], [command_id]]
     
-    # @command(
-    #     dtype_out="DevVarLongStringArray",
-    # )
-    # @tango.DebugIt()
-    # def start(self: MacBase) -> DevVarLongStringArrayType:
-    #     pass
+    @command(
+        dtype_out="DevVarLongStringArray",
+    )
+    @tango.DebugIt()
+    def start(self: MacBase) -> DevVarLongStringArrayType:
+        pass
     
-    # @command(
-    #     dtype_out="DevVarLongStringArray",
-    # )
-    # @tango.DebugIt()
-    # def stop(self: MacBase) -> DevVarLongStringArrayType:
-    #     pass
+    @command(
+        dtype_out="DevVarLongStringArray",
+    )
+    @tango.DebugIt()
+    def stop(self: MacBase) -> DevVarLongStringArrayType:
+        pass
     
-    # @command(
-    #     dtype_in="DevString",
-    #     dtype_out="DevVarLongStringArray",
-    #     doc_in="Configuration json.",
-    # )
-    # @tango.DebugIt()
-    # def deconfigure(self: MacBase, config: str) -> DevVarLongStringArrayType:
-    #     command_handler = self.get_command_object(command_name="Deconfigure")
-    #     result_code_message, command_id = command_handler(config)
-    #     return [[result_code_message], [command_id]]
+    @command(
+        dtype_in="DevString",
+        dtype_out="DevVarLongStringArray",
+        doc_in="Configuration json.",
+    )
+    @tango.DebugIt()
+    def deconfigure(self: MacBase, config: str) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="Deconfigure")
+        result_code_message, command_id = command_handler(config)
+        return [[result_code_message], [command_id]]
     
-    # @command(
-    #     dtype_in="DevString",
-    #     dtype_out="DevVarLongStringArray",
-    #     doc_in="Mac configuration.",
-    # )
-    # @tango.DebugIt()
-    # def status(self: MacBase, clear: bool) -> DevVarLongStringArrayType:
-    #     command_handler = self.get_command_object(command_name="Status")
-    #     result_code_message, command_id = command_handler(clear)
-    #     return [[result_code_message], [command_id]]
+    @command(
+        dtype_in="DevString",
+        dtype_out="DevVarLongStringArray",
+        doc_in="Mac configuration.",
+    )
+    @tango.DebugIt()
+    def status(self: MacBase, clear: bool) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="Status")
+        result_code_message, command_id = command_handler(clear)
+        return [[result_code_message], [command_id]]
     
     class InitCommand(FhsBaseDevice.InitCommand):
         """
@@ -139,6 +139,8 @@ class MacBase(FhsBaseDevice):
             :rtype: (ResultCode, str)
             """
             (result_code, msg) = super().do(*args, **kwargs)
+
+            self._device._simulation_mode = SimulationMode.TRUE
 
             return (result_code, msg)
         

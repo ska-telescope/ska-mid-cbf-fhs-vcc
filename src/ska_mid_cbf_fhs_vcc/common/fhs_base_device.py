@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Any, Optional, cast
 
 import numpy as np
-from ska_control_model import ObsState, ResultCode
+from ska_control_model import ObsState, ResultCode, SimulationMode
+from ska_mid_cbf_fhs_vcc.common.fhs_state import FhsState
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import SubmittedSlowCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
@@ -20,38 +21,28 @@ class FhsBaseDevice(SKAObsDevice):
     device_version_num = device_property(dtype="str")
     device_gitlab_hash = device_property(dtype="str")
    
-    @attribute(  # type: ignore[misc]  # "Untyped decorator makes function untyped"
-        dtype="str", doc="The observing device ID."
-    )
-    def device_id(self: FhsBaseDevice) -> str:
-        """
-        Read the device's ID.
-
-        :return: the current device_id value
-        """
-        return self.device_id
     
-    @attribute(  # type: ignore[misc]  # "Untyped decorator makes function untyped"
-        dtype="str", doc="The observing device version number."
-    )
-    def device_version_num(self: FhsBaseDevice) -> str:
+    @attribute(dtype=SimulationMode, memorized=True, hw_memorized=True)
+    def simulationMode(self: FhsBaseDevice) -> SimulationMode:
         """
-        Read the device's ID.
+        Read the Simulation Mode of the device.
 
-        :return: the current device_version_num value
+        :return: Simulation Mode of the device.
         """
-        return self.device_version_num 
+        return self._simulation_mode
 
-    @attribute(  # type: ignore[misc]  # "Untyped decorator makes function untyped"
-        dtype="str", doc="The observing device githash from repo."
-    )
-    def device_gitlab_hash(self: FhsBaseDevice) -> str:
-        """
-        Read the device's ID.
 
-        :return: the current device_gitlab_hash value
+    @simulationMode.write
+    def simulationMode(self: FhsBaseDevice, value: SimulationMode) -> None:
         """
-        return self.device_gitlab_hash 
+        Set the simulation mode of the device.
+
+        :param value: SimulationMode
+        """
+        self.logger.debug(f"Writing simulationMode to {value}")
+        self._simulation_mode = value
+        self.component_manager.simulation_mode = value
+    
     
     def _init_state_model(self: FhsBaseDevice) -> None:
         """Set up the state model for the device."""
@@ -76,6 +67,7 @@ class FhsBaseDevice(SKAObsDevice):
     #         ("Stop", "stop"),
     #         ("Deconfigure", "configure"),
     #         ("Status", "status"),
+    #         ("TestCmd", "test_cmd"),
     #     ]:
     #         self.register_command_object(
     #             command_name,
@@ -104,13 +96,14 @@ class FhsBaseDevice(SKAObsDevice):
     
     def _component_state_changed(
         self: FhsBaseDevice,
-        fault: Optional[bool] = None,
-        configured: Optional[bool] = None
+        fhsState: FhsState = None
     ) -> None:
 
-        if fault is not None:
-            if fault:
+            if(fhsState.FAULT):
                 self.obs_state_model.perform_action("component_obsfault")
+            
+            if(fhsState.RESETTING):
+                self.obs_state_model.perform_action("reset_completed")
             # NOTE: to recover from obsfault, ObsReset or Restart must be invoked
             
             

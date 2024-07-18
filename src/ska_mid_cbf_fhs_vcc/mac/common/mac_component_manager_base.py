@@ -11,7 +11,9 @@ from typing import Any, Callable, Optional
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManageBase
 from ska_control_model import (
     CommunicationStatus,
+    HealthState,
     ResultCode,
+    SimulationMode,
     TaskStatus
 )
 
@@ -70,13 +72,18 @@ class MacComponentManagerBase(FhsComponentManageBase):
         self: MacComponentManagerBase, 
         *args: Any, 
         mac_id: str,
+        simulation_mode: SimulationMode = SimulationMode.TRUE,
+        emulation_mode: bool = False,
         **kwargs: Any
     ) -> None:
         
         self._mac_id = mac_id
         
+        self.simulation_mode = simulation_mode
+        self.emulation_mode = emulation_mode
+        
         #TODO add way to get host / port info
-        self._mac_api = MacApi(instance_name=mac_id)  
+        self._mac_api = MacApi(instance_name=mac_id, simulation_mode=simulation_mode, emulation_mode=emulation_mode)
         
         super().__init__(*args, **kwargs)
         
@@ -215,6 +222,26 @@ class MacComponentManagerBase(FhsComponentManageBase):
     #  Private Commands
     ###
     
+    def _testCmd(        
+        self: MacComponentManagerBase,
+        task_callback: Optional[Callable] = None) -> None:
+        # Assume configure fails at the start
+        resultCode = ResultCode.FAILED
+        taskStatus = TaskStatus.FAILED
+        
+        try:
+            resultCode = (ResultCode.OK, "Configure Mac completed OK")
+            taskStatus = TaskStatus.COMPLETED
+        except Exception as ex:
+            resultCode = (ResultCode.FAILED, f"Unable to recover mac: {str(ex)}")
+            self.setFaultAndFailed()
+        
+        task_callback(
+            result = resultCode,
+            status=taskStatus,
+        )
+        return
+    
     def _recover(
         self: MacComponentManagerBase,
         argin: str,
@@ -225,11 +252,12 @@ class MacComponentManagerBase(FhsComponentManageBase):
         taskStatus = TaskStatus.FAILED
         
         try:
-            pass
+            self._component_state()
+            self._mac_api.recover()
         except Exception as ex:
             resultCode = (ResultCode.FAILED, f"Unable to recover mac: {str(ex)}")
-            self._push_component_state_update(fault=True)
-        
+            self.setFaultAndFailed()
+            
         task_callback(
             result = resultCode,
             status=taskStatus,
@@ -263,7 +291,7 @@ class MacComponentManagerBase(FhsComponentManageBase):
             taskStatus = TaskStatus.COMPLETED
         except Exception as ex:
             resultCode = (ResultCode.FAILED, f"Unable to configure mac: {str(ex)}")
-            self._push_component_state_update(fault = True)
+            self.setFaultAndFailed()
             
         task_callback(
             result = resultCode,
@@ -284,7 +312,7 @@ class MacComponentManagerBase(FhsComponentManageBase):
             resultCode = (ResultCode.OK, "Start Mac completed OK")
         except Exception as ex:
             resultCode = (ResultCode.FAILED, f"Unable to start mac: {str(ex)}")
-            self._push_component_state_update(fault=True)
+            self.setFaultAndFailed()
         
         task_callback(
             result = resultCode,
@@ -306,7 +334,7 @@ class MacComponentManagerBase(FhsComponentManageBase):
             resultCode = (ResultCode.OK, "Stop Mac completed OK")
         except Exception as ex:
             resultCode = (ResultCode.FAILED, f"Unable to stop mac: {str(ex)}")
-            self._push_component_state_update(fault=True)
+            self.setFaultAndFailed()
         
         task_callback(
             result = resultCode,
@@ -330,12 +358,10 @@ class MacComponentManagerBase(FhsComponentManageBase):
 
         except Exception as ex:
             resultCode = (ResultCode.FAILED, f"Unable to get status fo mac: {str(ex)}")
-            self._push_component_state_update(fault=True)
+            self.setFaultAndFailed()
         
         task_callback(
             result = resultCode,
             status=taskStatus,
         )
         return
-
-    
