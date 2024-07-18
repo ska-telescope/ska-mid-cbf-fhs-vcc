@@ -65,12 +65,7 @@ class FhsComponentManageBase(TaskExecutorComponentManager):
                 self._health_state = health_state
                 if self._device_health_state_callback is not None:
                     self._device_health_state_callback(health_state)
-                    
-                    
-    def _update_component_state(self: FhsComponentManageBase, fhsState: FhsState):
-        
-        self._component_state_callback(fhsState)
-                    
+                                       
                     
     def setFaultAndFailed(self: FhsComponentManageBase) -> None:
         """_summary_

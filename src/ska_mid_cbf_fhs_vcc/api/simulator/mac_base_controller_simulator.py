@@ -11,7 +11,7 @@ __all__ = ["MacBaseSimulator"]
 
 
 class MacBaseControllerSimulator(FhsBaseApiInterface):
-    def __init__(self: MacBaseControllerSimulator, device_id: str, logger: logging.Logger) -> None:
+    def __init__(self: MacBaseControllerSimulator, device_id: str) -> None:
         self.mac_id = device_id
 
         self.obs_state = ObsState.IDLE

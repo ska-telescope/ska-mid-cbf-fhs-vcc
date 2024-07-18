@@ -96,9 +96,10 @@ class FhsBaseDevice(SKAObsDevice):
     
     def _component_state_changed(
         self: FhsBaseDevice,
-        fhsState: FhsState = None
+        fhsState: Optional[FhsState] = None
     ) -> None:
 
+        if fhsState is not None:
             if(fhsState.FAULT):
                 self.obs_state_model.perform_action("component_obsfault")
             
