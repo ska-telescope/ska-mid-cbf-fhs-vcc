@@ -67,10 +67,9 @@ class FhsComponentManageBase(TaskExecutorComponentManager):
                     self._device_health_state_callback(health_state)
                     
                     
-    def _update_component_state(self: FhsComponentManageBase, obsState: ObsState):
-        callback_kwargs = {}
+    def _update_component_state(self: FhsComponentManageBase, fhsState: FhsState):
         
-        self._component_state_callback()
+        self._component_state_callback(fhsState)
                     
                     
     def setFaultAndFailed(self: FhsComponentManageBase) -> None:
@@ -79,7 +78,7 @@ class FhsComponentManageBase(TaskExecutorComponentManager):
         
         This is to be called when an exception occurs in the component manager
         """
-        self._push_component_state_update(ObsState.FAULT)
+        self._push_component_state_update(FhsState.FAULT)
         self.update_device_health_state(health_state=HealthState.FAILED)
                     
 

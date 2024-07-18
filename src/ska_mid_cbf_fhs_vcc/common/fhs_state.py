@@ -1,7 +1,6 @@
 
 import enum
 
-
 class FhsState(enum.IntEnum):
 
     IDLE = 0
@@ -21,13 +20,3 @@ class FhsState(enum.IntEnum):
     RESET = 7
 
     FAULT = 9
-    
-    fsh_action_map = {
-        CONFIGURING: "configure_invoked",
-        DECONFIGURING: "deconfigure_completed",
-        STARTING: "starting_invoked",
-        RUNNING: "starting_completed",
-        STOPPING: "stopping_invoked",
-        RESETTING: "reset_invoked",
-        FAULT: "component_obsfault"
-    }
