@@ -4,7 +4,6 @@ from __future__ import annotations  # allow forward references in type hints
 from threading import Lock
 from typing import Any, Callable, Optional, cast
 from ska_control_model import HealthState, SimulationMode
-from ska_mid_cbf_fhs_vcc.common.fhs_state import FhsState
 from ska_tango_base.executor.executor_component_manager import (
     TaskExecutorComponentManager,
 )
@@ -73,7 +72,7 @@ class FhsComponentManageBase(TaskExecutorComponentManager):
         
         This is to be called when an exception occurs in the component manager
         """
-        self._push_component_state_update(FhsState.FAULT)
+        self._update_component_state(fault=True)
         self.update_device_health_state(health_state=HealthState.FAILED)
                     
 
@@ -85,45 +84,45 @@ class FhsComponentManageBase(TaskExecutorComponentManager):
     def is_recover_allowed(self: FhsComponentManageBase) -> bool:
         self.logger.debug("Checking if MAC Recover is allowed.")
         errorMsg = f"Mac recover not allowed in ObsState {self.obs_state}; must be in ObsState.IDLE or READY or ABORTED or RESETTING"
-        return self.is_allowed(self, errorMsg, [ObsState.IDLE, ObsState.FAULT, ObsState.READY])
+        return self.is_allowed(errorMsg, [ObsState.IDLE, ObsState.FAULT, ObsState.READY])
 
 
     def is_configure_allowed(self: FhsComponentManageBase) -> bool:
         self.logger.debug("Checking if MAC Configure is allowed.")
         errorMsg = f"Mac Configure not allowed in ObsState {self.obs_state}; must be in ObsState.IDLE or READY"
                     
-        return self.is_allowed(self, errorMsg, [ObsState.IDLE])
+        return self.is_allowed(errorMsg, [ObsState.IDLE])
     
     
     def is_start_allowed(self: FhsComponentManageBase) -> bool:
         self.logger.debug("Checking if MAC Start is allowed.")
         errorMsg = f"Mac Start not allowed in ObsState {self.obs_state}; must be in ObsState.IDLE or READY"
                     
-        return self.is_allowed(self, errorMsg, [ObsState.IDLE])
+        return self.is_allowed(errorMsg, [ObsState.IDLE])
     
     def is_stop_allowed(self: FhsComponentManageBase) -> bool:
         self.logger.debug("Checking if MAC Stop is allowed.")
         errorMsg = f"Mac stop not allowed in ObsState {self.obs_state}; must be in ObsState.IDLE, READY or ABORTED"
                     
-        return self.is_allowed(self, errorMsg, [ObsState.READY])
+        return self.is_allowed(errorMsg, [ObsState.READY])
     
     def is_deconfigure_allowed(self: FhsComponentManageBase) -> bool:
         self.logger.debug("Checking if MAC Stop is allowed.")
         errorMsg = f"Mac deconfigure not allowed in ObsState {self.obs_state}; must be in ObsState.READY"
                     
-        return self.is_allowed(self, errorMsg, [ObsState.IDLE])
+        return self.is_allowed(errorMsg, [ObsState.IDLE])
     
     def is_status_allowed(self: FhsComponentManageBase) -> bool:
         self.logger.debug("Checking if MAC status is allowed.")
         errorMsg = f"Mac status not allowed in ObsState {self.obs_state}; must be in ObsState.READY"
                     
-        return self.is_allowed(self, errorMsg, [ObsState.IDLE, ObsState.READY, ObsState.FAULT])
+        return self.is_allowed(errorMsg, [ObsState.IDLE, ObsState.READY, ObsState.FAULT])
     
     def is_reset_allowed(self: FhsComponentManageBase) -> bool:
         self.logger.debug("Checking if MAC status is allowed.")
         errorMsg = f"Mac reset not allowed in ObsState {self.obs_state}; must be in ObsState.FAULT"
                     
-        return self.is_allowed(self, errorMsg, [ObsState.FAULT])
+        return self.is_allowed(errorMsg, [ObsState.FAULT, ObsState.READY, ObsState.IDLE])
     
     
     def is_allowed(self: FhsComponentManageBase, error_msg: str, obsStates: list[ObsState]) -> bool:       

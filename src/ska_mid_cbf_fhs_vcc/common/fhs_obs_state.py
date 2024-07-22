@@ -28,6 +28,20 @@ class FhsObsStateMachine(Machine):
 
     """
 
+    COMPONENT_OBSFAULT = "component_obsfault"
+    CONFIGURE_INVOKED = "configure_invoked"
+    DECONFIGURE_INVOKED = "deconfigure_invoked"
+    CONFIGURE_COMPLETED  = "configure_completed"
+    DECONFIGURE_COMPLETED = "deconfigure_completed"
+    STARTING_INVOKED = "starting_invoked"
+    STARTING_COMPLETED = "starting_completed"
+    STOPPING_INVOKED = "stopping_invoked"
+    STOPPING_COMPLETED = "stopping_completed"
+    RESET_INVOKED = "reset_invoked"
+    RESET_COMPLETED = "reset_completed"
+    GO_TO_IDLE = "go_to_idle"
+    
+
     def __init__(
         self, callback: Optional[Callable] = None, **extra_kwargs: Any
     ) -> None:
@@ -53,59 +67,64 @@ class FhsObsStateMachine(Machine):
         transitions = [
             {
                 "source": "*",
-                "trigger": "component_obsfault",
+                "trigger": self.COMPONENT_OBSFAULT,
                 "dest": "FAULT",
             },
             {
                 "source": "IDLE",
-                "trigger": "configure_invoked",
+                "trigger": self.CONFIGURE_INVOKED,
                 "dest": "CONFIGURING",
             },                
             {
                 "source": "IDLE",
-                "trigger": "deconfigure_invoked",
+                "trigger": self.DECONFIGURE_INVOKED,
                 "dest": "DECONFIGURING",
             },
             {
                 "source": "CONFIGURING",
-                "trigger": "configure_completed",
+                "trigger": self.CONFIGURE_COMPLETED,
                 "dest": "IDLE",
             },
             {
                 "source": "DECONFIGURING",
-                "trigger": "deconfigure_completed",
+                "trigger": self.DECONFIGURE_COMPLETED,
                 "dest": "IDLE",
             },
             {
                 "source": "IDLE",
-                "trigger": "starting_invoked",
+                "trigger": self.STARTING_INVOKED,
                 "dest": "STARTING",
             },
             {
                 "source": "STARTING",
-                "trigger": "starting_completed",
+                "trigger": self.STARTING_COMPLETED,
                 "dest": "RUNNING",
             },
             {
                 "source": "RUNNING",
-                "trigger": "stopping_invoked",
+                "trigger": self.STOPPING_INVOKED,
                 "dest": "STOPPING",
             },
             {
                 "source": "STOPPING",
-                "trigger": "stopping_completed",
+                "trigger": self.STOPPING_COMPLETED,
                 "dest": "IDLE",
             },
             {
                 "source": ["FAULT", "RUNNING", "IDLE"],
-                "trigger": "reset_invoked",
+                "trigger": self.RESET_INVOKED,
                 "dest": "RESETTING",
             },
             {
                 "source": ["FAULT", "RUNNING", "IDLE", "RESETTING"],
-                "trigger": "reset_completed",
+                "trigger": self.RESET_COMPLETED,
                 "dest": "IDLE",
             },
+            {
+                "source": "*",
+                "trigger": self.GO_TO_IDLE,
+                "dest": "IDLE"
+            }
         ]
         super().__init__(
             states=states,

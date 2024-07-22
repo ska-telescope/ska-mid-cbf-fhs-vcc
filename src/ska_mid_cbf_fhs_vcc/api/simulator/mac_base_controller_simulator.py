@@ -13,24 +13,23 @@ __all__ = ["MacBaseSimulator"]
 class MacBaseControllerSimulator(FhsBaseApiInterface):
     def __init__(self: MacBaseControllerSimulator, device_id: str) -> None:
         self.mac_id = device_id
-
-        self.obs_state = ObsState.IDLE
-        self._health_state = HealthState.UNKNOWN
         
     def recover(self) -> None:
-        raise NotImplementedError('Method is abstract')
+        print('Recover called from the simulator')
     
     def configure(self, config) -> None:
-        raise NotImplementedError('Method is abstract')
-
+        print('Configure was called from the simulator')
+        
     def start(self) -> int:
-        raise NotImplementedError('Method is abstract')
+        print('Start was called from the simulator')
 
     def stop(self, force: bool = False) -> int:
-        raise NotImplementedError('Method is abstract')
+        print('Stop was called from the simulator')
 
     def deconfigure(self, config) -> None:
-        raise NotImplementedError('Method is abstract')
+        print('Deconfigure was called from the simulator')
 
+        
     def status(self, status, clear: bool = False) -> str:
-        raise NotImplementedError('Method is abstract')
+        print('Status was called from the simulator')
+        return 'status okay'
