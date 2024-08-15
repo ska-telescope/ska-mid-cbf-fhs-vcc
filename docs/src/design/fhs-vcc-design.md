@@ -19,23 +19,72 @@ The other major difference will be when the flow reaches the low-level device se
 ## Configuration and Deployment
 This section will outline how the high / low level device servers get configured and spun up as well as how in emulation mode the emulator also gets configured and run.
 
-
-### High-Level Deployment Overview
-
-
-### High-Level Deployment Flow
-The following deployment and sequence diagram outline the vision for the deployment of the FHS server and its device servers and emulator.
-
-![Deployment Sequence Diagram](images/fhs-deployment-sequence-diagram.svg)
-
-
-
 ### Device Server Configuration and Deployment
-The FHS device servers will be configured from .yaml files that outline the device servers and their properties.  This will follow the same procedure as that of MCS for deploying and configuring device servers.
+The FHS device servers will be configured from .yaml files that outline the device servers and their properties.  This will follow the same procedure as that of MCS for deploying and configuring device servers.  Each VCC stack of device servers will be spun up in their own pod, this is to minimize overhead from having too many pods.  Each VCC pod will container
 
+- vcc_all_bands
+- b123_vcc_osppfb_channeliser
+- frequency_slice_selection
+- mac
+- packet_validation
+- wideband_input_buffer
+- wideband_freuqency_shifter
 
 #### Device Server .YAML Example
 ``` 
+name: vcc
+function: vcc
+domain: sensing
+command: "B123VccOsppfbChanneliser"
+instances: ["vcc"]
+depends_on:
+  - device: sys/database/2
+readinessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+livenessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+server:
+  name: "B123VccOsppfbChanneliser"
+  instances:
+  - name: "vcc"
+    classes:
+    - name: "B123VccOsppfbChanneliser"
+      devices:
+      - name: "fhs/vcc/001"
+        properties:
+          - name: "device_id"
+            values:
+            - "b123vcc"
+          - name: "device_version_num"
+            values:
+            - "0.0.1"
+          - name: "device_gitlab_hash"
+            values:
+            - "0"
+          - name: "config_location"
+            values:
+            - "{{ .Values.hostInfo.configLocation }}"
+image:
+  registry: "{{.Values.midcbf.image.registry}}"
+  image: "{{.Values.midcbf.image.image}}"
+  tag: "{{.Values.midcbf.image.tag}}"
+  pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
+  
+extraVolumes:
+- name: low-level-config-mount
+  configMap: 
+    name:  low-level-configmap
+extraVolumeMounts:
+  - name: low-level-config-mount
+    mountPath: "{{ .Values.hostInfo.configLocation }}"
 ```
 
 ### Emulator Configuration
@@ -47,35 +96,92 @@ The emulator engine will then use retrieve the configuration and emulator ip blo
 
 #### Emulator Configuration .JSON Example
 ```
+{
+  "id": "vcc",
+  "version": "0.0.1",
+  "ip_blocks": [
+    {
+      "id": "dish",
+      "display_name": "DISH",
+      "type": "dish",
+      "downstream_block_ids": [
+        "ethernet_200g"
+      ]
+    },
+    {
+      "id": "ethernet_200g",
+      "display_name": "200Gb Ethernet MAC",
+      "type": "ethernet_mac",
+      "downstream_block_ids": [
+        "packet_validation"
+      ],
+      "constants": {
+        "num_fibres": 4,
+        "num_lanes": 4
+      }
+    },
+    {
+      "id": "packet_validation",
+      "display_name": "Packet Validation",
+      "type": "packet_validation",
+      "downstream_block_ids": [
+        "wideband_input_buffer"
+      ],
+      "constants": {
+        "expected_ethertype": 65261
+      }
+    },
+    {
+      "id": "wideband_input_buffer",
+      "display_name": "Wideband Input Buffer",
+      "type": "wideband_input_buffer",
+      "downstream_block_ids": [
+        "wideband_frequency_shifter"
+      ]
+    },
+    {
+      "id": "wideband_frequency_shifter",
+      "display_name": "Wideband Frequency Shifter",
+      "type": "wideband_frequency_shifter",
+      "downstream_block_ids": [
+        "b123vcc"
+      ]
+    },
+    {
+      "id": "b123vcc",
+      "display_name": "B123VCC-OSPPFB Channeliser",
+      "type": "b123vcc_osppfb_channeliser",
+      "downstream_block_ids": [
+        "fs_selection_26_2_1"
+      ]
+    },
+    {
+      "id": "fs_selection_26_2_1",
+      "display_name": "Frequency Slice Selection 26 x 2:1 MUX",
+      "type": "frequency_slice_selection",
+      "downstream_block_ids": [
+        "fs_selection_26_6"
+      ],
+      "constants": {
+        "num_inputs": 52,
+        "num_outputs": 26
+      }
+    },
+    {
+      "id": "fs_selection_26_6",
+      "display_name": "Frequency Slice Selection 26:6 MUX",
+      "type": "frequency_slice_selection",
+      "downstream_block_ids": [],
+      "constants": {
+        "num_inputs": 26,
+        "num_outputs": 6
+      }
+    }
+  ],
+  "first": "dish"
+}
 ```
 
-## Device Servers
-This section will outline the high and low level device servers that will be created and used within the FHS.
-
-### DsVccController
-Responsible for 
-
-### DsBandController123
-
-### DsBandController4
-
-### DsBandController5
-
-### Ds200GbMAC
-
-### DsPacketValidation
-
-### DsWidebandInputBuffer
-
-### DsWidebandShifter
-
-### DsB45VccOSPFFBChanneliser
-
-### DsB123VccOSPPFBChanneliser
-
-### DsFrequencySliceSelection
-
-### DsFsRFIDetectionAndFlagging
 
 ## Low-Level Device Servers APIs
 The main change between low-level device servers on the Talon HPS and new Agile-x FHS is that the register maps are no longer generated by registerDef and accessed through attributes in the device server.  
@@ -90,6 +196,10 @@ Depending on whether the system is in emulation mode or not, the wrapper will in
 
 ## Design Considerations
 ### Multi threaded / process for Band Devices
-It could be beneficial for band devices that instead of spinning up multiple device servers in k8s pods that are controlled by the DsVccController process as threads running the band device servers.  This will allow for better control over the band devices and save resource usage by not needing a container and pod for each band device.   
+It could be beneficial for band devices that instead of spinning up multiple device servers in k8s pods that are controlled by the DsVccController process as threads running the band device servers.  This will allow for better control over the band devices and save resource usage by not needing a container and pod for each band device.
+
+### Single Pod for Each VCC
+To minimize overhead and pod clutter the VCC stack of Device Servers will be loaded into a single pod.  This pod will include:
+ 
 
 
