@@ -27,8 +27,6 @@
 .. COMMUNITY SECTION ==================================================
 ..
 
-  package/guide
-
 .. toctree::
   :maxdepth: 2
   :caption: Initial SDD
