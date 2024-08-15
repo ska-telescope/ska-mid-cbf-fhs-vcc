@@ -1,0 +1,48 @@
+@startuml FHS Deployment
+
+skinparam Shadowing false
+!pragma teoz true
+
+box Eng Con
+participant EngineeringConsole
+end box
+
+box MCS (Minikube)
+participant CBFController
+participant FHSLRU_maybe
+participant PowerSwitch
+participant TangoDB
+end box
+
+box FHS
+participant OS
+
+box Minikube
+participant FHSMaster
+participant Emulator
+participant TangoDSs
+
+end box
+participant FPGAs
+end box
+
+
+EngineeringConsole -> CBFController: Download Artifacts
+CBFController -> FHSLRU_maybe: Copy Artefacts
+EngineeringConsole -> CBFController: Configure Tango Database
+CBFController -> TangoDB: Add FHS Tango Devices
+EngineeringConsole -> CBFController: On()
+CBFController -> FHSLRU_maybe
+FHSLRU_maybe -> PowerSwitch
+PowerSwitch -> FHSLRU_maybe
+CBFController -> OS: Copy Artefacts
+CBFController -> FHSMaster: Deploy()
+CBFController -> FHSMaster: Configure()
+FHSMaster -> Emulator: DeployEmulator()
+Emulator -> OS: get emulator bitstream config
+Emulator -> Emulator: Configure()
+FHSMaster -> TangoDSs: DeployDSs()
+FHSMaster -> FPGAs: Program Bitstream 
+
+
+@enduml
