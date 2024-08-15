@@ -150,4 +150,3 @@ Finally for the VCC-PSS-TB stage of the bitstream, the APIs for the blocks in th
   blocks/Wideband_Frequency_Shifter
   blocks/B123VCC-OSPPFB_Channelizer
   blocks/Frequency_Slice_Selection
-  blocks/Template_Block
