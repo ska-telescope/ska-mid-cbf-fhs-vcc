@@ -141,7 +141,7 @@ Finally for the VCC-PSS-TB stage of the bitstream, the APIs for the blocks in th
 
 .. toctree::
   :maxdepth: 2
-  :caption: Package name
+  :caption: Firware Interface
   :hidden:
   
   blocks/Ethernet_MAC
