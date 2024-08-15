@@ -25,7 +25,6 @@
    ../../README
 
 .. COMMUNITY SECTION ==================================================
-
 ..
 
 .. toctree::
@@ -34,6 +33,12 @@
   :hidden:
 
   package/guide
+
+.. toctree::
+  :maxdepth: 2
+  :caption: Initial SDD
+
+  design/fhs-vcc-design
 
 
 Project-name documentation HEADING
