@@ -1,0 +1,14 @@
+boogie:
+  tango_host: tango-databaseds-test-0.tango-databaseds-test.ska-mid-cbf.svc.cluster.local:10000
+
+image:
+  repository: docker.io/library
+  image: ska-mid-cbf-fhs-vcc-boogie
+  tag: 0.0.1
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+containerPort: 8080
