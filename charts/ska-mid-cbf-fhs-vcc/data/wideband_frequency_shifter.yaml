@@ -1,0 +1,53 @@
+name: wfs
+function: wfs
+domain: sensing
+command: "WidebandFrequencyShifter"
+instances: ["wfs"]
+depends_on:
+  - device: sys/database/2
+readinessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+livenessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+server:
+  name: "WidebandFrequencyShifter"
+  instances:
+  - name: "wfs"
+    classes:
+    - name: "WidebandFrequencyShifter"
+      devices:
+      - name: "fhs/wfs/001"
+        properties:
+          - name: "device_id"
+            values:
+            - "wideband_frequency_shifter"
+          - name: "device_version_num"
+            values:
+            - "0.0.1"
+          - name: "device_gitlab_hash"
+            values:
+            - "0"
+          - name: "config_location"
+            values:
+            - "{{ .Values.hostInfo.configLocation }}"
+image:
+  registry: "{{.Values.midcbf.image.registry}}"
+  image: "{{.Values.midcbf.image.image}}"
+  tag: "{{.Values.midcbf.image.tag}}"
+  pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
+
+extraVolumes:
+- name: low-level-config-mount
+  configMap: 
+    name:  low-level-configmap
+extraVolumeMounts:
+  - name: low-level-config-mount
+    mountPath: "{{ .Values.hostInfo.configLocation }}"
