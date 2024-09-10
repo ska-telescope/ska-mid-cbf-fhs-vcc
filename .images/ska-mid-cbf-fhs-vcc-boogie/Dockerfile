@@ -13,4 +13,6 @@ RUN python3.10 -m pip install --upgrade pip && \
 
 WORKDIR boogie
 
+RUN git checkout 8e89a76c
+
 RUN python3.10 -m pip install .

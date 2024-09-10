@@ -1,0 +1,9 @@
+{{- if .Values.lowLevel }}
+apiVersion: v1
+data:
+  low_level_ds_config.yaml: | 
+{{ toYaml .Values.lowLevel | indent 4 }}
+kind: ConfigMap
+metadata:
+  name: low-level-configmap
+{{- end }}

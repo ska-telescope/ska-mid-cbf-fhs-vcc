@@ -1,0 +1,53 @@
+name: vcc
+function: vcc
+domain: sensing
+command: "B123VccOsppfbChanneliser"
+instances: ["vcc"]
+depends_on:
+  - device: sys/database/2
+readinessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+livenessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+server:
+  name: "B123VccOsppfbChanneliser"
+  instances:
+  - name: "vcc"
+    classes:
+    - name: "B123VccOsppfbChanneliser"
+      devices:
+      - name: "fhs/vcc/001"
+        properties:
+          - name: "device_id"
+            values:
+            - "b123vcc"
+          - name: "device_version_num"
+            values:
+            - "0.0.1"
+          - name: "device_gitlab_hash"
+            values:
+            - "0"
+          - name: "config_location"
+            values:
+            - "{{ .Values.hostInfo.configLocation }}"
+image:
+  registry: "{{.Values.midcbf.image.registry}}"
+  image: "{{.Values.midcbf.image.image}}"
+  tag: "{{.Values.midcbf.image.tag}}"
+  pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
+  
+extraVolumes:
+- name: low-level-config-mount
+  configMap: 
+    name:  low-level-configmap
+extraVolumeMounts:
+  - name: low-level-config-mount
+    mountPath: "{{ .Values.hostInfo.configLocation }}"

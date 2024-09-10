@@ -1,0 +1,84 @@
+{
+  "id": "vcc",
+  "version": "0.0.1",
+  "ip_blocks": [
+    {
+      "id": "dish",
+      "display_name": "DISH",
+      "type": "dish",
+      "downstream_block_ids": [
+        "ethernet_200g"
+      ]
+    },
+    {
+      "id": "ethernet_200g",
+      "display_name": "200Gb Ethernet MAC",
+      "type": "ethernet_mac",
+      "downstream_block_ids": [
+        "packet_validation"
+      ],
+      "constants": {
+        "num_fibres": 4,
+        "num_lanes": 4
+      }
+    },
+    {
+      "id": "packet_validation",
+      "display_name": "Packet Validation",
+      "type": "packet_validation",
+      "downstream_block_ids": [
+        "wideband_input_buffer"
+      ],
+      "constants": {
+        "expected_ethertype": 65261
+      }
+    },
+    {
+      "id": "wideband_input_buffer",
+      "display_name": "Wideband Input Buffer",
+      "type": "wideband_input_buffer",
+      "downstream_block_ids": [
+        "wideband_frequency_shifter"
+      ]
+    },
+    {
+      "id": "wideband_frequency_shifter",
+      "display_name": "Wideband Frequency Shifter",
+      "type": "wideband_frequency_shifter",
+      "downstream_block_ids": [
+        "b123vcc"
+      ]
+    },
+    {
+      "id": "b123vcc",
+      "display_name": "B123VCC-OSPPFB Channeliser",
+      "type": "b123vcc_osppfb_channeliser",
+      "downstream_block_ids": [
+        "fs_selection_26_2_1"
+      ]
+    },
+    {
+      "id": "fs_selection_26_2_1",
+      "display_name": "Frequency Slice Selection 26 x 2:1 MUX",
+      "type": "frequency_slice_selection",
+      "downstream_block_ids": [
+        "fs_selection_26_6"
+      ],
+      "constants": {
+        "num_inputs": 52,
+        "num_outputs": 26
+      }
+    },
+    {
+      "id": "fs_selection_26_6",
+      "display_name": "Frequency Slice Selection 26:6 MUX",
+      "type": "frequency_slice_selection",
+      "downstream_block_ids": [],
+      "constants": {
+        "num_inputs": 26,
+        "num_outputs": 6
+      }
+    }
+  ],
+  "first": "dish"
+}

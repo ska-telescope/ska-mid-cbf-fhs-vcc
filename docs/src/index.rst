@@ -8,21 +8,7 @@
 
 .. Hidden toctree to manage the sidebar navigation.
 
-.. toctree::
-  :maxdepth: 2
-  :caption: Home
-  :hidden:
 
-
-.. README =============================================================
-
-.. This project most likely has it's own README. We include it here.
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Readme
-
-   ../../README
 
 .. COMMUNITY SECTION ==================================================
 ..
@@ -30,9 +16,26 @@
 .. toctree::
   :maxdepth: 2
   :caption: Initial SDD
-  :hidden:
 
   design/fhs-vcc-design
+
+.. toctree::
+  :caption: Deployment
+
+  package/minikube_setup
+  package/gitlab_deployment
+
+.. toctree::
+  :maxdepth: 2
+  :caption: Firware Interface
+  
+  blocks/Ethernet_MAC
+  blocks/Packet_Validation
+  blocks/Wideband_Input_Buffer
+  blocks/Wideband_Frequency_Shifter
+  blocks/B123VCC-OSPPFB_Channelizer
+  blocks/Frequency_Slice_Selection
+
 
 Firmware Interfaces
 ===================
@@ -138,15 +141,3 @@ In addition for the VCC-PSS stage of the bitstream, the APIs for the blocks in t
 Finally for the VCC-PSS-TB stage of the bitstream, the APIs for the blocks in the top two thirds of the image will exist, adding
 
 * Transient Buffer Requantization
-
-.. toctree::
-  :maxdepth: 2
-  :caption: Firware Interface
-  :hidden:
-  
-  blocks/Ethernet_MAC
-  blocks/Packet_Validation
-  blocks/Wideband_Input_Buffer
-  blocks/Wideband_Frequency_Shifter
-  blocks/B123VCC-OSPPFB_Channelizer
-  blocks/Frequency_Slice_Selection
