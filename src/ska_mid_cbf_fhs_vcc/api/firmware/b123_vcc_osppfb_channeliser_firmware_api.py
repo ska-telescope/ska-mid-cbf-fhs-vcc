@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import logging
 
 from ska_mid_cbf_fhs_vcc.api.firmware.base_firmware_api import BaseFirmwareApi
@@ -9,10 +10,7 @@ __all__ = ["B123VccOsppfbChanneliserFirmwareApi"]
 class B123VccOsppfbChanneliserFirmwareApi(BaseFirmwareApi):
     def __init__(self, config_location: str, logger: logging.Logger) -> None:
         super(B123VccOsppfbChanneliserFirmwareApi, self).__init__(config_location, logger)
-        from .contrib.driver_source_code.talon_dx_agilex_m_vcc_base_vcc_processing import (
-            vcc_ch20,
-            fpga_driver_base,
-        )
+        from .contrib.driver_source_code.talon_dx_agilex_m_vcc_base_vcc_processing import fpga_driver_base, vcc_ch20
 
         # TODO: get these values from somewhere
         self._params = vcc_ch20.param_t()

@@ -7,12 +7,8 @@ from typing import Any, Callable
 import numpy as np
 from ska_control_model import CommunicationStatus, HealthState, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
-    FhsLowLevelComponentManager,
-)
-from ska_mid_cbf_fhs_vcc.api.simulator.packet_validation_simulator import (
-    PacketValidationControllerSimulator,
-)
+from ska_mid_cbf_fhs_vcc.api.simulator.packet_validation_simulator import PacketValidationControllerSimulator
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
 
 ##

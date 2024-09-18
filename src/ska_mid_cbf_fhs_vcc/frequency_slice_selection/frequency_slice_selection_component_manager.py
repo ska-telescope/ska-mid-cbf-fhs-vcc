@@ -6,25 +6,12 @@ from typing import Any, Callable
 
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import (
-    CommunicationStatus,
-    HealthState,
-    ResultCode,
-    SimulationMode,
-)
+from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
-    FhsLowLevelComponentManager,
-)
-from ska_mid_cbf_fhs_vcc.api.emulator.frequency_slice_selection_emulator_api import (
-    FrequencySliceSelectionEmulatorApi,
-)
-from ska_mid_cbf_fhs_vcc.api.simulator.frequency_slice_selection_simulator import (
-    FrequencySliceSelectionSimulator,
-)
-from ska_mid_cbf_fhs_vcc.api.firmware.frequency_slice_selection_firmware_api import (
-    FrequencySliceSelectionFirmwareApi,
-)
+from ska_mid_cbf_fhs_vcc.api.emulator.frequency_slice_selection_emulator_api import FrequencySliceSelectionEmulatorApi
+from ska_mid_cbf_fhs_vcc.api.firmware.frequency_slice_selection_firmware_api import FrequencySliceSelectionFirmwareApi
+from ska_mid_cbf_fhs_vcc.api.simulator.frequency_slice_selection_simulator import FrequencySliceSelectionSimulator
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
 
 @dataclass_json

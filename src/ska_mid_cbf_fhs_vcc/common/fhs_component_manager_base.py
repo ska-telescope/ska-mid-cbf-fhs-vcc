@@ -10,18 +10,9 @@ from __future__ import annotations  # allow forward references in type hints
 from threading import Lock
 from typing import Any, Callable, Optional, cast
 
-from ska_control_model import (
-    CommunicationStatus,
-    HealthState,
-    PowerState,
-    ResultCode,
-    SimulationMode,
-    TaskStatus,
-)
+from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, SimulationMode, TaskStatus
 from ska_tango_base.base.base_component_manager import BaseComponentManager
-from ska_tango_base.executor.executor_component_manager import (
-    TaskExecutorComponentManager,
-)
+from ska_tango_base.executor.executor_component_manager import TaskExecutorComponentManager
 
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import ObsState
 

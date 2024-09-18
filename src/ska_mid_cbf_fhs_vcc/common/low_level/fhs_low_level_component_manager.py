@@ -5,24 +5,12 @@ import logging
 from threading import Event
 from typing import Any, Callable, Generic, Optional, Type, TypeVar
 
-from ska_control_model import (
-    HealthState,
-    ObsState,
-    ResultCode,
-    SimulationMode,
-    TaskStatus,
-)
-from ska_tango_base.executor.executor_component_manager import (
-    TaskExecutorComponentManager,
-)
+from ska_control_model import HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
+from ska_tango_base.executor.executor_component_manager import TaskExecutorComponentManager
 from tango import DevState
 
-from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import (
-    FhsBaseApiInterface,
-)
-from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import (
-    FhsComponentManagerBase,
-)
+from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
+from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 
 T = TypeVar("T", bound=FhsBaseApiInterface)
 K = TypeVar("K")

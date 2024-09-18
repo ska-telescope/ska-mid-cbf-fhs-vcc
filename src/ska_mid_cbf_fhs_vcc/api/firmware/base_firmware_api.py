@@ -1,16 +1,16 @@
 from __future__ import annotations
+
 import json
 import logging
 import os
 import tarfile
 from io import BytesIO
-import requests
 
+import requests
 from ska_control_model import ResultCode
+
 from ska_mid_cbf_fhs_vcc.api.common.api_config_reader import APIConfigReader
-from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import (
-    FhsBaseApiInterface,
-)
+from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 
 
 class BaseFirmwareApi(FhsBaseApiInterface):
@@ -21,9 +21,7 @@ class BaseFirmwareApi(FhsBaseApiInterface):
         self._download_fw(config_location)
 
         # TODO: extend the C logger to forward messages to the python logger
-        from .contrib.driver_source_code.talon_dx_agilex_m_vcc_base_vcc_processing import (
-            fpga_driver_base,
-        )
+        from .contrib.driver_source_code.talon_dx_agilex_m_vcc_base_vcc_processing import fpga_driver_base
 
         # --- resources to be used by child classes
         self._c_logger = fpga_driver_base.Logger(fpga_driver_base.LogLevel.Debug)

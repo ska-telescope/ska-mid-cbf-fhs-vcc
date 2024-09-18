@@ -7,20 +7,11 @@ from typing import Any, Callable
 import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import (
-    CommunicationStatus,
-    HealthState,
-    ResultCode,
-    SimulationMode,
-)
+from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
-    FhsLowLevelComponentManager,
-)
 from ska_mid_cbf_fhs_vcc.api.emulator.wib_emulator_api import WibEmulatorApi
-from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import (
-    WidebandInputBufferSimulator,
-)
+from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import WidebandInputBufferSimulator
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
 
 @dataclass_json
