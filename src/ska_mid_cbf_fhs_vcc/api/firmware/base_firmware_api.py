@@ -27,9 +27,9 @@ class BaseFirmwareApi(FhsBaseApiInterface):
         self._c_logger = fpga_driver_base.Logger(fpga_driver_base.LogLevel.Debug)
 
         # --- resources to be provided by child classes
-        self._driver = None
-        self._config_t = None
-        self._status_t = None
+        # self._driver = None
+        # self._config_t = None
+        # self._status_t = None
 
     def recover(self) -> tuple[ResultCode, str]:
         try:
@@ -96,7 +96,7 @@ class BaseFirmwareApi(FhsBaseApiInterface):
         self._logger.info(f"Attempting to pull `{url}`...")
         resp = requests.get(url)
         if resp.status_code != 200:
-            raise Exception(f"Failed to pull with error code {resp.status_code}")
+            raise RuntimeError(f"Failed to pull with error code {resp.status_code}")
 
         self._logger.info(f"Extracting data from pulled artefact to {dirpath}")
         with tarfile.open(fileobj=BytesIO(resp.content), mode="r:gz") as tar:
