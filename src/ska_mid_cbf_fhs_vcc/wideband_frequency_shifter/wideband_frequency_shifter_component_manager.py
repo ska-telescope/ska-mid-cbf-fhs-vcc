@@ -6,11 +6,11 @@ from typing import Any, Callable
 
 from ska_control_model import CommunicationStatus, HealthState, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.api.wideband_frequency_shifter_wrapper import (
-    WidebandFrequencyShifterApi,
-)
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
     FhsLowLevelComponentManager,
+)
+from ska_mid_cbf_fhs_vcc.api.simulator.wideband_frequency_shifter import (
+    WidebandFrequencyShifterSimulator,
 )
 
 
@@ -42,12 +42,13 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
         emulation_mode: bool = False,
         **kwargs: Any,
     ) -> None:
-        self._api = WidebandFrequencyShifterApi(
-            device_id=device_id,
-            logger=logger,
-            emulation_mode=emulation_mode,
-            simulation_mode=simulation_mode,
-        )
+        if simulation_mode == SimulationMode.TRUE:
+            self._api = WidebandFrequencyShifterSimulator(device_id, logger)
+        elif simulation_mode == SimulationMode.FALSE and emulation_mode is True:
+            raise NotImplementedError("Emulator Api not implemented")
+        else:
+            raise NotImplementedError("FW Api not implemented")
+
         self.config_class = WidebandFrequencyShifterConfig(0)
         self.status_class = WidebandFrequencyShifterStatus(0)
 

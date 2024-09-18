@@ -7,9 +7,12 @@ from typing import Any, Callable
 import numpy as np
 from ska_control_model import CommunicationStatus, HealthState, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.api.mac_api_wrapper import MacApi
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
     FhsLowLevelComponentManager,
+)
+from ska_mid_cbf_fhs_vcc.api.emulator.mac_emulator_api import MacEmulatorApi
+from ska_mid_cbf_fhs_vcc.api.simulator.mac_controller_simulator import (
+    MacBaseControllerSimulator,
 )
 
 
@@ -75,13 +78,13 @@ class MacComponentManager(FhsLowLevelComponentManager):
         emulation_mode: bool = True,
         **kwargs: Any,
     ) -> None:
-        self._api = MacApi(
-            device_id=device_id,
-            config_location=config_location,
-            logger=logger,
-            emulation_mode=emulation_mode,
-            simulation_mode=simulation_mode,
-        )
+        if simulation_mode == SimulationMode.TRUE:
+            self._api = MacBaseControllerSimulator(device_id, logger)
+        elif simulation_mode == SimulationMode.FALSE and emulation_mode is True:
+            self._api = MacEmulatorApi(device_id, config_location, logger)
+        else:
+            raise NotImplementedError("FW Api not implemented")
+
         self.config_class = MacConfig()
         self.status_class = MacStatus()
 

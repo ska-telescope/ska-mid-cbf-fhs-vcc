@@ -7,9 +7,11 @@ from typing import Any, Callable
 import numpy as np
 from ska_control_model import CommunicationStatus, HealthState, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.api.packet_validation_api_wrapper import PacketValidationApi
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
     FhsLowLevelComponentManager,
+)
+from ska_mid_cbf_fhs_vcc.api.simulator.packet_validation_simulator import (
+    PacketValidationControllerSimulator,
 )
 
 
@@ -46,12 +48,13 @@ class PacketValidationComponentManager(FhsLowLevelComponentManager):
         emulation_mode: bool = False,
         **kwargs: Any,
     ) -> None:
-        self._api = PacketValidationApi(
-            device_id=device_id,
-            logger=logger,
-            emulation_mode=emulation_mode,
-            simulation_mode=simulation_mode,
-        )
+        if simulation_mode == SimulationMode.TRUE:
+            self._api = PacketValidationControllerSimulator(device_id, logger)
+        elif simulation_mode == SimulationMode.FALSE and emulation_mode is True:
+            raise NotImplementedError("Emulator Api not implemented")
+        else:
+            raise NotImplementedError("FW Api not implemented")
+
         self.status_class = PacketValidationStatus(0, 0, 0)
 
         super().__init__(

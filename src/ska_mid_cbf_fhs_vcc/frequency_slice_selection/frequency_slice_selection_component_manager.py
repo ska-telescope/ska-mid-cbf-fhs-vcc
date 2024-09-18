@@ -13,11 +13,14 @@ from ska_control_model import (
     SimulationMode,
 )
 
-from ska_mid_cbf_fhs_vcc.api.frequency_slice_selection_wrapper import (
-    FrequencySliceSelectionApi,
-)
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
     FhsLowLevelComponentManager,
+)
+from ska_mid_cbf_fhs_vcc.api.emulator.frequency_slice_selection_emulator_api import (
+    FrequencySliceSelectionEmulatorApi,
+)
+from ska_mid_cbf_fhs_vcc.api.simulator.frequency_slice_selection_simulator import (
+    FrequencySliceSelectionSimulator,
 )
 
 
@@ -63,13 +66,12 @@ class FrequencySliceSelectionComponentManager(
         emulation_mode: bool = True,
         **kwargs: Any,
     ) -> None:
-        self._api = FrequencySliceSelectionApi(
-            device_id=device_id,
-            config_location=config_location,
-            logger=logger,
-            emulation_mode=emulation_mode,
-            simulation_mode=simulation_mode,
-        )
+        if simulation_mode == SimulationMode.TRUE:
+            self._api = FrequencySliceSelectionSimulator(device_id, logger)
+        elif simulation_mode == SimulationMode.FALSE and emulation_mode is True:
+            self._api = FrequencySliceSelectionEmulatorApi(device_id, config_location, logger)
+        else:
+            raise NotImplementedError("FW Api not implemented")
 
         self.status_class = FrequencySliceSelectionStatus(num_outputs=0, num_inputs=0, connected=[])
         self.config_class = FrequencySliceSelectionConfig(output=0, input=0)

@@ -12,6 +12,8 @@ from ska_mid_cbf_fhs_vcc.api.common.interfaces.fhs_base_api_interface import (
 
 class BaseSimulatorApi(FhsBaseApiInterface):
     def __init__(self: BaseSimulatorApi, device_id: str, logger: logging.Logger) -> None:
+        logger.info(f"SIMULATOR API: {device_id}")
+
         self.mac_id = device_id
         self._logger = logger
 

@@ -14,6 +14,8 @@ from ska_mid_cbf_fhs_vcc.api.emulator.utils.emulator_api_url_generator import (
 class BaseEmulatorApi(FhsBaseApiInterface):
     # TODO have a way to dynamically grab the emulator host / port values from the emulator config file
     def __init__(self, device_id: str, config_location: str, logger: logging.Logger) -> None:
+        logger.info(f"EMULATOR API: {device_id} {config_location}")
+
         self._device_id = device_id
         self._config_location = config_location
         self._api_url_generator = EmulatorApiUrlGenerator(logger)

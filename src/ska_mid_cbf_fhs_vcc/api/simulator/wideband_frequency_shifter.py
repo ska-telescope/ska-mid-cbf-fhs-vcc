@@ -11,6 +11,4 @@ class WidebandFrequencyShifterSimulator(BaseSimulatorApi):
     def __init__(
         self: WidebandFrequencyShifterSimulator, device_id: str, logger: logging.Logger
     ) -> None:
-        self.mac_id = device_id
-        self.logger = logger
         super().__init__(device_id=device_id, logger=logger)

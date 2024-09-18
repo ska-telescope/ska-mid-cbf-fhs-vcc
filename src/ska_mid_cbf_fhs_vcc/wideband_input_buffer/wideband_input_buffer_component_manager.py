@@ -14,11 +14,12 @@ from ska_control_model import (
     SimulationMode,
 )
 
-from ska_mid_cbf_fhs_vcc.api.wideband_input_buffer_api_wrapper import (
-    WidebandInputBufferApi,
-)
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
     FhsLowLevelComponentManager,
+)
+from ska_mid_cbf_fhs_vcc.api.emulator.wib_emulator_api import WibEmulatorApi
+from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import (
+    WidebandInputBufferSimulator,
 )
 
 
@@ -66,13 +67,13 @@ class WidebandInputBufferComponentManager(
         emulation_mode: bool = True,
         **kwargs: Any,
     ) -> None:
-        self._api = WidebandInputBufferApi(
-            device_id=device_id,
-            config_location=config_location,
-            logger=logger,
-            emulation_mode=emulation_mode,
-            simulation_mode=simulation_mode,
-        )
+        if simulation_mode == SimulationMode.TRUE:
+            self._api = WidebandInputBufferSimulator(device_id, logger)
+        elif simulation_mode == SimulationMode.FALSE and emulation_mode is True:
+            self._api = WibEmulatorApi(device_id, config_location, logger)
+        else:
+            raise NotImplementedError("FW Api not implemented")
+
         self.status_class = WideBandInputBufferStatus(False, False, 0, 0)
         self.config_class = WideBandInputBufferConfig(0, 0.0)
 
