@@ -7,10 +7,20 @@ from typing import Any, Callable
 import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, SimulationMode
+from ska_control_model import (
+    CommunicationStatus,
+    HealthState,
+    PowerState,
+    ResultCode,
+    SimulationMode,
+)
 
-from ska_mid_cbf_fhs_vcc.api.b123_vcc_osppfb_channeliser_wrapper import B123VccOsppfbChanneliserApi
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.api.b123_vcc_osppfb_channeliser_wrapper import (
+    B123VccOsppfbChanneliserApi,
+)
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
+    FhsLowLevelComponentManager,
+)
 
 
 @dataclass_json
@@ -66,8 +76,13 @@ class B123VccOsppfbChanneliserComponentManager(
             emulation_mode=emulation_mode,
             simulation_mode=simulation_mode,
         )
-        self.config_class = B123VccOsppfbChanneliserConfig(sample_rate=0, pol=None, channel=0, gain=0.0)
-        self.status_class = B123VccOsppfbChanneliserStatus(sample_rate=0, num_channels=0, num_polarisations=0, gains=[])
+
+        self.config_class = B123VccOsppfbChanneliserConfig(
+            sample_rate=0, pol=None, channel=0, gain=0.0
+        )
+        self.status_class = B123VccOsppfbChanneliserStatus(
+            sample_rate=0, num_channels=0, num_polarisations=0, gains=[]
+        )
 
         super().__init__(
             *args,
@@ -118,18 +133,21 @@ class B123VccOsppfbChanneliserComponentManager(
 
             self.logger.info(f"CONFIG JSON CONFIG: {vccConfigArgin.to_json()}")
 
-            result: tuple[ResultCode, str] = ResultCode.OK, f"{self._device_id} configured successfully"
+            result: tuple[ResultCode, str] = (
+                ResultCode.OK,
+                f"{self._device_id} configured successfully",
+            )
 
-            i = 0
-
-            for gain in vccConfigArgin.gains:
+            for i, gain in enumerate(vccConfigArgin.gains):
                 vccJsonConfig = B123VccOsppfbChanneliserConfig(
-                    sample_rate=vccConfigArgin.sample_rate, gain=gain, channel=i, pol=i % 2
+                    sample_rate=vccConfigArgin.sample_rate,
+                    gain=gain,
+                    channel=i,
+                    pol=i % 2,
                 )
 
                 self.logger.info(f"VCC JSON CONFIG {i}: {vccJsonConfig.to_json()}")
 
-                i += 1
                 result = super().configure(vccJsonConfig.to_dict())
                 if result[0] != ResultCode.OK:
                     self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")

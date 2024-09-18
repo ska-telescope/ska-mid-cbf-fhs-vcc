@@ -5,7 +5,9 @@ import logging
 
 from ska_control_model import ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.common.interfaces.fhs_base_api_interface import FhsBaseApiInterface
+from ska_mid_cbf_fhs_vcc.api.common.interfaces.fhs_base_api_interface import (
+    FhsBaseApiInterface,
+)
 
 
 class BaseSimulatorApi(FhsBaseApiInterface):

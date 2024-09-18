@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import debugpy
 
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import (
+    FhsLowLevelDeviceBase,
+)
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_component_manager import (
     FrequencySliceSelectionComponentManager,
 )

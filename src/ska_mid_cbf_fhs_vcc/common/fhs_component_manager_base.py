@@ -10,9 +10,18 @@ from __future__ import annotations  # allow forward references in type hints
 from threading import Lock
 from typing import Any, Callable, Optional, cast
 
-from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, SimulationMode, TaskStatus
+from ska_control_model import (
+    CommunicationStatus,
+    HealthState,
+    PowerState,
+    ResultCode,
+    SimulationMode,
+    TaskStatus,
+)
 from ska_tango_base.base.base_component_manager import BaseComponentManager
-from ska_tango_base.executor.executor_component_manager import TaskExecutorComponentManager
+from ska_tango_base.executor.executor_component_manager import (
+    TaskExecutorComponentManager,
+)
 
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import ObsState
 
@@ -106,16 +115,24 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         command_thread(*args, **kwargs)
         return self._obs_command_running_callback(hook=hook, running=False)
 
-    def _set_task_callback_aborted(self: FhsComponentManagerBase, task_callback: Callable, message: str) -> None:
+    def _set_task_callback_aborted(
+        self: FhsComponentManagerBase, task_callback: Callable, message: str
+    ) -> None:
         self._set_task_callback(task_callback, TaskStatus.ABORTED, ResultCode.ABORTED, message)
 
-    def _set_task_callback_ok_completed(self: FhsComponentManagerBase, task_callback: Callable, message: str) -> None:
+    def _set_task_callback_ok_completed(
+        self: FhsComponentManagerBase, task_callback: Callable, message: str
+    ) -> None:
         self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, message)
 
-    def _set_task_callback_failed(self: FhsComponentManagerBase, task_callback: Callable, message: str) -> None:
+    def _set_task_callback_failed(
+        self: FhsComponentManagerBase, task_callback: Callable, message: str
+    ) -> None:
         self._set_task_callback(task_callback, TaskStatus.FAILED, ResultCode.FAILED, message)
 
-    def _set_task_callback_rejected(self: FhsComponentManagerBase, task_callback: Callable, message: str) -> None:
+    def _set_task_callback_rejected(
+        self: FhsComponentManagerBase, task_callback: Callable, message: str
+    ) -> None:
         self._set_task_callback(task_callback, TaskStatus.REJECTED, ResultCode.REJECTED, message)
 
     def _set_task_callback(

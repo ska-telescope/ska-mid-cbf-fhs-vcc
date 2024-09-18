@@ -6,8 +6,12 @@ from typing import Any, Callable
 
 from ska_control_model import CommunicationStatus, HealthState, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.api.wideband_frequency_shifter_wrapper import WidebandFrequencyShifterApi
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.api.wideband_frequency_shifter_wrapper import (
+    WidebandFrequencyShifterApi,
+)
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
+    FhsLowLevelComponentManager,
+)
 
 
 @dataclass

@@ -2,9 +2,13 @@ import logging
 
 from ska_control_model import ResultCode, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.api.common.interfaces.fhs_base_api_interface import FhsBaseApiInterface
+from ska_mid_cbf_fhs_vcc.api.common.interfaces.fhs_base_api_interface import (
+    FhsBaseApiInterface,
+)
 from ska_mid_cbf_fhs_vcc.api.emulator.mac_emulator_api import MacEmulatorApi
-from ska_mid_cbf_fhs_vcc.api.simulator.mac_controller_simulator import MacBaseControllerSimulator
+from ska_mid_cbf_fhs_vcc.api.simulator.mac_controller_simulator import (
+    MacBaseControllerSimulator,
+)
 
 
 class MacApi(FhsBaseApiInterface):

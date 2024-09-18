@@ -3,8 +3,12 @@ import logging
 import requests
 from ska_control_model import ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.common.interfaces.fhs_base_api_interface import FhsBaseApiInterface
-from ska_mid_cbf_fhs_vcc.api.emulator.utils.emulator_api_url_generator import EmulatorApiUrlGenerator
+from ska_mid_cbf_fhs_vcc.api.common.interfaces.fhs_base_api_interface import (
+    FhsBaseApiInterface,
+)
+from ska_mid_cbf_fhs_vcc.api.emulator.utils.emulator_api_url_generator import (
+    EmulatorApiUrlGenerator,
+)
 
 
 class BaseEmulatorApi(FhsBaseApiInterface):
@@ -13,7 +17,9 @@ class BaseEmulatorApi(FhsBaseApiInterface):
         self._device_id = device_id
         self._config_location = config_location
         self._api_url_generator = EmulatorApiUrlGenerator(logger)
-        self._api_base_url = self._api_url_generator.generateDeviceApiUrl(self._device_id, self._config_location)
+        self._api_base_url = self._api_url_generator.generateDeviceApiUrl(
+            self._device_id, self._config_location
+        )
         self._json_header = {"Content-Type": "application/json"}
         self._logger = logger
 
@@ -56,6 +62,10 @@ class BaseEmulatorApi(FhsBaseApiInterface):
         self, response: requests.Response, cmd: str, success_msg: str | None = None
     ) -> tuple[ResultCode, str]:
         if response.status_code >= 200 and response.status_code < 300:
-            return ResultCode.OK, success_msg if success_msg is not None else f"{cmd} for {self._device_id} completed OK"
+            return ResultCode.OK, (
+                success_msg
+                if success_msg is not None
+                else f"{cmd} for {self._device_id} completed OK"
+            )
         else:
             return ResultCode.FAILED, response.reason

@@ -6,10 +6,19 @@ from typing import Any, Callable
 
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode
+from ska_control_model import (
+    CommunicationStatus,
+    HealthState,
+    ResultCode,
+    SimulationMode,
+)
 
-from ska_mid_cbf_fhs_vcc.api.frequency_slice_selection_wrapper import FrequencySliceSelectionApi
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.api.frequency_slice_selection_wrapper import (
+    FrequencySliceSelectionApi,
+)
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
+    FhsLowLevelComponentManager,
+)
 
 
 @dataclass_json
@@ -61,6 +70,7 @@ class FrequencySliceSelectionComponentManager(
             emulation_mode=emulation_mode,
             simulation_mode=simulation_mode,
         )
+
         self.status_class = FrequencySliceSelectionStatus(num_outputs=0, num_inputs=0, connected=[])
         self.config_class = FrequencySliceSelectionConfig(output=0, input=0)
 
@@ -92,10 +102,15 @@ class FrequencySliceSelectionComponentManager(
 
             self.logger.info(f"CONFIG JSON CONFIG: {configJson.to_json()}")
 
-            result: tuple[ResultCode, str] = ResultCode.OK, f"{self._device_id} configured successfully"
+            result: tuple[ResultCode, str] = (
+                ResultCode.OK,
+                f"{self._device_id} configured successfully",
+            )
 
             for config in configJson.config:
-                fssJsonConfig = FrequencySliceSelectionConfig(output=config.get("output"), input=config.get("input"))
+                fssJsonConfig = FrequencySliceSelectionConfig(
+                    output=config.get("output"), input=config.get("input")
+                )
 
                 self.logger.info(f"FSS JSON CONFIG: {fssJsonConfig.to_json()}")
 

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
-from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_component_manager import WidebandInputBufferComponentManager
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import (
+    FhsLowLevelDeviceBase,
+)
+from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_component_manager import (
+    WidebandInputBufferComponentManager,
+)
 
 
 class WidebandInputBuffer(FhsLowLevelDeviceBase):

@@ -7,10 +7,19 @@ from typing import Any, Callable
 import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode
+from ska_control_model import (
+    CommunicationStatus,
+    HealthState,
+    ResultCode,
+    SimulationMode,
+)
 
-from ska_mid_cbf_fhs_vcc.api.wideband_input_buffer_api_wrapper import WidebandInputBufferApi
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.api.wideband_input_buffer_api_wrapper import (
+    WidebandInputBufferApi,
+)
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import (
+    FhsLowLevelComponentManager,
+)
 
 
 @dataclass_json
@@ -39,7 +48,9 @@ class WibArginConfig:
     noise_diode_transition_holdoff_seconds: float
 
 
-class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandInputBufferConfig, WideBandInputBufferStatus]):
+class WidebandInputBufferComponentManager(
+    FhsLowLevelComponentManager[WideBandInputBufferConfig, WideBandInputBufferStatus]
+):
     def __init__(
         self: WidebandInputBufferComponentManager,
         *args: Any,
@@ -93,7 +104,10 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandIn
 
             self.logger.info(f"CONFIG JSON CONFIG: {configJson.to_json()}")
 
-            result: tuple[ResultCode, str] = ResultCode.OK, f"{self._device_id} configured successfully"
+            result: tuple[ResultCode, str] = (
+                ResultCode.OK,
+                f"{self._device_id} configured successfully",
+            )
 
             wibJsonConfig = WideBandInputBufferConfig(
                 expected_sample_rate=configJson.expected_sample_rate,

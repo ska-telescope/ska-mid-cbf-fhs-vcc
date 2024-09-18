@@ -18,7 +18,9 @@ class EmulatorApiUrlGenerator:
         self._emulator_config_name = "0.0.1.json"
         pass
 
-    def generateDeviceApiUrl(self: EmulatorApiUrlGenerator, device_id: str, config_location: str) -> str:
+    def generateDeviceApiUrl(
+        self: EmulatorApiUrlGenerator, device_id: str, config_location: str
+    ) -> str:
         try:
             config_map_path = f"{config_location}/{self._config_map_name}"
 
@@ -35,7 +37,9 @@ class EmulatorApiUrlGenerator:
 
             self._logger.info(f"Emulator Config: {emulator_config_path}")
 
-            emulator_config_json = self._getFileContentsAsYamlOrJson(emulator_config_path, isYaml=False)
+            emulator_config_json = self._getFileContentsAsYamlOrJson(
+                emulator_config_path, isYaml=False
+            )
 
             api_url_base = None
 
