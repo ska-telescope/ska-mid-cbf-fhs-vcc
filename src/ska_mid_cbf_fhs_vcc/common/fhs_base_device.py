@@ -93,9 +93,7 @@ class FhsBaseDevice(SKAObsDevice):
             state_machine_factory=FhsObsStateMachine,
         )
 
-    def init_command_objects(
-        self: FhsBaseDevice, commandsAndMethods: list[tuple] | None = None
-    ) -> None:
+    def init_command_objects(self: FhsBaseDevice, commandsAndMethods: list[tuple] | None = None) -> None:
         """Set up the command objects."""
         super().init_command_objects()
 

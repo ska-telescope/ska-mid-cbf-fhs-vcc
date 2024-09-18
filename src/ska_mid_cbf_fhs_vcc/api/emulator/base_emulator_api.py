@@ -65,11 +65,7 @@ class BaseEmulatorApi(FhsBaseApiInterface):
         self, response: requests.Response, cmd: str, success_msg: str | None = None
     ) -> tuple[ResultCode, str]:
         if response.status_code >= 200 and response.status_code < 300:
-            return ResultCode.OK, (
-                success_msg
-                if success_msg is not None
-                else f"{cmd} for {self._device_id} completed OK"
-            )
+            return ResultCode.OK, (success_msg if success_msg is not None else f"{cmd} for {self._device_id} completed OK")
         else:
             return ResultCode.FAILED, response.reason
 
@@ -87,9 +83,7 @@ class BaseEmulatorApi(FhsBaseApiInterface):
 
             self._logger.info(f"Emulator Config: {emulator_config_path}")
 
-            emulator_config_json = api_config_reader._getFileContentsAsYamlOrJson(
-                emulator_config_path, isYaml=False
-            )
+            emulator_config_json = api_config_reader._getFileContentsAsYamlOrJson(emulator_config_path, isYaml=False)
 
             api_url_base = None
 

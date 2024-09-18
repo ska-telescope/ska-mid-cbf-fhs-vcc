@@ -248,8 +248,7 @@ class FhsObsStateModel:
 
         if raise_if_disallowed:
             raise StateModelError(
-                f"Action {action} is not allowed in obs state "
-                f"{'None' if self.obs_state is None else self.obs_state.name}."
+                f"Action {action} is not allowed in obs state " f"{'None' if self.obs_state is None else self.obs_state.name}."
             )
         return False
 

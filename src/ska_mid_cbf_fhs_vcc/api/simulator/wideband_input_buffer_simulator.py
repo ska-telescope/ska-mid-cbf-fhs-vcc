@@ -8,7 +8,5 @@ __all__ = ["WidebandInputBufferSimulator"]
 
 
 class WidebandInputBufferSimulator(BaseSimulatorApi):
-    def __init__(
-        self: WidebandInputBufferSimulator, device_id: str, logger: logging.Logger
-    ) -> None:
+    def __init__(self: WidebandInputBufferSimulator, device_id: str, logger: logging.Logger) -> None:
         super().__init__(device_id=device_id, logger=logger)

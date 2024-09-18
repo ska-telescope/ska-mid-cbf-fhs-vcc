@@ -11,6 +11,4 @@ class PacketValidationEmulatorApi(FhsBaseApiInterface):
         raise NotImplementedError("Configure command not implemented for Packet Validation devices")
 
     def deconfigure(self, config: str) -> None:
-        raise NotImplementedError(
-            "Deconfigure command not implemented for Packet Validation devices"
-        )
+        raise NotImplementedError("Deconfigure command not implemented for Packet Validation devices")

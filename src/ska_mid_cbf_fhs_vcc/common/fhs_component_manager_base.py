@@ -115,24 +115,16 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         command_thread(*args, **kwargs)
         return self._obs_command_running_callback(hook=hook, running=False)
 
-    def _set_task_callback_aborted(
-        self: FhsComponentManagerBase, task_callback: Callable, message: str
-    ) -> None:
+    def _set_task_callback_aborted(self: FhsComponentManagerBase, task_callback: Callable, message: str) -> None:
         self._set_task_callback(task_callback, TaskStatus.ABORTED, ResultCode.ABORTED, message)
 
-    def _set_task_callback_ok_completed(
-        self: FhsComponentManagerBase, task_callback: Callable, message: str
-    ) -> None:
+    def _set_task_callback_ok_completed(self: FhsComponentManagerBase, task_callback: Callable, message: str) -> None:
         self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, message)
 
-    def _set_task_callback_failed(
-        self: FhsComponentManagerBase, task_callback: Callable, message: str
-    ) -> None:
+    def _set_task_callback_failed(self: FhsComponentManagerBase, task_callback: Callable, message: str) -> None:
         self._set_task_callback(task_callback, TaskStatus.FAILED, ResultCode.FAILED, message)
 
-    def _set_task_callback_rejected(
-        self: FhsComponentManagerBase, task_callback: Callable, message: str
-    ) -> None:
+    def _set_task_callback_rejected(self: FhsComponentManagerBase, task_callback: Callable, message: str) -> None:
         self._set_task_callback(task_callback, TaskStatus.REJECTED, ResultCode.REJECTED, message)
 
     def _set_task_callback(

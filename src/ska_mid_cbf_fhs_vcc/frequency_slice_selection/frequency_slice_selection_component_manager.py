@@ -113,9 +113,7 @@ class FrequencySliceSelectionComponentManager(
             )
 
             for config in configJson.config:
-                fssJsonConfig = FrequencySliceSelectionConfig(
-                    output=config.get("output"), input=config.get("input")
-                )
+                fssJsonConfig = FrequencySliceSelectionConfig(output=config.get("output"), input=config.get("input"))
 
                 self.logger.info(f"FSS JSON CONFIG: {fssJsonConfig.to_json()}")
 

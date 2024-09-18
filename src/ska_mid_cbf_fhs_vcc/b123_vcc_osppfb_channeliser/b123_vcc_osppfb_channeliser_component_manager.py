@@ -82,12 +82,8 @@ class B123VccOsppfbChanneliserComponentManager(
         else:
             self._api = B123VccOsppfbChanneliserFirmwareApi(config_location, logger)
 
-        self.config_class = B123VccOsppfbChanneliserConfig(
-            sample_rate=0, pol=None, channel=0, gain=0.0
-        )
-        self.status_class = B123VccOsppfbChanneliserStatus(
-            sample_rate=0, num_channels=0, num_polarisations=0, gains=[]
-        )
+        self.config_class = B123VccOsppfbChanneliserConfig(sample_rate=0, pol=None, channel=0, gain=0.0)
+        self.status_class = B123VccOsppfbChanneliserStatus(sample_rate=0, num_channels=0, num_polarisations=0, gains=[])
 
         super().__init__(
             *args,

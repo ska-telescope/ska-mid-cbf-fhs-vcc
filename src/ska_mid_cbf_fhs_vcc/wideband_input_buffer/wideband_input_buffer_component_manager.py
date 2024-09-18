@@ -49,9 +49,7 @@ class WibArginConfig:
     noise_diode_transition_holdoff_seconds: float
 
 
-class WidebandInputBufferComponentManager(
-    FhsLowLevelComponentManager[WideBandInputBufferConfig, WideBandInputBufferStatus]
-):
+class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandInputBufferConfig, WideBandInputBufferStatus]):
     def __init__(
         self: WidebandInputBufferComponentManager,
         *args: Any,
