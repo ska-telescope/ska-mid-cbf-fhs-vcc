@@ -24,6 +24,9 @@ from ska_mid_cbf_fhs_vcc.api.emulator.b123_vcc_osppfb_channeliser_emulator_api i
 from ska_mid_cbf_fhs_vcc.api.simulator.b123_vcc_osppfb_channeliser_simulator import (
     B123VccOsppfbChanneliserSimulator,
 )
+from ska_mid_cbf_fhs_vcc.api.firmware.b123_vcc_osppfb_channeliser_firmware_api import (
+    B123VccOsppfbChanneliserFirmwareApi,
+)
 
 
 @dataclass_json
@@ -77,7 +80,7 @@ class B123VccOsppfbChanneliserComponentManager(
         elif simulation_mode == SimulationMode.FALSE and emulation_mode is True:
             self._api = B123VccOsppfbChanneliserEmulatorApi(device_id, config_location, logger)
         else:
-            raise NotImplementedError("FW Api not implemented")
+            self._api = B123VccOsppfbChanneliserFirmwareApi(config_location, logger)
 
         self.config_class = B123VccOsppfbChanneliserConfig(
             sample_rate=0, pol=None, channel=0, gain=0.0

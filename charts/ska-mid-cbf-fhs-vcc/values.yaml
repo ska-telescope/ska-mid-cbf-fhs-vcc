@@ -88,3 +88,7 @@ lowLevel:
   emulatorConfigPath: "/app/config/emulator"
   emulatorBaseUrl: "emulators.ska-mid-cbf-emulators.svc.cluster.local:5001"
   emulatorId: "emulator-1"
+  firmwareRegistry: https://artefact.skao.int/repository/raw-internal/
+  firmwareImage: ska-mid-cbf-agilex-vcc
+  firmwareVersion: 0.0.2
+
