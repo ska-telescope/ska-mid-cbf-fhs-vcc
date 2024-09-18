@@ -126,12 +126,12 @@ class FrequencySliceSelectionComponentManager(
                     break
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema."
-            self.logger.error(errorMsg, repr(vex))
+            errorMsg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{errorMsg}: {vex}")
             result = ResultCode.FAILED, errorMsg
         except Exception as ex:
             errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(errorMsg, repr(ex))
+            self.logger.error(f"{errorMsg}: {ex!r}")
             result = ResultCode.FAILED, errorMsg
 
         return result
