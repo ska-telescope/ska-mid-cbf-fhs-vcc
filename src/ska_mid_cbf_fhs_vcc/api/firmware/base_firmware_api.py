@@ -24,24 +24,24 @@ class BaseFirmwareApi(FhsBaseApiInterface):
 
         class CLogger(fpga_driver_base.Logger):
             severity_to_level = {
-                "Failure": logging.CRITICAL,
-                "Error": logging.ERROR,
-                "Warning": logging.WARNING,
-                "Info": logging.INFO,
-                "Pass": logging.INFO,
-                "Debug": logging.DEBUG,
-                "Trace": logging.DEBUG,
+                fpga_driver_base.LogLevel.Failure: logging.CRITICAL,
+                fpga_driver_base.LogLevel.Error: logging.ERROR,
+                fpga_driver_base.LogLevel.Warning: logging.WARNING,
+                fpga_driver_base.LogLevel.Info: logging.INFO,
+                fpga_driver_base.LogLevel.Pass: logging.INFO,
+                fpga_driver_base.LogLevel.Debug: logging.DEBUG,
+                fpga_driver_base.LogLevel.Trace: logging.DEBUG,
             }
             level_to_severity = {v: k for k, v in reversed(severity_to_level.items())}
 
             def __init__(self, level: int = logging.WARNING):
                 """Init the C logger with the provided python log level"""
-                fpga_driver_base.Logger.__init__(self, fpga_driver_base.LogLevel.__members__[self.level_to_severity[level]])
+                fpga_driver_base.Logger.__init__(self, self.level_to_severity[level])
                 self._monkey_patch_set_level()
 
             def log_message(self, severity: fpga_driver_base.Loglevel, msg: str):
                 """Override the C log_message and forward logs to the python logger"""
-                logger.log(self.severity_to_level[severity.name], msg)
+                logger.log(self.severity_to_level[severity], msg)
 
             def _monkey_patch_set_level(self):
                 """Hook the python setLevel function and forward the new level to C"""
@@ -52,8 +52,8 @@ class BaseFirmwareApi(FhsBaseApiInterface):
 
                 def patched_setLevel(level):
                     original_setLevel(level)
-                    severity = fpga_driver_base.LogLevel.__members__[self.level_to_severity[level]]
-                    logger.info(f"Setting C logger to level {severity.name}")
+                    severity = self.level_to_severity[level]
+                    logger.info(f"Setting C logger to level {severity}")
                     self.set_logging_level(severity)
 
                 logger.setLevel = patched_setLevel
