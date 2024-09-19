@@ -82,14 +82,12 @@ class MacComponentManager(FhsLowLevelComponentManager):
             raise NotImplementedError("FW Api not implemented")
 
         self.config_class = MacConfig()
-        self.status_class = MacStatus()
 
         super().__init__(
             *args,
             logger=logger,
             device_id=device_id,
             api=self._api,
-            status_class=self.status_class,
             config_class=self.config_class,
             attr_change_callback=attr_change_callback,
             attr_archive_callback=attr_archive_callback,

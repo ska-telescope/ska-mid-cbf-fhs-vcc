@@ -38,9 +38,7 @@ class FssConfigArgin:
     config: list[dict]
 
 
-class FrequencySliceSelectionComponentManager(
-    FhsLowLevelComponentManager[FrequencySliceSelectionConfig, FrequencySliceSelectionStatus]
-):
+class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager[FrequencySliceSelectionConfig]):
     def __init__(
         self: FrequencySliceSelectionComponentManager,
         *args: Any,
@@ -63,7 +61,6 @@ class FrequencySliceSelectionComponentManager(
         else:
             self._api = FrequencySliceSelectionFirmwareApi(config_location, logger)
 
-        self.status_class = FrequencySliceSelectionStatus(num_outputs=0, num_inputs=0, connected=[])
         self.config_class = FrequencySliceSelectionConfig(output=0, input=0)
 
         super().__init__(
@@ -71,7 +68,6 @@ class FrequencySliceSelectionComponentManager(
             logger=logger,
             device_id=device_id,
             api=self._api,
-            status_class=self.status_class,
             config_class=self.config_class,
             attr_change_callback=attr_change_callback,
             attr_archive_callback=attr_archive_callback,

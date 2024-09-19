@@ -55,7 +55,7 @@ class BaseEmulatorApi(FhsBaseApiInterface):
         )
         return self._get_response_status(response, "Deconfigure")
 
-    def status(self, status, clear: bool = False) -> tuple[ResultCode, str]:
+    def status(self, clear: bool = False) -> tuple[ResultCode, str]:
         response = requests.get(f"{self._api_base_url}/status/clear={clear}")
         return self._get_response_status(self, "Status", response.content)
 

@@ -46,14 +46,12 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
             raise NotImplementedError("FW Api not implemented")
 
         self.config_class = WidebandFrequencyShifterConfig(0)
-        self.status_class = WidebandFrequencyShifterStatus(0)
 
         super().__init__(
             *args,
             logger=logger,
             device_id=device_id,
             api=self._api,
-            status_class=self.status_class,
             config_class=self.config_class,
             attr_change_callback=attr_change_callback,
             attr_archive_callback=attr_archive_callback,

@@ -39,6 +39,6 @@ class BaseSimulatorApi(FhsBaseApiInterface):
         self._logger.info("Deconfigure was called from the simulator")
         return ResultCode.OK, "Deconfigure Called Successfully"
 
-    def status(self, status, clear: bool = False) -> tuple[ResultCode, str]:
+    def status(self, clear: bool = False) -> tuple[ResultCode, str]:
         self._logger.info("Status was called from the simulator")
         return ResultCode.OK, "Status Called Successfully"

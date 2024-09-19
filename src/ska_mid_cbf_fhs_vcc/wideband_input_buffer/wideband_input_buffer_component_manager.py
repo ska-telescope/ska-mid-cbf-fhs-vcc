@@ -40,7 +40,7 @@ class WibArginConfig:
     noise_diode_transition_holdoff_seconds: float
 
 
-class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandInputBufferConfig, WideBandInputBufferStatus]):
+class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandInputBufferConfig]):
     def __init__(
         self: WidebandInputBufferComponentManager,
         *args: Any,
@@ -63,7 +63,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandIn
         else:
             raise NotImplementedError("FW Api not implemented")
 
-        self.status_class = WideBandInputBufferStatus(False, False, 0, 0)
         self.config_class = WideBandInputBufferConfig(0, 0.0)
 
         super().__init__(
@@ -71,7 +70,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandIn
             logger=logger,
             device_id=device_id,
             api=self._api,
-            status_class=self.status_class,
             config_class=self.config_class,
             attr_change_callback=attr_change_callback,
             attr_archive_callback=attr_archive_callback,

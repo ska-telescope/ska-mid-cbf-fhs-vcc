@@ -14,10 +14,9 @@ from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentMa
 
 T = TypeVar("T", bound=FhsBaseApiInterface)
 K = TypeVar("K")
-V = TypeVar("V")
 
 
-class FhsLowLevelComponentManager(Generic[K, V], FhsComponentManagerBase):
+class FhsLowLevelComponentManager(Generic[K], FhsComponentManagerBase):
     def __init__(
         self: TaskExecutorComponentManager,
         *args: Any,
@@ -25,7 +24,6 @@ class FhsLowLevelComponentManager(Generic[K, V], FhsComponentManagerBase):
         device_id,
         api: Type[T],
         config_class: Type[K] = None,
-        status_class: Type[V] = None,
         attr_change_callback: Callable[[str, Any], None] | None = None,
         attr_archive_callback: Callable[[str, Any], None] | None = None,
         health_state_callback: Callable[[HealthState], None] | None = None,
@@ -39,7 +37,6 @@ class FhsLowLevelComponentManager(Generic[K, V], FhsComponentManagerBase):
         self._device_id = device_id
         self._api = api
         self.config_class = config_class
-        self.status_class = status_class
 
         super().__init__(
             *args,
@@ -193,14 +190,7 @@ class FhsLowLevelComponentManager(Generic[K, V], FhsComponentManagerBase):
         clear: bool = False,
     ) -> tuple[ResultCode, str]:
         try:
-            if self.status_class is not None:
-                status = self.status_class()
-                return self._api.status(status, clear)
-            else:
-                return (
-                    ResultCode.REJECTED,
-                    f"{self._device_id} has no Status to report",
-                )
+            return self._api.status(clear)
         except Exception as ex:
             return ResultCode.FAILED, f"Status command FAILED. ex={ex!r}"
 

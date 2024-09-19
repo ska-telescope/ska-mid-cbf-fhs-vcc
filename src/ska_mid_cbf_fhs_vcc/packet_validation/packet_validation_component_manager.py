@@ -51,14 +51,11 @@ class PacketValidationComponentManager(FhsLowLevelComponentManager):
         else:
             raise NotImplementedError("FW Api not implemented")
 
-        self.status_class = PacketValidationStatus(0, 0, 0)
-
         super().__init__(
             *args,
             logger=logger,
             device_id=device_id,
             api=self._api,
-            status_class=self.status_class,
             attr_change_callback=attr_change_callback,
             attr_archive_callback=attr_archive_callback,
             health_state_callback=health_state_callback,

@@ -43,9 +43,7 @@ class VccConfigArgin:
     gains: list[float]
 
 
-class B123VccOsppfbChanneliserComponentManager(
-    FhsLowLevelComponentManager[B123VccOsppfbChanneliserConfig, B123VccOsppfbChanneliserStatus]
-):
+class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager[B123VccOsppfbChanneliserConfig]):
     def __init__(
         self: B123VccOsppfbChanneliserComponentManager,
         *args: Any,
@@ -69,14 +67,12 @@ class B123VccOsppfbChanneliserComponentManager(
             self._api = B123VccOsppfbChanneliserFirmwareApi(config_location, logger)
 
         self.config_class = B123VccOsppfbChanneliserConfig(sample_rate=0, pol=None, channel=0, gain=0.0)
-        self.status_class = B123VccOsppfbChanneliserStatus(sample_rate=0, num_channels=0, num_polarisations=0, gains=[])
 
         super().__init__(
             *args,
             logger=logger,
             device_id=device_id,
             api=self._api,
-            status_class=self.status_class,
             config_class=self.config_class,
             attr_change_callback=attr_change_callback,
             attr_archive_callback=attr_archive_callback,
@@ -141,7 +137,7 @@ class B123VccOsppfbChanneliserComponentManager(
                     break
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema."
+            errorMsg = "Validation error: argin doesn't match the required schema"
             self.logger.error(f"{errorMsg}: {vex}")
             result = ResultCode.FAILED, errorMsg
         except Exception as ex:
