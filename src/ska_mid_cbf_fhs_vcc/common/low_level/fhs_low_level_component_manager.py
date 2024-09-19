@@ -120,53 +120,44 @@ class FhsLowLevelComponentManager(Generic[K, V], FhsComponentManagerBase):
 
     def recover(self: FhsLowLevelComponentManager) -> tuple[ResultCode, str]:
         try:
-            result = ResultCode.UNKNOWN, "Recover command status unknown"
-
             if self.is_recover_allowed():
                 self._update_component_state(resseting=True)
                 self._api.recover()
                 self._update_component_state(reset=True)
-                result = ResultCode.OK, "Recover command completed OK"
+                return ResultCode.OK, "Recover command completed OK"
             else:
-                result = (
+                return (
                     ResultCode.REJECTED,
                     f"Recover command is not allowed in obs state {self.obs_state}",
                 )
-
-            return result
-
         except Exception as ex:
-            return ResultCode.FAILED, f"Recover command failed.  ex={repr(ex)}"
+            return ResultCode.FAILED, f"Recover command failed. ex={ex!r}"
 
     def configure(self: FhsLowLevelComponentManager, argin: K) -> tuple[ResultCode, str]:
         self.logger.debug(f"Component state: {self.component_state}")
-        result = ResultCode.UNKNOWN, "Unknown configure command state"
         if self.is_configure_allowed():
             self._obs_command_running_callback(hook="configure", running=True)
             result = self._configure(argin)
             self._obs_command_running_callback(hook="configure", running=False)
+            return result
         else:
-            result = (
+            return (
                 ResultCode.REJECTED,
                 f"Configure not allowed in component state {self.component_state}",
             )
 
-        return result
-
     def deconfigure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
         self.logger.debug(f"Component state: {self.component_state}")
-        result = ResultCode.UNKNOWN, "Unknown deconfigure command state"
         if self.is_deconfigure_allowed():
             self._obs_command_running_callback(hook="configure", running=True)
             result = self._configure(argin, True)
             self._obs_command_running_callback(hook="deconfigure", running=True)
+            return result
         else:
-            result = (
+            return (
                 ResultCode.REJECTED,
                 f"Deconfigure not allowed in component state {self.component_state}",
             )
-
-        return result
 
     def start(self: FhsLowLevelComponentManager, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
         self.logger.debug(f"Component state: {self.communication_state}")
@@ -201,23 +192,17 @@ class FhsLowLevelComponentManager(Generic[K, V], FhsComponentManagerBase):
         self: FhsLowLevelComponentManager,
         clear: bool = False,
     ) -> tuple[ResultCode, str]:
-        result = ResultCode.UNKNOWN, "Status unknown"
-
         try:
             if self.status_class is not None:
                 status = self.status_class()
-                resultStr = self._api.status(status, clear)
-                result = ResultCode.OK, resultStr
+                return self._api.status(status, clear)
             else:
-                result = (
+                return (
                     ResultCode.REJECTED,
                     f"{self._device_id} has no Status to report",
                 )
-
         except Exception as ex:
-            result = ResultCode.FAILED, f"Status command FAILED. {repr(ex)}"
-
-        return result
+            return ResultCode.FAILED, f"Status command FAILED. ex={ex!r}"
 
     # ------------------------
     #  Private Fast Commands
@@ -230,22 +215,18 @@ class FhsLowLevelComponentManager(Generic[K, V], FhsComponentManagerBase):
     ) -> tuple[ResultCode, str]:
         try:
             mode = "Configure" if not deconfigure else "Deconfigure"
-
-            result = ResultCode.UNKNOWN, "Configure command status unknown"
+            self.logger.info(f"Running {mode} command")
 
             if self.config_class is not None:
                 if not deconfigure:
-                    self.logger.info("CONFIGURING")
-                    result = self._api.configure(argin)
+                    return self._api.configure(argin)
                 else:
-                    result = self._api.deconfigure(argin)
+                    return self._api.deconfigure(argin)
             else:
-                result = ResultCode.OK, "Nothing to " + mode + f" for {self._device_id}"
+                return ResultCode.OK, "Nothing to " + mode + f" for {self._device_id}"
 
-            return result
         except Exception as ex:
-            errorMessage = mode + f" command FAILED. ex={repr(ex)}"
-            return ResultCode.FAILED, errorMessage
+            return ResultCode.FAILED, f"{mode} command FAILED. ex={ex!r}"
 
     # -------------------------
     # Private LRC
@@ -283,7 +264,7 @@ class FhsLowLevelComponentManager(Generic[K, V], FhsComponentManagerBase):
                 self._set_task_callback_aborted(task_callback, "Start command was ABORTED")
 
         except Exception as ex:
-            self._set_task_callback_failed(task_callback, f"Start command FAILED. ex={repr(ex)}")
+            self._set_task_callback_failed(task_callback, f"Start command FAILED. ex={ex!r}")
             self.set_fault_and_failed()
 
     def _stop(
@@ -303,5 +284,5 @@ class FhsLowLevelComponentManager(Generic[K, V], FhsComponentManagerBase):
                 self._set_task_callback_aborted(task_callback, "Stop command was ABORTED")
 
         except Exception as ex:
-            self._set_task_callback_failed(task_callback, f"Stop command FAILED. ex={repr(ex)}")
+            self._set_task_callback_failed(task_callback, f"Stop command FAILED. ex={ex!r}")
             self.set_fault_and_failed()

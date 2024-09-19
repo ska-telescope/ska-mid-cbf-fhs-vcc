@@ -32,53 +32,29 @@ class BaseFirmwareApi(FhsBaseApiInterface):
         # self._status_t = None
 
     def recover(self) -> tuple[ResultCode, str]:
-        try:
-            self._driver.recover()
-        except Exception as exc:
-            return ResultCode.FAILED, f"Recover failed: {exc!r}"
-        else:
-            return ResultCode.OK, "Recover Called Successfully"
+        self._driver.recover()
+        return ResultCode.OK, "Recover Called Successfully"
 
     def configure(self, config: dict) -> tuple[ResultCode, str]:
-        try:
-            self._driver.configure(self._config_t(**config))
-        except Exception as exc:
-            return ResultCode.FAILED, f"Configure failed: {exc!r}"
-        else:
-            return ResultCode.OK, "Configure Called Successfully"
+        self._driver.configure(self._config_t(**config))
+        return ResultCode.OK, "Configure Called Successfully"
 
     def start(self) -> tuple[ResultCode, str]:
-        try:
-            self._driver.start()
-        except Exception as exc:
-            return ResultCode.FAILED, f"Start failed: {exc!r}"
-        else:
-            return ResultCode.OK, "Start Called Successfully"
+        self._driver.start()
+        return ResultCode.OK, "Start Called Successfully"
 
     def stop(self, force: bool = False) -> tuple[ResultCode, str]:
-        try:
-            self._driver.stop(force)
-        except Exception as exc:
-            return ResultCode.FAILED, f"Stop failed: {exc!r}"
-        else:
-            return ResultCode.OK, "Stop Called Successfully"
+        self._driver.stop(force)
+        return ResultCode.OK, "Stop Called Successfully"
 
     def deconfigure(self, config: dict) -> tuple[ResultCode, str]:
-        try:
-            self._driver.deconfigure(self._config_t(**config))
-        except Exception as exc:
-            return ResultCode.FAILED, f"Deconfigure failed: {exc!r}"
-        else:
-            return ResultCode.OK, "Deconfigure Called Successfully"
+        self._driver.deconfigure(self._config_t(**config))
+        return ResultCode.OK, "Deconfigure Called Successfully"
 
     def status(self, status: dict, clear: bool = False) -> tuple[ResultCode, str]:
-        try:
-            status_t = self._status_t(**status)
-            self._driver.status(status_t, clear)
-        except Exception as exc:
-            return ResultCode.FAILED, f"Status failed: {exc!r}"
-        else:
-            return ResultCode.OK, json.dumps(status_t)
+        status_t = self._status_t(**status)
+        self._driver.status(status_t, clear)
+        return ResultCode.OK, json.dumps(status_t)
 
     def _download_fw(self, config_location: str):
         """

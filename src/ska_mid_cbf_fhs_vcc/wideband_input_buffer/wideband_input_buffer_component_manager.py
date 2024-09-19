@@ -112,7 +112,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandIn
                 self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema."
+            errorMsg = "Validation error: argin doesn't match the required schema"
             self.logger.error(f"{errorMsg}: {vex}")
             result = ResultCode.FAILED, errorMsg
         except Exception as ex:
