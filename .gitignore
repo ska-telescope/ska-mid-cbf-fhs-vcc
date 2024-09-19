@@ -28,8 +28,8 @@ docs/src/_generated_pages/*.rst
 docs/src/_generated_pages/img/*.png
 docs/apidocs
 
-charts/ska-mid-cbf-umbrella/Chart.lock
-charts/ska-mid-cbf-umbrella/charts
+charts/*/Chart.lock
+charts/*/charts
 
 # ide
 .idea

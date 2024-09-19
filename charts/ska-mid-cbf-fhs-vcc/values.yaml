@@ -45,30 +45,63 @@ resources:
     memory: 128Mi  
     ephemeral-storage: 256Mi
 
+instances:
+  - name: fhs-vcc-1
+    packetValidation:
+      deviceId: packet_validation
+    mac200:
+      deviceId: ethernet_200g
+    b123VccOsppfbChanneliser:
+      deviceId: b123vcc
+    frequencySliceSelection:
+      deviceId: fs_selection_26_2_1
+    widebandFrequencyShifter:
+      deviceId: wideband_frequency_shifter
+    widebandInputBuffer:
+      deviceId: wideband_input_buffer
+  - name: fhs-vcc-2
+    packetValidation:
+      deviceId: packet_validation
+    mac200:
+      deviceId: ethernet_200g
+    b123VccOsppfbChanneliser:
+      deviceId: b123vcc
+    frequencySliceSelection:
+      deviceId: fs_selection_26_2_1
+    widebandFrequencyShifter:
+      deviceId: wideband_frequency_shifter
+    widebandInputBuffer:
+      deviceId: wideband_input_buffer
+
 deviceServers:
-  mac:
-    enabled: true
-    file: "data/mac.yaml"
+#### Keeping these commented out for now until decided on whether all in one pod is deemed best route to take
+  # mac:
+  #   enabled: true
+  #   file: "data/mac.yaml"
 
-  packet-validation:
-    enabled: true
-    file: "data/packet_validation.yaml"
+  # packet-validation:
+  #   enabled: true
+  #   file: "data/packet_validation.yaml"
 
-  vcc:
-    enabled: true
-    file: "data/b123_vcc_osppfb_channeliser.yaml"
+  # vcc:
+  #   enabled: true
+  #   file: "data/b123_vcc_osppfb_channeliser.yaml"
 
-  frequency-slice-selection:
-    enabled: true
-    file: "data/frequency_slice_selection.yaml"
+  # frequency-slice-selection:
+  #   enabled: true
+  #   file: "data/frequency_slice_selection.yaml"
 
-  wfs:
-    enabled: true
-    file: "data/wideband_frequency_shifter.yaml"
+  # wfs:
+  #   enabled: true
+  #   file: "data/wideband_frequency_shifter.yaml"
 
-  wib:
+  # wib:
+  #   enabled: true
+  #   file: "data/wideband_input_buffer.yaml"
+  fhs-vcc-stack:
     enabled: true
-    file: "data/wideband_input_buffer.yaml"
+    file: "data/fhs_vcc_stack.yaml"
+
 
 nodeSelector: {}
 
