@@ -20,11 +20,46 @@ class BaseFirmwareApi(FhsBaseApiInterface):
         self._logger = logger
         self._download_fw(config_location)
 
-        # TODO: extend the C logger to forward messages to the python logger
         from .contrib.driver_source_code.talon_dx_agilex_m_vcc_base_vcc_processing import fpga_driver_base
 
+        class CLogger(fpga_driver_base.Logger):
+            severity_to_level = {
+                "Failure": logging.CRITICAL,
+                "Error": logging.ERROR,
+                "Warning": logging.WARNING,
+                "Info": logging.INFO,
+                "Pass": logging.INFO,
+                "Debug": logging.DEBUG,
+                "Trace": logging.DEBUG,
+            }
+            level_to_severity = {v: k for k, v in reversed(severity_to_level.items())}
+
+            def __init__(self, level: int = logging.WARNING):
+                """Init the C logger with the provided python log level"""
+                fpga_driver_base.Logger.__init__(self, fpga_driver_base.LogLevel.__members__[self.level_to_severity[level]])
+                self._monkey_patch_set_level()
+
+            def log_message(self, severity: fpga_driver_base.Loglevel, msg: str):
+                """Override the C log_message and forward logs to the python logger"""
+                logger.log(self.severity_to_level[severity.name], msg)
+
+            def _monkey_patch_set_level(self):
+                """Hook the python setLevel function and forward the new level to C"""
+                if hasattr(logger, "_is_c_patched") and logger._is_c_patched:
+                    return
+
+                original_setLevel = logger.setLevel
+
+                def patched_setLevel(level):
+                    original_setLevel(level)
+                    logger.info(f"Setting C logger to level {level}")
+                    self.set_logging_level(fpga_driver_base.LogLevel.__members__[self.level_to_severity[level]])
+
+                logger.setLevel = patched_setLevel
+                logger._is_c_patched = True
+
         # --- resources to be used by child classes
-        self._c_logger = fpga_driver_base.Logger(fpga_driver_base.LogLevel.Debug)
+        self._c_logger = CLogger(logger.getEffectiveLevel())
 
         # --- resources to be provided by child classes
         # self._driver = None
