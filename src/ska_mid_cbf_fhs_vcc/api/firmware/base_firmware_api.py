@@ -52,8 +52,9 @@ class BaseFirmwareApi(FhsBaseApiInterface):
 
                 def patched_setLevel(level):
                     original_setLevel(level)
-                    logger.info(f"Setting C logger to level {level}")
-                    self.set_logging_level(fpga_driver_base.LogLevel.__members__[self.level_to_severity[level]])
+                    severity = fpga_driver_base.LogLevel.__members__[self.level_to_severity[level]]
+                    logger.info(f"Setting C logger to level {severity.name}")
+                    self.set_logging_level(severity)
 
                 logger.setLevel = patched_setLevel
                 logger._is_c_patched = True
