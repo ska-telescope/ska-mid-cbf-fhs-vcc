@@ -15,9 +15,9 @@ from tango import DevState
 from ska_mid_cbf_fhs_vcc.mac.mac_200_device import Mac200
 
 
-
 # Disable garbage collection to prevent tests hanging
 gc.disable()
+
 
 class MacDeviceTest:
     @pytest.fixture(name="test_context")

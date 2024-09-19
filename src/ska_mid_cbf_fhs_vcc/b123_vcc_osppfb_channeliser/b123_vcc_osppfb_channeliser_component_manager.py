@@ -9,7 +9,9 @@ from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.api.b123_vcc_osppfb_channeliser_wrapper import B123VccOsppfbChanneliserApi
+from ska_mid_cbf_fhs_vcc.api.emulator.b123_vcc_osppfb_channeliser_emulator_api import B123VccOsppfbChanneliserEmulatorApi
+from ska_mid_cbf_fhs_vcc.api.firmware.b123_vcc_osppfb_channeliser_firmware_api import B123VccOsppfbChanneliserFirmwareApi
+from ska_mid_cbf_fhs_vcc.api.simulator.b123_vcc_osppfb_channeliser_simulator import B123VccOsppfbChanneliserSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
 
@@ -41,9 +43,7 @@ class VccConfigArgin:
     gains: list[float]
 
 
-class B123VccOsppfbChanneliserComponentManager(
-    FhsLowLevelComponentManager[B123VccOsppfbChanneliserConfig, B123VccOsppfbChanneliserStatus]
-):
+class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager[B123VccOsppfbChanneliserConfig]):
     def __init__(
         self: B123VccOsppfbChanneliserComponentManager,
         *args: Any,
@@ -59,22 +59,20 @@ class B123VccOsppfbChanneliserComponentManager(
         emulation_mode: bool = True,
         **kwargs: Any,
     ) -> None:
-        self._api = B123VccOsppfbChanneliserApi(
-            device_id=device_id,
-            config_location=config_location,
-            logger=logger,
-            emulation_mode=emulation_mode,
-            simulation_mode=simulation_mode,
-        )
+        if simulation_mode == SimulationMode.TRUE:
+            self._api = B123VccOsppfbChanneliserSimulator(device_id, logger)
+        elif simulation_mode == SimulationMode.FALSE and emulation_mode is True:
+            self._api = B123VccOsppfbChanneliserEmulatorApi(device_id, config_location, logger)
+        else:
+            self._api = B123VccOsppfbChanneliserFirmwareApi(config_location, logger)
+
         self.config_class = B123VccOsppfbChanneliserConfig(sample_rate=0, pol=None, channel=0, gain=0.0)
-        self.status_class = B123VccOsppfbChanneliserStatus(sample_rate=0, num_channels=0, num_polarisations=0, gains=[])
 
         super().__init__(
             *args,
             logger=logger,
             device_id=device_id,
             api=self._api,
-            status_class=self.status_class,
             config_class=self.config_class,
             attr_change_callback=attr_change_callback,
             attr_archive_callback=attr_archive_callback,
@@ -118,30 +116,33 @@ class B123VccOsppfbChanneliserComponentManager(
 
             self.logger.info(f"CONFIG JSON CONFIG: {vccConfigArgin.to_json()}")
 
-            result: tuple[ResultCode, str] = ResultCode.OK, f"{self._device_id} configured successfully"
+            result: tuple[ResultCode, str] = (
+                ResultCode.OK,
+                f"{self._device_id} configured successfully",
+            )
 
-            i = 0
-
-            for gain in vccConfigArgin.gains:
+            for i, gain in enumerate(vccConfigArgin.gains):
                 vccJsonConfig = B123VccOsppfbChanneliserConfig(
-                    sample_rate=vccConfigArgin.sample_rate, gain=gain, channel=i, pol=i % 2
+                    sample_rate=vccConfigArgin.sample_rate,
+                    gain=gain,
+                    channel=i,
+                    pol=i % 2,
                 )
 
                 self.logger.info(f"VCC JSON CONFIG {i}: {vccJsonConfig.to_json()}")
 
-                i += 1
                 result = super().configure(vccJsonConfig.to_dict())
                 if result[0] != ResultCode.OK:
                     self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
                     break
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema."
-            self.logger.error(errorMsg, repr(vex))
+            errorMsg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{errorMsg}: {vex}")
             result = ResultCode.FAILED, errorMsg
         except Exception as ex:
             errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(errorMsg, repr(ex))
+            self.logger.error(f"{errorMsg}: {ex!r}")
             result = ResultCode.FAILED, errorMsg
 
         return result

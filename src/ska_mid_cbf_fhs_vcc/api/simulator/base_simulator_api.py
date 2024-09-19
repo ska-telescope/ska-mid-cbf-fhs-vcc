@@ -5,11 +5,13 @@ import logging
 
 from ska_control_model import ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.common.interfaces.fhs_base_api_interface import FhsBaseApiInterface
+from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 
 
 class BaseSimulatorApi(FhsBaseApiInterface):
     def __init__(self: BaseSimulatorApi, device_id: str, logger: logging.Logger) -> None:
+        logger.info(f"SIMULATOR API: {device_id}")
+
         self.mac_id = device_id
         self._logger = logger
 
@@ -37,6 +39,6 @@ class BaseSimulatorApi(FhsBaseApiInterface):
         self._logger.info("Deconfigure was called from the simulator")
         return ResultCode.OK, "Deconfigure Called Successfully"
 
-    def status(self, status, clear: bool = False) -> tuple[ResultCode, str]:
+    def status(self, clear: bool = False) -> tuple[ResultCode, str]:
         self._logger.info("Status was called from the simulator")
         return ResultCode.OK, "Status Called Successfully"

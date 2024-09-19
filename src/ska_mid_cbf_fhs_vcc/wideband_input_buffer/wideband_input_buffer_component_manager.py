@@ -9,7 +9,8 @@ from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.api.wideband_input_buffer_api_wrapper import WidebandInputBufferApi
+from ska_mid_cbf_fhs_vcc.api.emulator.wib_emulator_api import WibEmulatorApi
+from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
 
@@ -39,7 +40,7 @@ class WibArginConfig:
     noise_diode_transition_holdoff_seconds: float
 
 
-class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandInputBufferConfig, WideBandInputBufferStatus]):
+class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandInputBufferConfig]):
     def __init__(
         self: WidebandInputBufferComponentManager,
         *args: Any,
@@ -55,14 +56,13 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandIn
         emulation_mode: bool = True,
         **kwargs: Any,
     ) -> None:
-        self._api = WidebandInputBufferApi(
-            device_id=device_id,
-            config_location=config_location,
-            logger=logger,
-            emulation_mode=emulation_mode,
-            simulation_mode=simulation_mode,
-        )
-        self.status_class = WideBandInputBufferStatus(False, False, 0, 0)
+        if simulation_mode == SimulationMode.TRUE:
+            self._api = WidebandInputBufferSimulator(device_id, logger)
+        elif simulation_mode == SimulationMode.FALSE and emulation_mode is True:
+            self._api = WibEmulatorApi(device_id, config_location, logger)
+        else:
+            raise NotImplementedError("FW Api not implemented")
+
         self.config_class = WideBandInputBufferConfig(0, 0.0)
 
         super().__init__(
@@ -70,7 +70,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandIn
             logger=logger,
             device_id=device_id,
             api=self._api,
-            status_class=self.status_class,
             config_class=self.config_class,
             attr_change_callback=attr_change_callback,
             attr_archive_callback=attr_archive_callback,
@@ -93,7 +92,10 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandIn
 
             self.logger.info(f"CONFIG JSON CONFIG: {configJson.to_json()}")
 
-            result: tuple[ResultCode, str] = ResultCode.OK, f"{self._device_id} configured successfully"
+            result: tuple[ResultCode, str] = (
+                ResultCode.OK,
+                f"{self._device_id} configured successfully",
+            )
 
             wibJsonConfig = WideBandInputBufferConfig(
                 expected_sample_rate=configJson.expected_sample_rate,
@@ -108,12 +110,12 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager[WideBandIn
                 self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema."
-            self.logger.error(errorMsg, repr(vex))
+            errorMsg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{errorMsg}: {vex}")
             result = ResultCode.FAILED, errorMsg
         except Exception as ex:
             errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(errorMsg, repr(ex))
+            self.logger.error(f"{errorMsg}: {ex!r}")
             result = ResultCode.FAILED, errorMsg
 
         return result

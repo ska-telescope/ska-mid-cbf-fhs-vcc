@@ -5,21 +5,19 @@ description = "SKA Mid.CBF FHS VCC"
 authors = [
     "Jason Turner <jason.turner@mda.space>",
     "Ben Herriott <ben.herriott@mda.space>",
-    "Justin Wamback <justin.wamback@mda.space>"
+    "Justin Wamback <justin.wamback@mda.space>",
 ]
 license = "BSD license"
 readme = "README.md"
-packages = [
-    { include = "ska_mid_cbf_fhs_vcc", from = "src" }
-]
+packages = [{ include = "ska_mid_cbf_fhs_vcc", from = "src" }]
 
 [tool.poetry.scripts]
-Mac200='ska_mid_cbf_fhs_vcc.mac.mac_200_device:main'
-PacketValidation='ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device:main'
-B123VccOsppfbChanneliser='ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device:main'
-FrequencySliceSelection='ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device:main'
-WidebandFrequencyShifter='ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device:main'
-WidebandInputBuffer='ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device:main'
+Mac200 = 'ska_mid_cbf_fhs_vcc.mac.mac_200_device:main'
+PacketValidation = 'ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device:main'
+B123VccOsppfbChanneliser = 'ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device:main'
+FrequencySliceSelection = 'ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device:main'
+WidebandFrequencyShifter = 'ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device:main'
+WidebandInputBuffer = 'ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device:main'
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
@@ -72,10 +70,10 @@ name = "PyPI-public"
 url = "https://pypi.org/simple"
 
 [tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-line_length = 79
+profile = "black"
+
+[tool.black]
+line-length = 130
 
 [build-system]
 requires = ["poetry>=1.8", "poetry-core>=1.9.0"]

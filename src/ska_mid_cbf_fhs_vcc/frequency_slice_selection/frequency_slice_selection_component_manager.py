@@ -8,7 +8,9 @@ from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.api.frequency_slice_selection_wrapper import FrequencySliceSelectionApi
+from ska_mid_cbf_fhs_vcc.api.emulator.frequency_slice_selection_emulator_api import FrequencySliceSelectionEmulatorApi
+from ska_mid_cbf_fhs_vcc.api.firmware.frequency_slice_selection_firmware_api import FrequencySliceSelectionFirmwareApi
+from ska_mid_cbf_fhs_vcc.api.simulator.frequency_slice_selection_simulator import FrequencySliceSelectionSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
 
@@ -36,9 +38,7 @@ class FssConfigArgin:
     config: list[dict]
 
 
-class FrequencySliceSelectionComponentManager(
-    FhsLowLevelComponentManager[FrequencySliceSelectionConfig, FrequencySliceSelectionStatus]
-):
+class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager[FrequencySliceSelectionConfig]):
     def __init__(
         self: FrequencySliceSelectionComponentManager,
         *args: Any,
@@ -54,14 +54,13 @@ class FrequencySliceSelectionComponentManager(
         emulation_mode: bool = True,
         **kwargs: Any,
     ) -> None:
-        self._api = FrequencySliceSelectionApi(
-            device_id=device_id,
-            config_location=config_location,
-            logger=logger,
-            emulation_mode=emulation_mode,
-            simulation_mode=simulation_mode,
-        )
-        self.status_class = FrequencySliceSelectionStatus(num_outputs=0, num_inputs=0, connected=[])
+        if simulation_mode == SimulationMode.TRUE:
+            self._api = FrequencySliceSelectionSimulator(device_id, logger)
+        elif simulation_mode == SimulationMode.FALSE and emulation_mode is True:
+            self._api = FrequencySliceSelectionEmulatorApi(device_id, config_location, logger)
+        else:
+            self._api = FrequencySliceSelectionFirmwareApi(config_location, logger)
+
         self.config_class = FrequencySliceSelectionConfig(output=0, input=0)
 
         super().__init__(
@@ -69,7 +68,6 @@ class FrequencySliceSelectionComponentManager(
             logger=logger,
             device_id=device_id,
             api=self._api,
-            status_class=self.status_class,
             config_class=self.config_class,
             attr_change_callback=attr_change_callback,
             attr_archive_callback=attr_archive_callback,
@@ -92,7 +90,10 @@ class FrequencySliceSelectionComponentManager(
 
             self.logger.info(f"CONFIG JSON CONFIG: {configJson.to_json()}")
 
-            result: tuple[ResultCode, str] = ResultCode.OK, f"{self._device_id} configured successfully"
+            result: tuple[ResultCode, str] = (
+                ResultCode.OK,
+                f"{self._device_id} configured successfully",
+            )
 
             for config in configJson.config:
                 fssJsonConfig = FrequencySliceSelectionConfig(output=config.get("output"), input=config.get("input"))
@@ -106,12 +107,12 @@ class FrequencySliceSelectionComponentManager(
                     break
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema."
-            self.logger.error(errorMsg, repr(vex))
+            errorMsg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{errorMsg}: {vex}")
             result = ResultCode.FAILED, errorMsg
         except Exception as ex:
             errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(errorMsg, repr(ex))
+            self.logger.error(f"{errorMsg}: {ex!r}")
             result = ResultCode.FAILED, errorMsg
 
         return result

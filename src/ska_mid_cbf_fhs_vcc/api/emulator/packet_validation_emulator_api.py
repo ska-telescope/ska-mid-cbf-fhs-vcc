@@ -1,4 +1,4 @@
-from ska_mid_cbf_fhs_vcc.api.common.interfaces.fhs_base_api_interface import FhsBaseApiInterface
+from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 
 
 class PacketValidationEmulatorApi(FhsBaseApiInterface):
