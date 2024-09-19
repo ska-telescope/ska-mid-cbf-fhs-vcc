@@ -54,7 +54,8 @@ class BaseFirmwareApi(FhsBaseApiInterface):
     def status(self, clear: bool = False) -> tuple[ResultCode, str]:
         status_t = self._status_t()
         self._driver.status(status_t, clear)
-        return ResultCode.OK, json.dumps(status_t)
+        status = {attr: getattr(status_t, attr) for attr in dir(status_t) if not attr.startswith("_")}
+        return ResultCode.OK, json.dumps(status)
 
     def _download_fw(self, config_location: str):
         """
