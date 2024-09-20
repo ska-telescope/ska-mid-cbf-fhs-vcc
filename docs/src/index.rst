@@ -12,12 +12,17 @@
 
 .. COMMUNITY SECTION ==================================================
 ..
-
 .. toctree::
   :maxdepth: 2
   :caption: Initial SDD
 
   design/fhs-vcc-design
+
+.. toctree::
+  :maxdepth: 2
+  :caption: Interfaces
+  
+  icd/icd.md
 
 .. toctree::
   :caption: Deployment

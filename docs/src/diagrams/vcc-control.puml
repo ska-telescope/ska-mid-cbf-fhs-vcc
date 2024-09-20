@@ -1,0 +1,51 @@
+@startuml VCC-Control
+participant "MCS" as mcs
+participant "VCC All Bands Controller" as controller
+participant "WIB" as wib
+participant "Wide-band Shifter" as shifter
+participant "Band123Channelizer" as channelizer
+participant "Band45Channelizer" as channelizer45
+participant "FS Selection" as cs
+
+mcs -> controller : ConfigureScan()
+activate controller #LightSeaGreen
+controller -> controller : State set to ObsState.CONFIGURING
+controller -> controller : Set the sample rate and the samples per frame properties
+controller -> channelizer : Set write attributes
+activate channelizer #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> wib : Set write attributes, call the WIB's start() command
+activate wib #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> shifter : Set write attributes
+activate shifter #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> cs : Set write attributes
+activate cs #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> wib : Verify Configuration
+activate wib #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller ->  controller : Set state to ObsState.READY
+return #LimeGreen (RespCode.OK, details)
+
+mcs -> controller : Scan()
+activate controller #LightSeaGreen
+controller -> controller : Set the state to ObsState.SCANNING
+return #LimeGreen (RespCode.OK, details)
+
+mcs -> controller : EndScan()
+activate controller #LightSeaGreen
+controller -> controller : Set the state to ObsState.READY
+return #LimeGreen (RespCode.OK, details)
+
+
+mcs -> controller : GoToIdle()
+activate controller #LightSeaGreen
+controller -> controller : Reset attributes to defaults
+controller -> wib : Call the WIB's stop() command
+activate wib #PaleTurquoise
+return #LimeGreen (RespCode.OK, details)
+controller -> controller : Set the state to ObsState.IDLE
+return #LimeGreen (RespCode.OK, details)
+@enduml
