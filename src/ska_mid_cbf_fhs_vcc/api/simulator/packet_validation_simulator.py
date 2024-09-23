@@ -8,9 +8,4 @@ __all__ = ["PacketValidationControllerSimulator"]
 
 
 class PacketValidationControllerSimulator(BaseSimulatorApi):
-    def __init__(
-        self: PacketValidationControllerSimulator,
-        device_id: str,
-        logger: logging.Logger,
-    ) -> None:
-        super().__init__(device_id=device_id, logger=logger)
+    pass

@@ -8,5 +8,4 @@ __all__ = ["B123VccOsppfbChanneliserSimulator"]
 
 
 class B123VccOsppfbChanneliserSimulator(BaseSimulatorApi):
-    def __init__(self: B123VccOsppfbChanneliserSimulator, device_id: str, logger: logging.Logger) -> None:
-        super().__init__(device_id=device_id, logger=logger)
+    pass

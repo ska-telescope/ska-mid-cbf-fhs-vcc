@@ -42,13 +42,14 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
     ) -> None:
         self.obs_state = ObsState.IDLE
 
-        self._obs_command_running_callback = obs_command_running_callback
         self._attr_change_callback = attr_change_callback
         self._attr_archive_callback = attr_archive_callback
         self.simulation_mode = simulation_mode
         self.emulation_mode = emulation_mode
 
         self._device_health_state_callback = health_state_callback
+        self._obs_command_running_callback = obs_command_running_callback
+
         self._health_state_lock = Lock()
         self._health_state = HealthState.UNKNOWN
 
