@@ -20,6 +20,8 @@ class Mac200(FhsLowLevelDeviceBase):
     def create_component_manager(self: Mac200) -> MacComponentManager:
         return MacComponentManager(
             config_location=self.config_location,
+            simulation_mode=self.simulation_mode,
+            emulation_mode=self.emulation_mode,
             logger=self.logger,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,

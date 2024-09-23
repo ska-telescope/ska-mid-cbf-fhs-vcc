@@ -13,7 +13,8 @@ class B123VccOsppfbChanneliser(FhsLowLevelDeviceBase):
         return B123VccOsppfbChanneliserComponentManager(
             device_id=self.device_id,
             config_location=self.config_location,
-            logger=self.logger,
+            simulation_mode=self.simulation_mode,
+            emulation_mode=self.emulation_mode,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
             health_state_callback=self._update_health_state,
