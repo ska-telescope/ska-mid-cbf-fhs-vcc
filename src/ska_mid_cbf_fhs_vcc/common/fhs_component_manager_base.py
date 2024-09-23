@@ -7,10 +7,11 @@
 
 from __future__ import annotations  # allow forward references in type hints
 
+import logging
 from threading import Lock
 from typing import Any, Callable, Optional, cast
 
-from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, SimulationMode, TaskStatus
+from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, TaskStatus
 from ska_tango_base.base.base_component_manager import BaseComponentManager
 from ska_tango_base.executor.executor_component_manager import TaskExecutorComponentManager
 
@@ -36,23 +37,20 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         health_state_callback: Callable[[HealthState], None] | None = None,
         obs_command_running_callback: Callable[[str, bool], None],
         max_queue_size: int = 32,
-        simulation_mode: SimulationMode = SimulationMode.TRUE,
-        emulation_mode: bool = False,
+        logger: logging.Logger,
         **kwargs: Any,
     ) -> None:
         self.obs_state = ObsState.IDLE
 
-        self._obs_command_running_callback = obs_command_running_callback
         self._attr_change_callback = attr_change_callback
         self._attr_archive_callback = attr_archive_callback
-        self.simulation_mode = simulation_mode
-        self.emulation_mode = emulation_mode
-
         self._device_health_state_callback = health_state_callback
+        self._obs_command_running_callback = obs_command_running_callback
+
         self._health_state_lock = Lock()
         self._health_state = HealthState.UNKNOWN
 
-        super().__init__(*args, max_queue_size=max_queue_size, **kwargs)
+        super().__init__(*args, max_queue_size=max_queue_size, logger=logger, **kwargs)
 
     def update_device_health_state(
         self: FhsComponentManagerBase,

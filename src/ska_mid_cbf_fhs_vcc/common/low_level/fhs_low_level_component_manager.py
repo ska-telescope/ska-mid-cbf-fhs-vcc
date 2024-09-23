@@ -3,7 +3,7 @@ from __future__ import annotations  # allow forward references in type hints
 import functools
 import logging
 from threading import Event
-from typing import Any, Callable, Generic, Optional, Type, TypeVar
+from typing import Any, Callable, Optional
 
 from ska_control_model import HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_tango_base.executor.executor_component_manager import TaskExecutorComponentManager
@@ -12,44 +12,51 @@ from tango import DevState
 from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 
-T = TypeVar("T", bound=FhsBaseApiInterface)
-K = TypeVar("K")
 
-
-class FhsLowLevelComponentManager(Generic[K], FhsComponentManagerBase):
+class FhsLowLevelComponentManager(FhsComponentManagerBase):
     def __init__(
         self: TaskExecutorComponentManager,
         *args: Any,
-        logger: logging.Logger,
-        device_id,
-        api: Type[T],
-        config_class: Type[K] = None,
+        device_id: str,
+        config_location: str,
+        simulation_mode: SimulationMode,
+        emulation_mode: bool,
+        simulator_api: FhsBaseApiInterface,
+        emulator_api: FhsBaseApiInterface,
+        firmware_api: FhsBaseApiInterface,
         attr_change_callback: Callable[[str, Any], None] | None = None,
         attr_archive_callback: Callable[[str, Any], None] | None = None,
         health_state_callback: Callable[[HealthState], None] | None = None,
         obs_command_running_callback: Callable[[str, bool], None],
         max_queue_size: int = 32,
-        simulation_mode: SimulationMode = SimulationMode.TRUE,
-        emulation_mode: bool = False,
+        logger: logging.Logger,
         **kwargs: Any,
     ) -> None:
-        self.logger = logger
         self._device_id = device_id
-        self._api = api
-        self.config_class = config_class
-
+        self._config_location = config_location
         super().__init__(
             *args,
-            logger=logger,
             attr_change_callback=attr_change_callback,
             attr_archive_callback=attr_archive_callback,
             health_state_callback=health_state_callback,
             obs_command_running_callback=obs_command_running_callback,
             max_queue_size=max_queue_size,
-            simulation_mode=simulation_mode,
-            emulation_mode=emulation_mode,
+            logger=logger,
             **kwargs,
         )
+
+        logger.info(f"Device Api starting for simulation_mode: {simulation_mode}, emulation_mode: {emulation_mode}")
+        self._api: FhsBaseApiInterface
+        if simulation_mode == SimulationMode.TRUE and simulator_api is not None:
+            self._api = simulator_api(self._device_id, self.logger)
+        elif simulation_mode == SimulationMode.FALSE and emulation_mode is True and emulator_api is not None:
+            self._api = emulator_api(self._device_id, self._config_location, self.logger)
+        elif firmware_api is not None:
+            self._api = firmware_api(self._config_location, self.logger)
+        else:
+            raise NotImplementedError(
+                f"Device Api not implemented for simulation_mode: {simulation_mode}, emulation_mode: {emulation_mode}"
+            )
 
     ####
     # Allowance Functions
@@ -130,7 +137,7 @@ class FhsLowLevelComponentManager(Generic[K], FhsComponentManagerBase):
         except Exception as ex:
             return ResultCode.FAILED, f"Recover command failed. ex={ex!r}"
 
-    def configure(self: FhsLowLevelComponentManager, argin: K) -> tuple[ResultCode, str]:
+    def configure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
         self.logger.debug(f"Component state: {self.component_state}")
         if self.is_configure_allowed():
             self._obs_command_running_callback(hook="configure", running=True)
@@ -200,20 +207,17 @@ class FhsLowLevelComponentManager(Generic[K], FhsComponentManagerBase):
 
     def _configure(
         self: FhsLowLevelComponentManager,
-        argin: K,
+        argin: str,
         deconfigure: bool = False,
     ) -> tuple[ResultCode, str]:
         try:
             mode = "Configure" if not deconfigure else "Deconfigure"
             self.logger.info(f"Running {mode} command")
 
-            if self.config_class is not None:
-                if not deconfigure:
-                    return self._api.configure(argin)
-                else:
-                    return self._api.deconfigure(argin)
+            if not deconfigure:
+                return self._api.configure(argin)
             else:
-                return ResultCode.OK, "Nothing to " + mode + f" for {self._device_id}"
+                return self._api.deconfigure(argin)
 
         except Exception as ex:
             return ResultCode.FAILED, f"{mode} command FAILED. ex={ex!r}"

@@ -3,12 +3,12 @@ from __future__ import annotations
 from logging import Logger
 from typing import TypeVar, cast
 
-from ska_control_model import HealthState, ObsState, PowerState, ResultCode, SimulationMode
+from ska_control_model import HealthState, ObsState, PowerState, ResultCode
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import ArgumentValidator, FastCommand, SubmittedSlowCommand, _BaseCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
 from tango import DebugIt, DevState
-from tango.server import attribute, command, device_property
+from tango.server import command, device_property
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
@@ -23,48 +23,11 @@ class FhsBaseDevice(SKAObsDevice):
     # Device Properties
     # -----------------
     device_id = device_property(dtype="str")
+    config_location = device_property(dtype="str")
+    simulation_mode = device_property(dtype="int")
+    emulation_mode = device_property(dtype="int")
     device_version_num = device_property(dtype="str")
     device_gitlab_hash = device_property(dtype="str")
-    config_location = device_property(dtype="str")
-
-    @attribute(dtype=SimulationMode, memorized=True, hw_memorized=True)
-    def simulationMode(self: FhsBaseDevice) -> SimulationMode:
-        """
-        Read the Simulation Mode of the device.
-
-        :return: Simulation Mode of the device.
-        """
-        return self._simulation_mode
-
-    @simulationMode.write
-    def simulationMode(self: FhsBaseDevice, value: SimulationMode) -> None:
-        """
-        Set the simulation mode of the device.
-
-        :param value: SimulationMode
-        """
-        self.logger.debug(f"Writing simulationMode to {value}")
-        self._simulation_mode = value
-        self.component_manager.simulation_mode = value
-
-    @attribute(dtype=bool, memorized=True, hw_memorized=True)
-    def emulationMode(self: FhsBaseDevice) -> bool:
-        """
-        Read the emulation mode of the device.
-
-        :return: emulation mode of the device.
-        """
-        return self.component_manager.emulation_mode
-
-    @emulationMode.write
-    def emulationMode(self: FhsBaseDevice, value: bool) -> None:
-        """
-        Set the emulation mode of the device.
-
-        :param value: EmulationMode
-        """
-        self.logger.debug(f"Writing emulationMode to {value}")
-        self.component_manager.emulation_mode = value
 
     def _init_state_model(self: FhsBaseDevice) -> None:
         """Set up the state model for the device."""

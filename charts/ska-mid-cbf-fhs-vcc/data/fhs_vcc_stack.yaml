@@ -42,6 +42,12 @@ server:
           - name: "config_location"
             values:
             - "{{ $.Values.hostInfo.configLocation }}"
+          - name: "simulation_mode"
+            values:
+            - "1"
+          - name: "emulation_mode"
+            values:
+            - "0"
     - name: "Mac200"
       devices:
       - name: "fhs/mac200/{{ printf "%03d" $index }}"
@@ -61,6 +67,12 @@ server:
           - name: "config_location"
             values:
             - "{{ $.Values.hostInfo.configLocation }}"
+          - name: "simulation_mode"
+            values:
+            - "1"
+          - name: "emulation_mode"
+            values:
+            - "0"
     - name: "B123VccOsppfbChanneliser"
       devices:
       - name: "fhs/vcc/{{ printf "%03d" $index }}"
@@ -77,6 +89,12 @@ server:
           - name: "config_location"
             values:
             - "{{ $.Values.hostInfo.configLocation }}"
+          - name: "simulation_mode"
+            values:
+            - "1"
+          - name: "emulation_mode"
+            values:
+            - "0"
     - name: "FrequencySliceSelection"
       devices:
       - name: "fhs/frequency-slice-selection/{{ printf "%03d" $index }}"
@@ -93,6 +111,12 @@ server:
           - name: "config_location"
             values:
             - "{{ $.Values.hostInfo.configLocation }}"
+          - name: "simulation_mode"
+            values:
+            - "1"
+          - name: "emulation_mode"
+            values:
+            - "0"
     - name: "WidebandFrequencyShifter"
       devices:
       - name: "fhs/wfs/{{ printf "%03d" $index }}"
@@ -109,6 +133,12 @@ server:
           - name: "config_location"
             values:
             - "{{ $.Values.hostInfo.configLocation }}"
+          - name: "simulation_mode"
+            values:
+            - "1"
+          - name: "emulation_mode"
+            values:
+            - "0"
     - name: "WidebandInputBuffer"
       devices:
       - name: "fhs/wib/{{ printf "%03d" $index }}"
@@ -125,6 +155,12 @@ server:
           - name: "config_location"
             values:
             - "{{ $.Values.hostInfo.configLocation }}"
+          - name: "simulation_mode"
+            values:
+            - "1"
+          - name: "emulation_mode"
+            values:
+            - "0"
 {{- end }}
 image:
   registry: "{{.Values.midcbf.image.registry}}"
