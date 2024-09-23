@@ -7,6 +7,7 @@
 
 from __future__ import annotations  # allow forward references in type hints
 
+import logging
 from threading import Lock
 from typing import Any, Callable, Optional, cast
 

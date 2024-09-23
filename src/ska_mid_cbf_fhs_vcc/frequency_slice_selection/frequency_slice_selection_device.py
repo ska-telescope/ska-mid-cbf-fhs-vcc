@@ -14,7 +14,6 @@ class FrequencySliceSelection(FhsLowLevelDeviceBase):
     ) -> FrequencySliceSelectionComponentManager:
         return FrequencySliceSelectionComponentManager(
             device_id=self.device_id,
-            logger=self.logger,
             config_location=self.config_location,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
@@ -22,6 +21,7 @@ class FrequencySliceSelection(FhsLowLevelDeviceBase):
             communication_state_callback=self._communication_state_changed,
             obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
+            logger=self.logger,
         )
 
     def always_executed_hook(self: FrequencySliceSelection) -> None:

@@ -18,11 +18,7 @@ class Mac200(FhsLowLevelDeviceBase):
     MacType = device_property(dtype="str")
 
     def create_component_manager(self: Mac200) -> MacComponentManager:
-        # NOTE: using component manager default of SimulationMode.TRUE,
-        # as self._simulation_mode at this point during init_device()
-        # SimulationMode.FALSE
         return MacComponentManager(
-            device_id=self.device_id,
             config_location=self.config_location,
             logger=self.logger,
             attr_change_callback=self.push_change_event,
@@ -31,6 +27,7 @@ class Mac200(FhsLowLevelDeviceBase):
             communication_state_callback=self._communication_state_changed,
             obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
+            device_id=self.device_id,
         )
 
     def always_executed_hook(self: Mac200) -> None:
