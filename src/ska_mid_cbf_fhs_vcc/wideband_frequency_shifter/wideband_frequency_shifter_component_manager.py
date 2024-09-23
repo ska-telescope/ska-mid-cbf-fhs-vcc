@@ -1,10 +1,9 @@
 from __future__ import annotations  # allow forward references in type hints
 
-import logging
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
-from ska_control_model import CommunicationStatus, HealthState, SimulationMode
+from ska_control_model import CommunicationStatus
 
 from ska_mid_cbf_fhs_vcc.api.simulator.wideband_frequency_shifter import WidebandFrequencyShifterSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager

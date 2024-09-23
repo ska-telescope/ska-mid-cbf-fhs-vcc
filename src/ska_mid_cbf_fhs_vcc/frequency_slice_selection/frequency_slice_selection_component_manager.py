@@ -1,12 +1,11 @@
 from __future__ import annotations  # allow forward references in type hints
 
-import logging
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode
+from ska_control_model import CommunicationStatus, ResultCode
 
 from ska_mid_cbf_fhs_vcc.api.emulator.frequency_slice_selection_emulator_api import FrequencySliceSelectionEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.firmware.frequency_slice_selection_firmware_api import FrequencySliceSelectionFirmwareApi

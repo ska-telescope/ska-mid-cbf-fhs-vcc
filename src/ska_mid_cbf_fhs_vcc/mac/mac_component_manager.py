@@ -1,11 +1,10 @@
 from __future__ import annotations  # allow forward references in type hints
 
-import logging
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
-from ska_control_model import CommunicationStatus, HealthState, SimulationMode
+from ska_control_model import CommunicationStatus
 
 from ska_mid_cbf_fhs_vcc.api.emulator.mac_emulator_api import MacEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.mac_controller_simulator import MacBaseControllerSimulator

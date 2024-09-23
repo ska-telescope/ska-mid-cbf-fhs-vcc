@@ -1,13 +1,12 @@
 from __future__ import annotations  # allow forward references in type hints
 
-import logging
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, SimulationMode
+from ska_control_model import CommunicationStatus, PowerState, ResultCode
 
 from ska_mid_cbf_fhs_vcc.api.emulator.b123_vcc_osppfb_channeliser_emulator_api import B123VccOsppfbChanneliserEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.firmware.b123_vcc_osppfb_channeliser_firmware_api import B123VccOsppfbChanneliserFirmwareApi

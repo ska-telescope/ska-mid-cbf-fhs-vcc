@@ -11,7 +11,7 @@ import logging
 from threading import Lock
 from typing import Any, Callable, Optional, cast
 
-from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, SimulationMode, TaskStatus
+from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, TaskStatus
 from ska_tango_base.base.base_component_manager import BaseComponentManager
 from ska_tango_base.executor.executor_component_manager import TaskExecutorComponentManager
 

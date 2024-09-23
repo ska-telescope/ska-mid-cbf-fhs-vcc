@@ -3,7 +3,7 @@ from __future__ import annotations  # allow forward references in type hints
 import functools
 import logging
 from threading import Event
-from typing import Any, Callable, Generic, Optional, Type, TypeVar
+from typing import Any, Callable, Optional
 
 from ska_control_model import HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_tango_base.executor.executor_component_manager import TaskExecutorComponentManager
@@ -137,7 +137,7 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         except Exception as ex:
             return ResultCode.FAILED, f"Recover command failed. ex={ex!r}"
 
-    def configure(self: FhsLowLevelComponentManager, argin: K) -> tuple[ResultCode, str]:
+    def configure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
         self.logger.debug(f"Component state: {self.component_state}")
         if self.is_configure_allowed():
             self._obs_command_running_callback(hook="configure", running=True)
@@ -207,7 +207,7 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
 
     def _configure(
         self: FhsLowLevelComponentManager,
-        argin: K,
+        argin: str,
         deconfigure: bool = False,
     ) -> tuple[ResultCode, str]:
         try:

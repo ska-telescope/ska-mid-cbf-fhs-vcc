@@ -8,7 +8,7 @@ from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import ArgumentValidator, FastCommand, SubmittedSlowCommand, _BaseCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
 from tango import DebugIt, DevState
-from tango.server import attribute, command, device_property
+from tango.server import command, device_property
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
