@@ -45,9 +45,6 @@ class BaseFirmwareApi(FhsBaseApiInterface):
 
             def _monkey_patch_set_level(self):
                 """Hook the python setLevel function and forward the new level to C"""
-                if hasattr(logger, "_is_c_patched") and logger._is_c_patched:
-                    return
-
                 original_setLevel = logger.setLevel
 
                 def patched_setLevel(level):
@@ -57,7 +54,6 @@ class BaseFirmwareApi(FhsBaseApiInterface):
                     self.set_logging_level(severity)
 
                 logger.setLevel = patched_setLevel
-                logger._is_c_patched = True
 
         # --- resources to be used by child classes
         self._c_logger = CLogger(logger.getEffectiveLevel())
@@ -97,6 +93,9 @@ class BaseFirmwareApi(FhsBaseApiInterface):
         """
         Download firmware pybind libraries to ./contrib
         """
+        if hasattr(BaseFirmwareApi, "_has_downloaded_fw") and BaseFirmwareApi._has_downloaded_fw:
+            return
+
         api_config_reader = APIConfigReader(config_location, self._logger)
 
         registry = api_config_reader.getConfigMapValue("firmwareRegistry")
@@ -115,3 +114,5 @@ class BaseFirmwareApi(FhsBaseApiInterface):
         with tarfile.open(fileobj=BytesIO(resp.content), mode="r:gz") as tar:
             tar.extractall(path=dirpath, filter="tar")
         self._logger.info(f"Extracted successfully to {dirpath}.")
+
+        BaseFirmwareApi._has_downloaded_fw = True
