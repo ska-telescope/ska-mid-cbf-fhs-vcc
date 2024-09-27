@@ -7,8 +7,8 @@ class PacketValidationEmulatorApi(FhsBaseApiInterface):
         self._instance_name = instance_name
         self.base_url = f"{hostName}:{port}/{instance_name}"
 
-    def configure(self, config: str) -> None:
+    def configure(self, config: dict) -> None:
         raise NotImplementedError("Configure command not implemented for Packet Validation devices")
 
-    def deconfigure(self, config: str) -> None:
+    def deconfigure(self, config: dict) -> None:
         raise NotImplementedError("Deconfigure command not implemented for Packet Validation devices")

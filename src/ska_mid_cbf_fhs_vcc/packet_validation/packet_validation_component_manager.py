@@ -39,7 +39,6 @@ class PacketValidationComponentManager(FhsLowLevelComponentManager):
             *args,
             simulator_api=PacketValidationControllerSimulator,
             emulator_api=PacketValidationEmulatorApi,
-            firmware_api=None,
             **kwargs,
         )
 

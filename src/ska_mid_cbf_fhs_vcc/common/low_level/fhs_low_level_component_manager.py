@@ -6,16 +6,16 @@ from threading import Event
 from typing import Any, Callable, Optional
 
 from ska_control_model import HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
-from ska_tango_base.executor.executor_component_manager import TaskExecutorComponentManager
 from tango import DevState
 
 from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
+from ska_mid_cbf_fhs_vcc.api.firmware.base_firmware_api import BaseFirmwareApi
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 
 
 class FhsLowLevelComponentManager(FhsComponentManagerBase):
     def __init__(
-        self: TaskExecutorComponentManager,
+        self: FhsLowLevelComponentManager,
         *args: Any,
         device_id: str,
         config_location: str,
@@ -23,7 +23,6 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         emulation_mode: bool,
         simulator_api: FhsBaseApiInterface,
         emulator_api: FhsBaseApiInterface,
-        firmware_api: FhsBaseApiInterface,
         attr_change_callback: Callable[[str, Any], None] | None = None,
         attr_archive_callback: Callable[[str, Any], None] | None = None,
         health_state_callback: Callable[[HealthState], None] | None = None,
@@ -51,12 +50,8 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
             self._api = simulator_api(self._device_id, self.logger)
         elif simulation_mode == SimulationMode.FALSE and emulation_mode is True and emulator_api is not None:
             self._api = emulator_api(self._device_id, self._config_location, self.logger)
-        elif firmware_api is not None:
-            self._api = firmware_api(self._config_location, self.logger)
         else:
-            raise NotImplementedError(
-                f"Device Api not implemented for simulation_mode: {simulation_mode}, emulation_mode: {emulation_mode}"
-            )
+            self._api = BaseFirmwareApi(self._device_id, self._config_location, self.logger)
 
     ####
     # Allowance Functions

@@ -49,7 +49,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             *args,
             simulator_api=WidebandInputBufferSimulator,
             emulator_api=WibEmulatorApi,
-            firmware_api=None,
             **kwargs,
         )
 

@@ -28,7 +28,7 @@ server:
         properties:
           - name: "device_id"
             values:
-            - "b123vcc"
+            - "vcc_ch20"
           - name: "device_version_num"
             values:
             - "0.0.1"
