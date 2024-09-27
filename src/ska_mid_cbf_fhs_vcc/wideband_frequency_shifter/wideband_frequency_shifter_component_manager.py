@@ -32,7 +32,6 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
             *args,
             simulator_api=WidebandFrequencyShifterSimulator,
             emulator_api=None,
-            firmware_api=None,
             **kwargs,
         )
 

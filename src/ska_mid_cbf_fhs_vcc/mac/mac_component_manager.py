@@ -67,7 +67,6 @@ class MacComponentManager(FhsLowLevelComponentManager):
             *args,
             simulator_api=MacBaseControllerSimulator,
             emulator_api=MacEmulatorApi,
-            firmware_api=None,
             **kwargs,
         )
 

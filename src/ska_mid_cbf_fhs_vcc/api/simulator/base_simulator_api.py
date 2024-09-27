@@ -19,7 +19,7 @@ class BaseSimulatorApi(FhsBaseApiInterface):
         self._logger.info("Recover called from the simulator")
         return ResultCode.OK, "Recover Called Successfully"
 
-    def configure(self, config: str) -> tuple[ResultCode, str]:
+    def configure(self, config: dict) -> tuple[ResultCode, str]:
         self._logger.info("Configure was called from the simulator")
 
         gains_json = json.loads(config)
