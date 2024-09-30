@@ -8,10 +8,8 @@ xauthority: "~/.Xauthority"
 enabled: true
 
 system: csp
-subsystem: cbfmcs-mid
+subsystem: fhs-vcc
 telescope: SKA-mid
-engineeringConsoleVersion: 0.10.3
-signalVerificationVersion: 0.2.16
 
 labels:
   app: ska-mid-cbf-fhs-vcc

@@ -57,24 +57,20 @@ class FhsLowLevelDeviceBase(FhsBaseDevice):
         result_code_message, command_id = command_handler()
         return [[result_code_message], [command_id]]
 
-    @command(
-        dtype_in="DevString",
-        dtype_out="DevVarLongStringArray",
-        doc_in="Configuration json.",
-    )
+    @command(dtype_out="DevVarLongStringArray")
     @tango.DebugIt()
-    def deconfigure(self: FhsLowLevelDeviceBase, config: str) -> DevVarLongStringArrayType:
+    def deconfigure(self: FhsLowLevelDeviceBase) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="Deconfigure")
-        result_code_message, command_id = command_handler(config)
+        result_code_message, command_id = command_handler()
         return [[result_code_message], [command_id]]
 
     @command(
-        dtype_in="DevBoolean",
+        dtype_in=bool,
         dtype_out="DevVarLongStringArray",
     )
     @tango.DebugIt()
-    def status(self: FhsLowLevelDeviceBase, clear: bool) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="Status")
+    def getstatus(self: FhsLowLevelDeviceBase, clear: bool) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="GetStatus")
         result_code_message, command_id = command_handler(clear)
         return [[result_code_message], [command_id]]
 
@@ -91,9 +87,9 @@ class FhsLowLevelDeviceBase(FhsBaseDevice):
             return self._component_manager.configure(argin=argin)
 
     class DeconfigureCommand(FhsFastCommand):
-        def do(self, argin: str) -> tuple[ResultCode, str]:
-            return self._component_manager.deconfigure(argin=argin)
+        def do(self) -> tuple[ResultCode, str]:
+            return self._component_manager.deconfigure()
 
-    class StatusCommand(FhsFastCommand):
+    class GetStatusCommand(FhsFastCommand):
         def do(self, clear: bool = False) -> tuple[ResultCode, str]:
             return self._component_manager.status(clear=clear)

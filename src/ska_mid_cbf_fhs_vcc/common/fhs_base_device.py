@@ -3,6 +3,7 @@ from __future__ import annotations
 from logging import Logger
 from typing import TypeVar, cast
 
+import tango
 from ska_control_model import HealthState, ObsState, PowerState, ResultCode
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import ArgumentValidator, FastCommand, SubmittedSlowCommand, _BaseCommand
@@ -29,6 +30,21 @@ class FhsBaseDevice(SKAObsDevice):
     device_version_num = device_property(dtype="str")
     device_gitlab_hash = device_property(dtype="str")
 
+    ##############
+    # Commands
+    ##############
+    @command(
+        dtype_out="DevVarLongStringArray",
+    )
+    @tango.DebugIt()
+    def go_to_idle(self: FhsBaseDevice) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="GoToIdle")
+        result_code_message, command_id = command_handler()
+        return [[result_code_message], [command_id]]
+
+    ###############
+    # Functions
+    ###############
     def _init_state_model(self: FhsBaseDevice) -> None:
         """Set up the state model for the device."""
         super()._init_state_model()
@@ -86,14 +102,6 @@ class FhsBaseDevice(SKAObsDevice):
     def _component_state_changed(
         self: FhsBaseDevice,
         idle: bool | None = None,
-        configuring: bool | None = None,
-        configured: bool | None = None,
-        deconfiguring: bool | None = None,
-        deconfigured: bool | None = None,
-        starting: bool | None = None,
-        running: bool | None = None,
-        stopping: bool | None = None,
-        stopped: bool | None = None,
         resetting: bool | None = None,
         reset: bool | None = None,
         fault: bool | None = None,
@@ -104,30 +112,6 @@ class FhsBaseDevice(SKAObsDevice):
         if idle is not None:
             self.obs_state_model.perform_action(FhsObsStateMachine.GO_TO_IDLE)
 
-        if configuring is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.CONFIGURE_INVOKED)
-
-        if configured is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.CONFIGURE_COMPLETED)
-
-        if deconfiguring is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.DECONFIGURE_INVOKED)
-
-        if deconfigured is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.DECONFIGURE_COMPLETED)
-
-        if starting is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.STARTING_INVOKED)
-
-        if running is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.STARTING_COMPLETED)
-
-        if stopping is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.STOPPING_INVOKED)
-
-        if stopped is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.STOPPING_COMPLETED)
-
         if resetting is not None:
             self.obs_state_model.perform_action(FhsObsStateMachine.RESET_INVOKED)
 
@@ -135,7 +119,7 @@ class FhsBaseDevice(SKAObsDevice):
             self.obs_state_model.perform_action(FhsObsStateMachine.RESET_COMPLETED)
 
         if fault is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.COMPONENT_OBSFAULT)
+            self.obs_state_model.perform_action(FhsObsStateMachine.COMPONENT_FAULT)
 
     def _update_obs_state(self: FhsBaseDevice, obs_state: ObsState) -> None:
         """

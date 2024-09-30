@@ -8,7 +8,7 @@
 from __future__ import annotations  # allow forward references in type hints
 
 import logging
-from threading import Lock
+from threading import Event, Lock
 from typing import Any, Callable, Optional, cast
 
 from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, TaskStatus
@@ -36,7 +36,6 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         attr_archive_callback: Callable[[str, Any], None] | None = None,
         health_state_callback: Callable[[HealthState], None] | None = None,
         obs_command_running_callback: Callable[[str, bool], None],
-        max_queue_size: int = 32,
         logger: logging.Logger,
         **kwargs: Any,
     ) -> None:
@@ -50,7 +49,15 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         self._health_state_lock = Lock()
         self._health_state = HealthState.UNKNOWN
 
-        super().__init__(*args, max_queue_size=max_queue_size, logger=logger, **kwargs)
+        super().__init__(
+            idle=None,
+            power=None,
+            resetting=None,
+            reset=None,
+            fault=None,
+            logger=logger,
+            **kwargs,
+        )
 
     def update_device_health_state(
         self: FhsComponentManagerBase,
@@ -75,12 +82,51 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
 
         This is to be called when an exception occurs in the component manager
         """
-        self._update_component_state(fault=True)
-        self.update_device_health_state(health_state=HealthState.FAILED)
+        self._component_state_callback(fault=True)
+        self.update_device_health_state(
+            health_state=HealthState.DEGRADED
+        )  # TODO Determine if the health state here needs to be degraded or not
+
+    ########
+    # Commands
+    ########
+    def go_to_idle(
+        self: FhsComponentManagerBase,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        """
+        Transition observing state from READY to IDLE
+
+        :return: A tuple containing a return code and a string
+            message indicating status. The message is for
+            information purpose only.
+        :rtype: (TaskStatus, str)
+        """
+        self.logger.debug(f"Component state: {self._component_state}")
+        return self.submit_task(
+            self._go_to_idle,
+            is_cmd_allowed=lambda: True,
+            task_callback=task_callback,
+        )
+
+    ########
+    # Private Commands
+    ########
+    def _go_to_idle(
+        self: FhsComponentManagerBase,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """
+        Execute observing state transition from READY to IDLE.
+
+        :raises NotImplementedError: Not implemented in abstract class
+        """
+        raise NotImplementedError("FhsComponentManagerBase is abstract.")
 
     # Called when adminMode is set to ONLINE from the SKA base_device.py
     def start_communicating(self: BaseComponentManager) -> None:
-        self._update_component_state(power=PowerState.ON)
+        self._component_state_callback(power=PowerState.ON)
         self._update_communication_state(communication_state=CommunicationStatus.ESTABLISHED)
 
     ###
@@ -102,7 +148,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         """
         self._obs_command_running_callback(hook=hook, running=True)
         command_thread(*args, **kwargs)
-        return self._obs_command_running_callback(hook=hook, running=False)
+        self._obs_command_running_callback(hook=hook, running=False)
 
     def _set_task_callback_aborted(self: FhsComponentManagerBase, task_callback: Callable, message: str) -> None:
         self._set_task_callback(task_callback, TaskStatus.ABORTED, ResultCode.ABORTED, message)
@@ -123,4 +169,4 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         task_result: ResultCode,
         message: str,
     ) -> None:
-        task_callback(status=task_status, result=(task_result, message))
+        task_callback(result=(task_result, message), status=task_status)

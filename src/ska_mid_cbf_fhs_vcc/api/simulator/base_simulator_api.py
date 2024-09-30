@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 
 from ska_control_model import ResultCode
@@ -22,20 +21,18 @@ class BaseSimulatorApi(FhsBaseApiInterface):
     def configure(self, config: dict) -> tuple[ResultCode, str]:
         self._logger.info("Configure was called from the simulator")
 
-        gains_json = json.loads(config)
-
-        self._logger.info(f"Received gains: {gains_json}")
+        self._logger.info(f"Received config: {config}")
         return ResultCode.OK, "Configure Called Successfully"
 
     def start(self) -> tuple[ResultCode, str]:
         self._logger.info("Start was called from the simulator")
         return ResultCode.OK, "Start Called Successfully"
 
-    def stop(self, force: bool = False) -> tuple[ResultCode, str]:
+    def stop(self) -> tuple[ResultCode, str]:
         self._logger.info("Stop was called from the simulator")
         return ResultCode.OK, "Stop Called Successfully"
 
-    def deconfigure(self, config) -> tuple[ResultCode, str]:
+    def deconfigure(self) -> tuple[ResultCode, str]:
         self._logger.info("Deconfigure was called from the simulator")
         return ResultCode.OK, "Deconfigure Called Successfully"
 

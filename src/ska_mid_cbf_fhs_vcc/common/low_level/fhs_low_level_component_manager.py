@@ -6,7 +6,6 @@ from threading import Event
 from typing import Any, Callable, Optional
 
 from ska_control_model import HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
-from tango import DevState
 
 from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 from ska_mid_cbf_fhs_vcc.api.firmware.base_firmware_api import BaseFirmwareApi
@@ -27,19 +26,15 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         attr_archive_callback: Callable[[str, Any], None] | None = None,
         health_state_callback: Callable[[HealthState], None] | None = None,
         obs_command_running_callback: Callable[[str, bool], None],
-        max_queue_size: int = 32,
         logger: logging.Logger,
         **kwargs: Any,
     ) -> None:
+        self.logger = logger
         self._device_id = device_id
         self._config_location = config_location
         super().__init__(
             *args,
-            attr_change_callback=attr_change_callback,
-            attr_archive_callback=attr_archive_callback,
-            health_state_callback=health_state_callback,
             obs_command_running_callback=obs_command_running_callback,
-            max_queue_size=max_queue_size,
             logger=logger,
             **kwargs,
         )
@@ -53,9 +48,6 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         else:
             self._api = BaseFirmwareApi(self._device_id, self._config_location, self.logger)
 
-    ####
-    # Allowance Functions
-    ####
     ####
     # Allowance Functions
     ####
@@ -85,7 +77,7 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         errorMsg = f"Device {self._device_id} stop not allowed in ObsState {self.obs_state}; \
             must be in ObsState.IDLE, READY or ABORTED"
 
-        return self.is_allowed(errorMsg, [ObsState.SCANNING, ObsState.ABORTED, ObsState.FAULT])
+        return self.is_allowed(errorMsg, [ObsState.IDLE, ObsState.READY, ObsState.SCANNING, ObsState.ABORTED, ObsState.FAULT])
 
     def is_deconfigure_allowed(self: FhsLowLevelComponentManager) -> bool:
         self.logger.debug("Checking if Stop is allowed.")
@@ -104,7 +96,7 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
     def is_allowed(self: FhsLowLevelComponentManager, error_msg: str, obsStates: list[ObsState]) -> bool:
         result = True
 
-        if self.obs_state not in obsStates and self.get_state() is not DevState.DISABLED:
+        if self.obs_state not in obsStates:
             self.logger.warning(error_msg)
             result = False
 
@@ -120,7 +112,7 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
     def recover(self: FhsLowLevelComponentManager) -> tuple[ResultCode, str]:
         try:
             if self.is_recover_allowed():
-                self._update_component_state(resseting=True)
+                self._update_component_state(resetting=True)
                 self._api.recover()
                 self._update_component_state(reset=True)
                 return ResultCode.OK, "Recover command completed OK"
@@ -145,12 +137,12 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
                 f"Configure not allowed in component state {self.component_state}",
             )
 
-    def deconfigure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
+    def deconfigure(self: FhsLowLevelComponentManager) -> tuple[ResultCode, str]:
         self.logger.debug(f"Component state: {self.component_state}")
         if self.is_deconfigure_allowed():
-            self._obs_command_running_callback(hook="configure", running=True)
-            result = self._configure(argin, True)
             self._obs_command_running_callback(hook="deconfigure", running=True)
+            result = self._configure(None, True)
+            self._obs_command_running_callback(hook="deconfigure", running=False)
             return result
         else:
             return (
@@ -172,7 +164,6 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
 
     def stop(
         self: FhsLowLevelComponentManager,
-        force: bool,
         task_callback: Optional[Callable] = tuple[TaskStatus, str],
     ) -> tuple[TaskStatus, str]:
         self.logger.debug(f"Component state: {self.communication_state}")
@@ -182,7 +173,6 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
                 hook="stop",
                 command_thread=self._stop,
             ),
-            args=[force],
             is_cmd_allowed=self.is_stop_allowed,
             task_callback=task_callback,
         )
@@ -210,9 +200,12 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
             self.logger.info(f"Running {mode} command")
 
             if not deconfigure:
-                return self._api.configure(argin)
+                if argin is not None:
+                    return self._api.configure(argin)
+                else:
+                    return ResultCode.OK, "Nothing to " + mode + f" for {self._device_id}"
             else:
-                return self._api.deconfigure(argin)
+                return self._api.deconfigure()
 
         except Exception as ex:
             return ResultCode.FAILED, f"{mode} command FAILED. ex={ex!r}"
@@ -247,8 +240,12 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
 
             if not task_abort_event.isSet():
                 # TODO Add polling
-                self._api.start()
-                self._set_task_callback_ok_completed(task_callback, "Start command completed OK")
+                result = self._api.start()
+
+                if result[0] is ResultCode.OK:
+                    self._set_task_callback_ok_completed(task_callback, result[1])
+                else:
+                    self._set_task_callback_failed(task_callback, result[1])
             else:
                 self._set_task_callback_aborted(task_callback, "Start command was ABORTED")
 
@@ -258,7 +255,6 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
 
     def _stop(
         self: FhsLowLevelComponentManager,
-        force: bool,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
     ) -> None:
@@ -267,8 +263,11 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
 
             if not task_abort_event.is_set():
                 # TODO add polling
-                self._api.stop(force)
-                self._set_task_callback_ok_completed(task_callback, "Stop command completed OK")
+                result = self._api.stop()
+                if result[0] is ResultCode.OK:
+                    self._set_task_callback_ok_completed(task_callback, result[1])
+                else:
+                    self._set_task_callback_failed(task_callback, result[1])
             else:
                 self._set_task_callback_aborted(task_callback, "Stop command was ABORTED")
 

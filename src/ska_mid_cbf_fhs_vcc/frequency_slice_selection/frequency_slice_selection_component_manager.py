@@ -33,7 +33,7 @@ class FrequencySliceSelectionStatus:
 @dataclass_json
 @dataclass
 class FssConfigArgin:
-    config: list[dict]
+    band: list[dict]
 
 
 class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager):
@@ -65,8 +65,8 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager):
                 f"{self._device_id} configured successfully",
             )
 
-            for config in configJson.config:
-                fssJsonConfig = FrequencySliceSelectionConfig(output=config.get("output"), input=config.get("input"))
+            for band in configJson.band:
+                fssJsonConfig = FrequencySliceSelectionConfig(output=band.get("output"), input=band.get("input"))
 
                 self.logger.info(f"FSS JSON CONFIG: {fssJsonConfig.to_json()}")
 
