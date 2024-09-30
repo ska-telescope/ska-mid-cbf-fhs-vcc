@@ -26,7 +26,7 @@ class FhsObsStateMachine(Machine):
 
     """
 
-    COMPONENT_OBSFAULT = "component_obsfault"
+    COMPONENT_FAULT = "component_fault"
     CONFIGURE_INVOKED = "configure_invoked"
     DECONFIGURE_INVOKED = "deconfigure_invoked"
     CONFIGURE_COMPLETED = "configure_completed"
@@ -63,7 +63,7 @@ class FhsObsStateMachine(Machine):
         transitions = [
             {
                 "source": "*",
-                "trigger": self.COMPONENT_OBSFAULT,
+                "trigger": self.COMPONENT_FAULT,
                 "dest": "FAULT",
             },
             {
@@ -72,7 +72,7 @@ class FhsObsStateMachine(Machine):
                 "dest": "CONFIGURING",
             },
             {
-                "source": "READY",
+                "source": ["IDLE", "READY"],
                 "trigger": self.DECONFIGURE_INVOKED,
                 "dest": "DECONFIGURING",
             },
@@ -97,7 +97,7 @@ class FhsObsStateMachine(Machine):
                 "dest": "SCANNING",
             },
             {
-                "source": "SCANNING",
+                "source": ["IDLE", "READY", "SCANNING", "FAULT", "RESETTING"],
                 "trigger": self.STOPPING_INVOKED,
                 "dest": "STOPPING",
             },
@@ -107,12 +107,12 @@ class FhsObsStateMachine(Machine):
                 "dest": "READY",
             },
             {
-                "source": ["FAULT", "SCANNING", "IDLE"],
+                "source": ["IDLE", "READY", "FAULT", "SCANNING", "IDLE"],
                 "trigger": self.RESET_INVOKED,
                 "dest": "RESETTING",
             },
             {
-                "source": ["FAULT", "SCANNING", "IDLE", "RESETTING"],
+                "source": ["FAULT", "SCANNING", "IDLE", "RESETTING", "READY"],
                 "trigger": self.RESET_COMPLETED,
                 "dest": "IDLE",
             },

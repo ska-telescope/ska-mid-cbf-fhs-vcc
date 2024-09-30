@@ -38,7 +38,7 @@ class B123VccOsppfbChanneliser(FhsLowLevelDeviceBase):
             ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
             ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
             ("Deconfigure", FhsLowLevelDeviceBase.DeconfigureCommand),
-            ("Status", FhsLowLevelDeviceBase.StatusCommand),
+            ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
         ]
 
         super().init_fast_command_objects(commandsAndClasses)

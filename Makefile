@@ -84,6 +84,10 @@ PYTHON_LINE_LENGTH = 130
 POETRY_PYTHON_RUNNER = poetry run python3 -m
 
 PYTHON_LINT_TARGET = ./src/
+PYTHON_VARS_AFTER_PYTEST = --forked
+K8S_VARS_AFTER_PYTEST = -s
+
+PYTHON_TEST_FILE = ./tests/unit/
 
 #
 # include makefile to pick up the standard Make targets, e.g., 'make build'
@@ -113,6 +117,10 @@ lint:
 
 
 .PHONY: all test lint
+
+format-python:
+	$(POETRY_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)
+	$(POETRY_PYTHON_RUNNER) black --exclude .+\.ipynb --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_BLACK) $(PYTHON_LINT_TARGET)
 
 fix-python-imports:
 	$(POETRY_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)
