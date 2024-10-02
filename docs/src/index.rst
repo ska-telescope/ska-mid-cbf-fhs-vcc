@@ -40,6 +40,7 @@
   blocks/Wideband_Frequency_Shifter
   blocks/B123VCC-OSPPFB_Channelizer
   blocks/Frequency_Slice_Selection
+  blocks/Circuit_Switch
 
 
 Firmware Interfaces
@@ -134,6 +135,7 @@ For the VCC-only stage of the bitstream, the APIs for the blocks in the top half
 * :doc:`blocks/B123VCC-OSPPFB_Channelizer`
 * B45VCC-OSPFFB Channeliser - see B123VCC-OSPPFB_Channelizer
 * :doc:`blocks/Frequency_Slice_Selection`
+* :doc:`blocks/Circuit_Switch`
 * FS RFI Detection and Flagging
 
 In addition for the VCC-PSS stage of the bitstream, the APIs for the blocks in the top two thirds of the image will exist, adding
