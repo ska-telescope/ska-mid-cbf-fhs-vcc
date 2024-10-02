@@ -44,10 +44,10 @@ server:
             - "{{ $.Values.hostInfo.configLocation }}"
           - name: "simulation_mode"
             values:
-            - "1"
+            - "{{ $instance.packetValidation.simulationMode }}"
           - name: "emulation_mode"
             values:
-            - "0"
+            - "{{ $instance.packetValidation.emulationMode }}"
     - name: "Mac200"
       devices:
       - name: "fhs/mac200/{{ printf "%03d" $index }}"
@@ -69,10 +69,10 @@ server:
             - "{{ $.Values.hostInfo.configLocation }}"
           - name: "simulation_mode"
             values:
-            - "1"
+            - "{{ $instance.mac200.simulationMode }}"
           - name: "emulation_mode"
             values:
-            - "0"
+            - "{{ $instance.mac200.emulationMode }}"
     - name: "B123VccOsppfbChanneliser"
       devices:
       - name: "fhs/vcc/{{ printf "%03d" $index }}"
@@ -91,10 +91,10 @@ server:
             - "{{ $.Values.hostInfo.configLocation }}"
           - name: "simulation_mode"
             values:
-            - "1"
+            - "{{ $instance.b123VccOsppfbChanneliser.simulationMode }}"
           - name: "emulation_mode"
             values:
-            - "0"
+            - "{{ $instance.b123VccOsppfbChanneliser.emulationMode }}"
     - name: "FrequencySliceSelection"
       devices:
       - name: "fhs/frequency-slice-selection/{{ printf "%03d" $index }}"
@@ -113,10 +113,10 @@ server:
             - "{{ $.Values.hostInfo.configLocation }}"
           - name: "simulation_mode"
             values:
-            - "1"
+            - "{{ $instance.frequencySliceSelection.simulationMode }}"
           - name: "emulation_mode"
             values:
-            - "0"
+            - "{{ $instance.frequencySliceSelection.emulationMode }}"
     - name: "WidebandFrequencyShifter"
       devices:
       - name: "fhs/wfs/{{ printf "%03d" $index }}"
@@ -135,10 +135,10 @@ server:
             - "{{ $.Values.hostInfo.configLocation }}"
           - name: "simulation_mode"
             values:
-            - "1"
+            - "{{ $instance.widebandFrequencyShifter.simulationMode }}"
           - name: "emulation_mode"
             values:
-            - "0"
+            - "{{ $instance.widebandFrequencyShifter.emulationMode }}"
     - name: "WidebandInputBuffer"
       devices:
       - name: "fhs/wib/{{ printf "%03d" $index }}"
@@ -157,11 +157,26 @@ server:
             - "{{ $.Values.hostInfo.configLocation }}"
           - name: "simulation_mode"
             values:
-            - "1"
+            - "{{ $instance.widebandInputBuffer.simulationMode }}"
           - name: "emulation_mode"
             values:
-            - "0"
+            - "{{ $instance.widebandInputBuffer.emulationMode }}"
 {{- end }}
+
+initContainers:
+  - name: init-bitstream-downloader
+    image: curlimages/curl
+    command:
+      - sh
+      - -c
+      - >
+        if [ ! -f /app/mnt/bitstream/ska-mid-cbf-agilex-vcc-0.0.6.tar.gz ]; then
+          curl -o /app/mnt/bistream/ska-mid-cbf-agilex-vcc-0.0.6.tar.gz https://artefact.skao.int/repository/raw-internal/ska-mid-cbf-agilex-vcc-0.0.6.tar.gz;
+        fi
+    volumeMounts:
+      - name: volume-data
+        mountPath: /app/mnt/bitstream
+
 image:
   registry: "{{.Values.midcbf.image.registry}}"
   image: "{{.Values.midcbf.image.image}}"
@@ -172,9 +187,9 @@ envFrom:
     name: low_level_config_map
 
 extraVolumes:
-- name: low-level-config-mount
-  configMap: 
-    name:  low-level-configmap
+  - name: low-level-config-mount
+    configMap: 
+      name:  low-level-configmap
 extraVolumeMounts:
   - name: low-level-config-mount
     mountPath: "{{ .Values.hostInfo.configLocation }}"

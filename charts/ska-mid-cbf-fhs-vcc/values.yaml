@@ -47,29 +47,53 @@ instances:
   - name: fhs-vcc-1
     packetValidation:
       deviceId: packet_validation
+      simulationMode: 1
+      emulationMode: 0
     mac200:
       deviceId: ethernet_200g
+      simulationMode: 1
+      emulationMode: 0
     b123VccOsppfbChanneliser:
       deviceId: b123vcc
+      simulationMode: 1
+      emulationMode: 0
     frequencySliceSelection:
       deviceId: fs_selection_26_2_1
+      simulationMode: 1
+      emulationMode: 0
     widebandFrequencyShifter:
       deviceId: wideband_frequency_shifter
+      simulationMode: 1
+      emulationMode: 0
     widebandInputBuffer:
       deviceId: wideband_input_buffer
+      simulationMode: 1
+      emulationMode: 0
   - name: fhs-vcc-2
     packetValidation:
       deviceId: packet_validation
+      simulationMode: 1
+      emulationMode: 0
     mac200:
       deviceId: ethernet_200g
+      simulationMode: 1
+      emulationMode: 0
     b123VccOsppfbChanneliser:
       deviceId: b123vcc
+      simulationMode: 1
+      emulationMode: 0
     frequencySliceSelection:
       deviceId: fs_selection_26_2_1
+      simulationMode: 1
+      emulationMode: 0
     widebandFrequencyShifter:
       deviceId: wideband_frequency_shifter
+      simulationMode: 1
+      emulationMode: 0
     widebandInputBuffer:
       deviceId: wideband_input_buffer
+      simulationMode: 1
+      emulationMode: 0
 
 deviceServers:
 #### Keeping these commented out for now until decided on whether all in one pod is deemed best route to take
