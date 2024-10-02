@@ -1,56 +1,39 @@
-# Frequency Slice Selection (Circuit Switch)
+# Frequency Slice Selection
 
-A circuit switch is used to select one of $N$ inputs to be copied to one or more of $M$ outputs. The selection is controlled by register, and is static (i.e. not packet switched).
+The Freqency Slice Selection module is implemented as 2:1 muxes, that connects the VCC channelisers to the outputs.
 
-The values of $N$ and $M$ are positive integers greater or equal to 1.
-
-This is a fairly generic component. It simply copies an input to an output. An output can only get data from a single input.
-
-There may be some restrictions on which inputs can be connected to which outputs. This will be dependent on the instance. If an illegal connection is requested an exception will be raised.
-
-Known instances:
-  1. A Freqency Slice Selection from VCC channelisers, has 10 inputs from the B123_Channeliser and 30 inputs from the B45 Channelisers. These 40 inputs can go to any of the 26 outputs, however the 10 inputs from the B123 channeliser cannot be used when any of the 30 inputs vrom the B45 channeliser are in use, and vis-versa. This clash will naturally be avoided because the VCC will be operating in band 1/2/3 mode or Band 4/5 mode.
-  2. A fully-connected circuit switch has no restrictions; any output can get data from any input. 
-
-Different outputs can get data from the same input at the same time: duplicating a stream.
+It has 10 inputs from the B123_Channeliser and 15 inputs each from the two B45 Channelisers. These 40 inputs are selected to 26 outputs with some heavy restrictions.
+1. select from either the B123_Channeliser, OR the B45 Channelisers.
+2. select the range of channels from the B45 Channelisers.
 
 ## Data Path Interface
-The datapath transports streams of data of a generic type `T`. 
-Where `T` could be complex sample streams (as in the VCC), or packet streams (in visibility transport) as two examples.
+The datapath transports streams of complex samples. Selecting which of two possible inputs goes to an output.
 
 ### Input
-$N$ input streams of type `T`.
+40 input streams of type `T`.
 .
 ### Output
-$M$ output streams of type `T`.
+26 output streams of type `T`.
 
 ## Low Level Driver API
 ### Structs
 #### `struct config`
-- output: int, 
-- input: int,
+- band_select: int, range 1 to 5;
+- band_start_channel : int[2], range 0 to 2;
 
 #### `struct status`
-- num_inputs
-- num_outputs
-- connected : array\[num_outputs\] (struct cfg)
-  - Negative input value == not connected.
+return the same as struct config.
 
 ### Standard methods
 #### `Constructor()`
 - Set identity (name, address)
-- Constants retrievable from registers. _Emulator will need to specify this somehow in its bitstream configuration_.
-  - "number_of_inputs"
-  - "number_of_outputs"
 
 #### `recover()`
-- clear all configured output routes - no connect.
+- clear all configured output routes to default = band1.
 
 #### `configure(struct config)`
-- connect`config.output` from `config.input`.
-- Can call as many times as required. Connection made immediately.
-- Multiple outputs can come from the same input. 
-- One output may not come from multiple inputs. Error if attempting to connect a second input to an output.
+- update mux values according to config.
+- setting takes immediate effect.
 
 #### `start()`
 - null
@@ -59,10 +42,9 @@ $M$ output streams of type `T`.
 - null
 
 #### `deconfigure(struct config)`
-- disconnect`config.output`
-- Can call as many times as required. Disconnects immediately.
+- recover()
 
 #### `status(clear: bool, struct &status)`
-- populate the status struct:
-  - for each stream in "number of outputs":
-    - return the input.
+- read registers and determine what configuration is applied.
+- populate status struct
+  
