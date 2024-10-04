@@ -23,12 +23,13 @@ def vcc123_device():
     harness = context.ThreadedTestTangoContextManager()
     harness.add_device(device_name="test/vcc123/1", 
                        device_class=B123VccOsppfbChanneliser, 
-                       device_id="vcc_test_device",
+                       device_id="1",
                        device_version_num="1.0",
                        device_gitlab_hash="abc123",
                        config_location="../../resources/",
                        simulation_mode="1",
-                       emulation_mode="0")
+                       emulation_mode="0",
+                       emulator_ipblock_id="b123vcc")
 
     with harness as test_context:
         yield test_context

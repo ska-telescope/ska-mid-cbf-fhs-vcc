@@ -13,7 +13,7 @@
     {
       "id": "ethernet_200g",
       "display_name": "200Gb Ethernet MAC",
-      "type": "ethernet_mac",
+      "type": "ethernet_200g_r4",
       "downstream_block_ids": [
         "packet_validation"
       ],
@@ -52,7 +52,7 @@
     {
       "id": "b123vcc",
       "display_name": "B123VCC-OSPPFB Channeliser",
-      "type": "b123vcc_osppfb_channeliser",
+      "type": "vcc_ch20",
       "downstream_block_ids": [
         "fs_selection_26_2_1"
       ]
@@ -60,7 +60,7 @@
     {
       "id": "fs_selection_26_2_1",
       "display_name": "Frequency Slice Selection 26 x 2:1 MUX",
-      "type": "frequency_slice_selection",
+      "type": "vcc_fs_selection",
       "downstream_block_ids": [
         "fs_selection_26_6"
       ],
@@ -72,7 +72,7 @@
     {
       "id": "fs_selection_26_6",
       "display_name": "Frequency Slice Selection 26:6 MUX",
-      "type": "frequency_slice_selection",
+      "type": "vcc_fs_selection",
       "downstream_block_ids": [],
       "constants": {
         "num_inputs": 26,

@@ -22,12 +22,14 @@ def pv_device():
     harness = context.ThreadedTestTangoContextManager()
     harness.add_device(device_name="test/packet_validation/1", 
                        device_class=PacketValidation, 
-                       device_id="pv_test_device",
+                       device_id="1",
                        device_version_num="1.0",
                        device_gitlab_hash="abc123",
                        config_location="../../resources/",
                        simulation_mode="1",
-                       emulation_mode="0")
+                       emulation_mode="0",
+                       emulator_ipblock_id="packet_validation",
+                       emulator_id="vcc-emulator-1")
 
     with harness as test_context:
         yield test_context

@@ -48,6 +48,12 @@ server:
           - name: "emulation_mode"
             values:
             - "{{ $instance.packetValidation.emulationMode }}"
+          - name: "emulator_ipblock_id"
+            values: 
+            - "{{ $.Values.emulatorIpBlockIds.packetValidation }}"
+          - name: "emulator_id"
+            values:
+            - "{{ $instance.packetValidation.emulatorId }}"
     - name: "Mac200"
       devices:
       - name: "fhs/mac200/{{ printf "%03d" $index }}"
@@ -73,6 +79,12 @@ server:
           - name: "emulation_mode"
             values:
             - "{{ $instance.mac200.emulationMode }}"
+          - name: "emulator_ipblock_id"
+            values: 
+            - "{{ $.Values.emulatorIpBlockIds.mac200 }}"
+          - name: "emulator_id"
+            values:
+            - "{{ $instance.mac200.emulatorId }}"
     - name: "B123VccOsppfbChanneliser"
       devices:
       - name: "fhs/vcc/{{ printf "%03d" $index }}"
@@ -95,6 +107,12 @@ server:
           - name: "emulation_mode"
             values:
             - "{{ $instance.b123VccOsppfbChanneliser.emulationMode }}"
+          - name: "emulator_ipblock_id"
+            values: 
+            - "{{ $.Values.emulatorIpBlockIds.b123Vcc }}"
+          - name: "emulator_id"
+            values:
+            - "{{ $instance.b123VccOsppfbChanneliser.emulatorId }}"
     - name: "FrequencySliceSelection"
       devices:
       - name: "fhs/frequency-slice-selection/{{ printf "%03d" $index }}"
@@ -117,6 +135,12 @@ server:
           - name: "emulation_mode"
             values:
             - "{{ $instance.frequencySliceSelection.emulationMode }}"
+          - name: "emulator_ipblock_id"
+            values: 
+            - "{{ $.Values.emulatorIpBlockIds.frequencySliceSelection }}"
+          - name: "emulator_id"
+            values:
+            - "{{ $instance.frequencySliceSelection.emulatorId }}"
     - name: "WidebandFrequencyShifter"
       devices:
       - name: "fhs/wfs/{{ printf "%03d" $index }}"
@@ -139,6 +163,12 @@ server:
           - name: "emulation_mode"
             values:
             - "{{ $instance.widebandFrequencyShifter.emulationMode }}"
+          - name: "emulator_ipblock_id"
+            values: 
+            - "{{ $.Values.emulatorIpBlockIds.widebandFrequencyShifter }}"
+          - name: "emulator_id"
+            values:
+            - "{{ $instance.widebandFrequencyShifter.emulatorId }}"
     - name: "WidebandInputBuffer"
       devices:
       - name: "fhs/wib/{{ printf "%03d" $index }}"
@@ -161,21 +191,13 @@ server:
           - name: "emulation_mode"
             values:
             - "{{ $instance.widebandInputBuffer.emulationMode }}"
+          - name: "emulator_ipblock_id"
+            values: 
+            - "{{ $.Values.emulatorIpBlockIds.widebandInputBuffer }}"
+          - name: "emulator_id"
+            values:
+            - "{{ $instance.widebandInputBuffer.emulatorId }}"
 {{- end }}
-
-initContainers:
-  - name: init-bitstream-downloader
-    image: curlimages/curl
-    command:
-      - sh
-      - -c
-      - >
-        if [ ! -f /app/mnt/bitstream/ska-mid-cbf-agilex-vcc-0.0.6.tar.gz ]; then
-          curl -o /app/mnt/bistream/ska-mid-cbf-agilex-vcc-0.0.6.tar.gz https://artefact.skao.int/repository/raw-internal/ska-mid-cbf-agilex-vcc-0.0.6.tar.gz;
-        fi
-    volumeMounts:
-      - name: volume-data
-        mountPath: /app/mnt/bitstream
 
 image:
   registry: "{{.Values.midcbf.image.registry}}"

@@ -5,6 +5,7 @@ from typing import Any
 
 from ska_control_model import CommunicationStatus
 
+from ska_mid_cbf_fhs_vcc.api.emulator.wfs_emulator_api import WfsEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.wideband_frequency_shifter import WidebandFrequencyShifterSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
@@ -31,7 +32,7 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
         super().__init__(
             *args,
             simulator_api=WidebandFrequencyShifterSimulator,
-            emulator_api=None,
+            emulator_api=WfsEmulatorApi,
             **kwargs,
         )
 

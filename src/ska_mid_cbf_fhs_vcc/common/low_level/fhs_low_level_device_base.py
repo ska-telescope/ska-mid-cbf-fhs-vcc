@@ -3,12 +3,15 @@ from __future__ import annotations
 import tango
 from ska_control_model import ResultCode
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
-from tango.server import command
+from tango.server import command, device_property
 
 from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice, FhsFastCommand
 
 
 class FhsLowLevelDeviceBase(FhsBaseDevice):
+    emulator_ipblock_id = device_property(dtype="str")
+    emulator_id = device_property(dtype="str")
+
     @command(
         dtype_out="DevVarLongStringArray",
     )
