@@ -28,12 +28,14 @@ def mac200_device():
     harness = context.ThreadedTestTangoContextManager()
     harness.add_device(device_name="test/mac200/1", 
                        device_class=Mac200, 
-                       device_id="mac200_test_device",
+                       device_id="1",
                        device_version_num="1.0",
                        device_gitlab_hash="abc123",
                        config_location="../../resources/",
                        simulation_mode="1",
-                       emulation_mode="0")
+                       emulation_mode="0",
+                       emulator_ipblock_id="ethernet_200g",
+                       emulator_id="vcc-emulator-1")
 
     with harness as test_context:
         yield test_context
@@ -109,8 +111,7 @@ def test_configure_command(device_under_test, event_tracer: TangoEventTracer):
     Test the Configure command of the Mac200 device.
     """
 
-    # Define configuration input
-    config_json = '{"rx_loopback_enable ": False}'  # Adjust according to expected format
+    config_json = '{"rx_loopback_enable ": False}'
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
@@ -148,8 +149,7 @@ def test_status_command(device_under_test):
     """
     Test the Status command of the Mac200 device.
     """
-    # Define input for clear flag
-    clear = False  # or True, depending on the test case
+    clear = False 
 
     # Invoke the command
     result = device_under_test.command_inout("GetStatus", clear)
@@ -174,40 +174,3 @@ def test_recover_command(device_under_test):
 
     # Assertions
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
-
-
-# def test_simulation_mode_attribute(mac200_device):
-#     """
-#     Test reading and writing the simulationMode attribute.
-#     """
-#     device_name, _ = mac200_device
-#     device = DeviceProxy(device_name)
-
-#     # Read the default value
-#     sim_mode = device.read_attribute("simulationMode").value
-#     assert sim_mode == 0, f"Expected default simulationMode 0, got {sim_mode}"
-
-#     # Write a new value
-#     device.write_attribute("simulationMode", 1)  # Assuming 1 corresponds to SimulationMode.TRUE
-
-#     # Read back the new value
-#     new_sim_mode = device.read_attribute("simulationMode").value
-#     assert new_sim_mode == 1, f"Expected simulationMode 1, got {new_sim_mode}"
-
-# def test_emulation_mode_attribute(mac200_device):
-#     """
-#     Test reading and writing the emulationMode attribute.
-#     """
-#     device_name, _ = mac200_device
-#     device = DeviceProxy(device_name)
-
-#     # Read the default value
-#     emu_mode = device.read_attribute("emulationMode").value
-#     assert emu_mode is True, f"Expected default emulationMode True, got {emu_mode}"
-
-#     # Write a new value
-#     device.write_attribute("emulationMode", False)
-
-#     # Read back the new value
-#     new_emu_mode = device.read_attribute("emulationMode").value
-#     assert new_emu_mode is False, f"Expected emulationMode False, got {new_emu_mode}"
