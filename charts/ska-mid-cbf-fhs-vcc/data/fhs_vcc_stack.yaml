@@ -207,6 +207,10 @@ image:
 envFrom:
   - configMapRef:
     name: low_level_config_map
+volume:
+  existingClaimName: "fhs-vcc-bitstream-pv"
+  mountPath: "/app/mnt/bitstream"
+  readOnly: false
 
 extraVolumes:
   - name: low-level-config-mount

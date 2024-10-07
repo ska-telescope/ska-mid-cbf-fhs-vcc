@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bitstream-download-job
+spec:
+  template:
+    spec:
+      containers:
+        - name: bitstream-download-job
+          image: alpine:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              apk add --no-cache curl tar && \
+              curl -L -o /tmp/{{ .Values.lowLevel.firmwareImage }}-{{ .Values.lowLevel.firmwareVersion }}.tar.gz {{ .Values.lowLevel.firmwareRegistry }}/{{ .Values.lowLevel.firmwareImage }}-{{ .Values.lowLevel.firmwareVersion }}.tar.gz && \
+              mkdir -p /bitstream/{{ .Values.lowLevel.firmwareVersion }}
+              tar xvzf /tmp/{{ .Values.lowLevel.firmwareImage }}-{{ .Values.lowLevel.firmwareVersion }}.tar.gz -C /bitstream/{{ .Values.lowLevel.firmwareVersion }}
+          volumeMounts:
+            - name: bitstream-pv
+              mountPath: /bitstream
+      restartPolicy: Never
+      volumes:
+        - name: bitstream-pv
+          persistentVolumeClaim:
+            claimName: fhs-vcc-bitstream-pv
