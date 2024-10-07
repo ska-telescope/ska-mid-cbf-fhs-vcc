@@ -1,4 +1,5 @@
 import logging
+import os
 
 import requests
 from ska_control_model import ResultCode
@@ -8,10 +9,11 @@ from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInte
 
 
 class BaseEmulatorApi(FhsBaseApiInterface):
-    _emulator_config_key = "emulatorConfigPath"
+    _bitstream_emulator_config_key = "bitstreamEmulatorConfigPath"
     _emulator_base_url_key = "emulatorBaseUrl"
     _emulator_config_ipblock_key = "ip_blocks"
-    _emulator_config_name = "0.0.1.json"
+    _firmware_version_key = "firmwareVersion"
+    _bitstream_path_key = "bitstreamPath"
 
     # TODO have a way to dynamically grab the emulator host / port values from the emulator config file
     def __init__(
@@ -76,14 +78,16 @@ class BaseEmulatorApi(FhsBaseApiInterface):
 
             api_config_reader = APIConfigReader(config_location, self._logger)
 
-            emulator_config_path = api_config_reader.getConfigMapValue(self._emulator_config_key)
+            bitstream_path = api_config_reader.getConfigMapValue(self._bitstream_path_key)
+            bitstream_version = api_config_reader.getConfigMapValue(self._firmware_version_key)
+            bitstream_emulator_config_path = api_config_reader.getConfigMapValue(self._bitstream_emulator_config_key)
             emulator_base_url = api_config_reader.getConfigMapValue(self._emulator_base_url_key)
 
-            emulator_config_path = f"{emulator_config_path}/{self._emulator_config_name}"
+            bitstream_emulator_config_path = f'{bitstream_path}/{bitstream_version}/{bitstream_emulator_config_path}'
 
-            self._logger.info(f"Emulator Config: {emulator_config_path}")
+            self._logger.info(f"Emulator Config: {bitstream_emulator_config_path}")
 
-            emulator_config_json = api_config_reader._getFileContentsAsYamlOrJson(emulator_config_path, isYaml=False)
+            emulator_config_json = api_config_reader._getFileContentsAsYamlOrJson(bitstream_emulator_config_path, isYaml=False)
 
             api_url_base = None
 

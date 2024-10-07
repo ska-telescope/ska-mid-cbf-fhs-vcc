@@ -137,15 +137,16 @@ tolerations: []
 
 hostInfo:
   environment: "minikube"
-  hostIP: "127.0.0.1"
+  hostIP: "127.0.0.1" 
   externalPort: 10001
   clusterDomain: cluster.local
   fhsServerId: fhs01
   configLocation: "/app/mnt/lowLevelConfigMap"
 
 lowLevel:
-  emulatorConfigPath: "/app/config/emulator"
+  bitstreamEmulatorConfigPath: "emulators/config.json"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   firmwareRegistry: https://artefact.skao.int/repository/raw-internal
   firmwareImage: ska-mid-cbf-agilex-vcc
   firmwareVersion: 0.0.6
+  bitstreamPath: "/app/mnt/bitstream"
