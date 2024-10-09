@@ -42,7 +42,10 @@ def check_if_bitstream_exists():
 
         _api_config_reader: APIConfigReader = APIConfigReader(_config_location, logger)
         bitstream_path: str = _api_config_reader.getConfigMapValue("bitstreamPath")
+        bitstream_id: str = _api_config_reader.getConfigMapValue("bitstreamId")
         firmware_version: str = _api_config_reader.getConfigMapValue("firmwareVersion")
+        
+        bitstream_id = bitstream_id.replace('-', '_')
         firmware_version = f"_{firmware_version.replace('.', '_')}"
 
         if os.path.exists(bitstream_path):
@@ -50,7 +53,7 @@ def check_if_bitstream_exists():
 
             polling2.poll(
                 check_bitstream_available,
-                args=(bitstream_path, firmware_version, logger),
+                args=(bitstream_path, bitstream_id, firmware_version, logger),
                 timeout=60,
                 step=0.5,
             )
@@ -65,8 +68,8 @@ def check_if_bitstream_exists():
         raise ke
 
 
-def check_bitstream_available(bitstream_path, firmware_version, logger):
-    if os.path.exists(f"{bitstream_path}/{firmware_version}"):
+def check_bitstream_available(bitstream_path, bitstream_id, firmware_version, logger):
+    if os.path.exists(f"{bitstream_path}/{bitstream_id}/{firmware_version}"):
         print(f"Bitstream {firmware_version} found!")
         return True
     else:
