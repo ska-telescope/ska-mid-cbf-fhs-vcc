@@ -44,8 +44,8 @@ def check_if_bitstream_exists():
         bitstream_path: str = _api_config_reader.getConfigMapValue("bitstreamPath")
         bitstream_id: str = _api_config_reader.getConfigMapValue("bitstreamId")
         firmware_version: str = _api_config_reader.getConfigMapValue("firmwareVersion")
-        
-        bitstream_id = bitstream_id.replace('-', '_')
+
+        bitstream_id = bitstream_id.replace("-", "_")
         firmware_version = f"_{firmware_version.replace('.', '_')}"
 
         if os.path.exists(bitstream_path):

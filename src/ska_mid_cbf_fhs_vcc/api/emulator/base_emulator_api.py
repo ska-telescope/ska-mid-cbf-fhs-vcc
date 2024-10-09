@@ -84,10 +84,12 @@ class BaseEmulatorApi(FhsBaseApiInterface):
             bitstream_emulator_config_path = api_config_reader.getConfigMapValue(self._bitstream_emulator_config_key)
             emulator_base_url = api_config_reader.getConfigMapValue(self._emulator_base_url_key)
 
-            bitstream_id = bitstream_id.replace('-', '_')
+            bitstream_id = bitstream_id.replace("-", "_")
             bitstream_version = f"_{bitstream_version.replace('.', '_')}"
 
-            bitstream_emulator_config_path = f"{bitstream_path}/{bitstream_id}/{bitstream_version}/{bitstream_emulator_config_path}"
+            bitstream_emulator_config_path = (
+                f"{bitstream_path}/{bitstream_id}/{bitstream_version}/{bitstream_emulator_config_path}"
+            )
 
             self._logger.info(f"Emulator Config: {bitstream_emulator_config_path}")
 
