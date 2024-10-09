@@ -210,7 +210,7 @@ environment_variables:
 
 volume:
   existingClaimName: "fhs-vcc-bitstream-pv"
-  mountPath: "/app/mnt/bitstream"
+  mountPath: "{{ .Values.lowLevel.bitstreamPath }}"
   readOnly: false
 
 extraVolumes:

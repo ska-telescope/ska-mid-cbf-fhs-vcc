@@ -148,5 +148,6 @@ lowLevel:
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   firmwareRegistry: https://artefact.skao.int/repository/raw-internal
   firmwareImage: ska-mid-cbf-agilex-vcc
+  bitstreamId: agilex-vcc
   firmwareVersion: 0.0.6
   bitstreamPath: "/app/mnt/bitstream"
