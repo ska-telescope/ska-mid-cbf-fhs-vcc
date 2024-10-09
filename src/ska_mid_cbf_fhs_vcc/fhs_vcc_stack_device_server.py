@@ -43,6 +43,7 @@ def check_if_bitstream_exists():
         _api_config_reader: APIConfigReader = APIConfigReader(_config_location, logger)
         bitstream_path: str = _api_config_reader.getConfigMapValue("bitstreamPath")
         firmware_version: str = _api_config_reader.getConfigMapValue("firmwareVersion")
+        firmware_version = f"_{firmware_version.replace(".", "_")}"
 
         if os.path.exists(bitstream_path):
             print(".......Starting to poll bitstream.......")
