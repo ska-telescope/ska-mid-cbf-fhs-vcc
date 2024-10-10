@@ -7,36 +7,45 @@ from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.emulator.wfs_emulator_api import WfsEmulatorApi
-from ska_mid_cbf_fhs_vcc.api.simulator.wideband_frequency_shifter import WidebandFrequencyShifterSimulator
+from ska_mid_cbf_fhs_vcc.api.emulator.circuit_switch_emulator_api import CircuitSwitchEmulatorApi
+from ska_mid_cbf_fhs_vcc.api.simulator.circuit_switch_simulator import CircuitSwitchSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
 
 @dataclass_json
 @dataclass
-class WidebandFrequencyShifterConfig:
-    shift_frequency: float
+class CircuitSwitchConfig:
+    output: int
+    input: int
 
 
 ##
-# status class that will be populated by the APIs and returned to provide the status of Wideband frequency shifter
+# status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
 ##
 @dataclass_json
 @dataclass
-class WidebandFrequencyShifterStatus:
-    shift_frequency: float
+class CircuitSwitchStatus:
+    num_inputs: int
+    num_outputs: int
+    connected: list[int]
 
 
-class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
+@dataclass_json
+@dataclass
+class CircuitSwitchConfigArgin:
+    band: list[dict]
+
+
+class CircuitSwitchComponentManager(FhsLowLevelComponentManager):
     def __init__(
-        self: WidebandFrequencyShifterComponentManager,
+        self: CircuitSwitchComponentManager,
         *args: Any,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             *args,
-            simulator_api=WidebandFrequencyShifterSimulator,
-            emulator_api=WfsEmulatorApi,
+            simulator_api=CircuitSwitchSimulator,
+            emulator_api=CircuitSwitchEmulatorApi,
             **kwargs,
         )
 
@@ -45,23 +54,27 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
     ##
     def configure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
-            self.logger.info("WFS Configuring..")
+            self.logger.info("Circuit Switch Configuring..")
 
-            wfsJsonConfig: WidebandFrequencyShifterConfig = WidebandFrequencyShifterConfig.schema().loads(argin)
+            configJson: CircuitSwitchConfigArgin = CircuitSwitchConfigArgin.schema().loads(argin)
 
-            self.logger.info(f"CONFIG JSON CONFIG: {wfsJsonConfig.to_json()}")
+            self.logger.info(f"CONFIG JSON CONFIG: {configJson.to_json()}")
 
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
                 f"{self._device_id} configured successfully",
             )
 
-            self.logger.info(f"WFS JSON CONFIG: {wfsJsonConfig.to_json()}")
+            for band in configJson.band:
+                csJsonConfig = CircuitSwitchConfig(output=band.get("output"), input=band.get("input"))
 
-            result = super().configure(wfsJsonConfig.to_dict())
+                self.logger.info(f"Circuit Switch JSON CONFIG: {csJsonConfig.to_json()}")
 
-            if result[0] != ResultCode.OK:
-                self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
+                result = super().configure(csJsonConfig.to_dict())
+
+                if result[0] != ResultCode.OK:
+                    self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
+                    break
 
         except ValidationError as vex:
             errorMsg = "Validation error: argin doesn't match the required schema"
@@ -75,7 +88,7 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
         return result
 
     # TODO Determine what needs to be communicated with here
-    def start_communicating(self: WidebandFrequencyShifterComponentManager) -> None:
+    def start_communicating(self: CircuitSwitchComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
         if self._communication_state == CommunicationStatus.ESTABLISHED:
             self.logger.info("Already communicating.")

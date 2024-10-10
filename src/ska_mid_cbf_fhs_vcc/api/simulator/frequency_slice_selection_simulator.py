@@ -11,5 +11,5 @@ class FrequencySliceSelectionSimulator(BaseSimulatorApi):
     def status(self, clear: bool = False) -> tuple[ResultCode, str]:
         return (
             ResultCode.OK,
-            '{"num_inputs": 10, "num_outputs": 10, "connected": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}',
+            '{"band_select": 1, "band_start_channel": [0, 1]}',
         )

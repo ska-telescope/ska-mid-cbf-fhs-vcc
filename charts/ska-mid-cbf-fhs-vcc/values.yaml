@@ -43,8 +43,8 @@ resources:
     memory: 128Mi  
     ephemeral-storage: 256Mi
 
-simulationMode: 0
-emulationMode: 1
+simulationMode: 1
+emulationMode: 0
 
 emulatorIds: 
   - "vcc-emulator-1"
@@ -90,6 +90,10 @@ instances:
       simulationMode: "{{ .Values.simulationMode }}"
       emulationMode: "{{ .Values.emulationMode }}"
       emulatorId: "{{ index .Values.emulatorIds 0 }}"
+    vccAllBands:
+      deviceId: 1
+      simulationMode: "0"
+      emulationMode: "1"
   - name: fhs-vcc-2
     packetValidation:
       deviceId: 2
@@ -121,6 +125,10 @@ instances:
       simulationMode: "{{ .Values.simulationMode }}"
       emulationMode: "{{ .Values.emulationMode }}"
       emulatorId: "{{ index .Values.emulatorIds 1 }}"
+    vccAllBands:
+      deviceId: 2
+      simulationMode: "0"
+      emulationMode: "1"
 
 deviceServers:
   fhs-vcc-stack:

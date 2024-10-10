@@ -55,7 +55,7 @@ def test_configure_command(device_under_test):
     """
 
     # Define configuration input
-    config_json = '{"band": [{"output": 1, "input":1}]}' 
+    config_json = '{"band_select": 1, "band_start_channel": [0, 1]}' 
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
@@ -121,7 +121,7 @@ def test_status_command(device_under_test):
     # Extract the result code and message
     result_code, message = result[0][0], result[1][0]
     
-    expectedStatus = '{"num_inputs": 10, "num_outputs": 10, "connected": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}'
+    expectedStatus = '{"band_select": 1, "band_start_channel": [0, 1]}'
 
     # Assertions
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"

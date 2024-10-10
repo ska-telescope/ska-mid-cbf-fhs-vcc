@@ -18,7 +18,7 @@ from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import
 class WideBandInputBufferConfig:
     expected_sample_rate: np.uint64
     noise_diode_transition_holdoff_seconds: float
-    meta_band_id: np.uint8
+    expected_dish_band: np.uint8
 
 
 ##
@@ -29,6 +29,7 @@ class WideBandInputBufferConfig:
 class WideBandInputBufferStatus:
     buffer_underflowed: bool
     buffer_overflowed: bool
+    loss_of_signal: np.uint32
     error: bool
     loss_of_signal_seconds: np.uint32
     meta_band_id: np.uint8
@@ -36,6 +37,14 @@ class WideBandInputBufferStatus:
     rx_sample_rate: np.uint32
     meta_transport_sample_rate_lsw: np.uint32
     meta_transport_sample_rate_msw: np.uint16
+
+
+@dataclass_json
+@dataclass
+class WibArginConfig:
+    expected_sample_rate: np.uint64
+    noise_diode_transition_holdoff_seconds: float
+    expected_dish_band: np.uint8
 
 
 class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
@@ -58,7 +67,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         try:
             self.logger.info("WIB Configuring..")
 
-            wibJsonConfig: WideBandInputBufferConfig = WideBandInputBufferConfig.schema().loads(argin)
+            wibJsonConfig: WibArginConfig = WibArginConfig.schema().loads(argin)
 
             self.logger.info(f"CONFIG JSON CONFIG: {wibJsonConfig.to_json()}")
 

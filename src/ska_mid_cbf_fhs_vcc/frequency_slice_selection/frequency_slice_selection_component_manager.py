@@ -15,8 +15,8 @@ from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import
 @dataclass_json
 @dataclass
 class FrequencySliceSelectionConfig:
-    output: int
-    input: int
+    band_select: int
+    band_start_channel: list[int]
 
 
 ##
@@ -25,15 +25,15 @@ class FrequencySliceSelectionConfig:
 @dataclass_json
 @dataclass
 class FrequencySliceSelectionStatus:
-    num_inputs: int
-    num_outputs: int
-    connected: list[int]
+    band_select: int
+    band_start_channel: list[int]
 
 
 @dataclass_json
 @dataclass
 class FssConfigArgin:
-    band: list[dict]
+    band_select: int
+    band_start_channel: list[int]
 
 
 class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager):
@@ -54,7 +54,7 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager):
     ##
     def configure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
-            self.logger.info("WIB Configuring..")
+            self.logger.info("FS Selection Configuring..")
 
             configJson: FssConfigArgin = FssConfigArgin.schema().loads(argin)
 
@@ -65,16 +65,10 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager):
                 f"{self._device_id} configured successfully",
             )
 
-            for band in configJson.band:
-                fssJsonConfig = FrequencySliceSelectionConfig(output=band.get("output"), input=band.get("input"))
+            result = super().configure(configJson.to_dict())
 
-                self.logger.info(f"FSS JSON CONFIG: {fssJsonConfig.to_json()}")
-
-                result = super().configure(fssJsonConfig.to_dict())
-
-                if result[0] != ResultCode.OK:
-                    self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
-                    break
+            if result[0] != ResultCode.OK:
+                self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
             errorMsg = "Validation error: argin doesn't match the required schema"

@@ -91,13 +91,17 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
                 f"{self._device_id} configured successfully",
             )
 
+            # Channels are dual-polarized i.e. 2 gain values per channel[x, y]
+            chan = 0
             for i, gain in enumerate(vccConfigArgin.gains):
                 vccJsonConfig = B123VccOsppfbChanneliserConfig(
                     sample_rate=vccConfigArgin.sample_rate,
                     gain=gain,
-                    channel=i,
+                    channel=chan,
                     pol=i % 2,
                 )
+                if i % 2:
+                    chan += 1
 
                 self.logger.info(f"VCC JSON CONFIG {i}: {vccJsonConfig.to_json()}")
 

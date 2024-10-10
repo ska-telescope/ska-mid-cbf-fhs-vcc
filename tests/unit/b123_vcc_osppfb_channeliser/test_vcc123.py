@@ -119,8 +119,8 @@ def test_status_command(device_under_test):
 
     # Extract the result code and message
     result_code, message = result[0][0], result[1][0]
-
-    expectedStatus ='{"sample_rate: 3960000000, num_channels: 10, num_polarisations: 10, gains: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]"}'
+    
+    expectedStatus ='{"sample_rate: 3960000000, num_channels: 10, num_polarisations: 2, gains: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]"}'
 
     # Assertions
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
