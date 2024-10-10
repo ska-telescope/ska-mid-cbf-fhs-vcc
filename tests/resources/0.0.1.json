@@ -63,11 +63,7 @@
       "type": "vcc_fs_selection",
       "downstream_block_ids": [
         "fs_selection_26_6"
-      ],
-      "constants": {
-        "num_inputs": 52,
-        "num_outputs": 26
-      }
+      ]
     },
     {
       "id": "fs_selection_26_6",

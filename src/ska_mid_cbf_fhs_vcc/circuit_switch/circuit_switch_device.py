@@ -1,22 +1,18 @@
 from __future__ import annotations
 
+from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_component_manager import CircuitSwitchComponentManager
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
-from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_component_manager import (
-    FrequencySliceSelectionComponentManager,
-)
 
 
-class FrequencySliceSelection(FhsLowLevelDeviceBase):
+class CircuitSwitch(FhsLowLevelDeviceBase):
     def create_component_manager(
-        self: FrequencySliceSelection,
-    ) -> FrequencySliceSelectionComponentManager:
-        return FrequencySliceSelectionComponentManager(
+        self: CircuitSwitch,
+    ) -> CircuitSwitchComponentManager:
+        return CircuitSwitchComponentManager(
             device_id=self.device_id,
             config_location=self.config_location,
             simulation_mode=self.simulation_mode,
             emulation_mode=self.emulation_mode,
-            emulator_ipblock_id=self.emulator_ipblock_id,
-            emulator_id=self.emulator_id,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
             health_state_callback=self._update_health_state,
@@ -26,13 +22,13 @@ class FrequencySliceSelection(FhsLowLevelDeviceBase):
             logger=self.logger,
         )
 
-    def always_executed_hook(self: FrequencySliceSelection) -> None:
+    def always_executed_hook(self: CircuitSwitch) -> None:
         """Hook to be executed before any commands."""
 
-    def delete_device(self: FrequencySliceSelection) -> None:
+    def delete_device(self: CircuitSwitch) -> None:
         """Hook to delete device."""
 
-    def init_command_objects(self: FrequencySliceSelection) -> None:
+    def init_command_objects(self: CircuitSwitch) -> None:
         super().init_command_objects()
 
         # init the fast commands
@@ -46,7 +42,7 @@ class FrequencySliceSelection(FhsLowLevelDeviceBase):
 
 
 def main(args=None, **kwargs):
-    return FrequencySliceSelection.run_server(args=args or None, **kwargs)
+    return CircuitSwitch.run_server(args=args or None, **kwargs)
 
 
 if __name__ == "__main__":

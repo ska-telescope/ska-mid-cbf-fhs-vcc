@@ -54,7 +54,7 @@ def test_configure_command(device_under_test, event_tracer: TangoEventTracer):
     Test the Configure command of the wideband frequency shifter device.
     """
 
-    config_json = '{"rx_loopback_enable ": False}' 
+    config_json = '{"shift_frequency": 110.0}' 
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)

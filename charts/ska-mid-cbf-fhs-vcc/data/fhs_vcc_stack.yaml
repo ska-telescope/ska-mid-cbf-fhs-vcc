@@ -197,6 +197,49 @@ server:
           - name: "emulator_id"
             values:
             - "{{ $instance.widebandInputBuffer.emulatorId }}"
+    - name: "VCCAllBandsController"
+      devices:
+      - name: "fhs/vcc-all-bands/{{ printf "%03d" $index }}"
+        properties:
+          - name: "device_id"
+            values:
+            - "{{ $instance.vccAllBands.deviceId }}"
+          - name: "device_version_num"
+            values:
+            - "0.0.1"
+          - name: "device_gitlab_hash"
+            values:
+            - "0"
+          - name: "config_location"
+            values:
+            - "{{ $.Values.hostInfo.configLocation }}"
+          - name: "simulation_mode"
+            values:
+            - "{{ $instance.vccAllBands.simulationMode }}"
+          - name: "emulation_mode"
+            values:
+            - "{{ $instance.vccAllBands.emulationMode }}"
+          - name: wideband_input_buffer_fqdn
+            values:
+            - "fhs/wib/{{ printf "%03d" $index }}"
+          - name: vcc123_channelizer_fqdn
+            values:
+            - "fhs/vcc/{{ printf "%03d" $index }}"
+          - name: fs_selection_fqdn
+            values:
+            - "fhs/frequency-slice-selection/{{ printf "%03d" $index }}"
+          - name: wideband_frequency_shifter_fqdn
+            values:
+            - "fhs/wfs/{{ printf "%03d" $index }}"
+          - name: mac_200_fqdn
+            values:
+            - "fhs/mac200/{{ printf "%03d" $index }}"
+          - name: packet_validation_fqdn
+            values:
+            - "fhs/packetvalidation/{{ printf "%03d" $index }}"
+          - name: vcc45_channelizer_fqdn # yet to be implemented
+            values:
+            - "placeholder"
 {{- end }}
 
 image:

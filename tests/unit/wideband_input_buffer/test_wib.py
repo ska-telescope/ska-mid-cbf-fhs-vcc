@@ -53,7 +53,7 @@ def test_configure_command(device_under_test, event_tracer: TangoEventTracer):
     """
 
     # Define configuration input
-    config_json = '{"expected_sample_rate": 3960000000, "noise_diode_transition_holdoff_seconds": 1.0, "meta_band_id": 1}'
+    config_json = '{"expected_sample_rate": 3960000000, "noise_diode_transition_holdoff_seconds": 1.0, "expected_dish_band": 1}'
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
