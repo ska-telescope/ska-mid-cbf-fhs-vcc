@@ -11,14 +11,14 @@ spec:
           command: ["sh", "-c"]
           args:
             - |
-              SED_STRING="s/^.{0}$|[^a-zA-Z0-9]|(^[0-9])/_\1/g" && \
               apk add --no-cache curl tar && \
-              BITSTREAM_SUBPATH="$(echo "{{ .Values.lowLevel.bitstreamId }}" | sed -Ee $SED_STRING)/$(echo "{{ .Values.lowLevel.firmwareVersion }}" | sed -Ee $SED_STRING)" && \
+              BITSTREAM_SUBPATH={{ .Values.lowLevel.bitstreamId }}/{{ .Values.lowLevel.firmwareVersion }} && \
               TARBALL="ska-mid-cbf-{{ .Values.lowLevel.bitstreamId }}-{{ .Values.lowLevel.firmwareVersion }}.tar.gz" && \
               if [ ! -d {{ .Values.lowLevel.bitstreamPath }}/$BITSTREAM_SUBPATH ]; then \
                 curl -L -o /tmp/$TARBALL https://artefact.skao.int/repository/raw-internal/$TARBALL && \
                 mkdir -p {{ .Values.lowLevel.bitstreamPath }}/$BITSTREAM_SUBPATH && \
-                tar xvzf /tmp/$TARBALL -C {{ .Values.lowLevel.bitstreamPath }}/$BITSTREAM_SUBPATH; \
+                tar xvzf /tmp/$TARBALL -C {{ .Values.lowLevel.bitstreamPath }}/$BITSTREAM_SUBPATH && \
+                find {{ $.Values.bitstreamMountPath }} ; \
               fi
           volumeMounts:
             - name: bitstream-pv
