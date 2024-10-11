@@ -247,12 +247,13 @@ image:
   image: "{{.Values.midcbf.image.image}}"
   tag: "{{.Values.midcbf.image.tag}}"
   pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
-envFrom:
-  - configMapRef:
-    name: low_level_config_map
+environment_variables:
+  - name: CONFIG_MAP_LOCATION
+    value: "{{ .Values.hostInfo.configLocation }}"
+
 volume:
   existingClaimName: "fhs-vcc-bitstream-pv"
-  mountPath: "/app/mnt/bitstream"
+  mountPath: "{{ .Values.lowLevel.bitstreamPath }}"
   readOnly: false
 
 extraVolumes:
