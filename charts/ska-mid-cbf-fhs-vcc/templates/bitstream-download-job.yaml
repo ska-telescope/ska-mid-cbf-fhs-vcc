@@ -12,12 +12,17 @@ spec:
           args:
             - |
               apk add --no-cache curl tar && \
-              curl -L -o /tmp/{{ .Values.lowLevel.firmwareImage }}-{{ .Values.lowLevel.firmwareVersion }}.tar.gz {{ .Values.lowLevel.firmwareRegistry }}/{{ .Values.lowLevel.firmwareImage }}-{{ .Values.lowLevel.firmwareVersion }}.tar.gz && \
-              mkdir -p /bitstream/{{ .Values.lowLevel.firmwareVersion }}
-              tar xvzf /tmp/{{ .Values.lowLevel.firmwareImage }}-{{ .Values.lowLevel.firmwareVersion }}.tar.gz -C /bitstream/{{ .Values.lowLevel.firmwareVersion }}
+              BITSTREAM_SUBPATH={{ .Values.lowLevel.bitstreamId }}/{{ .Values.lowLevel.firmwareVersion }} && \
+              TARBALL="ska-mid-cbf-{{ .Values.lowLevel.bitstreamId }}-{{ .Values.lowLevel.firmwareVersion }}.tar.gz" && \
+              if [ ! -d {{ .Values.lowLevel.bitstreamPath }}/$BITSTREAM_SUBPATH ]; then \
+                curl -L -o /tmp/$TARBALL https://artefact.skao.int/repository/raw-internal/$TARBALL && \
+                mkdir -p {{ .Values.lowLevel.bitstreamPath }}/$BITSTREAM_SUBPATH && \
+                tar xvzf /tmp/$TARBALL -C {{ .Values.lowLevel.bitstreamPath }}/$BITSTREAM_SUBPATH && \
+                find {{ $.Values.bitstreamMountPath }} ; \
+              fi
           volumeMounts:
             - name: bitstream-pv
-              mountPath: /bitstream
+              mountPath: {{ .Values.lowLevel.bitstreamPath }}
       restartPolicy: Never
       volumes:
         - name: bitstream-pv
