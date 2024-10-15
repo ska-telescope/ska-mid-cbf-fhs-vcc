@@ -109,6 +109,20 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
             return
 
+    def stop_communicating(self: FhsComponentManagerBase) -> None:
+        """Close communication with the component, then stop monitoring."""
+        try:
+            self._fs_selection_proxy = {}
+            self._wideband_input_shifter_proxy = {}
+            self._wideband_input_buffer_proxy = {}
+            self._mac_200_proxy = {}
+            self._packet_validation_proxy = {}
+
+            # Event unsubscription will also be placed here
+            super().stop_communicating()
+        except tango.DevFailed as ex:
+            self.logger.error(f"Failed close device proxies to FHS Low-level devices; {ex}")
+
     def configure_scan(
         self: VCCAllBandsComponentManager,
         argin: str,
