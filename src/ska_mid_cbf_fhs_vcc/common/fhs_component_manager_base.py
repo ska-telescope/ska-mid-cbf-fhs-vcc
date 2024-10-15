@@ -129,6 +129,11 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         self._component_state_callback(power=PowerState.ON)
         self._update_communication_state(communication_state=CommunicationStatus.ESTABLISHED)
 
+    # Called when adminMode is set to OFFLINE
+    def stop_communicating(self: BaseComponentManager) -> None:
+        self._component_state_callback(power=PowerState.UNKNOWN)
+        self._update_communication_state(communication_state=CommunicationStatus.DISABLED)
+
     ###
     # Utility functions
     ###
