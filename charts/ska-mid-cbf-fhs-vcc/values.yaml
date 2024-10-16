@@ -40,16 +40,16 @@ resources:
     ephemeral-storage: 512Mi
   requests:
     cpu: 100m
-    memory: 128Mi  
+    memory: 128Mi
     ephemeral-storage: 256Mi
 
 simulationMode: 1
 emulationMode: 0
 
-emulatorIds: 
+emulatorIds:
   - "vcc-emulator-1"
   - "vcc-emulator-2"
-  
+
 emulatorIpBlockIds:
   mac200: "ethernet_200g"
   packetValidation: "packet_validation"
@@ -60,73 +60,108 @@ emulatorIpBlockIds:
 
 instances:
   - name: fhs-vcc-1
-    packetValidation:
-      deviceId: 1
-      simulationMode: "{{ .Values.simulationMode }}"
-      emulationMode: "{{ .Values.emulationMode }}"
-      emulatorId: "{{ index .Values.emulatorIds 0 }}"
     mac200:
-      deviceId: 1
+      deviceId: "eth200g_0"
       simulationMode: "{{ .Values.simulationMode }}"
       emulationMode: "{{ .Values.emulationMode }}"
       emulatorId: "{{ index .Values.emulatorIds 0 }}"
-    b123VccOsppfbChanneliser:
-      deviceId: 1
-      simulationMode: "{{ .Values.simulationMode }}"
-      emulationMode: "{{ .Values.emulationMode }}"
-      emulatorId: "{{ index .Values.emulatorIds 0 }}"
-    frequencySliceSelection:
-      deviceId: 1
-      simulationMode: "{{ .Values.simulationMode }}"
-      emulationMode: "{{ .Values.emulationMode }}"
-      emulatorId: "{{ index .Values.emulatorIds 0 }}"
-    widebandFrequencyShifter:
-      deviceId: 1
+    packetValidation:
+      deviceId: "packet_validation_unimplemented"
       simulationMode: "{{ .Values.simulationMode }}"
       emulationMode: "{{ .Values.emulationMode }}"
       emulatorId: "{{ index .Values.emulatorIds 0 }}"
     widebandInputBuffer:
-      deviceId: 1
+      deviceId: "wideband_input_buffer_unimplemented"
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 0 }}"
+    widebandFrequencyShifter:
+      deviceId: "wideband_frequency_shifter_unimplemented"
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 0 }}"
+    b123VccOsppfbChanneliser:
+      deviceId: "receptor0_band123_vcc"
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 0 }}"
+    frequencySliceSelection:
+      deviceId: "receptor0_fs_selector" # or receptor0_pss_fs_select
       simulationMode: "{{ .Values.simulationMode }}"
       emulationMode: "{{ .Values.emulationMode }}"
       emulatorId: "{{ index .Values.emulatorIds 0 }}"
     vccAllBands:
-      deviceId: 1
+      deviceId: "vcc_all_bands_unimplemented"
       simulationMode: "0"
       emulationMode: "1"
   - name: fhs-vcc-2
-    packetValidation:
-      deviceId: 2
-      simulationMode: "{{ .Values.simulationMode }}"
-      emulationMode: "{{ .Values.emulationMode }}"
-      emulatorId: "{{ index .Values.emulatorIds 1 }}"
     mac200:
-      deviceId: 2
+      deviceId: "eth200g_1" # which number should this be
       simulationMode: "{{ .Values.simulationMode }}"
       emulationMode: "{{ .Values.emulationMode }}"
       emulatorId: "{{ index .Values.emulatorIds 1 }}"
-    b123VccOsppfbChanneliser:
-      deviceId: 2
-      simulationMode: "{{ .Values.simulationMode }}"
-      emulationMode: "{{ .Values.emulationMode }}"
-      emulatorId: "{{ index .Values.emulatorIds 1 }}"
-    frequencySliceSelection:
-      deviceId: 2
-      simulationMode: "{{ .Values.simulationMode }}"
-      emulationMode: "{{ .Values.emulationMode }}"
-      emulatorId: "{{ index .Values.emulatorIds 1 }}"
-    widebandFrequencyShifter:
-      deviceId: 2
+    packetValidation:
+      deviceId: "packet_validation_unimplemented"
       simulationMode: "{{ .Values.simulationMode }}"
       emulationMode: "{{ .Values.emulationMode }}"
       emulatorId: "{{ index .Values.emulatorIds 1 }}"
     widebandInputBuffer:
-      deviceId: 2
+      deviceId: "wideband_input_buffer_unimplemented"
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 1 }}"
+    widebandFrequencyShifter:
+      deviceId: "wideband_frequency_shifter_unimplemented"
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 1 }}"
+    b123VccOsppfbChanneliser:
+      deviceId: "receptor1_band123_vcc"
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 1 }}"
+    frequencySliceSelection:
+      deviceId: "receptor1_fs_selector" # or receptor1_pss_fs_select
       simulationMode: "{{ .Values.simulationMode }}"
       emulationMode: "{{ .Values.emulationMode }}"
       emulatorId: "{{ index .Values.emulatorIds 1 }}"
     vccAllBands:
-      deviceId: 2
+      deviceId: "vcc_all_bands_unimplemented"
+      simulationMode: "0"
+      emulationMode: "1"
+  - name: fhs-vcc-3
+    mac200:
+      deviceId: "eth200g_2" # which number should this be
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 2 }}"
+    packetValidation:
+      deviceId: "packet_validation_unimplemented"
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 2 }}"
+    widebandInputBuffer:
+      deviceId: "wideband_input_buffer_unimplemented"
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 2 }}"
+    widebandFrequencyShifter:
+      deviceId: "wideband_frequency_shifter_unimplemented"
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 2 }}"
+    b123VccOsppfbChanneliser:
+      deviceId: "receptor2_band123_vcc"
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 2 }}"
+    frequencySliceSelection:
+      deviceId: "receptor2_fs_selector" # or receptor2_pss_fs_select
+      simulationMode: "{{ .Values.simulationMode }}"
+      emulationMode: "{{ .Values.emulationMode }}"
+      emulatorId: "{{ index .Values.emulatorIds 2 }}"
+    vccAllBands:
+      deviceId: "vcc_all_bands_unimplemented"
       simulationMode: "0"
       emulationMode: "1"
 
@@ -134,8 +169,6 @@ deviceServers:
   fhs-vcc-stack:
     enabled: true
     file: "data/fhs_vcc_stack.yaml"
-
-
 
 nodeSelector: {}
 
@@ -145,13 +178,12 @@ tolerations: []
 
 hostInfo:
   environment: "minikube"
-  hostIP: "127.0.0.1" 
+  hostIP: "127.0.0.1"
   externalPort: 10001
   clusterDomain: cluster.local
   fhsServerId: fhs01
   configLocation: "/app/mnt/lowLevelConfigMap"
   namespace: "ska-mid-cbf"
-
 
 lowLevel:
   bitstreamEmulatorConfigPath: "emulators/config.json"
@@ -159,5 +191,5 @@ lowLevel:
   firmwareRegistry: https://artefact.skao.int/repository/raw-internal
   firmwareImage: ska-mid-cbf-agilex-vcc
   bitstreamId: agilex-vcc
-  firmwareVersion: 0.0.6
-  bitstreamPath: "/app/ska-mid-cbf-bitstream-emulators"
+  bitstreamVersion: 0.0.6
+  bitstreamPath: /app/mnt/bitstream
