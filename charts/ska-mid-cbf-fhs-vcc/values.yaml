@@ -49,6 +49,7 @@ emulationMode: 0
 emulatorIds:
   - "vcc-emulator-1"
   - "vcc-emulator-2"
+  - "vcc-emulator-3"
 
 emulatorIpBlockIds:
   mac200: "ethernet_200g"
