@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
-import sys
 import os
+import sys
 
 from ska_control_model import ResultCode
 
