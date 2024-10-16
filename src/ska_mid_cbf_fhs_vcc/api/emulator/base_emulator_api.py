@@ -11,7 +11,7 @@ class BaseEmulatorApi(FhsBaseApiInterface):
     _bitstream_emulator_config_key = "bitstreamEmulatorConfigPath"
     _emulator_base_url_key = "emulatorBaseUrl"
     _emulator_config_ipblock_key = "ip_blocks"
-    _firmware_version_key = "firmwareVersion"
+    _firmware_version_key = "bitstreamVersion"
     _bitstream_path_key = "bitstreamPath"
     _bitstream_id_key = "bitstreamId"
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import sys
+import os
 
 from ska_control_model import ResultCode
 
@@ -18,18 +19,23 @@ class BaseFirmwareApi(FhsBaseApiInterface):
 
         api_config_reader = APIConfigReader(config_location, self._logger)
 
-        version = api_config_reader.getConfigMapValue("firmwareVersion")
-        driver_path = "/app/mnt/bitstream/" + version + "/drivers/"
+        bitstream_id = api_config_reader.getConfigMapValue("bitstreamId")
+        bitstream_version = api_config_reader.getConfigMapValue("bitstreamVersion")
+        bitstream_path = api_config_reader.getConfigMapValue("bitstreamPath")
+
+        driver_path = os.path.join(bitstream_path, bitstream_id, bitstream_version, "drivers")
 
         try:
             logger.info("Loading driver from: " + driver_path)
             sys.path.append(driver_path)
             from py_driver_initializer import Py_Driver_Initializer
         except ImportError as e:
-            msg = f"Driver version {version} not found in volume mount {driver_path}: {e!r}"
+            msg = f"Driver version {bitstream_id}/{bitstream_version} not found in volume mount {driver_path}: {e!r}"
             logger.error(msg)
             raise RuntimeError(msg)
 
+        memory_map_file = "/dev/null"
+        logger.info(f"Initializing driver with device_id: {device_id}, and memory_map: {memory_map_file}")
         self._initializer = Py_Driver_Initializer(instance_name=device_id, memory_map_file="/dev/null", logger=logger)
         self._driver = self._initializer.driver
 

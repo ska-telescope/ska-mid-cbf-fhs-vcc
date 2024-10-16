@@ -160,4 +160,4 @@ lowLevel:
   firmwareImage: ska-mid-cbf-agilex-vcc
   bitstreamId: agilex-vcc
   firmwareVersion: 0.0.6
-  bitstreamPath: "/app/mnt/bitstream"
+  bitstreamPath: "/app/ska-mid-cbf-bitstream-emulators"
