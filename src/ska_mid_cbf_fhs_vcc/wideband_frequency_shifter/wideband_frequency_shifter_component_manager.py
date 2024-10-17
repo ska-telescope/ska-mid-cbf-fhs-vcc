@@ -45,14 +45,14 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
     ##
     def go_to_idle(self: WidebandFrequencyShifterComponentManager) -> tuple[ResultCode, str]:
         result = self.deconfigure()
-        
-        if(result[0] is not ResultCode.FAILED):
+
+        if result[0] is not ResultCode.FAILED:
             result = super().go_to_idle()
         else:
             self.logger.error("Unable to go to idle, result from deconfiguring was FAILED")
 
         return result
-    
+
     def configure(self: WidebandFrequencyShifterComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
             self.logger.info("WFS Configuring..")
@@ -83,27 +83,26 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
             result = ResultCode.FAILED, errorMsg
 
         return result
-     
+
     def deconfigure(self: WidebandFrequencyShifterComponentManager, argin: dict = None) -> tuple[ResultCode, str]:
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
                 f"{self._device_id} deconfigured successfully",
             )
-            
-            if(argin is None):
+
+            if argin is None:
                 result = super().recover()
             else:
-                
                 wfsJsonConfig: WidebandFrequencyShifterConfig = WidebandFrequencyShifterConfig.schema().loads(argin)
 
                 self.logger.info(f"DECONFIG JSON CONFIG: {wfsJsonConfig.to_json()}")
-                
+
                 result = super().deconfigure(argin)
-                
+
                 if result[0] != ResultCode.OK:
                     self.logger.error(f"DeConfiguring {self._device_id} failed. {result[1]}")
-                
+
         except ValidationError as vex:
             errorMsg = "Validation error: argin doesn't match the required schema"
             self.logger.error(f"{errorMsg}: {vex}")
@@ -114,7 +113,6 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
             result = ResultCode.FAILED, errorMsg
 
         return result
-
 
     # TODO Determine what needs to be communicated with here
     def start_communicating(self: WidebandFrequencyShifterComponentManager) -> None:

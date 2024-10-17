@@ -37,8 +37,31 @@ class B123VccOsppfbChanneliserStatus:
 @dataclass_json
 @dataclass
 class VccConfigArgin:
-    sample_rate: np.uint64 = 3960000000 # default values
-    gains: list[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] )# default gain values
+    sample_rate: np.uint64 = 3960000000  # default values
+    gains: list[float] = field(
+        default_factory=lambda: [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+        ]
+    )  # default gain values
 
 
 class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
@@ -79,12 +102,11 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
     #####
     def go_to_idle(self: B123VccOsppfbChanneliserComponentManager) -> tuple[ResultCode, str]:
         result = self.deconfigure()
-        
-        if(result[0] is not ResultCode.FAILED):
+
+        if result[0] is not ResultCode.FAILED:
             result = super().go_to_idle()
 
         return result
-            
 
     def configure(self: B123VccOsppfbChanneliserComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
@@ -108,13 +130,12 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
     def deconfigure(self: B123VccOsppfbChanneliserComponentManager, argin: str = None) -> tuple[ResultCode, str]:
         try:
             self.logger.info("VCC Deconfiguring..")
-            
-            
+
             # Get the default values
             vccConfigArgin = VccConfigArgin()
-            
+
             # If the argin is not none then we're 'reconfiguring' using the values set otherwise we use the default values
-            if(argin is not None):
+            if argin is not None:
                 vccConfigArgin: VccConfigArgin = VccConfigArgin.schema().loads(argin)
 
             self.logger.info(f"DECONFIGURE JSON CONFIG: {vccConfigArgin.to_json()}")
@@ -130,29 +151,31 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
             return ResultCode.FAILED, errorMsg
             # TODO helthstate check
 
-    def _generate_and_configure(self: B123VccOsppfbChanneliserComponentManager, vccConfigArgin: VccConfigArgin, configure) -> dict:
-            result: tuple[ResultCode, str] = (
-                ResultCode.OK,
-                f"{self._device_id} configured successfully",
+    def _generate_and_configure(
+        self: B123VccOsppfbChanneliserComponentManager, vccConfigArgin: VccConfigArgin, configure
+    ) -> dict:
+        result: tuple[ResultCode, str] = (
+            ResultCode.OK,
+            f"{self._device_id} configured successfully",
+        )
+
+        # Channels are dual-polarized i.e. 2 gain values per channel[x, y]
+        chan = 0
+        for i, gain in enumerate(vccConfigArgin.gains):
+            vccConfig = B123VccOsppfbChanneliserConfig(
+                sample_rate=vccConfigArgin.sample_rate,
+                gain=gain,
+                channel=chan,
+                pol=i % 2,
             )
-        
-            # Channels are dual-polarized i.e. 2 gain values per channel[x, y]
-            chan = 0
-            for i, gain in enumerate(vccConfigArgin.gains):
-                vccConfig = B123VccOsppfbChanneliserConfig(
-                    sample_rate=vccConfigArgin.sample_rate,
-                    gain=gain,
-                    channel=chan,
-                    pol=i % 2,
-                )
-                if i % 2:
-                    chan += 1
+            if i % 2:
+                chan += 1
 
-                self.logger.info(f"VCC JSON CONFIG {i}: {vccConfig.to_json()}")
+            self.logger.info(f"VCC JSON CONFIG {i}: {vccConfig.to_json()}")
 
-                result = configure(vccConfig)
-                if result[0] != ResultCode.OK:
-                    self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
-                    break
-            
-            return result
+            result = configure(vccConfig)
+            if result[0] != ResultCode.OK:
+                self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
+                break
+
+        return result

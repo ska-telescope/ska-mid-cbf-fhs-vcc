@@ -19,7 +19,6 @@ __all__ = ["FhsBaseDevice", "FhsFastCommand", "main"]
 CompManager = TypeVar("CompManager", bound=FhsComponentManagerBase)
 
 
-
 # -----------------------------------------------------
 # FhsFastCommand class
 #
@@ -233,10 +232,11 @@ class FhsBaseDevice(SKAObsDevice):
             [ResultCode.REJECTED],
             ["Reset command rejected, as it is unimplemented for this device."],
         )
-        
+
     class GoToIdleCommand(FhsFastCommand):
         def do(self) -> tuple[ResultCode, str]:
             return self._component_manager.go_to_idle()
+
 
 # ----------
 # Run server

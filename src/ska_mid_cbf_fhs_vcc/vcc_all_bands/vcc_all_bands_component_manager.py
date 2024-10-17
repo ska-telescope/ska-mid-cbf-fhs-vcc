@@ -381,13 +381,13 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._fsps = []
 
         self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
-        
+
         self._log_go_to_idle_status("FSS", self._fs_selection_proxy.go_to_idle())
         self._log_go_to_idle_status("WFS", self._wideband_frequency_shifter_proxy.go_to_idle())
         self._log_go_to_idle_status("WIB", self._wideband_input_buffer_proxy.go_to_idle())
         self._log_go_to_idle_status("Mac200", self._mac_200_proxy.go_to_idle())
         self._log_go_to_idle_status("PV", self._packet_validation_proxy.go_to_idle())
-        
+
         return
 
     def task_abort_event_is_set(
@@ -415,9 +415,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             )
             return True
         return False
-    
+
     def _log_go_to_idle_status(self: VCCAllBandsComponentManager, ip_block_name: str, result: tuple[ResultCode, str]):
-        if(result[0] != ResultCode.OK):
+        if result[0] != ResultCode.OK:
             self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
         else:
             self.logger.info(f"VCC {self._vcc_idcc}: {ip_block_name} set to IDLE")

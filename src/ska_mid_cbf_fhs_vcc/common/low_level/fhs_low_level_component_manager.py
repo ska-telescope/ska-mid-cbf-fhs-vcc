@@ -99,7 +99,6 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
             must be in ObsState.FAULT"
 
         return self.is_allowed(errorMsg, [ObsState.FAULT, ObsState.READY, ObsState.IDLE, ObsState.ABORTED])
-    
 
     #####
     # Command Functions

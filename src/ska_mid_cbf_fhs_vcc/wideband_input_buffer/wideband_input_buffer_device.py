@@ -43,7 +43,7 @@ class WidebandInputBuffer(FhsLowLevelDeviceBase):
             ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
             ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
             ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
-            ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand)
+            ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand),
         ]
 
         super().init_fast_command_objects(commandsAndClasses)

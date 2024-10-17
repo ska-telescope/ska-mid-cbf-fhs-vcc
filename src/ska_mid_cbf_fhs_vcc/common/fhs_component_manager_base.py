@@ -8,7 +8,7 @@
 from __future__ import annotations  # allow forward references in type hints
 
 import logging
-from threading import Event, Lock
+from threading import Lock
 from typing import Any, Callable, Optional, cast
 
 from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, TaskStatus
@@ -87,14 +87,14 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
             health_state=HealthState.DEGRADED
         )  # TODO Determine if the health state here needs to be degraded or not
 
-
     def is_go_to_idle_allowed(self: FhsComponentManagerBase) -> bool:
         self.logger.debug("Checking if gotoidle is allowed...")
-        errorMsg = f"Device {self._device_id} go_to_idle not allowed in Obstate {self.obs_state}; " \
+        errorMsg = (
+            f"Device {self._device_id} go_to_idle not allowed in Obstate {self.obs_state}; "
             "must be in Obstate.READY, IDLE or FAULT"
-        
+        )
+
         return self.is_allowed(errorMsg, [ObsState.READY, ObsState.ABORTED, ObsState.FAULT])
-    
 
     def is_allowed(self: FhsComponentManagerBase, error_msg: str, obsStates: list[ObsState]) -> bool:
         result = True
@@ -110,10 +110,10 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
     ########
     def go_to_idle(self: FhsComponentManagerBase) -> tuple[ResultCode, str]:
         self.logger.debug(f"Component state: {self._component_state}")
-        
+
         msg = "GoToIdle called sucessfully"
-        
-        if(self.obs_state != ObsState.IDLE):
+
+        if self.obs_state != ObsState.IDLE:
             if self.is_go_to_idle_allowed():
                 self._update_component_state(idle=True)
         else:

@@ -3,13 +3,14 @@ from __future__ import annotations  # allow forward references in type hints
 from dataclasses import dataclass
 from typing import Any
 
-from dataclasses_json import dataclass_json
 import numpy as np
+from dataclasses_json import dataclass_json
 from ska_control_model import CommunicationStatus, ResultCode
 
 from ska_mid_cbf_fhs_vcc.api.emulator.mac_emulator_api import MacEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.mac_controller_simulator import MacBaseControllerSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+
 
 @dataclass_json
 @dataclass
@@ -72,11 +73,10 @@ class MacComponentManager(FhsLowLevelComponentManager):
             **kwargs,
         )
 
-
     def go_to_idle(self: MacComponentManager) -> tuple[ResultCode, str]:
         result = self.deconfigure(MacConfig().to_dict())
-        
-        if(result[0] is not ResultCode.FAILED):
+
+        if result[0] is not ResultCode.FAILED:
             result = super().go_to_idle()
         else:
             self.logger.error("Unable to go to idle, result from deconfiguring was FAILED")
@@ -85,7 +85,7 @@ class MacComponentManager(FhsLowLevelComponentManager):
 
     # --------------------
     # Public Commands
-    # -------------------- 
+    # --------------------
     # TODO Determine what needs to be communicated with here
     def start_communicating(self: MacComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
