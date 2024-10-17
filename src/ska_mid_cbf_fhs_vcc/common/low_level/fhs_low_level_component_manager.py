@@ -24,6 +24,7 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         emulator_api: FhsBaseApiInterface,
         emulator_ipblock_id: str,
         emulator_id: str,
+        firmware_ipblock_id: str,
         attr_change_callback: Callable[[str, Any], None] | None = None,
         attr_archive_callback: Callable[[str, Any], None] | None = None,
         health_state_callback: Callable[[HealthState], None] | None = None,
@@ -51,9 +52,9 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
             and emulator_api is not None
             and emulator_ipblock_id is not None
         ):
-            self._api = emulator_api(self._device_id, self._config_location, emulator_ipblock_id, emulator_id, self.logger)
+            self._api = emulator_api(self._config_location, emulator_ipblock_id, emulator_id, self.logger)
         else:
-            self._api = BaseFirmwareApi(self._device_id, self._config_location, self.logger)
+            self._api = BaseFirmwareApi(self._config_location, firmware_ipblock_id, self.logger)
 
     ####
     # Allowance Functions

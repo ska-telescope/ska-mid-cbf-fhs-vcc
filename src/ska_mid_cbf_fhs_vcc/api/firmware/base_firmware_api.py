@@ -12,7 +12,7 @@ from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInte
 
 
 class BaseFirmwareApi(FhsBaseApiInterface):
-    def __init__(self: BaseFirmwareApi, device_id: str, config_location: str, logger: logging.Logger) -> None:
+    def __init__(self: BaseFirmwareApi, config_location: str, firmware_id: str, logger: logging.Logger) -> None:
         logger.info(f"FIRMWARE API: {config_location}")
 
         self._logger = logger
@@ -35,8 +35,8 @@ class BaseFirmwareApi(FhsBaseApiInterface):
             raise RuntimeError(msg)
 
         memory_map_file = "/dev/null"
-        logger.info(f"Initializing driver with device_id: {device_id}, and memory_map: {memory_map_file}")
-        self._initializer = Py_Driver_Initializer(instance_name=device_id, memory_map_file="/dev/null", logger=logger)
+        logger.info(f"Initializing driver with firmware_id: {firmware_id}, and memory_map: {memory_map_file}")
+        self._initializer = Py_Driver_Initializer(instance_name=firmware_id, memory_map_file="/dev/null", logger=logger)
         self._driver = self._initializer.driver
 
     def recover(self) -> tuple[ResultCode, str]:

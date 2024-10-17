@@ -11,6 +11,7 @@ from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice, FhsFastCom
 class FhsLowLevelDeviceBase(FhsBaseDevice):
     emulator_ipblock_id = device_property(dtype="str")
     emulator_id = device_property(dtype="str")
+    firmware_ipblock_id = device_property(dtype="str")
 
     @command(
         dtype_out="DevVarLongStringArray",

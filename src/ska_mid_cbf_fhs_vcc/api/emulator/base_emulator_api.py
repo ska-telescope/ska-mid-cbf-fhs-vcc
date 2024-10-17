@@ -16,12 +16,11 @@ class BaseEmulatorApi(FhsBaseApiInterface):
     _bitstream_id_key = "bitstreamId"
 
     # TODO have a way to dynamically grab the emulator host / port values from the emulator config file
-    def __init__(
-        self, device_id: str, config_location: str, emulator_ipblock_id: str, emulator_id: str, logger: logging.Logger
-    ) -> None:
-        logger.info(f".....................EMULATOR API: {device_id} {config_location}........................")
+    def __init__(self, config_location: str, emulator_ipblock_id: str, emulator_id: str, logger: logging.Logger) -> None:
+        logger.info(
+            f".....................EMULATOR API: {emulator_ipblock_id} {emulator_id} {config_location}........................"
+        )
 
-        self._emulator_id = device_id - 1
         self._logger = logger
 
         self._api_base_url = self._generateDeviceApiUrl(config_location, emulator_ipblock_id, emulator_id)
@@ -74,7 +73,7 @@ class BaseEmulatorApi(FhsBaseApiInterface):
 
     def _generateDeviceApiUrl(self, config_location: str, emulator_ipblock_id: str, emulator_id: str) -> str:
         try:
-            self._logger.info(f"Generating {emulator_ipblock_id} api url for emulator {self._emulator_id + 1}")
+            self._logger.info(f"Generating {emulator_ipblock_id} api url for emulator {emulator_id}")
 
             api_config_reader = APIConfigReader(config_location, self._logger)
 
