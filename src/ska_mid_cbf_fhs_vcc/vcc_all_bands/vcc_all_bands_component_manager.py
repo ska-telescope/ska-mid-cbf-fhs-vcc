@@ -155,7 +155,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         return self.submit_task(
             func=functools.partial(
                 self._obs_command_with_callback,
-                hook="starting",
+                hook="start",
                 command_thread=self._scan,
             ),
             args=[argin],
@@ -169,7 +169,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         return self.submit_task(
             func=functools.partial(
                 self._obs_command_with_callback,
-                hook="stopping",
+                hook="stop",
                 command_thread=self._end_scan,
             ),
             task_callback=task_callback,
