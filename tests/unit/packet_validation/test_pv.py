@@ -131,3 +131,19 @@ def test_recover_command(device_under_test):
 
     # Assertions
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
+    
+def test_go_to_idle(device_under_test, event_tracer: TangoEventTracer):
+    test_start_command(device_under_test, event_tracer)
+    
+    assert device_under_test.read_attribute("obsState").value is ObsState.SCANNING.value
+    
+    test_stop_command(device_under_test, event_tracer)
+    
+    assert device_under_test.read_attribute("obsState").value is ObsState.READY.value
+    
+    result = device_under_test.command_inout("go_to_idle")
+    result_code = result[0][0]
+    
+    assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
+    
+    assert device_under_test.read_attribute("obsState").value is ObsState.IDLE.value

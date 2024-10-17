@@ -23,7 +23,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         vcc_123_channelizer_FQDN: str,
         vcc_45_channelizer_FQDN: str,
         wideband_input_buffer_FQDN: str,
-        wideband_input_shifter_FQDN: str,
+        wideband_frequency_shifter_FQDN: str,
         packet_validation_FQDN: str,
         circuit_switch_FQDN: str,
         fs_selection_FQDN: str,
@@ -47,7 +47,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._vcc_123_channelizer_fqdn = vcc_123_channelizer_FQDN
         self._vcc_45_channelizer_fqdn = vcc_45_channelizer_FQDN
         self._wideband_input_buffer_fqdn = wideband_input_buffer_FQDN
-        self._wideband_input_shifter_fqdn = wideband_input_shifter_FQDN
+        self._wideband_frequency_shifter_fqdn = wideband_frequency_shifter_FQDN
         # self._circuit_switch_fqdn = circuit_switch_FQDN
         self._fs_selection_fqdn = fs_selection_FQDN
 
@@ -62,7 +62,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._mac_200_proxy = None
         self._vcc_45_channelizer_proxy = None
         self._wideband_input_buffer_proxy = None
-        self._wideband_input_shifter_proxy = None
+        self._wideband_frequency_shifter_proxy = None
         # self._circuit_switch_proxy = None
         self._fs_selection_proxy = None
 
@@ -87,7 +87,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             **kwargs,
         )
 
-    def start_communicating(self: FhsComponentManagerBase) -> None:
+    def start_communicating(self: VCCAllBandsComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
         try:
             if not self.simulation_mode:
@@ -98,7 +98,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self.logger.info("Establishing Communication with low-level proxies")
 
                 self._fs_selection_proxy = context.DeviceProxy(device_name=self._fs_selection_fqdn)
-                self._wideband_input_shifter_proxy = context.DeviceProxy(device_name=self._wideband_input_shifter_fqdn)
+                self._wideband_frequency_shifter_proxy = context.DeviceProxy(device_name=self._wideband_frequency_shifter_fqdn)
                 self._wideband_input_buffer_proxy = context.DeviceProxy(device_name=self._wideband_input_buffer_fqdn)
                 self._mac_200_proxy = context.DeviceProxy(device_name=self._mac_200_fqdn)
                 self._packet_validation_proxy = context.DeviceProxy(device_name=self._packet_validation_fqdn)
@@ -109,11 +109,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
             return
 
-    def stop_communicating(self: FhsComponentManagerBase) -> None:
+    def stop_communicating(self: VCCAllBandsComponentManager) -> None:
         """Close communication with the component, then stop monitoring."""
         try:
             self._fs_selection_proxy = {}
-            self._wideband_input_shifter_proxy = {}
+            self._wideband_frequency_shifter_proxy = {}
             self._wideband_input_buffer_proxy = {}
             self._mac_200_proxy = {}
             self._packet_validation_proxy = {}
@@ -244,7 +244,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     return
 
             if not self.simulation_mode:
-                self._wideband_input_shifter_proxy.Configure(json.dumps({"shift_frequency": self.frequency_band_offset[0]}))
+                self._wideband_frequency_shifter_proxy.Configure(json.dumps({"shift_frequency": self.frequency_band_offset[0]}))
 
                 # TODO: understand mechanism for logic behind start channel indexes
                 # FSS outputs 26 coarse channels, channelizers have the potential in bands 4/5 to output 30 total, 15 per 4/5 channelizer
@@ -381,6 +381,13 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._fsps = []
 
         self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
+        
+        self._log_go_to_idle_status("FSS", self._fs_selection_proxy.go_to_idle())
+        self._log_go_to_idle_status("WFS", self._wideband_frequency_shifter_proxy.go_to_idle())
+        self._log_go_to_idle_status("WIB", self._wideband_input_buffer_proxy.go_to_idle())
+        self._log_go_to_idle_status("Mac200", self._mac_200_proxy.go_to_idle())
+        self._log_go_to_idle_status("PV", self._packet_validation_proxy.go_to_idle())
+        
         return
 
     def task_abort_event_is_set(
@@ -408,3 +415,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             )
             return True
         return False
+    
+    def _log_go_to_idle_status(self: VCCAllBandsComponentManager, ip_block_name: str, result: tuple[ResultCode, str]):
+        if(result[0] != ResultCode.OK):
+            self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
+        else:
+            self.logger.info(f"VCC {self._vcc_idcc}: {ip_block_name} set to IDLE")

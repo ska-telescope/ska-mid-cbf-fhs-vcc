@@ -19,6 +19,26 @@ __all__ = ["FhsBaseDevice", "FhsFastCommand", "main"]
 CompManager = TypeVar("CompManager", bound=FhsComponentManagerBase)
 
 
+
+# -----------------------------------------------------
+# FhsFastCommand class
+#
+# -----------------------------------------------------
+class FhsFastCommand(FastCommand):
+    def __init__(
+        self: _BaseCommand,
+        component_manager: CompManager,
+        logger: Logger | None = None,
+        validator: ArgumentValidator | None = None,
+    ) -> None:
+        super().__init__(logger, validator)
+        self._component_manager = component_manager
+
+
+# -----------------------------------------------------
+# FhsBaseDevice class
+#
+# -----------------------------------------------------
 class FhsBaseDevice(SKAObsDevice):
     # -----------------
     # Device Properties
@@ -213,28 +233,14 @@ class FhsBaseDevice(SKAObsDevice):
             [ResultCode.REJECTED],
             ["Reset command rejected, as it is unimplemented for this device."],
         )
-
-
-# -----------------------------------------------------
-# FhsFastCommand class
-#
-# -----------------------------------------------------
-class FhsFastCommand(FastCommand):
-    def __init__(
-        self: _BaseCommand,
-        component_manager: CompManager,
-        logger: Logger | None = None,
-        validator: ArgumentValidator | None = None,
-    ) -> None:
-        super().__init__(logger, validator)
-        self._component_manager = component_manager
-
+        
+    class GoToIdleCommand(FhsFastCommand):
+        def do(self) -> tuple[ResultCode, str]:
+            return self._component_manager.go_to_idle()
 
 # ----------
 # Run server
 # ----------
-
-
 def main(*args: str, **kwargs: str) -> int:
     """
     Entry point for module.

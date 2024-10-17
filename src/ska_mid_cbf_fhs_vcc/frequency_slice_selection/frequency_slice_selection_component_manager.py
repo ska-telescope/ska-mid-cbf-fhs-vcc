@@ -1,6 +1,6 @@
 from __future__ import annotations  # allow forward references in type hints
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from dataclasses_json import dataclass_json
@@ -9,6 +9,7 @@ from ska_control_model import CommunicationStatus, ResultCode
 
 from ska_mid_cbf_fhs_vcc.api.emulator.frequency_slice_selection_emulator_api import FrequencySliceSelectionEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.frequency_slice_selection_simulator import FrequencySliceSelectionSimulator
+from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
 
@@ -32,8 +33,8 @@ class FrequencySliceSelectionStatus:
 @dataclass_json
 @dataclass
 class FssConfigArgin:
-    band_select: int
-    band_start_channel: list[int]
+    band_select: int = 1
+    band_start_channel: list[int] = field(default_factory=lambda: [0, 1, 2])
 
 
 class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager):
@@ -49,10 +50,18 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager):
             **kwargs,
         )
 
+    def go_to_idle(self: FrequencySliceSelectionComponentManager) -> tuple[ResultCode, str]:
+        result = self.deconfigure()
+        
+        if(result[0] is not ResultCode.FAILED):
+            result = super().go_to_idle()
+
+        return result
+
     ##
     # Public Commands
     ##
-    def configure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
+    def configure(self: FrequencySliceSelectionComponentManager, argin: dict) -> tuple[ResultCode, str]:
         try:
             self.logger.info("FS Selection Configuring..")
 
@@ -80,6 +89,38 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager):
             result = ResultCode.FAILED, errorMsg
 
         return result
+    
+    def deconfigure(self: FrequencySliceSelectionComponentManager, argin: dict = None) -> tuple[ResultCode, str]:
+        try:
+            result: tuple[ResultCode, str] = (
+                ResultCode.OK,
+                f"{self._device_id} deconfigured successfully",
+            )
+            
+            if(argin is None):
+                result = super().recover()
+            else:
+                
+                wfsJsonConfig: FssConfigArgin = FssConfigArgin.schema().loads(argin)
+
+                self.logger.info(f"DECONFIG JSON CONFIG: {wfsJsonConfig.to_json()}")
+                
+                result = super().deconfigure(argin)
+                
+                if result[0] != ResultCode.OK:
+                    self.logger.error(f"DeConfiguring {self._device_id} failed. {result[1]}")
+                
+        except ValidationError as vex:
+            errorMsg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{errorMsg}: {vex}")
+            result = ResultCode.FAILED, errorMsg
+        except Exception as ex:
+            errorMsg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{errorMsg}: {ex!r}")
+            result = ResultCode.FAILED, errorMsg
+
+        return result
+        
 
     # TODO Determine what needs to be communicated with here
     def start_communicating(self: FrequencySliceSelectionComponentManager) -> None:

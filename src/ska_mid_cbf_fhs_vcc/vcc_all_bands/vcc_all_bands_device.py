@@ -27,7 +27,7 @@ class VCCAllBandsController(FhsBaseDevice):
             vcc_123_channelizer_FQDN=self.vcc123_channelizer_fqdn,
             vcc_45_channelizer_FQDN=self.vcc45_channelizer_fqdn,
             wideband_input_buffer_FQDN=self.wideband_input_buffer_fqdn,
-            wideband_input_shifter_FQDN=self.wideband_frequency_shifter_fqdn,
+            wideband_frequency_shifter_FQDN=self.wideband_frequency_shifter_fqdn,
             circuit_switch_FQDN=self.circuit_switch_fqdn,
             fs_selection_FQDN=self.fs_selection_fqdn,
             logger=self.logger,
