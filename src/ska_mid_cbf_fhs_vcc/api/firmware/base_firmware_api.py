@@ -19,9 +19,9 @@ class BaseFirmwareApi(FhsBaseApiInterface):
 
         api_config_reader = APIConfigReader(config_location, self._logger)
 
+        bitstream_path = api_config_reader.getConfigMapValue("bitstreamPath")
         bitstream_id = api_config_reader.getConfigMapValue("bitstreamId")
         bitstream_version = api_config_reader.getConfigMapValue("bitstreamVersion")
-        bitstream_path = api_config_reader.getConfigMapValue("bitstreamPath")
 
         driver_path = os.path.join(bitstream_path, bitstream_id, bitstream_version, "drivers")
 
@@ -36,7 +36,7 @@ class BaseFirmwareApi(FhsBaseApiInterface):
 
         memory_map_file = "/dev/null"
         logger.info(f"Initializing driver with firmware_id: {firmware_id}, and memory_map: {memory_map_file}")
-        self._initializer = Py_Driver_Initializer(instance_name=firmware_id, memory_map_file="/dev/null", logger=logger)
+        self._initializer = Py_Driver_Initializer(instance_name=firmware_id, memory_map_file=memory_map_file, logger=logger)
         self._driver = self._initializer.driver
 
     def recover(self) -> tuple[ResultCode, str]:
