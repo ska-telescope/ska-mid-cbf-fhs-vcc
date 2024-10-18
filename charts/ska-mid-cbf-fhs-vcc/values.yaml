@@ -46,41 +46,48 @@ resources:
 simulationMode: 1
 emulationMode: 0
 
-emulatorIpBlockIds:
-  mac200: "ethernet_200g"
-  packetValidation: "packet_validation"
-  widebandInputBuffer: "wideband_input_buffer"
-  widebandFrequencyShifter: "wideband_frequency_shifter"
-  b123Vcc: "b123vcc"
-  frequencySliceSelection: "fs_selection_26_2_1"
-
-firmwareIpBlockIds:
-  mac200: "eth200g_%d"
-  packetValidation: "packet_validation_unimplemented"
-  widebandInputBuffer: "wideband_input_buffer_unimplemented"
-  widebandFrequencyShifter: "wideband_frequency_shifter_unimplemented"
-  b123Vcc: "receptor%d_band123_vcc"
-  frequencySliceSelection: "receptor%d_fs_selector"
-
 instances:
   - name: fhs-vcc-1
     deviceId: 1
     emulatorId: "vcc-emulator-1"
-    # override default simulator or emulation mode
   - name: fhs-vcc-2
     deviceId: 2
     emulatorId: "vcc-emulator-2"
-    # override default simulator or emulation mode
-    vccAllBands:
-      simulationMode: 0
-      emulationMode: 1
   - name: fhs-vcc-3
     deviceId: 3
     emulatorId: "vcc-emulator-3"
-    # override default simulator or emulation mode
-    vccAllBands:
-      simulationMode: 0
-      emulationMode: 1
+
+devices:
+  mac200:
+    name: "Mac200"
+    nickname: "mac200"
+    emulatorIpBlockId: "ethernet_200g"
+    firmwareIpBlockId: "eth200g_%d"
+  packetValidation:
+    name: "PacketValidation"
+    nickname: "packetvalidation"
+    emulatorIpBlockId: "packet_validation"
+    firmwareIpBlockId: "packet_validation_unimplemented"
+  widebandInputBuffer:
+    name: "WidebandInputBuffer"
+    nickname: "wib"
+    emulatorIpBlockId: "wideband_input_buffer"
+    firmwareIpBlockId: "wideband_input_buffer_unimplemented"
+  widebandFrequencyShifter:
+    name: "WidebandFrequencyShifter"
+    nickname: "wfs"
+    emulatorIpBlockId: "wideband_frequency_shifter"
+    firmwareIpBlockId: "wideband_frequency_shifter_unimplemented"
+  b123Vcc:
+    name: "B123Vcc"
+    nickname: "vcc"
+    emulatorIpBlockId: "b123vcc"
+    firmwareIpBlockId: "receptor%d_band123_vcc"
+  frequencySliceSelection:
+    name: "frequency-slice-selection"
+    nickname: "fss"
+    emulatorIpBlockId: "fs_selection_26_2_1"
+    firmwareIpBlockId: "receptor%d_fs_selector"
 
 deviceServers:
   fhs-vcc-stack:
