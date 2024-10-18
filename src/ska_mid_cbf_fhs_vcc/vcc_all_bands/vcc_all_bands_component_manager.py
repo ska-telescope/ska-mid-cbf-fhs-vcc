@@ -356,7 +356,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 return
 
         # Update obsState callback
-        self._update_component_state(scanning=False)
+        # print('EndScan before update component state')
+        # self._update_component_state(scanning=False)
+        # print('EndScan after update component state')
         self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
         return
 
