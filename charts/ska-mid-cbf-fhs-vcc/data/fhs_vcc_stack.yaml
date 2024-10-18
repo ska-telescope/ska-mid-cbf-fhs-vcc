@@ -277,10 +277,10 @@ environment_variables:
   - name: CONFIG_MAP_LOCATION
     value: "{{ .Values.hostInfo.configLocation }}"
 
-# volume:
-#   existingClaimName: "fhs-vcc-bitstream-pv"
-#   mountPath: "{{ .Values.lowLevel.bitstreamPath }}"
-#   readOnly: false
+volume:
+  existingClaimName: "fhs-vcc-bitstream-pv"
+  mountPath: "{{ .Values.lowLevel.bitstreamPath }}"
+  readOnly: false
 
 extraVolumes:
   - name: low-level-config-mount
