@@ -38,7 +38,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     ) -> None:
         self._vcc_id = vcc_id
 
-        self.frequency_band = "1"
+        self.frequency_band = FrequencyBandEnum._1
 
         self._mac_200_fqdn = mac_200_FQDN
         self._config_id = ""
