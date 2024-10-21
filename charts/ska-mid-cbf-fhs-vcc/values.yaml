@@ -43,9 +43,7 @@ resources:
     memory: 128Mi
     ephemeral-storage: 256Mi
 
-simulationMode: 1
-emulationMode: 0
-
+# the top-level stacks, corresponding to device id
 instances:
   - name: fhs-vcc-1
     deviceId: 1
@@ -57,37 +55,82 @@ instances:
     deviceId: 3
     emulatorId: "vcc-emulator-3"
 
+# the devices in each stack
 devices:
-  mac200:
-    name: "Mac200"
-    nickname: "mac200"
+  - name: "Mac200"
+    path: "fhs/mac200/<deviceId000>"
     emulatorIpBlockId: "ethernet_200g"
-    firmwareIpBlockId: "eth200g_%d"
-  packetValidation:
-    name: "PacketValidation"
-    nickname: "packetvalidation"
+    firmwareIpBlockId: "eth200g_<receptorId>"
+    properties:
+      - name: MacType
+        values:
+          - "mac200"
+  - name: "PacketValidation"
+    path: "fhs/packetvalidation/<deviceId000>"
     emulatorIpBlockId: "packet_validation"
     firmwareIpBlockId: "packet_validation_unimplemented"
-  widebandInputBuffer:
-    name: "WidebandInputBuffer"
-    nickname: "wib"
+  - name: "WidebandInputBuffer"
+    path: "fhs/wib/<deviceId000>"
     emulatorIpBlockId: "wideband_input_buffer"
     firmwareIpBlockId: "wideband_input_buffer_unimplemented"
-  widebandFrequencyShifter:
-    name: "WidebandFrequencyShifter"
-    nickname: "wfs"
+  - name: "WidebandFrequencyShifter"
+    path: "fhs/wfs/<deviceId000>"
     emulatorIpBlockId: "wideband_frequency_shifter"
     firmwareIpBlockId: "wideband_frequency_shifter_unimplemented"
-  b123Vcc:
-    name: "B123Vcc"
-    nickname: "vcc"
+  - name: "B123Vcc"
+    path: "fhs/vcc/<deviceId000>"
     emulatorIpBlockId: "b123vcc"
-    firmwareIpBlockId: "receptor%d_band123_vcc"
-  frequencySliceSelection:
-    name: "frequency-slice-selection"
-    nickname: "fss"
+    firmwareIpBlockId: "receptor<receptorId>_band123_vcc"
+  - name: "frequency-slice-selection"
+    path: "fhs/fss/<deviceId000>"
     emulatorIpBlockId: "fs_selection_26_2_1"
-    firmwareIpBlockId: "receptor%d_fs_selector"
+    firmwareIpBlockId: "receptor<receptorId>_fs_selector"
+  - name: "VCCAllBandsController"
+    path: "fhs/vcc-all-bands/<deviceId000>"
+    properties:
+      - name: wideband_input_buffer_fqdn
+        values:
+          - "fhs/wib/<deviceId000>"
+      - name: vcc123_channelizer_fqdn
+        values:
+          - "fhs/vcc/<deviceId000>"
+      - name: fs_selection_fqdn
+        values:
+          - "fhs/frequency-slice-selection/<deviceId000>"
+      - name: wideband_frequency_shifter_fqdn
+        values:
+          - "fhs/wfs/<deviceId000>"
+      - name: mac_200_fqdn
+        values:
+          - "fhs/mac200/<deviceId000>"
+      - name: packet_validation_fqdn
+        values:
+          - "fhs/packetvalidation/<deviceId000>"
+      - name: vcc45_channelizer_fqdn # yet to be implemented
+        values:
+          - "placeholder"
+
+# the default tango properties in each device.
+# will resolve in the following order:
+# 1. property of the same name in its parent `devices`
+# 2. property of the same name in its parent `instances`
+# 3. default value defined here
+properties:
+  - name: deviceId
+    default: 0
+  - name: deviceVersionNum
+    default: "0.0.1"
+  - name: deviceGitlabHash
+    default: "0"
+  - name: configLocation
+    default: "/app/mnt/lowLevelConfigMap"
+  - name: simulationMode
+    default: 1
+  - name: emulationMode
+    default: 0
+  - name: emulatorIpBlockId
+  - name: emulatorId
+  - name: firmwareIpBlockId
 
 deviceServers:
   fhs-vcc-stack:
@@ -106,7 +149,6 @@ hostInfo:
   externalPort: 10001
   clusterDomain: cluster.local
   fhsServerId: fhs01
-  configLocation: "/app/mnt/lowLevelConfigMap"
   namespace: "ska-mid-cbf"
 
 lowLevel:
