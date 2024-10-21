@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from logging import Logger
-from typing import TypeVar, cast
+from typing import Any, TypeVar, cast
 
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ObsState, PowerState, ResultCode
@@ -9,7 +9,7 @@ from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import ArgumentValidator, FastCommand, SubmittedSlowCommand, _BaseCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
 from tango import DebugIt, DevState
-from tango.server import command, device_property
+from tango.server import attribute, command, device_property
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
@@ -20,6 +20,28 @@ CompManager = TypeVar("CompManager", bound=FhsComponentManagerBase)
 
 
 class FhsBaseDevice(SKAObsDevice):
+    def __init__(
+        self: FhsBaseDevice,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Initialise a new instance.
+
+        :param args: positional arguments.
+        :param kwargs: keyword arguments.
+        """
+        # This __init__ method is created for type-hinting purposes only.
+        # Tango devices are not supposed to have __init__ methods,
+        # And they have a strange __new__ method,
+        # that calls __init__ when you least expect it.
+        # So don't put anything executable in here
+        # (other than the super() call).
+
+        self._communication_state: CommunicationStatus
+
+        super().__init__(*args, **kwargs)
+
     # -----------------
     # Device Properties
     # -----------------
@@ -29,6 +51,21 @@ class FhsBaseDevice(SKAObsDevice):
     emulation_mode = device_property(dtype="int")
     device_version_num = device_property(dtype="str")
     device_gitlab_hash = device_property(dtype="str")
+
+    @attribute(
+        abs_change=1,
+        dtype=tango.DevEnum,
+        enum_labels=["DISABLED", "NOT_ESTABLISHED", "ESTABLISHED"],
+        doc="Communication state of the device",
+    )
+    def communicationState(self: FhsBaseDevice) -> tango.DevEnum:
+        """
+        Read the communicationState attribute.
+
+        :return: Communication state of the device
+        :rtype: tango.DevEnum
+        """
+        return self._communication_state
 
     ##############
     # Commands
@@ -101,6 +138,7 @@ class FhsBaseDevice(SKAObsDevice):
 
     def _communication_state_changed(self: FhsBaseDevice, communication_state: CommunicationStatus) -> None:
         super()._communication_state_changed(communication_state)
+        self._communication_state = communication_state
         self.push_change_event("communicationState", communication_state)
 
     def _component_state_changed(
