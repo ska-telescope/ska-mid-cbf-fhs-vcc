@@ -38,7 +38,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     ) -> None:
         self._vcc_id = vcc_id
 
-        self.frequency_band = "1"
+        self.frequency_band = FrequencyBandEnum._1
 
         self._mac_200_fqdn = mac_200_FQDN
         self._config_id = ""
@@ -155,7 +155,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         return self.submit_task(
             func=functools.partial(
                 self._obs_command_with_callback,
-                hook="starting",
+                hook="start",
                 command_thread=self._scan,
             ),
             args=[argin],
@@ -169,7 +169,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         return self.submit_task(
             func=functools.partial(
                 self._obs_command_with_callback,
-                hook="stopping",
+                hook="stop",
                 command_thread=self._end_scan,
             ),
             task_callback=task_callback,
@@ -356,7 +356,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 return
 
         # Update obsState callback
-        self._update_component_state(scanning=False)
         self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
         return
 
