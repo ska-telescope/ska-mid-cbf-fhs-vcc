@@ -4,7 +4,7 @@ from logging import Logger
 from typing import TypeVar, cast
 
 import tango
-from ska_control_model import HealthState, ObsState, PowerState, ResultCode
+from ska_control_model import CommunicationStatus, HealthState, ObsState, PowerState, ResultCode
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import ArgumentValidator, FastCommand, SubmittedSlowCommand, _BaseCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
@@ -98,6 +98,12 @@ class FhsBaseDevice(SKAObsDevice):
         action = "invoked" if running else "completed"
         self.logger.info(f"Changing ObsState from running command, calling: {hook}_{action} ")
         self.obs_state_model.perform_action(f"{hook}_{action}")
+
+    def _communication_state_changed(
+        self: FhsBaseDevice, communication_state: CommunicationStatus
+    ) -> None:
+        super()._communication_state_changed(communication_state)
+        self.push_change_event("communicationState", communication_state)
 
     def _component_state_changed(
         self: FhsBaseDevice,
