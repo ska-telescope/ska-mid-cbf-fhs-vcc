@@ -366,30 +366,33 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
     ) -> None:
-        # TODO: Check if ReceiveEnable is still required on the Agilex for the WIB
-        task_callback(status=TaskStatus.IN_PROGRESS)
-        if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
+        try:
+            # TODO: Check if ReceiveEnable is still required on the Agilex for the WIB
+            task_callback(status=TaskStatus.IN_PROGRESS)
+            if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
+                return
+
+            # Reset attributes to the defaults
+            self._config_id = ""
+            self._scan_id = 0
+            self.frequency_band = FrequencyBandEnum._1
+            self.frequency_band_offset = [0, 0]
+            self._sample_rate = 0
+            self._samples_per_frame = 0
+            self._fsps = []
+
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
+
+            self._log_go_to_idle_status("VCC-B123", self._vcc_123_channelizer_proxy.GoToIdle())
+            self._log_go_to_idle_status("WIB", self._wideband_input_buffer_proxy.GoToIdle())
+            self._log_go_to_idle_status("WFS", self._wideband_frequency_shifter_proxy.GoToIdle())
+            self._log_go_to_idle_status("FSS", self._fs_selection_proxy.GoToIdle())
+            self._log_go_to_idle_status("PV", self._packet_validation_proxy.GoToIdle())
+            self._log_go_to_idle_status("Mac200", self._mac_200_proxy.GoToIdle())
             return
+        except Exception as ex:
+            self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
 
-        # Reset attributes to the defaults
-        self._config_id = ""
-        self._scan_id = 0
-        self.frequency_band = FrequencyBandEnum._1
-        self.frequency_band_offset = [0, 0]
-        self._sample_rate = 0
-        self._samples_per_frame = 0
-        self._fsps = []
-
-        self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
-
-        self._log_go_to_idle_status("VCC-B123", self._vcc_123_channelizer_proxy.GoToIdle())
-        self._log_go_to_idle_status("WIB", self._wideband_input_buffer_proxy.GoToIdle())
-        self._log_go_to_idle_status("WFS", self._wideband_frequency_shifter_proxy.GoToIdle())
-        self._log_go_to_idle_status("FSS", self._fs_selection_proxy.GoToIdle())
-        self._log_go_to_idle_status("PV", self._packet_validation_proxy.GoToIdle())
-        self._log_go_to_idle_status("Mac200", self._mac_200_proxy.GoToIdle())
-
-        return
 
     def task_abort_event_is_set(
         self: VCCAllBandsComponentManager,
