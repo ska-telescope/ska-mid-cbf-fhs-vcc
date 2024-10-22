@@ -129,9 +129,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
-            func=functools.partial(
-                self._configure_scan
-            ),
+            func=functools.partial(self._configure_scan),
             args=[argin],
             task_callback=task_callback,
         )
@@ -297,7 +295,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._set_task_callback(
                 task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to HPS VCC devices"
             )
-
 
     def _scan(
         self: VCCAllBandsComponentManager,

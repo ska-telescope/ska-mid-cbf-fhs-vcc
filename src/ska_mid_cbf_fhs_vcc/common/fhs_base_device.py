@@ -139,9 +139,9 @@ class FhsBaseDevice(SKAObsDevice):
 
         if reset is not None:
             if reset:
-              self.obs_state_model.perform_action(FhsObsStateMachine.RESET_INVOKED)
+                self.obs_state_model.perform_action(FhsObsStateMachine.RESET_INVOKED)
             else:
-              self.obs_state_model.perform_action(FhsObsStateMachine.RESET_COMPLETED)
+                self.obs_state_model.perform_action(FhsObsStateMachine.RESET_COMPLETED)
 
         if fault is not None:
             self.obs_state_model.perform_action(FhsObsStateMachine.COMPONENT_FAULT)
