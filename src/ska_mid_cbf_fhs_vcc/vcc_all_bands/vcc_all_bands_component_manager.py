@@ -393,7 +393,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         except Exception as ex:
             self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
 
-
     def task_abort_event_is_set(
         self: VCCAllBandsComponentManager,
         command_name: str,
