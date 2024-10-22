@@ -42,6 +42,7 @@ class PacketValidation(FhsLowLevelDeviceBase):
         commandsAndClasses = [
             ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
             ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
+            ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand),
         ]
 
         super().init_fast_command_objects(commandsAndClasses)

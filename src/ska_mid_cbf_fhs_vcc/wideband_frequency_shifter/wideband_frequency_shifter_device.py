@@ -41,6 +41,7 @@ class WidebandFrequencyShifter(FhsLowLevelDeviceBase):
             ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
             ("Deconfigure", FhsLowLevelDeviceBase.DeconfigureCommand),
             ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
+            ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand),
         ]
 
         super().init_fast_command_objects(commandsAndClasses)

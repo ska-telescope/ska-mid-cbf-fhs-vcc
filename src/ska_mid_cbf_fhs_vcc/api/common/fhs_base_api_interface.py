@@ -27,7 +27,7 @@ class FhsBaseApiInterface(ABC):
         raise NotImplementedError("Method is abstract")
 
     @abstractmethod
-    def configure(self, config: dict) -> tuple[ResultCode, str]:
+    def configure(self, config: dict = None) -> tuple[ResultCode, str]:
         raise NotImplementedError("Method is abstract")
 
     @abstractmethod

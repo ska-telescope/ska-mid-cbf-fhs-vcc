@@ -1,6 +1,6 @@
 from __future__ import annotations  # allow forward references in type hints
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
@@ -37,8 +37,31 @@ class B123VccOsppfbChanneliserStatus:
 @dataclass_json
 @dataclass
 class VccConfigArgin:
-    sample_rate: np.uint64
-    gains: list[float]
+    sample_rate: np.uint64 = 3960000000  # default values
+    gains: list[float] = field(
+        default_factory=lambda: [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+        ]
+    )  # default gain values
 
 
 class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
@@ -77,46 +100,82 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
     #####
     # Commands
     #####
+    def go_to_idle(self: B123VccOsppfbChanneliserComponentManager) -> tuple[ResultCode, str]:
+        result = self.deconfigure()
 
-    def configure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
+        if result[0] is not ResultCode.FAILED:
+            result = super().go_to_idle()
+
+        return result
+
+    def configure(self: B123VccOsppfbChanneliserComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
             self.logger.info("VCC Configuring..")
 
             vccConfigArgin: VccConfigArgin = VccConfigArgin.schema().loads(argin)
 
-            self.logger.info(f"CONFIG JSON CONFIG: {vccConfigArgin.to_json()}")
+            self.logger.info(f"CONFIGURE JSON CONFIG: {vccConfigArgin.to_json()}")
 
-            result: tuple[ResultCode, str] = (
-                ResultCode.OK,
-                f"{self._device_id} configured successfully",
-            )
-
-            # Channels are dual-polarized i.e. 2 gain values per channel[x, y]
-            chan = 0
-            for i, gain in enumerate(vccConfigArgin.gains):
-                vccJsonConfig = B123VccOsppfbChanneliserConfig(
-                    sample_rate=vccConfigArgin.sample_rate,
-                    gain=gain,
-                    channel=chan,
-                    pol=i % 2,
-                )
-                if i % 2:
-                    chan += 1
-
-                self.logger.info(f"VCC JSON CONFIG {i}: {vccJsonConfig.to_json()}")
-
-                result = super().configure(vccJsonConfig.to_dict())
-                if result[0] != ResultCode.OK:
-                    self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
-                    break
-
+            return self._generate_and_configure(vccConfigArgin, super().configure)
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema"
+            errorMsg = "Validation error: Unable to configure, argin doesn't match the required schema"
             self.logger.error(f"{errorMsg}: {vex}")
-            result = ResultCode.FAILED, errorMsg
+            return ResultCode.FAILED, errorMsg
         except Exception as ex:
             errorMsg = f"Unable to configure {self._device_id}"
             self.logger.error(f"{errorMsg}: {ex!r}")
-            result = ResultCode.FAILED, errorMsg
+            return ResultCode.FAILED, errorMsg
+            # TODO helthstate check
+
+    def deconfigure(self: B123VccOsppfbChanneliserComponentManager, argin: str = None) -> tuple[ResultCode, str]:
+        try:
+            self.logger.info("VCC Deconfiguring..")
+
+            # Get the default values
+            vccConfigArgin = VccConfigArgin()
+
+            # If the argin is not none then we're 'reconfiguring' using the values set otherwise we use the default values
+            if argin is not None:
+                vccConfigArgin: VccConfigArgin = VccConfigArgin.schema().loads(argin)
+
+            self.logger.info(f"DECONFIGURE JSON CONFIG: {vccConfigArgin.to_json()}")
+
+            return self._generate_and_configure(vccConfigArgin, super().deconfigure)
+        except ValidationError as vex:
+            errorMsg = "Validation error: Unable to deconfigure, argin doesn't match the required schema"
+            self.logger.error(f"{errorMsg}: {vex}")
+            return ResultCode.FAILED, errorMsg
+        except Exception as ex:
+            errorMsg = f"Unable to deconfigure {self._device_id}"
+            self.logger.error(f"{errorMsg}: {ex!r}")
+            return ResultCode.FAILED, errorMsg
+            # TODO helthstate check
+
+    def _generate_and_configure(
+        self: B123VccOsppfbChanneliserComponentManager, vccConfigArgin: VccConfigArgin, configure
+    ) -> dict:
+        result: tuple[ResultCode, str] = (
+            ResultCode.OK,
+            f"{self._device_id} configured successfully",
+        )
+
+        # Channels are dual-polarized i.e. 2 gain values per channel[x, y]
+        chan = 0
+        for i, gain in enumerate(vccConfigArgin.gains):
+            vccConfig = B123VccOsppfbChanneliserConfig(
+                sample_rate=vccConfigArgin.sample_rate,
+                gain=gain,
+                channel=chan,
+                pol=i % 2,
+            )
+            if i % 2:
+                chan += 1
+
+            self.logger.info(f"VCC JSON CONFIG {i}: {vccConfig.to_json()}")
+
+            result = configure(vccConfig.to_dict())
+            if result[0] != ResultCode.OK:
+                self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
+                break
 
         return result
