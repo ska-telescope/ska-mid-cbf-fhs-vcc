@@ -8,7 +8,7 @@
 from __future__ import annotations  # allow forward references in type hints
 
 import logging
-from threading import Event, Lock
+from threading import Lock
 from typing import Any, Callable, Optional, cast
 
 from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, TaskStatus
@@ -52,7 +52,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         super().__init__(
             idle=None,
             power=None,
-            resetting=None,
+            configuring=None,
             reset=None,
             fault=None,
             logger=logger,
@@ -87,43 +87,40 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
             health_state=HealthState.DEGRADED
         )  # TODO Determine if the health state here needs to be degraded or not
 
+    def is_go_to_idle_allowed(self: FhsComponentManagerBase) -> bool:
+        self.logger.debug("Checking if gotoidle is allowed...")
+        errorMsg = f"go_to_idle not allowed in Obstate {self.obs_state}; " "must be in Obstate.READY, ABORTED or FAULT"
+
+        return self.is_allowed(errorMsg, [ObsState.READY, ObsState.ABORTED, ObsState.FAULT])
+
+    def is_allowed(self: FhsComponentManagerBase, error_msg: str, obsStates: list[ObsState]) -> bool:
+        result = True
+
+        if self.obs_state not in obsStates:
+            self.logger.warning(error_msg)
+            result = False
+
+        return result
+
     ########
     # Commands
     ########
-    def go_to_idle(
-        self: FhsComponentManagerBase,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        """
-        Transition observing state from READY to IDLE
-
-        :return: A tuple containing a return code and a string
-            message indicating status. The message is for
-            information purpose only.
-        :rtype: (TaskStatus, str)
-        """
+    def go_to_idle(self: FhsComponentManagerBase) -> tuple[ResultCode, str]:
         self.logger.debug(f"Component state: {self._component_state}")
-        return self.submit_task(
-            self._go_to_idle,
-            is_cmd_allowed=lambda: True,
-            task_callback=task_callback,
-        )
+
+        msg = "GoToIdle called sucessfully"
+
+        if self.obs_state != ObsState.IDLE:
+            if self.is_go_to_idle_allowed():
+                self._update_component_state(idle=True)
+        else:
+            msg = "Already in the IDLE State"
+
+        return ResultCode.OK, msg
 
     ########
     # Private Commands
     ########
-    def _go_to_idle(
-        self: FhsComponentManagerBase,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-    ) -> None:
-        """
-        Execute observing state transition from READY to IDLE.
-
-        :raises NotImplementedError: Not implemented in abstract class
-        """
-        raise NotImplementedError("FhsComponentManagerBase is abstract.")
-
     # Called when adminMode is set to ONLINE from the SKA base_device.py
     def start_communicating(self: BaseComponentManager) -> None:
         self._component_state_callback(power=PowerState.ON)
