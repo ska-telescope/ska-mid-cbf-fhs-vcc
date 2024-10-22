@@ -64,7 +64,7 @@ lowLevel:
   firmwareImage: ska-mid-cbf-agilex-vcc
   bitstreamId: agilex-vcc
   bitstreamVersion: 0.0.6
-  bitstreamPath: /app/mnt/bitstreams
+  bitstreamPath: /app/mnt/bitstream
 
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
 
