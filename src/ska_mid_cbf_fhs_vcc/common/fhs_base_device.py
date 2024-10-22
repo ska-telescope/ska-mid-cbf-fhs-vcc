@@ -19,6 +19,25 @@ __all__ = ["FhsBaseDevice", "FhsFastCommand", "main"]
 CompManager = TypeVar("CompManager", bound=FhsComponentManagerBase)
 
 
+# -----------------------------------------------------
+# FhsFastCommand class
+#
+# -----------------------------------------------------
+class FhsFastCommand(FastCommand):
+    def __init__(
+        self: _BaseCommand,
+        component_manager: CompManager,
+        logger: Logger | None = None,
+        validator: ArgumentValidator | None = None,
+    ) -> None:
+        super().__init__(logger, validator)
+        self._component_manager = component_manager
+
+
+# -----------------------------------------------------
+# FhsBaseDevice class
+#
+# -----------------------------------------------------
 class FhsBaseDevice(SKAObsDevice):
     # -----------------
     # Device Properties
@@ -37,7 +56,7 @@ class FhsBaseDevice(SKAObsDevice):
         dtype_out="DevVarLongStringArray",
     )
     @tango.DebugIt()
-    def go_to_idle(self: FhsBaseDevice) -> DevVarLongStringArrayType:
+    def GoToIdle(self: FhsBaseDevice) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="GoToIdle")
         result_code_message, command_id = command_handler()
         return [[result_code_message], [command_id]]
@@ -102,7 +121,7 @@ class FhsBaseDevice(SKAObsDevice):
     def _component_state_changed(
         self: FhsBaseDevice,
         idle: bool | None = None,
-        resetting: bool | None = None,
+        configuring: bool | None = None,
         reset: bool | None = None,
         fault: bool | None = None,
         power: PowerState | None = None,
@@ -112,11 +131,17 @@ class FhsBaseDevice(SKAObsDevice):
         if idle is not None:
             self.obs_state_model.perform_action(FhsObsStateMachine.GO_TO_IDLE)
 
-        if resetting is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.RESET_INVOKED)
+        if configuring is not None:
+            if configuring:
+                self.obs_state_model.perform_action(FhsObsStateMachine.CONFIGURE_INVOKED)
+            else:
+                self.obs_state_model.perform_action(FhsObsStateMachine.CONFIGURE_COMPLETED)
 
         if reset is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.RESET_COMPLETED)
+            if reset:
+                self.obs_state_model.perform_action(FhsObsStateMachine.RESET_INVOKED)
+            else:
+                self.obs_state_model.perform_action(FhsObsStateMachine.RESET_COMPLETED)
 
         if fault is not None:
             self.obs_state_model.perform_action(FhsObsStateMachine.COMPONENT_FAULT)
@@ -146,6 +171,7 @@ class FhsBaseDevice(SKAObsDevice):
         self.set_state(DevState.ON)
         self.set_status("ON")
         self._update_health_state(HealthState.OK)
+        self._update_obs_state(obs_state=ObsState.IDLE)
 
     def get_dev_state(self: FhsBaseDevice) -> DevState:
         return self.dev_state()
@@ -214,27 +240,14 @@ class FhsBaseDevice(SKAObsDevice):
             ["Reset command rejected, as it is unimplemented for this device."],
         )
 
-
-# -----------------------------------------------------
-# FhsFastCommand class
-#
-# -----------------------------------------------------
-class FhsFastCommand(FastCommand):
-    def __init__(
-        self: _BaseCommand,
-        component_manager: CompManager,
-        logger: Logger | None = None,
-        validator: ArgumentValidator | None = None,
-    ) -> None:
-        super().__init__(logger, validator)
-        self._component_manager = component_manager
+    class GoToIdleCommand(FhsFastCommand):
+        def do(self) -> tuple[ResultCode, str]:
+            return self._component_manager.go_to_idle()
 
 
 # ----------
 # Run server
 # ----------
-
-
 def main(*args: str, **kwargs: str) -> int:
     """
     Entry point for module.

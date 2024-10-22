@@ -112,11 +112,11 @@ class FhsObsStateMachine(Machine):
                 "dest": "RESETTING",
             },
             {
-                "source": ["FAULT", "SCANNING", "IDLE", "RESETTING", "READY"],
+                "source": ["FAULT", "IDLE", "RESETTING", "READY"],
                 "trigger": self.RESET_COMPLETED,
                 "dest": "IDLE",
             },
-            {"source": "*", "trigger": self.GO_TO_IDLE, "dest": "IDLE"},
+            {"source": ["READY", "RESETTING", "FAULT"], "trigger": self.GO_TO_IDLE, "dest": "IDLE"},
         ]
         super().__init__(
             states=states,
