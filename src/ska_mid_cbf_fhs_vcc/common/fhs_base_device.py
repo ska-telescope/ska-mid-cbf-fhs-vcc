@@ -165,6 +165,7 @@ class FhsBaseDevice(SKAObsDevice):
         self.set_state(DevState.ON)
         self.set_status("ON")
         self._update_health_state(HealthState.OK)
+        self._update_obs_state(obs_state=ObsState.IDLE)
 
     def get_dev_state(self: FhsBaseDevice) -> DevState:
         return self.dev_state()

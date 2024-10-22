@@ -149,6 +149,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 command_thread=self._go_to_idle,
             ),
             task_callback=task_callback,
+            is_cmd_allowed=self.is_go_to_idle_allowed,
         )
 
     def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
@@ -181,52 +182,52 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
     ) -> None:
-        """
-        Read from JSON Config argin and setup VCC All bands with initial configuration from the control
-        software
-        """
-        configuration = json.loads(argin)
-        task_callback(status=TaskStatus.IN_PROGRESS)
-        if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
-            return
-
-        self._sample_rate = configuration["dish_sample_rate"]
-        self._samples_per_frame = configuration["samples_per_frame"]
-        self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
-        self._config_id = configuration["config_id"]
-
-        if "frequency_band_offset_stream_1" in configuration:
-            self.frequency_band_offset[0] = configuration["frequency_band_offset_stream_1"]
-
-        if "frequency_band_offset_stream_2" in configuration:
-            self.frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
-
-        # VCC number of gains is equal to = number of channels * number of polizations
-        self._vcc_gains = configuration["vcc_gain"]
-
-        if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-            # number of channels * number of polarizations
-            self._num_vcc_gains = 10 * 2
-        else:
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.FAILED,
-                "Bands 5A/B not implemented",
-            )
-            return
-
-        if len(self._vcc_gains) != self._num_vcc_gains:
-            # Implement error handling
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.FAILED,
-                f"Incorrect number of gain values supplied: {self._vcc_gains} != {self._num_vcc_gains}",
-            )
-            return
-
         try:
+            """
+            Read from JSON Config argin and setup VCC All bands with initial configuration from the control
+            software
+            """
+            configuration = json.loads(argin)
+            task_callback(status=TaskStatus.IN_PROGRESS)
+            if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
+                return
+
+            self._sample_rate = configuration["dish_sample_rate"]
+            self._samples_per_frame = configuration["samples_per_frame"]
+            self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
+            self._config_id = configuration["config_id"]
+
+            if "frequency_band_offset_stream_1" in configuration:
+                self.frequency_band_offset[0] = configuration["frequency_band_offset_stream_1"]
+
+            if "frequency_band_offset_stream_2" in configuration:
+                self.frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
+
+            # VCC number of gains is equal to = number of channels * number of polizations
+            self._vcc_gains = configuration["vcc_gain"]
+
+            if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
+                # number of channels * number of polarizations
+                self._num_vcc_gains = 10 * 2
+            else:
+                self._set_task_callback(
+                    task_callback,
+                    TaskStatus.COMPLETED,
+                    ResultCode.FAILED,
+                    "Bands 5A/B not implemented",
+                )
+                return
+
+            if len(self._vcc_gains) != self._num_vcc_gains:
+                # Implement error handling
+                self._set_task_callback(
+                    task_callback,
+                    TaskStatus.COMPLETED,
+                    ResultCode.FAILED,
+                    f"Incorrect number of gain values supplied: {self._vcc_gains} != {self._num_vcc_gains}",
+                )
+                return
+
             if not self.simulation_mode:
                 if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
                     self._vcc_123_channelizer_proxy = context.DeviceProxy(device_name=self._vcc_123_channelizer_fqdn)
@@ -294,6 +295,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._set_task_callback(
                 task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to HPS VCC devices"
             )
+            self._update_component_state(idle=True)
             return
 
     def _scan(
@@ -382,11 +384,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
 
-        self._log_go_to_idle_status("FSS", self._fs_selection_proxy.go_to_idle())
-        self._log_go_to_idle_status("WFS", self._wideband_frequency_shifter_proxy.go_to_idle())
+        self._log_go_to_idle_status("VCC-B123", self._vcc_123_channelizer_proxy.go_to_idle())
         self._log_go_to_idle_status("WIB", self._wideband_input_buffer_proxy.go_to_idle())
-        self._log_go_to_idle_status("Mac200", self._mac_200_proxy.go_to_idle())
+        self._log_go_to_idle_status("WFS", self._wideband_frequency_shifter_proxy.go_to_idle())
+        self._log_go_to_idle_status("FSS", self._fs_selection_proxy.go_to_idle())
         self._log_go_to_idle_status("PV", self._packet_validation_proxy.go_to_idle())
+        self._log_go_to_idle_status("Mac200", self._mac_200_proxy.go_to_idle())
 
         return
 
@@ -420,4 +423,4 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         if result[0] != ResultCode.OK:
             self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
         else:
-            self.logger.info(f"VCC {self._vcc_idcc}: {ip_block_name} set to IDLE")
+            self.logger.info(f"VCC {self._vcc_id}: {ip_block_name} set to IDLE")

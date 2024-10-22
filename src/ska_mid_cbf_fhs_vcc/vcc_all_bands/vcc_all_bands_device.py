@@ -139,12 +139,6 @@ class VCCAllBandsController(FhsBaseDevice):
         result_code, command_id = command_handler()
         return [[result_code], [command_id]]
 
-    @command(dtype_out="DevVarLongStringArray")
-    def GoToIdle(self: VCCAllBandsController) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="GoToIdle")
-        result_code, command_id = command_handler()
-        return [[result_code], [command_id]]
-
 
 def main(args=None, **kwargs):
     return VCCAllBandsController.run_server(args=args or None, **kwargs)

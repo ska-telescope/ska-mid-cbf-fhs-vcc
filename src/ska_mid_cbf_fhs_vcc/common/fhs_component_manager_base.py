@@ -89,10 +89,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
 
     def is_go_to_idle_allowed(self: FhsComponentManagerBase) -> bool:
         self.logger.debug("Checking if gotoidle is allowed...")
-        errorMsg = (
-            f"Device {self._device_id} go_to_idle not allowed in Obstate {self.obs_state}; "
-            "must be in Obstate.READY, IDLE or FAULT"
-        )
+        errorMsg = f"go_to_idle not allowed in Obstate {self.obs_state}; " "must be in Obstate.READY, ABORTED or FAULT"
 
         return self.is_allowed(errorMsg, [ObsState.READY, ObsState.ABORTED, ObsState.FAULT])
 
