@@ -35,8 +35,7 @@ server:
           {{- range $index, $property := $.Values.properties }}
           - name: {{ snakecase $property.name }}
             values:
-            {{ $resolvedProperty := (get $device $property.name) | default (get $instance $property.name) | default $property.default }}
-            - "{{ include "substitute-device-id" (list $resolvedProperty $deviceId) }}"
+            - "{{ include "substitute-device-id" (list ((get $device $property.name) | default (get $instance $property.name) | default $property.default) $deviceId) }}"
           {{- end }}
           {{- range $index, $property := $device.properties }}
           - name: {{ $property.name }}

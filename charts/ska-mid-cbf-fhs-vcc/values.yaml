@@ -43,19 +43,65 @@ resources:
     memory: 128Mi
     ephemeral-storage: 256Mi
 
-# the top-level stacks, corresponding to device id
-instances:
-  - name: fhs-vcc-1
-    deviceId: 1
-    emulatorId: "vcc-emulator-1"
-  - name: fhs-vcc-2
-    deviceId: 2
-    emulatorId: "vcc-emulator-2"
-  - name: fhs-vcc-3
-    deviceId: 3
-    emulatorId: "vcc-emulator-3"
+nodeSelector: {}
 
-# the devices in each stack
+affinity: {}
+
+tolerations: []
+
+hostInfo:
+  environment: "minikube"
+  hostIP: "127.0.0.1"
+  externalPort: 10001
+  clusterDomain: cluster.local
+  fhsServerId: fhs01
+  namespace: "ska-mid-cbf"
+
+lowLevel:
+  bitstreamEmulatorConfigPath: "emulators/config.json"
+  emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
+  firmwareRegistry: https://artefact.skao.int/repository/raw-internal
+  firmwareImage: ska-mid-cbf-agilex-vcc
+  bitstreamId: agilex-vcc
+  bitstreamVersion: 0.0.6
+  bitstreamPath: /app/mnt/bitstreams
+
+# -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
+
+# As defined in fhs-vcc-stack.yaml, the fhs stack and underlying devices are generated dynamically from the following config.
+# - `properties` defines a set of properties that are common to all devices in the stack
+# - `devices` defines the set of devices contained by every stack.
+#    - Each device must contain `name` and `path`.
+#    - Each device may optionally define `properties` to pass custom properties.
+# - `instances` defines the stacks of devices
+# For every property defined in `properties`, the default value can be overridden at the instance or device level.
+# For example, if `simulationMode` is defined in `properties`, the property associated with each device will resolve in the following order:
+# - `device.simulationMode`, defined in `devices`
+# - `instance.simulationMode`, defined in `instances`
+# - `simulationMode.default`, defined in `properties` (the global, default value)
+# Every string value in name, path, properties, or a instance or device-scoped override, may contain the following placeholder which will be replaced:
+#   - `<deviceId>` will be replaced with the device id of the device (deviceId must be defined in either the device or instance)
+#   - `<deviceId000>` will be replaced with the device id of the device, padded with zeros
+#   - `<receptorId>` will be replaced with the receptor id of the device (calculated by (deviceId - 1) % 3)
+
+# the default tango properties in each device. optionally provide a default, global value
+properties:
+  - name: deviceId
+  - name: deviceVersionNum
+    default: "0.0.1"
+  - name: deviceGitlabHash
+    default: "0"
+  - name: configLocation
+    default: "/app/mnt/lowLevelConfigMap"
+  - name: simulationMode
+    default: 1
+  - name: emulationMode
+    default: 0
+  - name: emulatorIpBlockId
+  - name: emulatorId
+  - name: firmwareIpBlockId
+
+# the devices in each stack. optionally override any property defined in `properties`. to add extra properties, provide a `properties` dict
 devices:
   - name: "Mac200"
     path: "fhs/mac200/<deviceId000>"
@@ -110,52 +156,19 @@ devices:
         values:
           - "placeholder"
 
-# the default tango properties in each device.
-# will resolve in the following order:
-# 1. property of the same name in its parent `devices`
-# 2. property of the same name in its parent `instances`
-# 3. default value defined here
-properties:
-  - name: deviceId
-    default: 0
-  - name: deviceVersionNum
-    default: "0.0.1"
-  - name: deviceGitlabHash
-    default: "0"
-  - name: configLocation
-    default: "/app/mnt/lowLevelConfigMap"
-  - name: simulationMode
-    default: 1
-  - name: emulationMode
-    default: 0
-  - name: emulatorIpBlockId
-  - name: emulatorId
-  - name: firmwareIpBlockId
+# the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
+instances:
+  - name: fhs-vcc-1
+    deviceId: 1
+    emulatorId: "vcc-emulator-1"
+  - name: fhs-vcc-2
+    deviceId: 2
+    emulatorId: "vcc-emulator-2"
+  - name: fhs-vcc-3
+    deviceId: 3
+    emulatorId: "vcc-emulator-3"
 
 deviceServers:
   fhs-vcc-stack:
     enabled: true
     file: "data/fhs_vcc_stack.yaml"
-
-nodeSelector: {}
-
-affinity: {}
-
-tolerations: []
-
-hostInfo:
-  environment: "minikube"
-  hostIP: "127.0.0.1"
-  externalPort: 10001
-  clusterDomain: cluster.local
-  fhsServerId: fhs01
-  namespace: "ska-mid-cbf"
-
-lowLevel:
-  bitstreamEmulatorConfigPath: "emulators/config.json"
-  emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
-  firmwareRegistry: https://artefact.skao.int/repository/raw-internal
-  firmwareImage: ska-mid-cbf-agilex-vcc
-  bitstreamId: agilex-vcc
-  firmwareVersion: 0.0.6
-  bitstreamPath: "/app/mnt/bitstream"
