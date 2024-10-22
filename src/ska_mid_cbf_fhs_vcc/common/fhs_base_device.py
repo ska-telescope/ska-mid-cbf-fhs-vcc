@@ -56,7 +56,7 @@ class FhsBaseDevice(SKAObsDevice):
         dtype_out="DevVarLongStringArray",
     )
     @tango.DebugIt()
-    def go_to_idle(self: FhsBaseDevice) -> DevVarLongStringArrayType:
+    def GoToIdle(self: FhsBaseDevice) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="GoToIdle")
         result_code_message, command_id = command_handler()
         return [[result_code_message], [command_id]]
@@ -121,7 +121,7 @@ class FhsBaseDevice(SKAObsDevice):
     def _component_state_changed(
         self: FhsBaseDevice,
         idle: bool | None = None,
-        resetting: bool | None = None,
+        configuring: bool | None = None,
         reset: bool | None = None,
         fault: bool | None = None,
         power: PowerState | None = None,
@@ -131,11 +131,17 @@ class FhsBaseDevice(SKAObsDevice):
         if idle is not None:
             self.obs_state_model.perform_action(FhsObsStateMachine.GO_TO_IDLE)
 
-        if resetting is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.RESET_INVOKED)
+        if configuring is not None:
+            if configuring:
+                self.obs_state_model.perform_action(FhsObsStateMachine.CONFIGURE_INVOKED)
+            else:
+                self.obs_state_model.perform_action(FhsObsStateMachine.CONFIGURE_COMPLETED)
 
         if reset is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.RESET_COMPLETED)
+            if reset:
+              self.obs_state_model.perform_action(FhsObsStateMachine.RESET_INVOKED)
+            else:
+              self.obs_state_model.perform_action(FhsObsStateMachine.RESET_COMPLETED)
 
         if fault is not None:
             self.obs_state_model.perform_action(FhsObsStateMachine.COMPONENT_FAULT)

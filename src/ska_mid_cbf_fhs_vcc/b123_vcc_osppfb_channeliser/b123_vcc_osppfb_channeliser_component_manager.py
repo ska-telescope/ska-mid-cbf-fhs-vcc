@@ -173,7 +173,7 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
 
             self.logger.info(f"VCC JSON CONFIG {i}: {vccConfig.to_json()}")
 
-            result = configure(vccConfig)
+            result = configure(vccConfig.to_dict())
             if result[0] != ResultCode.OK:
                 self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
                 break

@@ -39,7 +39,7 @@ class VCCAllBandsController(FhsBaseDevice):
             component_state_callback=self._component_state_changed,
         )
 
-    def init_command_objects(self: FhsBaseDevice) -> None:
+    def init_command_objects(self: VCCAllBandsController) -> None:
         commandsAndMethods = [
             ("GoToIdle", "go_to_idle"),  # replacement for Deconfigure
             ("ConfigureBand", "configure_band"),

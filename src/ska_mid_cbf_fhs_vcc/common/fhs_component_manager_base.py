@@ -52,7 +52,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         super().__init__(
             idle=None,
             power=None,
-            resetting=None,
+            configuring=None,
             reset=None,
             fault=None,
             logger=logger,

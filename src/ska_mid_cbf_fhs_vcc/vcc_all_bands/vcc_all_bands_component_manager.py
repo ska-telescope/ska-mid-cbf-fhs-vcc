@@ -130,9 +130,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
             func=functools.partial(
-                self._obs_command_with_callback,
-                hook="configure",
-                command_thread=self._configure_scan,
+                self._configure_scan
             ),
             args=[argin],
             task_callback=task_callback,
@@ -187,6 +185,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             Read from JSON Config argin and setup VCC All bands with initial configuration from the control
             software
             """
+            self._update_component_state(configuring=True)
             configuration = json.loads(argin)
             task_callback(status=TaskStatus.IN_PROGRESS)
             if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
@@ -288,15 +287,17 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             #             return
             #         inputs[fsp["fsp_id"]-1] = {"input": fsp["fsp_id"], "output": fsp["frequency_slice_id"]
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
+            self._update_component_state(configuring=False)
             return
-        except tango.DevFailed as ex:
-            self.logger.error(str(ex.args[0].desc))
+        except Exception as ex:
+            self.logger.error(repr(ex))
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+            self._update_component_state(configuring=False)
+            self._update_component_state(idle=True)
             self._set_task_callback(
                 task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to HPS VCC devices"
             )
-            self._update_component_state(idle=True)
-            return
+
 
     def _scan(
         self: VCCAllBandsComponentManager,
@@ -319,7 +320,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self._packet_validation_proxy.Start()
                 self._wideband_input_buffer_proxy.Start()
             except tango.DevFailed as ex:
-                self.logger.error(str(ex.args[0].desc))
+                self.logger.error(repr(ex))
                 self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
                 self._set_task_callback(
                     task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
@@ -350,7 +351,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self._packet_validation_proxy.Stop()
                 self._wideband_input_buffer_proxy.Stop()
             except tango.DevFailed as ex:
-                self.logger.error(str(ex.args[0].desc))
+                self.logger.error(repr(ex))
                 self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
                 self._set_task_callback(
                     task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
@@ -384,12 +385,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
 
-        self._log_go_to_idle_status("VCC-B123", self._vcc_123_channelizer_proxy.go_to_idle())
-        self._log_go_to_idle_status("WIB", self._wideband_input_buffer_proxy.go_to_idle())
-        self._log_go_to_idle_status("WFS", self._wideband_frequency_shifter_proxy.go_to_idle())
-        self._log_go_to_idle_status("FSS", self._fs_selection_proxy.go_to_idle())
-        self._log_go_to_idle_status("PV", self._packet_validation_proxy.go_to_idle())
-        self._log_go_to_idle_status("Mac200", self._mac_200_proxy.go_to_idle())
+        self._log_go_to_idle_status("VCC-B123", self._vcc_123_channelizer_proxy.GoToIdle())
+        self._log_go_to_idle_status("WIB", self._wideband_input_buffer_proxy.GoToIdle())
+        self._log_go_to_idle_status("WFS", self._wideband_frequency_shifter_proxy.GoToIdle())
+        self._log_go_to_idle_status("FSS", self._fs_selection_proxy.GoToIdle())
+        self._log_go_to_idle_status("PV", self._packet_validation_proxy.GoToIdle())
+        self._log_go_to_idle_status("Mac200", self._mac_200_proxy.GoToIdle())
 
         return
 
