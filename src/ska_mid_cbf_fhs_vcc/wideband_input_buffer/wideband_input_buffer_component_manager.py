@@ -49,13 +49,11 @@ class WibArginConfig:
     expected_dish_band: np.uint8
 
 
-DISH_ID_POLL_INTERVAL_S = 3
-
-
 class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
     def __init__(
         self: WidebandInputBufferComponentManager,
         *args: Any,
+        dish_id_poll_interval_s: str,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -64,7 +62,10 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             emulator_api=WibEmulatorApi,
             **kwargs,
         )
+        self.dish_id_poll_interval_s = dish_id_poll_interval_s
+
         self.expected_dish_id = None
+        self.should_poll_dish_id = False
         self.dish_id_thread = threading.Thread(target=self.poll_dish_id, daemon=True)
         self.dish_id_thread.start()
 
@@ -102,6 +103,14 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
 
         return result
 
+    def start(self: WidebandInputBufferComponentManager, *args, **kwargs) -> None:
+        super().start(*args, **kwargs)
+        self.should_poll_dish_id = True
+
+    def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> None:
+        super().stop(*args, **kwargs)
+        self.should_poll_dish_id = False
+
     # TODO Determine what needs to be communicated with here
     def start_communicating(self: WidebandInputBufferComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
@@ -113,7 +122,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
 
     def poll_dish_id(self):
         while True:
-            if self.expected_dish_id is not None:
+            if self.should_poll_dish_id and self.expected_dish_id is not None:
                 self.logger.debug(f"Polling dish id, expecting: {self.expected_dish_id}")
 
                 result = super().status()
@@ -124,6 +133,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
 
                     if status.meta_dish_id != self.expected_dish_id:
                         self.logger.error(f"Dish id mismatch. Expected: {self.expected_dish_id}, Actual: {status.meta_dish_id}")
-                        return
+                    else:
+                        self.logger.debug(f"Dish id matched {status.meta_dish_id}")
 
-            sleep(DISH_ID_POLL_INTERVAL_S)
+            sleep(self.dish_id_poll_interval_s)

@@ -197,6 +197,9 @@ server:
           - name: "emulator_id"
             values:
             - "{{ $instance.widebandInputBuffer.emulatorId }}"
+          - name: "dish_id_poll_interval_s"
+            values:
+            - "3"
     - name: "VCCAllBandsController"
       devices:
       - name: "fhs/vcc-all-bands/{{ printf "%03d" $index }}"

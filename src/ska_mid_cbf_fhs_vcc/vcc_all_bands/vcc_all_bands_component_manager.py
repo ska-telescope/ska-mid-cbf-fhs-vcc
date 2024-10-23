@@ -244,7 +244,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     )
                     return
 
-            if not self.simulation_mode:
                 self._wideband_frequency_shifter_proxy.Configure(json.dumps({"shift_frequency": self.frequency_band_offset[0]}))
 
                 # TODO: understand mechanism for logic behind start channel indexes
@@ -267,7 +266,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     )
                 )
 
-            self._wideband_input_buffer_proxy.expected_dish_id = self.expected_dish_id
+                self._wideband_input_buffer_proxy.expected_dish_id = self.expected_dish_id
 
             # TODO: Restore a version of below when Circuit Switch is re-integrated
             # if len(configuration["fsp"]) > 0:
