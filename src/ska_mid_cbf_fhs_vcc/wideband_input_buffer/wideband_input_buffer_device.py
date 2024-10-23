@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tango import DevShort
 from tango.server import attribute, device_property
 
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
@@ -7,9 +8,9 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_component_m
 
 
 class WidebandInputBuffer(FhsLowLevelDeviceBase):
-    dish_id_poll_interval_s = device_property(dtype="int")
+    dish_id_poll_interval_s = device_property(dtype=DevShort)
 
-    @attribute(dtype="int")
+    @attribute(dtype=DevShort)
     def expected_dish_id(self: FhsBaseDevice) -> int:
         return self.component_manager.expected_dish_id
 
