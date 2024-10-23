@@ -2,6 +2,8 @@ from __future__ import annotations  # allow forward references in type hints
 
 from dataclasses import dataclass
 from typing import Any
+import threading
+from time import sleep
 
 import numpy as np
 from dataclasses_json import dataclass_json
@@ -47,6 +49,9 @@ class WibArginConfig:
     expected_dish_band: np.uint8
 
 
+DISH_ID_POLL_INTERVAL_S = 3
+
+
 class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
     def __init__(
         self: WidebandInputBufferComponentManager,
@@ -59,6 +64,9 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             emulator_api=WibEmulatorApi,
             **kwargs,
         )
+        self.expected_dish_id = None
+        self.dish_id_thread = threading.Thread(target=self.poll_dish_id, daemon=True)
+        self.dish_id_thread.start()
 
     ##
     # Public Commands
@@ -102,3 +110,20 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             return
 
         super().start_communicating()
+
+    def poll_dish_id(self):
+        while True:
+            if self.expected_dish_id is not None:
+                self.logger.debug(f"Polling dish id, expecting: {self.expected_dish_id}")
+
+                result = super().status()
+                if result[0] != ResultCode.OK:
+                    self.logger.error(f"Getting status failed. {result}")
+                else:
+                    status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().loads(result[1], unknown="exclude")
+
+                    if status.meta_dish_id != self.expected_dish_id:
+                        self.logger.error(f"Dish id mismatch. Expected: {self.expected_dish_id}, Actual: {status.meta_dish_id}")
+                        return
+
+            sleep(DISH_ID_POLL_INTERVAL_S)
