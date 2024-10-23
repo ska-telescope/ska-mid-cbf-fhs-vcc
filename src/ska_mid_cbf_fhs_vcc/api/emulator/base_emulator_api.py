@@ -17,14 +17,14 @@ class BaseEmulatorApi(FhsBaseApiInterface):
 
     # TODO have a way to dynamically grab the emulator host / port values from the emulator config file
     def __init__(
-        self, device_id: str, config_location: str, emulator_ipblock_id: str, emulator_id: str, logger: logging.Logger
+        self, device_id: str, config_location: str, emulator_ip_block_id: str, emulator_id: str, logger: logging.Logger
     ) -> None:
         logger.info(f".....................EMULATOR API: {device_id} {config_location}........................")
 
         self._emulator_id = device_id - 1
         self._logger = logger
 
-        self._api_base_url = self._generateDeviceApiUrl(config_location, emulator_ipblock_id, emulator_id)
+        self._api_base_url = self._generateDeviceApiUrl(config_location, emulator_ip_block_id, emulator_id)
         self._json_header = {"Content-Type": "application/json"}
 
     def recover(self) -> tuple[ResultCode, str]:
@@ -72,9 +72,9 @@ class BaseEmulatorApi(FhsBaseApiInterface):
         else:
             return ResultCode.FAILED, response.reason
 
-    def _generateDeviceApiUrl(self, config_location: str, emulator_ipblock_id: str, emulator_id: str) -> str:
+    def _generateDeviceApiUrl(self, config_location: str, emulator_ip_block_id: str, emulator_id: str) -> str:
         try:
-            self._logger.info(f"Generating {emulator_ipblock_id} api url for emulator {self._emulator_id + 1}")
+            self._logger.info(f"Generating {emulator_ip_block_id} api url for emulator {self._emulator_id + 1}")
 
             api_config_reader = APIConfigReader(config_location, self._logger)
 
@@ -94,12 +94,12 @@ class BaseEmulatorApi(FhsBaseApiInterface):
 
             api_url_base = None
 
-            # Loop through the emulators config file checking that the given emulator_ipblock_id exists in the list of
+            # Loop through the emulators config file checking that the given emulator_ip_block_id exists in the list of
             # emulator ip blocks, if it doesn't exist in the emulator config then we have a configuration error between
             # the device server and the emulator
             for ip_block in emulator_config_json[self._emulator_config_ipblock_key]:
-                self._logger.info(f"IP_BLOCK ID: {ip_block['id']} , DEVICE_ID: {emulator_ipblock_id}")
-                if ip_block["id"] == emulator_ipblock_id:
+                self._logger.info(f"IP_BLOCK ID: {ip_block['id']} , DEVICE_ID: {emulator_ip_block_id}")
+                if ip_block["id"] == emulator_ip_block_id:
                     api_url_base = f"http://{emulator_id}.{emulator_base_url}/{ip_block['id']}"
                     break
 
