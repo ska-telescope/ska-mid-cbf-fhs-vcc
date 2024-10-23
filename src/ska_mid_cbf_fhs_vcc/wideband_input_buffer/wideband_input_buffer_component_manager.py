@@ -1,18 +1,17 @@
 from __future__ import annotations  # allow forward references in type hints
 
 from dataclasses import dataclass
-from typing import Any
-import threading
-from time import sleep
+from typing import Any, Tuple
 
 import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import CommunicationStatus, ResultCode
+from ska_control_model import CommunicationStatus, ResultCode, TaskStatus
 
 from ska_mid_cbf_fhs_vcc.api.emulator.wib_emulator_api import WibEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.common.utils import PollingService
 
 
 @dataclass_json
@@ -62,12 +61,8 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             emulator_api=WibEmulatorApi,
             **kwargs,
         )
-        self.dish_id_poll_interval_s = dish_id_poll_interval_s
-
         self.expected_dish_id = None
-        self.should_poll_dish_id = False
-        self.dish_id_thread = threading.Thread(target=self.poll_dish_id, daemon=True)
-        self.dish_id_thread.start()
+        self.dish_id_polling = PollingService(interval=dish_id_poll_interval_s, callback=self.poll_dish_id)
 
     ##
     # Public Commands
@@ -103,13 +98,13 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
 
         return result
 
-    def start(self: WidebandInputBufferComponentManager, *args, **kwargs) -> None:
-        super().start(*args, **kwargs)
-        self.should_poll_dish_id = True
+    def start(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
+        self.dish_id_polling.start()
+        return super().start(*args, **kwargs)
 
-    def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> None:
-        super().stop(*args, **kwargs)
-        self.should_poll_dish_id = False
+    def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
+        self.dish_id_polling.stop()
+        return super().stop(*args, **kwargs)
 
     # TODO Determine what needs to be communicated with here
     def start_communicating(self: WidebandInputBufferComponentManager) -> None:
@@ -121,19 +116,18 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         super().start_communicating()
 
     def poll_dish_id(self):
-        while True:
-            if self.should_poll_dish_id and self.expected_dish_id is not None:
-                self.logger.debug(f"Polling dish id, expecting: {self.expected_dish_id}")
+        if self.expected_dish_id is None:
+            return
 
-                result = super().status()
-                if result[0] != ResultCode.OK:
-                    self.logger.error(f"Getting status failed. {result}")
-                else:
-                    status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().loads(result[1], unknown="exclude")
+        self.logger.debug(f"Polling dish id, expecting: {self.expected_dish_id}")
 
-                    if status.meta_dish_id != self.expected_dish_id:
-                        self.logger.error(f"Dish id mismatch. Expected: {self.expected_dish_id}, Actual: {status.meta_dish_id}")
-                    else:
-                        self.logger.debug(f"Dish id matched {status.meta_dish_id}")
+        result = super().status()
+        if result[0] != ResultCode.OK:
+            self.logger.error(f"Getting status failed. {result}")
+        else:
+            status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().loads(result[1], unknown="exclude")
 
-            sleep(self.dish_id_poll_interval_s)
+            if status.meta_dish_id != self.expected_dish_id:
+                self.logger.error(f"Dish id mismatch. Expected: {self.expected_dish_id}, Actual: {status.meta_dish_id}")
+            else:
+                self.logger.debug(f"Dish id matched {status.meta_dish_id}")
