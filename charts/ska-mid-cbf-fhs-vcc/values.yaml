@@ -108,5 +108,5 @@ lowLevel:
   firmwareRegistry: https://artefact.skao.int/repository/raw-internal
   firmwareImage: ska-mid-cbf-agilex-vcc
   bitstreamId: agilex-vcc
-  bitstreamVersion: 0.0.6
   bitstreamPath: /app/mnt/bitstream
+  bitstreamVersion: 0.0.10
