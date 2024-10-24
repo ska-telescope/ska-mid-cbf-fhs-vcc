@@ -122,12 +122,12 @@ devices:
     properties:
       - name: dish_id_poll_interval_s
         values:
-        - 3
+          - 3
   - name: "WidebandFrequencyShifter"
     path: "fhs/wfs/<deviceId000>"
     emulatorIpBlockId: "wideband_frequency_shifter"
     firmwareIpBlockId: "wideband_frequency_shifter_unimplemented"
-  - name: "B123Vcc"
+  - name: "B123VccOsppfbChanneliser"
     path: "fhs/vcc/<deviceId000>"
     emulatorIpBlockId: "b123vcc"
     firmwareIpBlockId: "receptor<receptorId>_band123_vcc"
