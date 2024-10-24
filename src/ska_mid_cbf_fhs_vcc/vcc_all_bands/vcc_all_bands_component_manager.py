@@ -7,13 +7,14 @@ from threading import Event
 from typing import Any, Callable, Optional
 
 import jsonschema
-from .vcc_all_bands_config import schema
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_tango_testing import context
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
+
+from .vcc_all_bands_config import schema
 
 
 class VCCAllBandsComponentManager(FhsComponentManagerBase):
@@ -268,7 +269,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         }
                     )
                 )
-                
+
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._update_component_state(configuring=False)
             return
@@ -280,6 +281,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             )
             return
         except Exception as ex:
+            self.logger.error(repr(ex))
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
             self._update_component_state(idle=True)
             self._set_task_callback(
