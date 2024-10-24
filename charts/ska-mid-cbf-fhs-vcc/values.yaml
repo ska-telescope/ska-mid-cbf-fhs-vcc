@@ -63,7 +63,7 @@ lowLevel:
   firmwareRegistry: https://artefact.skao.int/repository/raw-internal
   firmwareImage: ska-mid-cbf-agilex-vcc
   bitstreamId: agilex-vcc
-  bitstreamVersion: 0.0.6
+  bitstreamVersion: 0.0.10
   bitstreamPath: /app/mnt/bitstream
 
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
@@ -119,6 +119,10 @@ devices:
     path: "fhs/wib/<deviceId000>"
     emulatorIpBlockId: "wideband_input_buffer"
     firmwareIpBlockId: "wideband_input_buffer_unimplemented"
+    properties:
+      - name: dish_id_poll_interval_s
+        values:
+        - 3
   - name: "WidebandFrequencyShifter"
     path: "fhs/wfs/<deviceId000>"
     emulatorIpBlockId: "wideband_frequency_shifter"

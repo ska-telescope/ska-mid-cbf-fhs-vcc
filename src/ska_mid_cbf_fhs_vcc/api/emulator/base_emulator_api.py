@@ -11,17 +11,14 @@ class BaseEmulatorApi(FhsBaseApiInterface):
     _bitstream_emulator_config_key = "bitstreamEmulatorConfigPath"
     _emulator_base_url_key = "emulatorBaseUrl"
     _emulator_config_ipblock_key = "ip_blocks"
-    _firmware_version_key = "firmwareVersion"
+    _firmware_version_key = "bitstreamVersion"
     _bitstream_path_key = "bitstreamPath"
     _bitstream_id_key = "bitstreamId"
 
     # TODO have a way to dynamically grab the emulator host / port values from the emulator config file
-    def __init__(
-        self, device_id: str, config_location: str, emulator_ip_block_id: str, emulator_id: str, logger: logging.Logger
-    ) -> None:
-        logger.info(f".....................EMULATOR API: {device_id} {config_location}........................")
+    def __init__(self, config_location: str, emulator_ip_block_id: str, emulator_id: str, logger: logging.Logger) -> None:
+        logger.info(f".....................EMULATOR API: {emulator_ip_block_id} {config_location}........................")
 
-        self._emulator_id = device_id - 1
         self._logger = logger
 
         self._api_base_url = self._generateDeviceApiUrl(config_location, emulator_ip_block_id, emulator_id)
@@ -43,11 +40,11 @@ class BaseEmulatorApi(FhsBaseApiInterface):
         return self._get_response_status(response, "Configure")
 
     def start(self) -> tuple[ResultCode, str]:
-        response = requests.get(f"{self._api_base_url}/start")
+        response = requests.post(f"{self._api_base_url}/start", headers=self._json_header, json={})
         return self._get_response_status(response, "Start")
 
     def stop(self, force: bool = False) -> int:
-        response = requests.get(f"{self._api_base_url}/stop")
+        response = requests.post(f"{self._api_base_url}/stop", headers=self._json_header, json={})
         return self._get_response_status(response, "Stop")
 
     def deconfigure(self, config) -> tuple[ResultCode, str]:
@@ -74,7 +71,7 @@ class BaseEmulatorApi(FhsBaseApiInterface):
 
     def _generateDeviceApiUrl(self, config_location: str, emulator_ip_block_id: str, emulator_id: str) -> str:
         try:
-            self._logger.info(f"Generating {emulator_ip_block_id} api url for emulator {self._emulator_id + 1}")
+            self._logger.info(f"Generating {emulator_ip_block_id} api url for emulator {emulator_id}")
 
             api_config_reader = APIConfigReader(config_location, self._logger)
 
