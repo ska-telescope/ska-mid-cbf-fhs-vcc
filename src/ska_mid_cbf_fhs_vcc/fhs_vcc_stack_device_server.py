@@ -37,22 +37,24 @@ def main(args=None, **kwargs):  # noqa: E302
 
 
 def check_if_bitstream_exists():
-    logger = logging.Logger(name="FhsVccStackDs")
+    logger = logging.Logger(name="FhsVccStackDs", level=logging.INFO)
 
     try:
         _config_location = os.environ["CONFIG_MAP_LOCATION"]
-
         _api_config_reader: APIConfigReader = APIConfigReader(_config_location, logger)
+
         bitstream_path: str = _api_config_reader.getConfigMapValue("bitstreamPath")
         bitstream_id: str = _api_config_reader.getConfigMapValue("bitstreamId")
-        firmware_version: str = _api_config_reader.getConfigMapValue("firmwareVersion")
+        bitstream_version: str = _api_config_reader.getConfigMapValue("bitstreamVersion")
+
+        driver_path = os.path.join(bitstream_path, bitstream_id, bitstream_version)
 
         if os.path.exists(bitstream_path):
-            print(".......Starting to poll bitstream.......")
+            print("INFO: Starting to poll bitstream.......")
 
             polling2.poll(
                 check_bitstream_available,
-                args=(bitstream_path, bitstream_id, firmware_version, logger),
+                args=(driver_path,),
                 timeout=60,
                 step=0.5,
             )
@@ -60,19 +62,19 @@ def check_if_bitstream_exists():
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), bitstream_path)
 
     except polling2.TimeoutException as te:
-        print(f"Polling for bitstream timeout, {firmware_version} not found!")
+        print(f"ERROR: Polling for bitstream timeout, {driver_path} not found!")
         raise te
     except KeyError as ke:
-        print("CONFIG_MAP_LOCATION env variable not found")
+        print("ERROR: CONFIG_MAP_LOCATION env variable not found")
         raise ke
 
 
-def check_bitstream_available(bitstream_path, bitstream_id, firmware_version, logger):
-    if os.path.exists(f"{bitstream_path}/{bitstream_id}/{firmware_version}"):
-        print(f"Bitstream {firmware_version} found!")
+def check_bitstream_available(driver_path):
+    if os.path.exists(driver_path):
+        print(f"INFO: Bitstream {driver_path} found!")
         return True
     else:
-        print(f"...Waiting for bitstream {firmware_version}...")
+        print(f"INFO: Waiting for bitstream {driver_path}")
         return False
 
 

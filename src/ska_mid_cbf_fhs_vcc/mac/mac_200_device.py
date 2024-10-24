@@ -24,6 +24,7 @@ class Mac200(FhsLowLevelDeviceBase):
             emulation_mode=self.emulation_mode,
             emulator_ipblock_id=self.emulator_ipblock_id,
             emulator_id=self.emulator_id,
+            firmware_ipblock_id=self.firmware_ipblock_id,
             logger=self.logger,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
