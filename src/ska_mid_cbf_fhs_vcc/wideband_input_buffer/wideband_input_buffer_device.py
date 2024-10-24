@@ -11,11 +11,11 @@ class WidebandInputBuffer(FhsLowLevelDeviceBase):
     dish_id_poll_interval_s = device_property(dtype=DevUShort)
 
     @attribute(dtype=DevUShort)
-    def expected_dish_id(self: FhsBaseDevice) -> int:
+    def expected_dish_id(self: WidebandInputBuffer) -> int:
         return self.component_manager.expected_dish_id
 
     @expected_dish_id.write
-    def expected_dish_id(self: FhsBaseDevice, value: int) -> None:
+    def expected_dish_id(self: WidebandInputBuffer, value: int) -> None:
         self.component_manager.expected_dish_id = value
 
     def create_component_manager(
