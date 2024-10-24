@@ -42,11 +42,11 @@ class BaseEmulatorApi(FhsBaseApiInterface):
         return self._get_response_status(response, "Configure")
 
     def start(self) -> tuple[ResultCode, str]:
-        response = requests.get(f"{self._api_base_url}/start")
+        response = requests.post(f"{self._api_base_url}/start", headers=self._json_header, json={})
         return self._get_response_status(response, "Start")
 
     def stop(self, force: bool = False) -> int:
-        response = requests.get(f"{self._api_base_url}/stop")
+        response = requests.post(f"{self._api_base_url}/stop", headers=self._json_header, json={})
         return self._get_response_status(response, "Stop")
 
     def deconfigure(self, config) -> tuple[ResultCode, str]:

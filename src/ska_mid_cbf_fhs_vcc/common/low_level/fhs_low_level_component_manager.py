@@ -61,54 +61,45 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
     ####
 
     def is_recover_allowed(self: FhsLowLevelComponentManager) -> bool:
-        self.logger.debug("Checking if Recover is allowed.")
+        self.logger.debug("Checking if Recover is allowed...")
         errorMsg = f"Device {self._device_id}  recover not allowed in ObsState {self.obs_state}; \
             must be in ObsState.IDLE or READY or ABORTED or RESETTING"
         return self.is_allowed(errorMsg, [ObsState.IDLE, ObsState.FAULT, ObsState.READY, ObsState.ABORTED])
 
     def is_configure_allowed(self: FhsLowLevelComponentManager) -> bool:
-        self.logger.debug("Checking if Configure is allowed.")
+        self.logger.debug("Checking if Configure is allowed...")
         errorMsg = f"Device {self._device_id} Configure not allowed in ObsState {self.obs_state}; \
             must be in ObsState.IDLE or READY"
 
         return self.is_allowed(errorMsg, [ObsState.IDLE, ObsState.READY])
 
     def is_start_allowed(self: FhsLowLevelComponentManager) -> bool:
-        self.logger.debug("Checking if Start is allowed.")
+        self.logger.debug("Checking if Start is allowed...")
         errorMsg = f"Device {self._device_id} Start not allowed in ObsState {self.obs_state}; \
             must be in ObsState.IDLE or READY"
 
         return self.is_allowed(errorMsg, [ObsState.IDLE, ObsState.READY])
 
     def is_stop_allowed(self: FhsLowLevelComponentManager) -> bool:
-        self.logger.debug("Checking if Stop is allowed.")
+        self.logger.debug("Checking if Stop is allowed...")
         errorMsg = f"Device {self._device_id} stop not allowed in ObsState {self.obs_state}; \
             must be in ObsState.IDLE, READY or ABORTED"
 
         return self.is_allowed(errorMsg, [ObsState.IDLE, ObsState.READY, ObsState.SCANNING, ObsState.ABORTED, ObsState.FAULT])
 
     def is_deconfigure_allowed(self: FhsLowLevelComponentManager) -> bool:
-        self.logger.debug("Checking if Stop is allowed.")
+        self.logger.debug("Checking if Stop is allowed...")
         errorMsg = f"Device {self._device_id} deconfigure not allowed in ObsState {self.obs_state}; \
             must be in ObsState.READY"
 
         return self.is_allowed(errorMsg, [ObsState.IDLE, ObsState.READY, ObsState.ABORTED, ObsState.FAULT])
 
     def is_reset_allowed(self: FhsLowLevelComponentManager) -> bool:
-        self.logger.debug("Checking if status is allowed.")
+        self.logger.debug("Checking if status is allowed...")
         errorMsg = f"Device {self._device_id} reset not allowed in ObsState {self.obs_state}; \
             must be in ObsState.FAULT"
 
         return self.is_allowed(errorMsg, [ObsState.FAULT, ObsState.READY, ObsState.IDLE, ObsState.ABORTED])
-
-    def is_allowed(self: FhsLowLevelComponentManager, error_msg: str, obsStates: list[ObsState]) -> bool:
-        result = True
-
-        if self.obs_state not in obsStates:
-            self.logger.warning(error_msg)
-            result = False
-
-        return result
 
     #####
     # Command Functions
@@ -120,9 +111,9 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
     def recover(self: FhsLowLevelComponentManager) -> tuple[ResultCode, str]:
         try:
             if self.is_recover_allowed():
-                self._update_component_state(resetting=True)
-                self._api.recover()
                 self._update_component_state(reset=True)
+                self._api.recover()
+                self._update_component_state(reset=False)
                 return ResultCode.OK, "Recover command completed OK"
             else:
                 return (
@@ -132,7 +123,7 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         except Exception as ex:
             return ResultCode.FAILED, f"Recover command failed. ex={ex!r}"
 
-    def configure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
+    def configure(self: FhsLowLevelComponentManager, argin: dict) -> tuple[ResultCode, str]:
         self.logger.debug(f"Component state: {self.component_state}")
         if self.is_configure_allowed():
             self._obs_command_running_callback(hook="configure", running=True)
@@ -145,11 +136,11 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
                 f"Configure not allowed in component state {self.component_state}",
             )
 
-    def deconfigure(self: FhsLowLevelComponentManager) -> tuple[ResultCode, str]:
+    def deconfigure(self: FhsLowLevelComponentManager, argin: dict = None) -> tuple[ResultCode, str]:
         self.logger.debug(f"Component state: {self.component_state}")
         if self.is_deconfigure_allowed():
             self._obs_command_running_callback(hook="deconfigure", running=True)
-            result = self._configure(None, True)
+            result = self._configure(argin, True)
             self._obs_command_running_callback(hook="deconfigure", running=False)
             return result
         else:
@@ -200,7 +191,7 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
 
     def _configure(
         self: FhsLowLevelComponentManager,
-        argin: str,
+        argin: dict = None,
         deconfigure: bool = False,
     ) -> tuple[ResultCode, str]:
         try:
@@ -211,9 +202,9 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
                 if argin is not None:
                     return self._api.configure(argin)
                 else:
-                    return ResultCode.OK, "Nothing to " + mode + f" for {self._device_id}"
+                    return ResultCode.REJECTED, f"No Configuration given for {self._device_id}"
             else:
-                return self._api.deconfigure()
+                return self._api.deconfigure(argin)
 
         except Exception as ex:
             return ResultCode.FAILED, f"{mode} command FAILED. ex={ex!r}"

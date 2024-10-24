@@ -31,10 +31,10 @@ class FhsObsStateMachine(Machine):
     DECONFIGURE_INVOKED = "deconfigure_invoked"
     CONFIGURE_COMPLETED = "configure_completed"
     DECONFIGURE_COMPLETED = "deconfigure_completed"
-    STARTING_INVOKED = "start_invoked"
-    STARTING_COMPLETED = "start_completed"
-    STOPPING_INVOKED = "stop_invoked"
-    STOPPING_COMPLETED = "stop_completed"
+    START_INVOKED = "start_invoked"
+    START_COMPLETED = "start_completed"
+    STOP_INVOKED = "stop_invoked"
+    STOP_COMPLETED = "stop_completed"
     RESET_INVOKED = "reset_invoked"
     RESET_COMPLETED = "reset_completed"
     GO_TO_IDLE = "go_to_idle"
@@ -88,22 +88,22 @@ class FhsObsStateMachine(Machine):
             },
             {
                 "source": ["IDLE", "READY"],
-                "trigger": self.STARTING_INVOKED,
+                "trigger": self.START_INVOKED,
                 "dest": "STARTING",
             },
             {
                 "source": "STARTING",
-                "trigger": self.STARTING_COMPLETED,
+                "trigger": self.START_COMPLETED,
                 "dest": "SCANNING",
             },
             {
                 "source": ["IDLE", "READY", "SCANNING", "FAULT", "RESETTING"],
-                "trigger": self.STOPPING_INVOKED,
+                "trigger": self.STOP_INVOKED,
                 "dest": "STOPPING",
             },
             {
                 "source": "STOPPING",
-                "trigger": self.STOPPING_COMPLETED,
+                "trigger": self.STOP_COMPLETED,
                 "dest": "READY",
             },
             {
@@ -112,11 +112,11 @@ class FhsObsStateMachine(Machine):
                 "dest": "RESETTING",
             },
             {
-                "source": ["FAULT", "SCANNING", "IDLE", "RESETTING", "READY"],
+                "source": ["FAULT", "IDLE", "RESETTING", "READY"],
                 "trigger": self.RESET_COMPLETED,
                 "dest": "IDLE",
             },
-            {"source": "*", "trigger": self.GO_TO_IDLE, "dest": "IDLE"},
+            {"source": ["READY", "RESETTING", "FAULT"], "trigger": self.GO_TO_IDLE, "dest": "IDLE"},
         ]
         super().__init__(
             states=states,

@@ -19,6 +19,10 @@ class VCCAllBandsController(FhsBaseDevice):
     circuit_switch_fqdn = device_property(dtype="str")
     fs_selection_fqdn = device_property(dtype="str")
 
+    @attribute
+    def expected_dish_id(self):
+        return self.component_manager.expected_dish_id
+
     def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager:
         return VCCAllBandsComponentManager(
             vcc_id=self.device_id,
@@ -27,7 +31,7 @@ class VCCAllBandsController(FhsBaseDevice):
             vcc_123_channelizer_FQDN=self.vcc123_channelizer_fqdn,
             vcc_45_channelizer_FQDN=self.vcc45_channelizer_fqdn,
             wideband_input_buffer_FQDN=self.wideband_input_buffer_fqdn,
-            wideband_input_shifter_FQDN=self.wideband_frequency_shifter_fqdn,
+            wideband_frequency_shifter_FQDN=self.wideband_frequency_shifter_fqdn,
             circuit_switch_FQDN=self.circuit_switch_fqdn,
             fs_selection_FQDN=self.fs_selection_fqdn,
             logger=self.logger,
@@ -39,7 +43,7 @@ class VCCAllBandsController(FhsBaseDevice):
             component_state_callback=self._component_state_changed,
         )
 
-    def init_command_objects(self: FhsBaseDevice) -> None:
+    def init_command_objects(self: VCCAllBandsController) -> None:
         commandsAndMethods = [
             ("GoToIdle", "go_to_idle"),  # replacement for Deconfigure
             ("ConfigureBand", "configure_band"),
@@ -136,12 +140,6 @@ class VCCAllBandsController(FhsBaseDevice):
     @command(dtype_out="DevVarLongStringArray")
     def EndScan(self: VCCAllBandsController) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="EndScan")
-        result_code, command_id = command_handler()
-        return [[result_code], [command_id]]
-
-    @command(dtype_out="DevVarLongStringArray")
-    def GoToIdle(self: VCCAllBandsController) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="GoToIdle")
         result_code, command_id = command_handler()
         return [[result_code], [command_id]]
 
