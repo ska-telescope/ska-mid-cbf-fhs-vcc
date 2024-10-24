@@ -74,6 +74,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         self.frequency_band_offset = [0, 0]
 
+        self.expected_dish_id = None
+
         super().__init__(
             *args,
             logger=logger,
@@ -192,6 +194,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._sample_rate = configuration["dish_sample_rate"]
             self._samples_per_frame = configuration["samples_per_frame"]
             self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
+            self.expected_dish_id = configuration["expected_dish_id"]
             self._config_id = configuration["config_id"]
 
             if "frequency_band_offset_stream_1" in configuration:
@@ -241,7 +244,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     )
                     return
 
-            if not self.simulation_mode:
                 self._wideband_frequency_shifter_proxy.Configure(json.dumps({"shift_frequency": self.frequency_band_offset[0]}))
 
                 # TODO: understand mechanism for logic behind start channel indexes
@@ -263,6 +265,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         }
                     )
                 )
+
+                self._wideband_input_buffer_proxy.expected_dish_id = self.expected_dish_id
 
             # TODO: Restore a version of below when Circuit Switch is re-integrated
             # if len(configuration["fsp"]) > 0:

@@ -1,16 +1,17 @@
 from __future__ import annotations  # allow forward references in type hints
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Tuple
 
 import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import CommunicationStatus, ResultCode
+from ska_control_model import CommunicationStatus, ResultCode, TaskStatus
 
 from ska_mid_cbf_fhs_vcc.api.emulator.wib_emulator_api import WibEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.common.utils import PollingService
 
 
 @dataclass_json
@@ -51,6 +52,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
     def __init__(
         self: WidebandInputBufferComponentManager,
         *args: Any,
+        dish_id_poll_interval_s: str,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -59,6 +61,8 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             emulator_api=WibEmulatorApi,
             **kwargs,
         )
+        self.expected_dish_id = None
+        self.dish_id_polling = PollingService(interval=dish_id_poll_interval_s, callback=self.poll_dish_id)
 
     ##
     # Public Commands
@@ -94,6 +98,14 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
 
         return result
 
+    def start(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
+        self.dish_id_polling.start()
+        return super().start(*args, **kwargs)
+
+    def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
+        self.dish_id_polling.stop()
+        return super().stop(*args, **kwargs)
+
     # TODO Determine what needs to be communicated with here
     def start_communicating(self: WidebandInputBufferComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
@@ -102,3 +114,20 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             return
 
         super().start_communicating()
+
+    def poll_dish_id(self):
+        if self.expected_dish_id is None:
+            return
+
+        self.logger.debug(f"Polling dish id, expecting: {self.expected_dish_id}")
+
+        result = super().status()
+        if result[0] != ResultCode.OK:
+            self.logger.error(f"Getting status failed. {result}")
+        else:
+            status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().loads(result[1], unknown="exclude")
+
+            if status.meta_dish_id != self.expected_dish_id:
+                self.logger.error(f"Dish id mismatch. Expected: {self.expected_dish_id}, Actual: {status.meta_dish_id}")
+            else:
+                self.logger.debug(f"Dish id matched {status.meta_dish_id}")
