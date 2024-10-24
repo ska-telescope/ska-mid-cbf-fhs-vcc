@@ -26,7 +26,7 @@ def pv_device():
                        config_location="../../resources/",
                        simulation_mode="1",
                        emulation_mode="0",
-                       emulator_ipblock_id="wideband_input_buffer",
+                       emulator_ip_block_id="wideband_input_buffer",
                        emulator_id="vcc-emulator-1")
 
     with harness as test_context:
