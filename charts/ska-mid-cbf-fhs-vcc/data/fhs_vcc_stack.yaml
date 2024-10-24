@@ -23,223 +23,28 @@ livenessProbe:
 server:
   name: "FhsVccStackDeviceServer"
   instances:
-{{- range $index, $instance := .Values.instances }}
+  {{- range $index, $instance := $.Values.instances }}
   - name: "{{ $instance.name }}"
     classes:
-    - name: "PacketValidation"
+    {{- range $index, $device := $.Values.devices }}
+    {{ $deviceId := $device.deviceId | default $instance.deviceId }}
+    - name: {{ $device.name }}
       devices:
-      - name: "fhs/packetvalidation/{{ printf "%03d" $index }}"
+      - name: {{ include "substitute-device-id" (list $device.path $deviceId) }}
         properties:
-          - name: "device_id"
+          {{- range $index, $property := $.Values.properties }}
+          - name: {{ snakecase $property.name }}
             values:
-            - "{{ $instance.packetValidation.deviceId }}"
-          - name: "device_version_num"
+            - "{{ include "substitute-device-id" (list ((get $device $property.name) | default (get $instance $property.name) | default $property.default) $deviceId) }}"
+          {{- end }}
+          {{- range $index, $property := $device.properties }}
+          - name: {{ $property.name }}
             values:
-            - "0.0.1"
-          - name: "device_gitlab_hash"
-            values:
-            - "0"
-          - name: "config_location"
-            values:
-            - "{{ $.Values.hostInfo.configLocation }}"
-          - name: "simulation_mode"
-            values:
-            - "{{ $instance.packetValidation.simulationMode }}"
-          - name: "emulation_mode"
-            values:
-            - "{{ $instance.packetValidation.emulationMode }}"
-          - name: "emulator_ipblock_id"
-            values: 
-            - "{{ $.Values.emulatorIpBlockIds.packetValidation }}"
-          - name: "emulator_id"
-            values:
-            - "{{ $instance.packetValidation.emulatorId }}"
-    - name: "Mac200"
-      devices:
-      - name: "fhs/mac200/{{ printf "%03d" $index }}"
-        properties:
-          - name: "MacType"
-            values:
-            - "200"
-          - name: "device_id"
-            values:
-            - "{{ $instance.mac200.deviceId }}"
-          - name: "device_version_num"
-            values:
-            - "0.0.1"
-          - name: "device_gitlab_hash"
-            values:
-            - "0"
-          - name: "config_location"
-            values:
-            - "{{ $.Values.hostInfo.configLocation }}"
-          - name: "simulation_mode"
-            values:
-            - "{{ $instance.mac200.simulationMode }}"
-          - name: "emulation_mode"
-            values:
-            - "{{ $instance.mac200.emulationMode }}"
-          - name: "emulator_ipblock_id"
-            values: 
-            - "{{ $.Values.emulatorIpBlockIds.mac200 }}"
-          - name: "emulator_id"
-            values:
-            - "{{ $instance.mac200.emulatorId }}"
-    - name: "B123VccOsppfbChanneliser"
-      devices:
-      - name: "fhs/vcc/{{ printf "%03d" $index }}"
-        properties:
-          - name: "device_id"
-            values:
-            - "{{ $instance.b123VccOsppfbChanneliser.deviceId }}"
-          - name: "device_version_num"
-            values:
-            - "0.0.1"
-          - name: "device_gitlab_hash"
-            values:
-            - "0"
-          - name: "config_location"
-            values:
-            - "{{ $.Values.hostInfo.configLocation }}"
-          - name: "simulation_mode"
-            values:
-            - "{{ $instance.b123VccOsppfbChanneliser.simulationMode }}"
-          - name: "emulation_mode"
-            values:
-            - "{{ $instance.b123VccOsppfbChanneliser.emulationMode }}"
-          - name: "emulator_ipblock_id"
-            values: 
-            - "{{ $.Values.emulatorIpBlockIds.b123Vcc }}"
-          - name: "emulator_id"
-            values:
-            - "{{ $instance.b123VccOsppfbChanneliser.emulatorId }}"
-    - name: "FrequencySliceSelection"
-      devices:
-      - name: "fhs/frequency-slice-selection/{{ printf "%03d" $index }}"
-        properties:
-          - name: "device_id"
-            values:
-            - "{{ $instance.frequencySliceSelection.deviceId }}"
-          - name: "device_version_num"
-            values:
-            - "0.0.1"
-          - name: "device_gitlab_hash"
-            values:
-            - "0"
-          - name: "config_location"
-            values:
-            - "{{ $.Values.hostInfo.configLocation }}"
-          - name: "simulation_mode"
-            values:
-            - "{{ $instance.frequencySliceSelection.simulationMode }}"
-          - name: "emulation_mode"
-            values:
-            - "{{ $instance.frequencySliceSelection.emulationMode }}"
-          - name: "emulator_ipblock_id"
-            values: 
-            - "{{ $.Values.emulatorIpBlockIds.frequencySliceSelection }}"
-          - name: "emulator_id"
-            values:
-            - "{{ $instance.frequencySliceSelection.emulatorId }}"
-    - name: "WidebandFrequencyShifter"
-      devices:
-      - name: "fhs/wfs/{{ printf "%03d" $index }}"
-        properties:
-          - name: "device_id"
-            values:
-            - "{{ $instance.widebandFrequencyShifter.deviceId }}"
-          - name: "device_version_num"
-            values:
-            - "0.0.1"
-          - name: "device_gitlab_hash"
-            values:
-            - "0"
-          - name: "config_location"
-            values:
-            - "{{ $.Values.hostInfo.configLocation }}"
-          - name: "simulation_mode"
-            values:
-            - "{{ $instance.widebandFrequencyShifter.simulationMode }}"
-          - name: "emulation_mode"
-            values:
-            - "{{ $instance.widebandFrequencyShifter.emulationMode }}"
-          - name: "emulator_ipblock_id"
-            values: 
-            - "{{ $.Values.emulatorIpBlockIds.widebandFrequencyShifter }}"
-          - name: "emulator_id"
-            values:
-            - "{{ $instance.widebandFrequencyShifter.emulatorId }}"
-    - name: "WidebandInputBuffer"
-      devices:
-      - name: "fhs/wib/{{ printf "%03d" $index }}"
-        properties:
-          - name: "device_id"
-            values:
-            - "{{ $instance.widebandInputBuffer.deviceId }}"
-          - name: "device_version_num"
-            values:
-            - "0.0.1"
-          - name: "device_gitlab_hash"
-            values:
-            - "0"
-          - name: "config_location"
-            values:
-            - "{{ $.Values.hostInfo.configLocation }}"
-          - name: "simulation_mode"
-            values:
-            - "{{ $instance.widebandInputBuffer.simulationMode }}"
-          - name: "emulation_mode"
-            values:
-            - "{{ $instance.widebandInputBuffer.emulationMode }}"
-          - name: "emulator_ipblock_id"
-            values: 
-            - "{{ $.Values.emulatorIpBlockIds.widebandInputBuffer }}"
-          - name: "emulator_id"
-            values:
-            - "{{ $instance.widebandInputBuffer.emulatorId }}"
-    - name: "VCCAllBandsController"
-      devices:
-      - name: "fhs/vcc-all-bands/{{ printf "%03d" $index }}"
-        properties:
-          - name: "device_id"
-            values:
-            - "{{ $instance.vccAllBands.deviceId }}"
-          - name: "device_version_num"
-            values:
-            - "0.0.1"
-          - name: "device_gitlab_hash"
-            values:
-            - "0"
-          - name: "config_location"
-            values:
-            - "{{ $.Values.hostInfo.configLocation }}"
-          - name: "simulation_mode"
-            values:
-            - "{{ $instance.vccAllBands.simulationMode }}"
-          - name: "emulation_mode"
-            values:
-            - "{{ $instance.vccAllBands.emulationMode }}"
-          - name: wideband_input_buffer_fqdn
-            values:
-            - "fhs/wib/{{ printf "%03d" $index }}"
-          - name: vcc123_channelizer_fqdn
-            values:
-            - "fhs/vcc/{{ printf "%03d" $index }}"
-          - name: fs_selection_fqdn
-            values:
-            - "fhs/frequency-slice-selection/{{ printf "%03d" $index }}"
-          - name: wideband_frequency_shifter_fqdn
-            values:
-            - "fhs/wfs/{{ printf "%03d" $index }}"
-          - name: mac_200_fqdn
-            values:
-            - "fhs/mac200/{{ printf "%03d" $index }}"
-          - name: packet_validation_fqdn
-            values:
-            - "fhs/packetvalidation/{{ printf "%03d" $index }}"
-          - name: vcc45_channelizer_fqdn # yet to be implemented
-            values:
-            - "placeholder"
+            {{- range $index, $value := $property.values }}
+            - "{{ include "substitute-device-id" (list $value $deviceId) }}"
+            {{- end }}
+          {{- end }}
+    {{- end }}
 {{- end }}
 
 image:
