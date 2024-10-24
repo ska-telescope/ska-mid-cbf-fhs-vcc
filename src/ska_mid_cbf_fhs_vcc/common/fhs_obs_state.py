@@ -107,7 +107,7 @@ class FhsObsStateMachine(Machine):
                 "dest": "READY",
             },
             {
-                "source": ["IDLE", "READY", "FAULT", "SCANNING", "IDLE"],
+                "source": ["IDLE", "READY", "FAULT", "SCANNING"],
                 "trigger": self.RESET_INVOKED,
                 "dest": "RESETTING",
             },
@@ -116,7 +116,7 @@ class FhsObsStateMachine(Machine):
                 "trigger": self.RESET_COMPLETED,
                 "dest": "IDLE",
             },
-            {"source": ["READY", "RESETTING", "FAULT"], "trigger": self.GO_TO_IDLE, "dest": "IDLE"},
+            {"source": ["READY", "RESETTING", "FAULT", "CONFIGURING"], "trigger": self.GO_TO_IDLE, "dest": "IDLE"},
         ]
         super().__init__(
             states=states,

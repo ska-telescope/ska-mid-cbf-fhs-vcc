@@ -6,12 +6,15 @@ import logging
 from threading import Event
 from typing import Any, Callable, Optional
 
+import jsonschema
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_tango_testing import context
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
+
+from .vcc_all_bands_config import schema
 
 
 class VCCAllBandsComponentManager(FhsComponentManagerBase):
@@ -186,8 +189,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             software
             """
             self._update_component_state(configuring=True)
-            configuration = json.loads(argin)
             task_callback(status=TaskStatus.IN_PROGRESS)
+            configuration = json.loads(argin)
+            jsonschema.validate(configuration, schema)
             if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
                 return
 
@@ -265,36 +269,21 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         }
                     )
                 )
-
                 self._wideband_input_buffer_proxy.expected_dish_id = self.expected_dish_id
 
-            # TODO: Restore a version of below when Circuit Switch is re-integrated
-            # if len(configuration["fsp"]) > 0:
-            #     for fsp in configuration["fsp"]:
-            #         if fsp["fsp_id"] < 0 or len(self._fsps) > self._maximum_fsps:
-            #             # throw exception
-            #             return
-
-            #         self._fsps.append(fsp)
-
-            #     # fss_input_size = 4 # TODO: Implement when FSS interface is complete
-            #     # TODO Understand the FSS better as it appears to be less like a Circuit Switch than initially thought
-            #     #if self.simulation_mode == False:
-            #         #input_select = self._circuit_switch_proxy.Status()
-            #         #fss_input_size = input_select.get_max_dim_x()
-
-            #     inputs = [None] * fss_input_size
-            #     for fsp in self._fsps:
-            #         if fsp["frequency_slice_id"] == 0 or fsp["frequency_slice_id"] > fss_input_size:
-            #             return
-            #         inputs[fsp["fsp_id"]-1] = {"input": fsp["fsp_id"], "output": fsp["frequency_slice_id"]
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._update_component_state(configuring=False)
+            return
+        except jsonschema.ValidationError as ex:
+            self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
+            self._update_component_state(idle=True)
+            self._set_task_callback(
+                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan"
+            )
             return
         except Exception as ex:
             self.logger.error(repr(ex))
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-            self._update_component_state(configuring=False)
             self._update_component_state(idle=True)
             self._set_task_callback(
                 task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to HPS VCC devices"
