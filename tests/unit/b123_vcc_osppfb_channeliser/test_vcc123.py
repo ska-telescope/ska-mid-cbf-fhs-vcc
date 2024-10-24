@@ -29,7 +29,7 @@ def vcc123_device():
                        config_location="../../resources/",
                        simulation_mode="1",
                        emulation_mode="0",
-                       emulator_ipblock_id="b123vcc")
+                       emulator_ip_block_id="b123vcc")
 
     with harness as test_context:
         yield test_context

@@ -34,7 +34,7 @@ def mac200_device():
                        config_location="../../resources/",
                        simulation_mode="1",
                        emulation_mode="0",
-                       emulator_ipblock_id="ethernet_200g",
+                       emulator_ip_block_id="ethernet_200g",
                        emulator_id="vcc-emulator-1")
 
     with harness as test_context:

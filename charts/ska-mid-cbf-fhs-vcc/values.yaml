@@ -43,50 +43,6 @@ resources:
     memory: 128Mi
     ephemeral-storage: 256Mi
 
-simulationMode: 1
-emulationMode: 0
-
-emulatorIpBlockIds:
-  mac200: "ethernet_200g"
-  packetValidation: "packet_validation"
-  widebandInputBuffer: "wideband_input_buffer"
-  widebandFrequencyShifter: "wideband_frequency_shifter"
-  b123Vcc: "b123vcc"
-  frequencySliceSelection: "fs_selection_26_2_1"
-
-firmwareIpBlockIds:
-  mac200: "eth200g_%d"
-  packetValidation: "packet_validation_unimplemented"
-  widebandInputBuffer: "wideband_input_buffer_unimplemented"
-  widebandFrequencyShifter: "wideband_frequency_shifter_unimplemented"
-  b123Vcc: "receptor%d_band123_vcc"
-  frequencySliceSelection: "receptor%d_fs_selector"
-
-instances:
-  - name: fhs-vcc-1
-    deviceId: 1
-    emulatorId: "vcc-emulator-1"
-    # override default simulator or emulation mode
-  - name: fhs-vcc-2
-    deviceId: 2
-    emulatorId: "vcc-emulator-2"
-    # override default simulator or emulation mode
-    vccAllBands:
-      simulationMode: 0
-      emulationMode: 1
-  - name: fhs-vcc-3
-    deviceId: 3
-    emulatorId: "vcc-emulator-3"
-    # override default simulator or emulation mode
-    vccAllBands:
-      simulationMode: 0
-      emulationMode: 1
-
-deviceServers:
-  fhs-vcc-stack:
-    enabled: true
-    file: "data/fhs_vcc_stack.yaml"
-
 nodeSelector: {}
 
 affinity: {}
@@ -99,7 +55,6 @@ hostInfo:
   externalPort: 10001
   clusterDomain: cluster.local
   fhsServerId: fhs01
-  configLocation: "/app/mnt/lowLevelConfigMap"
   namespace: "ska-mid-cbf"
 
 lowLevel:
@@ -108,5 +63,116 @@ lowLevel:
   firmwareRegistry: https://artefact.skao.int/repository/raw-internal
   firmwareImage: ska-mid-cbf-agilex-vcc
   bitstreamId: agilex-vcc
-  bitstreamPath: /app/mnt/bitstream
   bitstreamVersion: 0.0.10
+  bitstreamPath: /app/mnt/bitstream
+
+# -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
+
+# As defined in fhs-vcc-stack.yaml, the fhs stack and underlying devices are generated dynamically from the following config.
+# - `properties` defines a set of properties that are common to all devices in the stack
+# - `devices` defines the set of devices contained by every stack.
+#    - Each device must contain `name` and `path`.
+#    - Each device may optionally define `properties` to pass custom properties.
+# - `instances` defines the stacks of devices
+# For every property defined in `properties`, the default value can be overridden at the instance or device level.
+# For example, if `simulationMode` is defined in `properties`, the property associated with each device will resolve in the following order:
+# - `device.simulationMode`, defined in `devices`
+# - `instance.simulationMode`, defined in `instances`
+# - `simulationMode.default`, defined in `properties` (the global, default value)
+# Every string value in name, path, properties, or a instance or device-scoped override, may contain the following placeholder which will be replaced:
+#   - `<deviceId>` will be replaced with the device id of the device (deviceId must be defined in either the device or instance)
+#   - `<deviceId000>` will be replaced with the device id of the device, padded with zeros
+#   - `<receptorId>` will be replaced with the receptor id of the device (calculated by (deviceId - 1) % 3)
+
+# the default tango properties in each device. optionally provide a default, global value
+properties:
+  - name: deviceId
+  - name: deviceVersionNum
+    default: "0.0.1"
+  - name: deviceGitlabHash
+    default: "0"
+  - name: configLocation
+    default: "/app/mnt/lowLevelConfigMap"
+  - name: simulationMode
+    default: 1
+  - name: emulationMode
+    default: 0
+  - name: emulatorIpBlockId
+  - name: emulatorId
+  - name: firmwareIpBlockId
+
+# the devices in each stack. optionally override any property defined in `properties`. to add extra properties, provide a `properties` dict
+devices:
+  - name: "Mac200"
+    path: "fhs/mac200/<deviceId000>"
+    emulatorIpBlockId: "ethernet_200g"
+    firmwareIpBlockId: "eth200g_<receptorId>"
+    properties:
+      - name: MacType
+        values:
+          - "mac200"
+  - name: "PacketValidation"
+    path: "fhs/packetvalidation/<deviceId000>"
+    emulatorIpBlockId: "packet_validation"
+    firmwareIpBlockId: "packet_validation_unimplemented"
+  - name: "WidebandInputBuffer"
+    path: "fhs/wib/<deviceId000>"
+    emulatorIpBlockId: "wideband_input_buffer"
+    firmwareIpBlockId: "wideband_input_buffer_unimplemented"
+    properties:
+      - name: dish_id_poll_interval_s
+        values:
+          - 3
+  - name: "WidebandFrequencyShifter"
+    path: "fhs/wfs/<deviceId000>"
+    emulatorIpBlockId: "wideband_frequency_shifter"
+    firmwareIpBlockId: "wideband_frequency_shifter_unimplemented"
+  - name: "B123VccOsppfbChanneliser"
+    path: "fhs/vcc/<deviceId000>"
+    emulatorIpBlockId: "b123vcc"
+    firmwareIpBlockId: "receptor<receptorId>_band123_vcc"
+  - name: "FrequencySliceSelection"
+    path: "fhs/fss/<deviceId000>"
+    emulatorIpBlockId: "fs_selection_26_2_1"
+    firmwareIpBlockId: "receptor<receptorId>_fs_selector"
+  - name: "VCCAllBandsController"
+    path: "fhs/vcc-all-bands/<deviceId000>"
+    properties:
+      - name: wideband_input_buffer_fqdn
+        values:
+          - "fhs/wib/<deviceId000>"
+      - name: vcc123_channelizer_fqdn
+        values:
+          - "fhs/vcc/<deviceId000>"
+      - name: fs_selection_fqdn
+        values:
+          - "fhs/frequency-slice-selection/<deviceId000>"
+      - name: wideband_frequency_shifter_fqdn
+        values:
+          - "fhs/wfs/<deviceId000>"
+      - name: mac_200_fqdn
+        values:
+          - "fhs/mac200/<deviceId000>"
+      - name: packet_validation_fqdn
+        values:
+          - "fhs/packetvalidation/<deviceId000>"
+      - name: vcc45_channelizer_fqdn # yet to be implemented
+        values:
+          - "placeholder"
+
+# the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
+instances:
+  - name: fhs-vcc-1
+    deviceId: 1
+    emulatorId: "vcc-emulator-1"
+  - name: fhs-vcc-2
+    deviceId: 2
+    emulatorId: "vcc-emulator-2"
+  - name: fhs-vcc-3
+    deviceId: 3
+    emulatorId: "vcc-emulator-3"
+
+deviceServers:
+  fhs-vcc-stack:
+    enabled: true
+    file: "data/fhs_vcc_stack.yaml"
