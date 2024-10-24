@@ -130,6 +130,9 @@ server:
           - name: "firmware_ipblock_id"
             values: 
             - "{{ printf $.Values.firmwareIpBlockIds.widebandInputBuffer $receptorId }}"
+          - name: "dish_id_poll_interval_s"
+            values:
+            - "3"
     - name: "WidebandFrequencyShifter"
       devices:
       - name: "fhs/wfs/{{ printf "%03d" $index }}"
