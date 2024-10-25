@@ -147,7 +147,7 @@ devices:
           - "fhs/vcc/<deviceId000>"
       - name: fs_selection_fqdn
         values:
-          - "fhs/frequency-slice-selection/<deviceId000>"
+          - "fhs/fss/<deviceId000>"
       - name: wideband_frequency_shifter_fqdn
         values:
           - "fhs/wfs/<deviceId000>"
