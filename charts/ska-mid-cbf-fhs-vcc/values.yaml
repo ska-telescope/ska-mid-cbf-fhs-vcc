@@ -56,6 +56,7 @@ hostInfo:
   clusterDomain: cluster.local
   fhsServerId: fhs01
   namespace: "ska-mid-cbf"
+  configLocation: "/app/mnt/lowLevelConfigMap"
 
 lowLevel:
   bitstreamEmulatorConfigPath: "emulators/config.json"
