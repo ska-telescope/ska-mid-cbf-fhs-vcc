@@ -5,7 +5,7 @@ schema = {
     "type": "object",
     "properties": {
         "config_id": {"type": "string"},
-        "expected_dish_id": {"type": "string"},
+        "expected_dish_id": {"type": "integer"},
         "dish_sample_rate": {
             "type": "integer",
             "minimum": 3960000000,
@@ -29,6 +29,7 @@ schema = {
     },
     "required": [
         "config_id",
+        "expected_dish_id",
         "dish_sample_rate",
         "samples_per_frame",
         "frequency_band",
