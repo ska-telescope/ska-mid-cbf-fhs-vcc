@@ -54,7 +54,7 @@ image:
   pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
 environment_variables:
   - name: CONFIG_MAP_LOCATION
-    value: "{{ .Values.hostInfo.configLocation }}"
+    value: "{{ .Values.hostInfo.configMountPath }}"
 
 volume:
   existingClaimName: "fhs-vcc-bitstream-pv"
@@ -67,4 +67,4 @@ extraVolumes:
       name:  low-level-configmap
 extraVolumeMounts:
   - name: low-level-config-mount
-    mountPath: "{{ .Values.hostInfo.configLocation }}"
+    mountPath: "{{ .Values.hostInfo.configMountPath }}"
