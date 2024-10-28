@@ -181,6 +181,7 @@ class FhsBaseDevice(SKAObsDevice):
         super().init_device()
         self.set_state(DevState.ON)
         self.set_status("ON")
+        self.set_change_event("communicationState", True)
         self._update_health_state(HealthState.OK)
         self._update_obs_state(obs_state=ObsState.IDLE)
 
