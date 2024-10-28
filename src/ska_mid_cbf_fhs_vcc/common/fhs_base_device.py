@@ -4,12 +4,12 @@ from logging import Logger
 from typing import TypeVar, cast
 
 import tango
-from ska_control_model import HealthState, ObsState, PowerState, ResultCode
+from ska_control_model import HealthState, ObsState, PowerState, ResultCode, CommunicationStatus
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import ArgumentValidator, FastCommand, SubmittedSlowCommand, _BaseCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
 from tango import DebugIt, DevState
-from tango.server import command, device_property
+from tango.server import attribute, command, device_property
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
@@ -48,6 +48,13 @@ class FhsBaseDevice(SKAObsDevice):
     emulation_mode = device_property(dtype="int")
     device_version_num = device_property(dtype="str")
     device_gitlab_hash = device_property(dtype="str")
+
+    # -----------------
+    # Device Attributes
+    # -----------------
+    @attribute(dtype=CommunicationStatus)
+    def communicationState(self: FhsBaseDevice) -> CommunicationStatus:
+        return self.component_manager.communication_state
 
     ##############
     # Commands
@@ -165,6 +172,10 @@ class FhsBaseDevice(SKAObsDevice):
         # set the obstate in the component_manager
         if hasattr(self, "component_manager"):
             self.component_manager.obs_state = obs_state
+
+    def _communication_state_changed(self: FhsBaseDevice, communication_state: CommunicationStatus) -> None:
+        super()._communication_state_changed(communication_state=communication_state)
+        self.push_change_event("communicationState", communication_state)
 
     def init_device(self: FhsBaseDevice) -> None:
         super().init_device()
