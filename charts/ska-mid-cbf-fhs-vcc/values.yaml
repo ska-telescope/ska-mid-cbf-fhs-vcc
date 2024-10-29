@@ -70,7 +70,7 @@ lowLevel:
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
 
 # As defined in fhs-vcc-stack.yaml, the fhs stack and underlying devices are generated dynamically from the following config.
-# - `properties` defines a set of properties that are common to all devices in the stack
+# - `properties` defines a set of properties that are common to all devices in the stack. NOTE: values must be strings.
 # - `devices` defines the set of devices contained by every stack.
 #    - Each device must contain `name` and `path`.
 #    - Each device may optionally define `properties` to pass custom properties.
@@ -95,9 +95,9 @@ properties:
   - name: configLocation
     default: "/app/mnt/lowLevelConfigMap"
   - name: simulationMode
-    default: 1
+    default: "1"
   - name: emulationMode
-    default: 0
+    default: "0"
   - name: emulatorIpBlockId
   - name: emulatorId
   - name: firmwareIpBlockId
@@ -121,9 +121,9 @@ devices:
     emulatorIpBlockId: "wideband_input_buffer"
     firmwareIpBlockId: "wideband_input_buffer_unimplemented"
     properties:
-      - name: dish_id_poll_interval_s
+      - name: poll_interval_s
         values:
-          - 3
+          - "3"
   - name: "WidebandFrequencyShifter"
     path: "fhs/wfs/<deviceId000>"
     emulatorIpBlockId: "wideband_frequency_shifter"
@@ -164,13 +164,13 @@ devices:
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 instances:
   - name: fhs-vcc-1
-    deviceId: 1
+    deviceId: "1"
     emulatorId: "vcc-emulator-1"
   - name: fhs-vcc-2
-    deviceId: 2
+    deviceId: "2"
     emulatorId: "vcc-emulator-2"
   - name: fhs-vcc-3
-    deviceId: 3
+    deviceId: "3"
     emulatorId: "vcc-emulator-3"
 
 deviceServers:

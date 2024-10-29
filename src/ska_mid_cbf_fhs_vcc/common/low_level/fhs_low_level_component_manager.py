@@ -35,6 +35,8 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         self.logger = logger
         self._device_id = device_id
         self._config_location = config_location
+        self._simulation_mode = simulation_mode
+        self._emulation_mode = emulation_mode
         super().__init__(
             *args,
             obs_command_running_callback=obs_command_running_callback,

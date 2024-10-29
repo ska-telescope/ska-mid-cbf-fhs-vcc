@@ -5,7 +5,7 @@ schema = {
     "type": "object",
     "properties": {
         "config_id": {"type": "string"},
-        "expected_dish_id": {"type": "integer"},
+        "expected_dish_id": {"type": "string"},
         "dish_sample_rate": {
             "type": "integer",
             "minimum": 3960000000,

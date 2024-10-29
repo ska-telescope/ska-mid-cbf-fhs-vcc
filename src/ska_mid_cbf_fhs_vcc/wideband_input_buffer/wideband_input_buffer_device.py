@@ -8,14 +8,14 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_component_m
 
 
 class WidebandInputBuffer(FhsLowLevelDeviceBase):
-    dish_id_poll_interval_s = device_property(dtype=DevUShort)
+    poll_interval_s = device_property(dtype=DevUShort)
 
-    @attribute(dtype=DevUShort)
-    def expected_dish_id(self: WidebandInputBuffer) -> int:
+    @attribute(dtype="str")
+    def expectedDishId(self: WidebandInputBuffer) -> str:
         return self.component_manager.expected_dish_id
 
-    @expected_dish_id.write
-    def expected_dish_id(self: WidebandInputBuffer, value: int) -> None:
+    @expectedDishId.write
+    def expectedDishId(self: WidebandInputBuffer, value: str) -> None:
         self.component_manager.expected_dish_id = value
 
     def create_component_manager(
@@ -29,7 +29,7 @@ class WidebandInputBuffer(FhsLowLevelDeviceBase):
             emulator_ip_block_id=self.emulator_ip_block_id,
             emulator_id=self.emulator_id,
             firmware_ip_block_id=self.firmware_ip_block_id,
-            dish_id_poll_interval_s=self.dish_id_poll_interval_s,
+            poll_interval_s=self.poll_interval_s,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
             health_state_callback=self._update_health_state,
