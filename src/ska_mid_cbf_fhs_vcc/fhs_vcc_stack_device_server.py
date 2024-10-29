@@ -47,7 +47,7 @@ def check_if_bitstream_exists():
         bitstream_id: str = _api_config_reader.getConfigMapValue("bitstreamId")
         bitstream_version: str = _api_config_reader.getConfigMapValue("bitstreamVersion")
 
-        driver_path = os.path.join(bitstream_path, bitstream_id, bitstream_version)
+        driver_path = os.path.join(bitstream_path, bitstream_id, bitstream_version, "drivers")
 
         if os.path.exists(bitstream_path):
             print("INFO: Starting to poll bitstream.......")

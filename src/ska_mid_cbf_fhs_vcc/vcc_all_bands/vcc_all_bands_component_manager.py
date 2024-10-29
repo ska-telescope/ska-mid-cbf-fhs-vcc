@@ -269,7 +269,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         }
                     )
                 )
-                self._wideband_input_buffer_proxy.expected_dish_id = self.expected_dish_id
+                self._wideband_input_buffer_proxy.expectedDishId = self.expected_dish_id
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._update_component_state(configuring=False)

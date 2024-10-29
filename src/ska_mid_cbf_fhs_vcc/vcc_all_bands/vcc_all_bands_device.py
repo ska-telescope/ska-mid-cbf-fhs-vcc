@@ -20,7 +20,7 @@ class VCCAllBandsController(FhsBaseDevice):
     fs_selection_fqdn = device_property(dtype="str")
 
     @attribute
-    def expected_dish_id(self):
+    def expectedDishId(self):
         return self.component_manager.expected_dish_id
 
     def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager:

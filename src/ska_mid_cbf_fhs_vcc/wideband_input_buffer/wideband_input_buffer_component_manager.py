@@ -52,7 +52,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
     def __init__(
         self: WidebandInputBufferComponentManager,
         *args: Any,
-        dish_id_poll_interval_s: str,
+        poll_interval_s: str,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -61,8 +61,9 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             emulator_api=WibEmulatorApi,
             **kwargs,
         )
+        self.polling_service = PollingService(interval=poll_interval_s, callback=self._poll_status)
+
         self.expected_dish_id = None
-        self.dish_id_polling = PollingService(interval=dish_id_poll_interval_s, callback=self.poll_dish_id)
 
     ##
     # Public Commands
@@ -72,13 +73,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             self.logger.info("WIB Configuring..")
 
             wibJsonConfig: WibArginConfig = WibArginConfig.schema().loads(argin)
-
-            self.logger.info(f"CONFIG JSON CONFIG: {wibJsonConfig.to_json()}")
-
-            result: tuple[ResultCode, str] = (
-                ResultCode.OK,
-                f"{self._device_id} configured successfully",
-            )
 
             self.logger.info(f"WIB JSON CONFIG: {wibJsonConfig.to_json()}")
 
@@ -99,11 +93,11 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         return result
 
     def start(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
-        self.dish_id_polling.start()
+        self.polling_service.start()
         return super().start(*args, **kwargs)
 
     def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
-        self.dish_id_polling.stop()
+        self.polling_service.stop()
         return super().stop(*args, **kwargs)
 
     # TODO Determine what needs to be communicated with here
@@ -115,19 +109,68 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
 
         super().start_communicating()
 
-    def poll_dish_id(self):
-        if self.expected_dish_id is None:
+    def _poll_status(self: WidebandInputBufferComponentManager):
+        if self._simulation_mode:
             return
 
-        self.logger.debug(f"Polling dish id, expecting: {self.expected_dish_id}")
-
+        self.logger.debug("Polling status...")
         result = super().status()
+
         if result[0] != ResultCode.OK:
             self.logger.error(f"Getting status failed. {result}")
+            return
         else:
             status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().loads(result[1], unknown="exclude")
 
-            if status.meta_dish_id != self.expected_dish_id:
-                self.logger.error(f"Dish id mismatch. Expected: {self.expected_dish_id}, Actual: {status.meta_dish_id}")
+        if self.expected_dish_id is not None:
+            meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(status.meta_dish_id)
+            if meta_dish_id_mnemonic != self.expected_dish_id:
+                self.logger.error(
+                    f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_mnemonic} ({status.meta_dish_id})"
+                )
             else:
-                self.logger.debug(f"Dish id matched {status.meta_dish_id}")
+                self.logger.debug(f"dish_id matched {status.meta_dish_id}")
+            else:
+
+
+def convert_dish_id_uint16_t_to_mnemonic(numerical_dish_id: int) -> str:
+    SKA_DISH_INSTANCE_MIN = 1
+    SKA_DISH_INSTANCE_MAX = 133
+    MKT_DISH_INSTANCE_MAX = 63
+    DISH_INSTANCE_NUM_BITS = 12
+
+    MKT_DISH_TYPE_NUM = 0
+    SKA_DISH_TYPE_NUM = 1
+    MKT_DISH_TYPE_STR = "MKT"
+    SKA_DISH_TYPE_STR = "SKA"
+
+    DISH_TYPE_STR_LEN = 3
+
+    if numerical_dish_id == 0xFFFF:
+        return "DIDINV"
+
+    # Check the dish type mnemonic
+    dish_type_uint = (numerical_dish_id & 0xF000) >> DISH_INSTANCE_NUM_BITS
+
+    if dish_type_uint not in (SKA_DISH_TYPE_NUM, MKT_DISH_TYPE_NUM):
+        raise ValueError("Incorrect DISH type. First four bits must be 0000 (MKT) or 0001 (SKA)")
+
+    # Convert to DISH TYPE mnemonic
+    dish_type_str = SKA_DISH_TYPE_STR if dish_type_uint == SKA_DISH_TYPE_NUM else MKT_DISH_TYPE_STR
+
+    dish_instance_uint = numerical_dish_id & 0x0FFF
+
+    # Extract number from last 12 bits and validate
+    if dish_type_str == SKA_DISH_TYPE_STR and (
+        dish_instance_uint < SKA_DISH_INSTANCE_MIN or dish_instance_uint > SKA_DISH_INSTANCE_MAX
+    ):
+        raise ValueError(
+            f"Incorrect DISH instance. Dish instance for SKA DISH type is {SKA_DISH_INSTANCE_MIN} to {SKA_DISH_INSTANCE_MAX} incl."
+        )
+    if dish_type_str == MKT_DISH_TYPE_STR and dish_instance_uint > MKT_DISH_INSTANCE_MAX:
+        raise ValueError(f"Incorrect DISH instance. Dish instance for MKT DISH type is 0 to {MKT_DISH_INSTANCE_MAX} incl.")
+
+    dish_instance_str = str(dish_instance_uint)
+    padding_length = DISH_TYPE_STR_LEN - min(DISH_TYPE_STR_LEN, len(dish_instance_str))
+
+    return dish_type_str + "0" * padding_length + dish_instance_str
