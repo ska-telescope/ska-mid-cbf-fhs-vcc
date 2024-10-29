@@ -36,8 +36,7 @@ class WideBandInputBufferStatus:
     meta_band_id: np.uint8
     meta_dish_id: np.uint16
     rx_sample_rate: np.uint32
-    meta_transport_sample_rate_lsw: np.uint32
-    meta_transport_sample_rate_msw: np.uint16
+    meta_transport_sample_rate: np.uint32
 
 
 @dataclass_json
@@ -63,6 +62,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         )
         self.polling_service = PollingService(interval=poll_interval_s, callback=self._poll_status)
 
+        self.expected_sample_rate = None
         self.expected_dish_id = None
 
     ##
@@ -75,6 +75,8 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             wibJsonConfig: WibArginConfig = WibArginConfig.schema().loads(argin)
 
             self.logger.info(f"WIB JSON CONFIG: {wibJsonConfig.to_json()}")
+
+            self.expected_sample_rate = wibJsonConfig.expected_sample_rate
 
             result = super().configure(wibJsonConfig.to_dict())
 
@@ -130,7 +132,18 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
                 )
             else:
                 self.logger.debug(f"dish_id matched {status.meta_dish_id}")
+
+        if self.expected_sample_rate is not None:
+            if status.meta_transport_sample_rate != self.expected_sample_rate:
+                self.logger.error(
+                    f"meta_transport_sample_rate mismatch. Expected: {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}"
+                )
+            elif status.rx_sample_rate != self.expected_sample_rate:
+                self.logger.error(
+                    f"rx_sample_rate mismatch. Expected: {self.expected_sample_rate}, Actual: {status.rx_sample_rate}"
+                )
             else:
+                self.logger.debug(f"sample rate matched {status.meta_dish_id}")
 
 
 def convert_dish_id_uint16_t_to_mnemonic(numerical_dish_id: int) -> str:
