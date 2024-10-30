@@ -155,13 +155,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
     def abort(
         self: VCCAllBandsComponentManager,
-        argin: str,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
             func=self._abort,
-            args=[argin],
             task_callback=task_callback,
+            is_cmd_allowed=self.is_abort_allowed,
         )
 
     def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
@@ -429,6 +428,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         # Update obsState callback
         self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Abort completed OK")
+        # TODO: do we need this?
         self._update_component_state(abort=False)
         return
 

@@ -94,6 +94,12 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
 
         return self.is_allowed(errorMsg, [ObsState.READY, ObsState.ABORTED, ObsState.FAULT])
 
+    def is_abort_allowed(self: FhsComponentManagerBase) -> bool:
+        self.logger.debug("Checking if abort is allowed...")
+        errorMsg = f"abort not allowed in Obstate {self.obs_state}; " "must be in Obstate.IDLE, READY, or SCANNING"
+
+        return self.is_allowed(errorMsg, [ObsState.IDLE, ObsState.READY, ObsState.SCANNING])
+
     def is_allowed(self: FhsComponentManagerBase, error_msg: str, obsStates: list[ObsState]) -> bool:
         result = True
 
