@@ -134,7 +134,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
-            func=functools.partial(self._configure_scan),
+            func=self._configure_scan,
             args=[argin],
             task_callback=task_callback,
         )
@@ -151,6 +151,17 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             ),
             task_callback=task_callback,
             is_cmd_allowed=self.is_go_to_idle_allowed,
+        )
+
+    def abort(
+        self: VCCAllBandsComponentManager,
+        argin: str,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=self._abort,
+            args=[argin],
+            task_callback=task_callback,
         )
 
     def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
@@ -384,6 +395,42 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             return
         except Exception as ex:
             self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
+
+    def _abort(
+        self: VCCAllBandsComponentManager,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """
+        Stop all devices.
+
+        :return: None
+        """
+        self._update_component_state(abort=True)
+        task_callback(status=TaskStatus.IN_PROGRESS)
+        if self.task_abort_event_is_set("Abort", task_callback, task_abort_event):
+            return
+
+        if not self.simulation_mode:
+            try:
+                self._vcc_123_channelizer_proxy.Stop()
+                self._wideband_input_buffer_proxy.Stop()
+                self._wideband_frequency_shifter_proxy.Stop()
+                self._fs_selection_proxy.Stop()
+                self._packet_validation_proxy.Stop()
+                self._mac_200_proxy.Stop()
+            except tango.DevFailed as ex:
+                self.logger.error(repr(ex))
+                self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+                self._set_task_callback(
+                    task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
+                )
+                return
+
+        # Update obsState callback
+        self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Abort completed OK")
+        self._update_component_state(abort=False)
+        return
 
     def task_abort_event_is_set(
         self: VCCAllBandsComponentManager,
