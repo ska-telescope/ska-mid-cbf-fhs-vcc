@@ -9,6 +9,7 @@ from typing import Any, Callable, Optional, Dict, List
 import jsonschema
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
+from ska_control_model.faults import StateModelError
 from ska_tango_testing import context
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
@@ -64,11 +65,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._proxies[mac_200_FQDN] = None
         self._proxies[packet_validation_FQDN] = None
         self._proxies[wideband_input_buffer_FQDN] = None
+        self._proxies[wideband_frequency_shifter_FQDN] = None
         self._proxies[vcc_123_channelizer_FQDN] = None
         self._proxies[vcc_45_channelizer_FQDN] = None
         self._proxies[fs_selection_FQDN] = None
         # self._circuit_switch_proxy = None
-        self._fs_selection_proxy = None
 
         # vcc channels * number of polarizations
         self._num_vcc_gains = 0
@@ -106,11 +107,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 for fqdn in self._proxies:
                     if fqdn != self._vcc_123_fqdn or fqdn != self._vcc_45_fqdn:
                         self._proxies[fqdn] = context.DeviceProxy(device_name=fqdn)
-                # self._fs_selection_proxy = context.DeviceProxy(device_name=self._fs_selection_fqdn)
-                # self._wideband_frequency_shifter_proxy = context.DeviceProxy(device_name=self._wideband_frequency_shifter_fqdn)
-                # self._wideband_input_buffer_proxy = context.DeviceProxy(device_name=self._wideband_input_buffer_fqdn)
-                # self._mac_200_proxy = context.DeviceProxy(device_name=self._mac_200_fqdn)
-                # self._packet_validation_proxy = context.DeviceProxy(device_name=self._packet_validation_fqdn)
 
                 super().start_communicating()
         except tango.DevFailed as ex:
@@ -295,18 +291,22 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed")
                     return
                     
-                self._proxies[self._wib_fqdn].expected_dish_id = self.expected_dish_id
+                self._proxies[self._wib_fqdn].expectedDishId = self.expected_dish_id
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._update_component_state(configuring=False)
             return
+        except StateModelError as ex:
+            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self._set_task_callback(
+                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Attempted to call ConfigureScan command from an incorrect state"
+            )
         except jsonschema.ValidationError as ex:
             self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
             self._update_component_state(idle=True)
             self._set_task_callback(
                 task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan"
             )
-            return
         except Exception as ex:
             self.logger.error(repr(ex))
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
@@ -328,24 +328,30 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         :return: None
         """
-        # set task status in progress, check for abort event
-        self._scan_id = argin
-        if not self.simulation_mode:
-            try:
-                self._proxies[self._mac_200_fqdn].Start()
-                self._proxies[self._packet_validation_fqdn].Start()
-                self._proxies[self._wib_fqdn].Start()
-            except tango.DevFailed as ex:
-                self.logger.error(repr(ex))
-                self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-                self._set_task_callback(
-                    task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
-                )
-                return
+        try:
+            # set task status in progress, check for abort event
+            self._scan_id = argin
+            if not self.simulation_mode:
+                try:
+                    self._proxies[self._mac_200_fqdn].Start()
+                    self._proxies[self._packet_validation_fqdn].Start()
+                    self._proxies[self._wib_fqdn].Start()
+                except tango.DevFailed as ex:
+                    self.logger.error(repr(ex))
+                    self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+                    self._set_task_callback(
+                        task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
+                    )
+                    return
 
-        # Update obsState callback
-        self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Scan completed OK")
-        return
+            # Update obsState callback
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Scan completed OK")
+            return
+        except StateModelError as ex:
+            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self._set_task_callback(
+                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Attempted to call ConfigureScan command from an incorrect state"
+            )
 
     def _end_scan(
         self: VCCAllBandsComponentManager,
@@ -357,26 +363,32 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         :return: None
         """
-        task_callback(status=TaskStatus.IN_PROGRESS)
-        if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
-            return
-
-        if not self.simulation_mode:
-            try:
-                self._proxies[self._mac_200_fqdn].Stop()
-                self._proxies[self._packet_validation_fqdn].Stop()
-                self._proxies[self._wib_fqdn].Stop()
-            except tango.DevFailed as ex:
-                self.logger.error(repr(ex))
-                self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-                self._set_task_callback(
-                    task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
-                )
+        try:
+            task_callback(status=TaskStatus.IN_PROGRESS)
+            if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
                 return
 
-        # Update obsState callback
-        self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
-        return
+            if not self.simulation_mode:
+                try:
+                    self._proxies[self._mac_200_fqdn].Stop()
+                    self._proxies[self._packet_validation_fqdn].Stop()
+                    self._proxies[self._wib_fqdn].Stop()
+                except tango.DevFailed as ex:
+                    self.logger.error(repr(ex))
+                    self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+                    self._set_task_callback(
+                        task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
+                    )
+                    return
+
+            # Update obsState callback
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
+            return
+        except StateModelError as ex:
+            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self._set_task_callback(
+                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Attempted to call ConfigureScan command from an incorrect state"
+            )
 
     # A replacement for unconfigure
     def _go_to_idle(
@@ -395,6 +407,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
             return
+        except StateModelError as ex:
+            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self._set_task_callback(
+                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Attempted to call ConfigureScan command from an incorrect state"
+            )
         except Exception as ex:
             self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
     
