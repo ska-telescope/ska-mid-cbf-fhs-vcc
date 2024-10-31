@@ -155,7 +155,10 @@ class FhsBaseDevice(SKAObsDevice):
             self.obs_state_model.perform_action(FhsObsStateMachine.COMPONENT_FAULT)
 
         if abort is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.GO_TO_ABORT)
+            if abort:
+                self.obs_state_model.perform_action(FhsObsStateMachine.ABORT_INVOKED)
+            else:
+                self.obs_state_model.perform_action(FhsObsStateMachine.ABORT_COMPLETED)
 
     def _update_obs_state(self: FhsBaseDevice, obs_state: ObsState) -> None:
         """

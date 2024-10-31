@@ -37,8 +37,9 @@ class FhsObsStateMachine(Machine):
     STOP_COMPLETED = "stop_completed"
     RESET_INVOKED = "reset_invoked"
     RESET_COMPLETED = "reset_completed"
+    ABORT_INVOKED = "abort_invoked"
+    ABORT_COMPLETED = "abort_completed"
     GO_TO_IDLE = "go_to_idle"
-    GO_TO_ABORT = "go_to_abort"
 
     def __init__(self, callback: Optional[Callable] = None, **extra_kwargs: Any) -> None:
         """
@@ -58,8 +59,9 @@ class FhsObsStateMachine(Machine):
             "READY",
             "SCANNING",
             "STOPPING",
-            "ABORTED",
             "RESETTING",
+            "ABORTING",
+            "ABORTED",
             "FAULT",
         ]
         transitions = [
@@ -109,11 +111,6 @@ class FhsObsStateMachine(Machine):
                 "dest": "READY",
             },
             {
-                "source": ["IDLE", "READY", "SCANNING"],
-                "trigger": self.GO_TO_ABORT,
-                "dest": "ABORTED",
-            },
-            {
                 "source": ["IDLE", "READY", "FAULT", "SCANNING"],
                 "trigger": self.RESET_INVOKED,
                 "dest": "RESETTING",
@@ -122,6 +119,16 @@ class FhsObsStateMachine(Machine):
                 "source": ["FAULT", "IDLE", "RESETTING", "READY"],
                 "trigger": self.RESET_COMPLETED,
                 "dest": "IDLE",
+            },
+            {
+                "source": ["IDLE", "READY", "SCANNING", "CONFIGURING", "RESETTING"],
+                "trigger": self.ABORT_INVOKED,
+                "dest": "ABORTED",
+            },
+            {
+                "source": ["ABORTING"],
+                "trigger": self.ABORT_COMPLETED,
+                "dest": "ABORTED",
             },
             {"source": ["READY", "RESETTING", "FAULT", "CONFIGURING"], "trigger": self.GO_TO_IDLE, "dest": "IDLE"},
         ]
@@ -184,6 +191,7 @@ class FhsObsStateModel:
         "STARTING": ObsState.READY,
         "SCANNING": ObsState.SCANNING,
         "STOPPING": ObsState.READY,
+        "ABORTING": ObsState.ABORTING,
         "ABORTED": ObsState.ABORTED,
         "RESETTING": ObsState.RESETTING,
         "FAULT": ObsState.FAULT,
