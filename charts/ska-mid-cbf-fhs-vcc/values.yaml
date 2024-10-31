@@ -95,9 +95,9 @@ properties:
   - name: configLocation
     default: "/app/mnt/lowLevelConfigMap"
   - name: simulationMode
-    default: "0"
-  - name: emulationMode
     default: "1"
+  - name: emulationMode
+    default: "0"
   - name: emulatorIpBlockId
   - name: emulatorId
   - name: firmwareIpBlockId
