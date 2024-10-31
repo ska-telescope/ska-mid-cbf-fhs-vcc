@@ -52,10 +52,16 @@ class VCCAllBandsController(FhsBaseDevice):
             ("EndScan", "end_scan"),
             ("ObsReset", "obs_reset"),  # TODO CIP-1850: has the potential to be left out if ticket is disgarded
             ("TestCmd", "test_cmd"),
-            ("Abort", "abort"),
         ]
 
         super().init_command_objects(commandsAndMethods)
+
+        # init the fast commands
+        commandsAndClasses = [
+            ("Abort", VCCAllBandsController.AbortCommand),
+        ]
+
+        super().init_fast_command_objects(commandsAndClasses)
 
     @attribute(
         abs_change=1,
@@ -148,6 +154,10 @@ class VCCAllBandsController(FhsBaseDevice):
         command_handler = self.get_command_object(command_name="Abort")
         result_code, command_id = command_handler()
         return [[result_code], [command_id]]
+
+    class AbortCommand(FhsFastCommand):
+        def do(self) -> tuple[ResultCode, str]:
+            return self._component_manager.abort()
 
 
 def main(args=None, **kwargs):
