@@ -4,7 +4,7 @@ import functools
 import json
 import logging
 from threading import Event
-from typing import Any, Callable, Optional, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 import jsonschema
 import tango
@@ -59,7 +59,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self.emulation_mode = emulation_mode
 
         self.input_sample_rate = 0
-        
+
         self._proxies: Dict[str, context.DeviceProxy] = {}
 
         self._proxies[mac_200_FQDN] = None
@@ -236,11 +236,16 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     result = self._proxies[self._vcc_123_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
                     )
-                    
+
                     if result[0] == ResultCode.FAILED:
                         self.logger.error(f"Configuration of VCC123 Channelizer failed: {result[1]}")
                         self._reset_attributes()
-                        self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed")
+                        self._set_task_callback(
+                            task_callback,
+                            TaskStatus.COMPLETED,
+                            ResultCode.REJECTED,
+                            "Configuration of low-level fhs device failed",
+                        )
                         return
 
                 else:
@@ -259,18 +264,22 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of Wideband Frequency Shifter failed: {result[1]}")
                     self._reset_devices([self._vcc_123_fqdn])
-                    self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed")
+                    self._set_task_callback(
+                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
+                    )
                     return
-                
+
                 # FSS Configuration
                 result = self._proxies[self._fss_fqdn].Configure(
                     json.dumps({"band_select": self.frequency_band.value + 1, "band_start_channel": [0, 1]})
                 )
-                
+
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of FS Selection failed: {result[1]}")
                     self._reset_devices([self._vcc_123_fqdn, self._wfs_fqdn])
-                    self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed")
+                    self._set_task_callback(
+                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
+                    )
                     return
 
                 # WIB Configuration
@@ -284,13 +293,15 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         }
                     )
                 )
-                
+
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of WIB failed: {result[1]}")
                     self._reset_devices([self._vcc_123_fqdn, self._wfs_fqdn, self._fss_fqdn])
-                    self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed")
+                    self._set_task_callback(
+                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
+                    )
                     return
-                    
+
                 self._proxies[self._wib_fqdn].expectedDishId = self.expected_dish_id
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
@@ -299,7 +310,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
             self._set_task_callback(
-                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Attempted to call ConfigureScan command from an incorrect state"
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ConfigureScan command from an incorrect state",
             )
         except jsonschema.ValidationError as ex:
             self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
@@ -350,7 +364,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
             self._set_task_callback(
-                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Attempted to call ConfigureScan command from an incorrect state"
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ConfigureScan command from an incorrect state",
             )
 
     def _end_scan(
@@ -387,7 +404,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
             self._set_task_callback(
-                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Attempted to call ConfigureScan command from an incorrect state"
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ConfigureScan command from an incorrect state",
             )
 
     # A replacement for unconfigure
@@ -402,19 +422,22 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
                 return
 
-            # Reset all device proxies 
+            # Reset all device proxies
             self._reset_devices(self._proxies.keys())
-            
+
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
             return
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
             self._set_task_callback(
-                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Attempted to call ConfigureScan command from an incorrect state"
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ConfigureScan command from an incorrect state",
             )
         except Exception as ex:
             self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
-    
+
     def _reset_attributes(self: VCCAllBandsComponentManager):
         self._config_id = ""
         self._scan_id = 0
@@ -423,7 +446,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._sample_rate = 0
         self._samples_per_frame = 0
         self._fsps = []
-         
+
     def _reset_devices(self: VCCAllBandsComponentManager, devices_name: List[str]):
         try:
             self._reset_attributes()
@@ -432,7 +455,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     self._log_go_to_idle_status(fqdn, self._proxies[fqdn].GoToIdle())
         except Exception as ex:
             self.logger.error(f"Error resetting specific devices : {repr(ex)}")
-    
+
     def task_abort_event_is_set(
         self: VCCAllBandsComponentManager,
         command_name: str,
