@@ -105,7 +105,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self.logger.info("Establishing Communication with low-level proxies")
 
                 for fqdn in self._proxies:
-                    if fqdn != self._vcc_123_fqdn or fqdn != self._vcc_45_fqdn:
+                    if fqdn != self._vcc_123_fqdn and fqdn != self._vcc_45_fqdn:
                         self._proxies[fqdn] = context.DeviceProxy(device_name=fqdn)
 
                 super().start_communicating()
