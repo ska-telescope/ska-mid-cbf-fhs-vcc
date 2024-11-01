@@ -30,7 +30,7 @@ midcbf:
   image:
     registry: docker.io/library
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.0.1
+    tag: 0.0.2
     pullPolicy: IfNotPresent
 
 resources:
@@ -64,7 +64,7 @@ lowLevel:
   firmwareRegistry: https://artefact.skao.int/repository/raw-internal
   firmwareImage: ska-mid-cbf-agilex-vcc
   bitstreamId: agilex-vcc
-  bitstreamVersion: 0.0.10
+  bitstreamVersion: 0.0.11
   bitstreamPath: /app/mnt/bitstream
 
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
