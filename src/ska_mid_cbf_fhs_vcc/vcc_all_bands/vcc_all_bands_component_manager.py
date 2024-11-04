@@ -8,8 +8,9 @@ from typing import Any, Callable, Dict, List, Optional
 
 import jsonschema
 import tango
-from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus, TaskCallbackType
+from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
+from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_testing import context
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
@@ -184,14 +185,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         :return: None
         """
         self._update_component_state(abort=True)
-        if not self.simulation_mode:
-            self._vcc_123_channelizer_proxy and self._vcc_123_channelizer_proxy.Stop()
-            self._wideband_input_buffer_proxy and self._wideband_input_buffer_proxy.Stop()
-            self._wideband_frequency_shifter_proxy and self._wideband_frequency_shifter_proxy.Stop()
-            self._fs_selection_proxy and self._fs_selection_proxy.Stop()
-            self._packet_validation_proxy and self._packet_validation_proxy.Stop()
-            self._mac_200_proxy and self._mac_200_proxy.Stop()
-
+        for proxy in self._proxies.values():
+            if proxy:
+                proxy.Stop()
         result = super().abort_commands(task_callback)
         self._update_component_state(abort=False)
         return result
