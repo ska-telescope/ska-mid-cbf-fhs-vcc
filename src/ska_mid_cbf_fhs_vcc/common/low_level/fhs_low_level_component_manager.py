@@ -27,6 +27,7 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         firmware_ip_block_id: str,
         attr_change_callback: Callable[[str, Any], None] | None = None,
         attr_archive_callback: Callable[[str, Any], None] | None = None,
+        health_state_callback: Callable[[HealthState], None] | None = None,
         obs_command_running_callback: Callable[[str, bool], None],
         logger: logging.Logger,
         **kwargs: Any,

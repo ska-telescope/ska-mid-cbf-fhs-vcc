@@ -110,5 +110,8 @@ def test_go_to_idle(device_under_test):
     
     assert device_under_test.read_attribute("obsState").value is ObsState.IDLE.value
     
+def test_register_polling_healthstate_ok(device_under_test):
+    test_configure_command(device_under_test)
+    
 
 
