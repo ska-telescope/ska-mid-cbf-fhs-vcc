@@ -109,4 +109,6 @@ def test_go_to_idle(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
     
     assert device_under_test.read_attribute("obsState").value is ObsState.IDLE.value
+    
+
 
