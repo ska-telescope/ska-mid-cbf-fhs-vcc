@@ -1,6 +1,7 @@
 import errno
 import logging
 import os
+import time
 
 import polling2
 from tango.server import run
@@ -43,38 +44,45 @@ def check_if_bitstream_exists():
         _config_location = os.environ["CONFIG_MAP_LOCATION"]
         _api_config_reader: APIConfigReader = APIConfigReader(_config_location, logger)
 
-        bitstream_path: str = _api_config_reader.getConfigMapValue("bitstreamPath")
+        bitstream_root_path: str = _api_config_reader.getConfigMapValue("bitstreamPath")
         bitstream_id: str = _api_config_reader.getConfigMapValue("bitstreamId")
         bitstream_version: str = _api_config_reader.getConfigMapValue("bitstreamVersion")
 
-        driver_path = os.path.join(bitstream_path, bitstream_id, bitstream_version, "drivers")
+        bitstream_path = os.path.join(bitstream_root_path, bitstream_id, bitstream_version)
 
-        if os.path.exists(bitstream_path):
+        if os.path.exists(bitstream_root_path):
             print("INFO: Starting to poll bitstream.......")
 
             polling2.poll(
-                check_bitstream_available,
-                args=(driver_path,),
+                check_bitstream_components_available,
+                args=(bitstream_path,),
                 timeout=60,
                 step=0.5,
             )
+
         else:
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), bitstream_path)
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), bitstream_root_path)
 
     except polling2.TimeoutException as te:
-        print(f"ERROR: Polling for bitstream timeout, {driver_path} not found!")
+        print(f"ERROR: Polling for bitstream timeout, {bitstream_path} not found!")
         raise te
     except KeyError as ke:
         print("ERROR: CONFIG_MAP_LOCATION env variable not found")
         raise ke
+    
+    # provide some additional leeway for the bitstream untar to complete
+    time.sleep(3)
 
 
-def check_bitstream_available(driver_path):
-    if os.path.exists(driver_path):
-        print(f"INFO: Bitstream {driver_path} found!")
+def check_bitstream_components_available(bitstream_path):
+    if (
+        os.path.exists(os.path.join(bitstream_path, "drivers")) and
+        os.path.exists(os.path.join(bitstream_path, "emulators", "config.json"))
+    ):
+        print(f"INFO: Bitstream {bitstream_path} found!")
         return True
     else:
-        print(f"INFO: Waiting for bitstream {driver_path}")
+        print(f"INFO: Waiting for bitstream {bitstream_path}")
         return False
 
 
