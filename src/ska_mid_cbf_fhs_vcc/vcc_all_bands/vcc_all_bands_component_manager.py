@@ -8,6 +8,8 @@ from typing import Any, Callable, Dict, List, Optional
 
 import jsonschema
 import tango
+from tango import DeviceProxy, EventData, EventType
+
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
 from ska_tango_base.base.base_component_manager import TaskCallbackType
@@ -107,7 +109,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 for fqdn in self._proxies:
                     if fqdn != self._vcc_123_fqdn and fqdn != self._vcc_45_fqdn:
-                        self._proxies[fqdn] = context.DeviceProxy(device_name=fqdn)
+                        dp = context.DeviceProxy(device_name=fqdn)
+                        dp.subscribe_event(
+                            "longRunningCommandResult", EventType.CHANGE_EVENT, self._long_running_command_callback
+                        )
+                        self._proxies[fqdn] = dp
 
                 super().start_communicating()
         except tango.DevFailed as ex:
@@ -185,9 +191,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         :return: None
         """
         self._update_component_state(abort=True)
-        for proxy in self._proxies.values():
-            if proxy:
-                proxy.Stop()
+        for fqdn, proxy in self._proxies.items():
+            if proxy is not None and fqdn in [self._mac_200_fqdn, self._wib_fqdn, self._packet_validation_fqdn]:
+                self.logger.info(f"Stopping proxy {fqdn}")
+                result = proxy.Stop()
+
         result = super().abort_commands(task_callback)
         self._update_component_state(abort=False)
         return result
@@ -505,3 +513,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
         else:
             self.logger.info(f"VCC {self._vcc_id}: {ip_block_name} set to IDLE")
+
+    def _long_running_command_callback(self: VCCAllBandsComponentManager, event: EventData):
+        id, result = event.attr_value.value
+
+        self.logger.info(
+            f"VCC {self._vcc_id}: Long running command '{id}' on '{event.device.name()}' completed with result '{result}'"
+        )
+        if event.err:
+            self.logger.error(f"VCC {self._vcc_id}: Long running command failed {event.errors}")
