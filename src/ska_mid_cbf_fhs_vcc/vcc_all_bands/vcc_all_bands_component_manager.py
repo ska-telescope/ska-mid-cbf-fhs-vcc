@@ -4,11 +4,12 @@ import functools
 import json
 import logging
 from threading import Event
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import jsonschema
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus, TaskCallbackType
+from ska_control_model.faults import StateModelError
 from ska_tango_testing import context
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
@@ -47,27 +48,28 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._config_id = ""
         self._scan_id = 0
         self._packet_validation_fqdn = packet_validation_FQDN
-        self._vcc_123_channelizer_fqdn = vcc_123_channelizer_FQDN
-        self._vcc_45_channelizer_fqdn = vcc_45_channelizer_FQDN
-        self._wideband_input_buffer_fqdn = wideband_input_buffer_FQDN
-        self._wideband_frequency_shifter_fqdn = wideband_frequency_shifter_FQDN
+        self._vcc_123_fqdn = vcc_123_channelizer_FQDN
+        self._vcc_45_fqdn = vcc_45_channelizer_FQDN
+        self._wib_fqdn = wideband_input_buffer_FQDN
+        self._wfs_fqdn = wideband_frequency_shifter_FQDN
         # self._circuit_switch_fqdn = circuit_switch_FQDN
-        self._fs_selection_fqdn = fs_selection_FQDN
+        self._fss_fqdn = fs_selection_FQDN
 
         self.simulation_mode = simulation_mode
         self.emulation_mode = emulation_mode
 
         self.input_sample_rate = 0
 
-        self._mac_proxy = None
-        self._vcc_123_channelizer_proxy = None
-        self._packet_validation_proxy = None
-        self._mac_200_proxy = None
-        self._vcc_45_channelizer_proxy = None
-        self._wideband_input_buffer_proxy = None
-        self._wideband_frequency_shifter_proxy = None
+        self._proxies: Dict[str, context.DeviceProxy] = {}
+
+        self._proxies[mac_200_FQDN] = None
+        self._proxies[packet_validation_FQDN] = None
+        self._proxies[wideband_input_buffer_FQDN] = None
+        self._proxies[wideband_frequency_shifter_FQDN] = None
+        self._proxies[vcc_123_channelizer_FQDN] = None
+        self._proxies[vcc_45_channelizer_FQDN] = None
+        self._proxies[fs_selection_FQDN] = None
         # self._circuit_switch_proxy = None
-        self._fs_selection_proxy = None
 
         # vcc channels * number of polarizations
         self._num_vcc_gains = 0
@@ -102,11 +104,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 self.logger.info("Establishing Communication with low-level proxies")
 
-                self._fs_selection_proxy = context.DeviceProxy(device_name=self._fs_selection_fqdn)
-                self._wideband_frequency_shifter_proxy = context.DeviceProxy(device_name=self._wideband_frequency_shifter_fqdn)
-                self._wideband_input_buffer_proxy = context.DeviceProxy(device_name=self._wideband_input_buffer_fqdn)
-                self._mac_200_proxy = context.DeviceProxy(device_name=self._mac_200_fqdn)
-                self._packet_validation_proxy = context.DeviceProxy(device_name=self._packet_validation_fqdn)
+                for fqdn in self._proxies:
+                    if fqdn != self._vcc_123_fqdn and fqdn != self._vcc_45_fqdn:
+                        self._proxies[fqdn] = context.DeviceProxy(device_name=fqdn)
 
                 super().start_communicating()
         except tango.DevFailed as ex:
@@ -117,11 +117,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     def stop_communicating(self: VCCAllBandsComponentManager) -> None:
         """Close communication with the component, then stop monitoring."""
         try:
-            self._fs_selection_proxy = {}
-            self._wideband_frequency_shifter_proxy = {}
-            self._wideband_input_buffer_proxy = {}
-            self._mac_200_proxy = {}
-            self._packet_validation_proxy = {}
+            for fqdn in self._proxies:
+                self._proxies[fqdn] = None
 
             # Event unsubscription will also be placed here
             super().stop_communicating()
@@ -214,6 +211,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 # number of channels * number of polarizations
                 self._num_vcc_gains = 10 * 2
             else:
+                self._reset_attributes()
                 self._set_task_callback(
                     task_callback,
                     TaskStatus.COMPLETED,
@@ -223,7 +221,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 return
 
             if len(self._vcc_gains) != self._num_vcc_gains:
-                # Implement error handling
+                self._reset_attributes()
                 self._set_task_callback(
                     task_callback,
                     TaskStatus.COMPLETED,
@@ -234,12 +232,25 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
             if not self.simulation_mode:
                 if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                    self._vcc_123_channelizer_proxy = context.DeviceProxy(device_name=self._vcc_123_channelizer_fqdn)
-                    self._vcc_123_channelizer_proxy.Configure(
+                    self._proxies[self._vcc_123_fqdn] = context.DeviceProxy(device_name=self._vcc_123_fqdn)
+                    result = self._proxies[self._vcc_123_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
                     )
+
+                    if result[0] == ResultCode.FAILED:
+                        self.logger.error(f"Configuration of VCC123 Channelizer failed: {result[1]}")
+                        self._reset_attributes()
+                        self._set_task_callback(
+                            task_callback,
+                            TaskStatus.COMPLETED,
+                            ResultCode.REJECTED,
+                            "Configuration of low-level fhs device failed",
+                        )
+                        return
+
                 else:
                     # TODO: Implement routing to the 5 Channelizer once outlined
+                    self._reset_attributes()
                     self._set_task_callback(
                         task_callback,
                         TaskStatus.COMPLETED,
@@ -248,18 +259,31 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     )
                     return
 
-                self._wideband_frequency_shifter_proxy.Configure(json.dumps({"shift_frequency": self.frequency_band_offset[0]}))
+                # WFS Configuration
+                result = self._proxies[self._wfs_fqdn].Configure(json.dumps({"shift_frequency": self.frequency_band_offset[0]}))
+                if result[0] == ResultCode.FAILED:
+                    self.logger.error(f"Configuration of Wideband Frequency Shifter failed: {result[1]}")
+                    self._reset_devices([self._vcc_123_fqdn])
+                    self._set_task_callback(
+                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
+                    )
+                    return
 
-                # TODO: understand mechanism for logic behind start channel indexes
-                # FSS outputs 26 coarse channels, channelizers have the potential in bands 4/5 to output 30 total, 15 per 4/5 channelizer
-                # starting index mitigates the additional coarse channels.
-                # band_start_channel[0] -> starting channel for B123 or B45.1
-                # band_start_channel[1] -> starting channel for B45.2
-                self._fs_selection_proxy.Configure(
+                # FSS Configuration
+                result = self._proxies[self._fss_fqdn].Configure(
                     json.dumps({"band_select": self.frequency_band.value + 1, "band_start_channel": [0, 1]})
                 )
 
-                self._wideband_input_buffer_proxy.Configure(
+                if result[0] == ResultCode.FAILED:
+                    self.logger.error(f"Configuration of FS Selection failed: {result[1]}")
+                    self._reset_devices([self._vcc_123_fqdn, self._wfs_fqdn])
+                    self._set_task_callback(
+                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
+                    )
+                    return
+
+                # WIB Configuration
+                result = self._proxies[self._wib_fqdn].Configure(
                     json.dumps(
                         {
                             "expected_sample_rate": self._sample_rate,
@@ -269,18 +293,34 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         }
                     )
                 )
-                self._wideband_input_buffer_proxy.expectedDishId = self.expected_dish_id
+
+                if result[0] == ResultCode.FAILED:
+                    self.logger.error(f"Configuration of WIB failed: {result[1]}")
+                    self._reset_devices([self._vcc_123_fqdn, self._wfs_fqdn, self._fss_fqdn])
+                    self._set_task_callback(
+                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
+                    )
+                    return
+
+                self._proxies[self._wib_fqdn].expectedDishId = self.expected_dish_id
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._update_component_state(configuring=False)
             return
+        except StateModelError as ex:
+            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ConfigureScan command from an incorrect state",
+            )
         except jsonschema.ValidationError as ex:
             self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
             self._update_component_state(idle=True)
             self._set_task_callback(
                 task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan"
             )
-            return
         except Exception as ex:
             self.logger.error(repr(ex))
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
@@ -302,24 +342,33 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         :return: None
         """
-        # set task status in progress, check for abort event
-        self._scan_id = argin
-        if not self.simulation_mode:
-            try:
-                self._mac_200_proxy.Start()
-                self._packet_validation_proxy.Start()
-                self._wideband_input_buffer_proxy.Start()
-            except tango.DevFailed as ex:
-                self.logger.error(repr(ex))
-                self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-                self._set_task_callback(
-                    task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
-                )
-                return
+        try:
+            # set task status in progress, check for abort event
+            self._scan_id = argin
+            if not self.simulation_mode:
+                try:
+                    self._proxies[self._mac_200_fqdn].Start()
+                    self._proxies[self._packet_validation_fqdn].Start()
+                    self._proxies[self._wib_fqdn].Start()
+                except tango.DevFailed as ex:
+                    self.logger.error(repr(ex))
+                    self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+                    self._set_task_callback(
+                        task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
+                    )
+                    return
 
-        # Update obsState callback
-        self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Scan completed OK")
-        return
+            # Update obsState callback
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Scan completed OK")
+            return
+        except StateModelError as ex:
+            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ConfigureScan command from an incorrect state",
+            )
 
     def _end_scan(
         self: VCCAllBandsComponentManager,
@@ -331,26 +380,35 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         :return: None
         """
-        task_callback(status=TaskStatus.IN_PROGRESS)
-        if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
-            return
-
-        if not self.simulation_mode:
-            try:
-                self._mac_200_proxy.Stop()
-                self._packet_validation_proxy.Stop()
-                self._wideband_input_buffer_proxy.Stop()
-            except tango.DevFailed as ex:
-                self.logger.error(repr(ex))
-                self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-                self._set_task_callback(
-                    task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
-                )
+        try:
+            task_callback(status=TaskStatus.IN_PROGRESS)
+            if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
                 return
 
-        # Update obsState callback
-        self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
-        return
+            if not self.simulation_mode:
+                try:
+                    self._proxies[self._mac_200_fqdn].Stop()
+                    self._proxies[self._packet_validation_fqdn].Stop()
+                    self._proxies[self._wib_fqdn].Stop()
+                except tango.DevFailed as ex:
+                    self.logger.error(repr(ex))
+                    self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+                    self._set_task_callback(
+                        task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
+                    )
+                    return
+
+            # Update obsState callback
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
+            return
+        except StateModelError as ex:
+            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ConfigureScan command from an incorrect state",
+            )
 
     # A replacement for unconfigure
     def _go_to_idle(
@@ -364,27 +422,40 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
                 return
 
-            # Reset attributes to the defaults
-            self._config_id = ""
-            self._scan_id = 0
-            self.frequency_band = FrequencyBandEnum._1
-            self.frequency_band_offset = [0, 0]
-            self._sample_rate = 0
-            self._samples_per_frame = 0
-            self._fsps = []
+            # Reset all device proxies
+            self._reset_devices(self._proxies.keys())
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
-
-            self._log_go_to_idle_status("VCC-B123", self._vcc_123_channelizer_proxy.GoToIdle())
-            self._log_go_to_idle_status("WIB", self._wideband_input_buffer_proxy.GoToIdle())
-            self._log_go_to_idle_status("WFS", self._wideband_frequency_shifter_proxy.GoToIdle())
-            self._log_go_to_idle_status("FSS", self._fs_selection_proxy.GoToIdle())
-            self._log_go_to_idle_status("PV", self._packet_validation_proxy.GoToIdle())
-            self._log_go_to_idle_status("Mac200", self._mac_200_proxy.GoToIdle())
             return
+        except StateModelError as ex:
+            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ConfigureScan command from an incorrect state",
+            )
         except Exception as ex:
             self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
 
+    def _reset_attributes(self: VCCAllBandsComponentManager):
+        self._config_id = ""
+        self._scan_id = 0
+        self.frequency_band = FrequencyBandEnum._1
+        self.frequency_band_offset = [0, 0]
+        self._sample_rate = 0
+        self._samples_per_frame = 0
+        self._fsps = []
+
+    def _reset_devices(self: VCCAllBandsComponentManager, devices_name: List[str]):
+        try:
+            self._reset_attributes()
+            for fqdn in devices_name:
+                if self._proxies[fqdn] is not None:
+                    self._log_go_to_idle_status(fqdn, self._proxies[fqdn].GoToIdle())
+        except Exception as ex:
+            self.logger.error(f"Error resetting specific devices : {repr(ex)}")
+    
     def abort_commands(
         self: VCCAllBandsComponentManager,
         task_callback: TaskCallbackType | None = None,
