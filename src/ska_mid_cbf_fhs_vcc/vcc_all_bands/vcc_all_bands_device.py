@@ -56,13 +56,6 @@ class VCCAllBandsController(FhsBaseDevice):
 
         super().init_command_objects(commandsAndMethods)
 
-        # init the fast commands
-        commandsAndClasses = [
-            ("Abort", VCCAllBandsController.AbortCommand),
-        ]
-
-        super().init_fast_command_objects(commandsAndClasses)
-
     @attribute(
         abs_change=1,
         dtype=tango.DevEnum,
@@ -154,10 +147,6 @@ class VCCAllBandsController(FhsBaseDevice):
         command_handler = self.get_command_object(command_name="Abort")
         result_code, command_id = command_handler()
         return [[result_code], [command_id]]
-
-    class AbortCommand(FhsFastCommand):
-        def do(self) -> tuple[ResultCode, str]:
-            return self._component_manager.abort()
 
 
 def main(args=None, **kwargs):

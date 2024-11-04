@@ -8,7 +8,7 @@ from typing import Any, Callable, Optional
 
 import jsonschema
 import tango
-from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
+from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus, TaskCallbackType
 from ska_tango_testing import context
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
@@ -152,21 +152,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             task_callback=task_callback,
             is_cmd_allowed=self.is_go_to_idle_allowed,
         )
-
-    def abort(self: VCCAllBandsComponentManager) -> tuple[ResultCode, str]:
-        try:
-            if self.is_abort_allowed():
-                self._update_component_state(abort=True)
-                self._abort()
-                self._update_component_state(abort=False)
-                return ResultCode.OK, "Abort command completed OK"
-            else:
-                return (
-                    ResultCode.REJECTED,
-                    f"Abort command is not allowed in obs state {self.obs_state}",
-                )
-        except Exception as ex:
-            return ResultCode.FAILED, f"Abort command failed. ex={ex!r}"
 
     def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
         return self.submit_task(
@@ -400,14 +385,16 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         except Exception as ex:
             self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
 
-    def _abort(
+    def abort_commands(
         self: VCCAllBandsComponentManager,
-    ) -> None:
+        task_callback: TaskCallbackType | None = None,
+    ) -> tuple[TaskStatus, str]:
         """
         Stop all devices.
 
         :return: None
         """
+        self._update_component_state(abort=True)
         if not self.simulation_mode:
             self._vcc_123_channelizer_proxy.Stop()
             self._wideband_input_buffer_proxy.Stop()
@@ -416,7 +403,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._packet_validation_proxy.Stop()
             self._mac_200_proxy.Stop()
 
-        self.abort_commands()
+        super().abort_commands()
+        self._update_component_state(abort=False)
 
     def task_abort_event_is_set(
         self: VCCAllBandsComponentManager,
