@@ -123,7 +123,7 @@ class FhsObsStateMachine(Machine):
             {
                 "source": ["IDLE", "READY", "SCANNING", "CONFIGURING", "RESETTING"],
                 "trigger": self.ABORT_INVOKED,
-                "dest": "ABORTED",
+                "dest": "ABORTING",
             },
             {
                 "source": ["ABORTING"],
