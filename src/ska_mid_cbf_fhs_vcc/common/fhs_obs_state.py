@@ -126,7 +126,7 @@ class FhsObsStateMachine(Machine):
                 "dest": "ABORTING",
             },
             {
-                "source": ["ABORTING"],
+                "source": "ABORTING",
                 "trigger": self.ABORT_COMPLETED,
                 "dest": "ABORTED",
             },
