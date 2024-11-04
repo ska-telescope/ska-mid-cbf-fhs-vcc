@@ -174,6 +174,28 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             task_callback=task_callback,
         )
 
+    def abort_commands(
+        self: VCCAllBandsComponentManager,
+        task_callback: TaskCallbackType | None = None,
+    ) -> tuple[TaskStatus, str]:
+        """
+        Stop all devices.
+
+        :return: None
+        """
+        self._update_component_state(abort=True)
+        if not self.simulation_mode:
+            self._vcc_123_channelizer_proxy and self._vcc_123_channelizer_proxy.Stop()
+            self._wideband_input_buffer_proxy and self._wideband_input_buffer_proxy.Stop()
+            self._wideband_frequency_shifter_proxy and self._wideband_frequency_shifter_proxy.Stop()
+            self._fs_selection_proxy and self._fs_selection_proxy.Stop()
+            self._packet_validation_proxy and self._packet_validation_proxy.Stop()
+            self._mac_200_proxy and self._mac_200_proxy.Stop()
+
+        result = super().abort_commands(task_callback)
+        self._update_component_state(abort=False)
+        return result
+
     def _configure_scan(
         self: VCCAllBandsComponentManager,
         argin: str,
@@ -455,27 +477,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     self._log_go_to_idle_status(fqdn, self._proxies[fqdn].GoToIdle())
         except Exception as ex:
             self.logger.error(f"Error resetting specific devices : {repr(ex)}")
-    
-    def abort_commands(
-        self: VCCAllBandsComponentManager,
-        task_callback: TaskCallbackType | None = None,
-    ) -> tuple[TaskStatus, str]:
-        """
-        Stop all devices.
-
-        :return: None
-        """
-        self._update_component_state(abort=True)
-        if not self.simulation_mode:
-            self._vcc_123_channelizer_proxy.Stop()
-            self._wideband_input_buffer_proxy.Stop()
-            self._wideband_frequency_shifter_proxy.Stop()
-            self._fs_selection_proxy.Stop()
-            self._packet_validation_proxy.Stop()
-            self._mac_200_proxy.Stop()
-
-        super().abort_commands()
-        self._update_component_state(abort=False)
 
     def task_abort_event_is_set(
         self: VCCAllBandsComponentManager,
