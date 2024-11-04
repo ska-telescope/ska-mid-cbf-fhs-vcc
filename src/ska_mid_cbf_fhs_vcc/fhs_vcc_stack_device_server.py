@@ -69,16 +69,15 @@ def check_if_bitstream_exists():
     except KeyError as ke:
         print("ERROR: CONFIG_MAP_LOCATION env variable not found")
         raise ke
-    
+
     # provide some additional leeway for the bitstream untar to complete
     time.sleep(3)
 
 
 def check_bitstream_components_available(bitstream_path):
-    if (
-        os.path.exists(os.path.join(bitstream_path, "drivers")) and
-        os.path.exists(os.path.join(bitstream_path, "emulators", "config.json"))
-    ):
+    driver_path = os.path.join(bitstream_path, "drivers")
+    emu_config_path = os.path.join(bitstream_path, "emulators", "config.json")
+    if os.path.exists(driver_path) and os.path.exists(emu_config_path):
         print(f"INFO: Bitstream {bitstream_path} found!")
         return True
     else:
