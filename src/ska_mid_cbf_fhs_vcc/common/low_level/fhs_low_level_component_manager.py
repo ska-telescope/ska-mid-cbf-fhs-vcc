@@ -114,9 +114,9 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
     def recover(self: FhsLowLevelComponentManager) -> tuple[ResultCode, str]:
         try:
             if self.is_recover_allowed():
-                self._obs_state_callback(FhsObsStateMachine.RESET_INVOKED)
+                self._obs_state_action_callback(FhsObsStateMachine.RESET_INVOKED)
                 self._api.recover()
-                self._obs_state_callback(FhsObsStateMachine.RESET_COMPLETED)
+                self._obs_state_action_callback(FhsObsStateMachine.RESET_COMPLETED)
                 return ResultCode.OK, "Recover command completed OK"
             else:
                 return (
