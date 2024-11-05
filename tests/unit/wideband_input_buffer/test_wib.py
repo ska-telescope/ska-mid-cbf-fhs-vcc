@@ -116,20 +116,44 @@ def test_go_to_idle(device_under_test):
 
 
 def test_convert_dish_id():
-    assert convert_dish_id_uint16_t_to_mnemonic(0x0000) == "MKT000"
-    assert convert_dish_id_uint16_t_to_mnemonic(0x003F) == "MKT063"
+    # SKA dish tests
     assert convert_dish_id_uint16_t_to_mnemonic(0x1001) == "SKA001"
+    assert convert_dish_id_uint16_t_to_mnemonic(0x100A) == "SKA010"
+    assert convert_dish_id_uint16_t_to_mnemonic(0x100B) == "SKA011"
+    assert convert_dish_id_uint16_t_to_mnemonic(0x1069) == "SKA105"
     assert convert_dish_id_uint16_t_to_mnemonic(0x1085) == "SKA133"
-    assert convert_dish_id_uint16_t_to_mnemonic(0xFFFF) == "DIDINV"
 
+    # Invalid SKA dish tests
+    with pytest.raises(ValueError):
+        convert_dish_id_uint16_t_to_mnemonic(0x1000)  # SKA000 is not valid
+    with pytest.raises(ValueError):
+        convert_dish_id_uint16_t_to_mnemonic(0x1086)  # SKA134 is not valid
+    with pytest.raises(ValueError):
+        convert_dish_id_uint16_t_to_mnemonic(0x10A3)  # Out of range
+    with pytest.raises(ValueError):
+        convert_dish_id_uint16_t_to_mnemonic(0x2030)  # Invalid dish type
+
+    # MKT dish tests
+    assert convert_dish_id_uint16_t_to_mnemonic(0x0000) == "MKT000"
+    assert convert_dish_id_uint16_t_to_mnemonic(0x0001) == "MKT001"
+    assert convert_dish_id_uint16_t_to_mnemonic(0x0037) == "MKT055"
+    assert convert_dish_id_uint16_t_to_mnemonic(0x003F) == "MKT063"
+
+    # Invalid MKT dish tests
+    with pytest.raises(ValueError):
+        convert_dish_id_uint16_t_to_mnemonic(0x0040)  # Out of range
+    with pytest.raises(ValueError):
+        convert_dish_id_uint16_t_to_mnemonic(0x0085)  # Out of range
+    with pytest.raises(ValueError):
+        convert_dish_id_uint16_t_to_mnemonic(0x3010)  # Invalid dish type
     with pytest.raises(Exception):
         convert_dish_id_uint16_t_to_mnemonic(0x2000)  # 2 is not a dish type
-
     with pytest.raises(Exception):
         convert_dish_id_uint16_t_to_mnemonic(0x1000)  # SKA000 is not valid
-
     with pytest.raises(Exception):
         convert_dish_id_uint16_t_to_mnemonic(0x1086)  # SKA134 is not valid
-
     with pytest.raises(Exception):
         convert_dish_id_uint16_t_to_mnemonic(0x0040)  # MKT134 is not valid
+
+    # Special case
+    assert convert_dish_id_uint16_t_to_mnemonic(0xFFFF) == "DIDINV"
