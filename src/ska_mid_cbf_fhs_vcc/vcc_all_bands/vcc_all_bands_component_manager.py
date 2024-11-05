@@ -191,12 +191,13 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         :return: None
         """
         self._update_component_state(abort=True)
+        result = super().abort_commands(task_callback)
+
         for fqdn, proxy in self._proxies.items():
             if proxy is not None and fqdn in [self._mac_200_fqdn, self._wib_fqdn, self._packet_validation_fqdn]:
                 self.logger.info(f"Stopping proxy {fqdn}")
                 result = proxy.Stop()
 
-        result = super().abort_commands(task_callback)
         self._update_component_state(abort=False)
         return result
 
