@@ -36,6 +36,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         attr_archive_callback: Callable[[str, Any], None] | None = None,
         health_state_callback: Callable[[HealthState], None] | None = None,
         obs_command_running_callback: Callable[[str, bool], None],
+        obs_state_callback: Callable[[str], None] | None = None,
         logger: logging.Logger,
         **kwargs: Any,
     ) -> None:
@@ -45,6 +46,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         self._attr_archive_callback = attr_archive_callback
         self._device_health_state_callback = health_state_callback
         self._obs_command_running_callback = obs_command_running_callback
+        self._obs_state_callback = obs_state_callback
 
         self._health_state_lock = Lock()
         self._health_state = HealthState.UNKNOWN

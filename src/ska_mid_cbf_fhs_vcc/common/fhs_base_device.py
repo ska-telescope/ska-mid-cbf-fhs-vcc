@@ -125,10 +125,7 @@ class FhsBaseDevice(SKAObsDevice):
         self.logger.info(f"Changing ObsState from running command, calling: {hook}_{action} ")
         self.obs_state_model.perform_action(f"{hook}_{action}")
 
-    def _obs_state_action(
-        self: FhsBaseDevice,
-        action: str
-    ) -> None:
+    def _obs_state_action(self: FhsBaseDevice, action: str) -> None:
         self.obs_state_model.perform_action(action)
 
     def _update_obs_state(self: FhsBaseDevice, obs_state: ObsState) -> None:
