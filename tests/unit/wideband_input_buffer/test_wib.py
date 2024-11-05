@@ -1,5 +1,6 @@
 # tests/test_packet validation.py
 
+from contextlib import nullcontext as does_not_raise
 from assertpy import assert_that
 import pytest
 from tango import DevState
@@ -115,45 +116,39 @@ def test_go_to_idle(device_under_test):
     assert device_under_test.read_attribute("obsState").value is ObsState.IDLE.value
 
 
-def test_convert_dish_id():
-    # SKA dish tests
-    assert convert_dish_id_uint16_t_to_mnemonic(0x1001) == "SKA001"
-    assert convert_dish_id_uint16_t_to_mnemonic(0x100A) == "SKA010"
-    assert convert_dish_id_uint16_t_to_mnemonic(0x100B) == "SKA011"
-    assert convert_dish_id_uint16_t_to_mnemonic(0x1069) == "SKA105"
-    assert convert_dish_id_uint16_t_to_mnemonic(0x1085) == "SKA133"
-
-    # Invalid SKA dish tests
-    with pytest.raises(ValueError):
-        convert_dish_id_uint16_t_to_mnemonic(0x1000)  # SKA000 is not valid
-    with pytest.raises(ValueError):
-        convert_dish_id_uint16_t_to_mnemonic(0x1086)  # SKA134 is not valid
-    with pytest.raises(ValueError):
-        convert_dish_id_uint16_t_to_mnemonic(0x10A3)  # Out of range
-    with pytest.raises(ValueError):
-        convert_dish_id_uint16_t_to_mnemonic(0x2030)  # Invalid dish type
-
-    # MKT dish tests
-    assert convert_dish_id_uint16_t_to_mnemonic(0x0000) == "MKT000"
-    assert convert_dish_id_uint16_t_to_mnemonic(0x0001) == "MKT001"
-    assert convert_dish_id_uint16_t_to_mnemonic(0x0037) == "MKT055"
-    assert convert_dish_id_uint16_t_to_mnemonic(0x003F) == "MKT063"
-
-    # Invalid MKT dish tests
-    with pytest.raises(ValueError):
-        convert_dish_id_uint16_t_to_mnemonic(0x0040)  # Out of range
-    with pytest.raises(ValueError):
-        convert_dish_id_uint16_t_to_mnemonic(0x0085)  # Out of range
-    with pytest.raises(ValueError):
-        convert_dish_id_uint16_t_to_mnemonic(0x3010)  # Invalid dish type
-    with pytest.raises(Exception):
-        convert_dish_id_uint16_t_to_mnemonic(0x2000)  # 2 is not a dish type
-    with pytest.raises(Exception):
-        convert_dish_id_uint16_t_to_mnemonic(0x1000)  # SKA000 is not valid
-    with pytest.raises(Exception):
-        convert_dish_id_uint16_t_to_mnemonic(0x1086)  # SKA134 is not valid
-    with pytest.raises(Exception):
-        convert_dish_id_uint16_t_to_mnemonic(0x0040)  # MKT134 is not valid
-
-    # Special case
-    assert convert_dish_id_uint16_t_to_mnemonic(0xFFFF) == "DIDINV"
+@pytest.mark.parametrize(
+    ("id", "expected_mnemonic", "exception_expectation"),
+    [
+        # SKA dish valid tests
+        (0x1001, "SKA001", does_not_raise()),
+        (0x100A, "SKA010", does_not_raise()),
+        (0x100B, "SKA011", does_not_raise()),
+        (0x1069, "SKA105", does_not_raise()),
+        (0x1085, "SKA133", does_not_raise()),
+        # SKA dish invalid tests
+        (0x1000, None, pytest.raises(ValueError)),  # SKA000 is not valid
+        (0x1086, None, pytest.raises(ValueError)),  # SKA134 is not valid
+        (0x10A3, None, pytest.raises(ValueError)),  # Out of range
+        (0x2030, None, pytest.raises(ValueError)),  # Invalid dish type
+        # MKT dish valid tests
+        (0x0000, "MKT000", does_not_raise()),
+        (0x0001, "MKT001", does_not_raise()),
+        (0x0037, "MKT055", does_not_raise()),
+        (0x003F, "MKT063", does_not_raise()),
+        # MKT dish invalid tests
+        (0x0040, None, pytest.raises(ValueError)),  # Out of range
+        (0x0085, None, pytest.raises(ValueError)),  # Out of range
+        (0x3010, None, pytest.raises(ValueError)),  # Invalid dish type
+        # Other invalid tests
+        (0x2000, None, pytest.raises(ValueError)),  # 2 is not a dish type
+        (0x1000, None, pytest.raises(ValueError)),  # SKA000 is not valid
+        (0x1086, None, pytest.raises(ValueError)),  # SKA134 is not valid
+        (0x0040, None, pytest.raises(ValueError)),  # MKT134 is not valid
+        # Special case
+        (0xFFFF, "DIDINV", does_not_raise()),
+    ],
+    ids=lambda params: f"id=0x{params[0]:04X}",
+)
+def test_convert_dish_id(id, expected_mnemonic, exception_expectation):
+    with exception_expectation:
+        assert convert_dish_id_uint16_t_to_mnemonic(id) == expected_mnemonic
