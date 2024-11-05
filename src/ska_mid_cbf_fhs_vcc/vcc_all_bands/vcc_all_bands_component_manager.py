@@ -110,6 +110,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 for fqdn in self._proxies:
                     if fqdn != self._vcc_123_fqdn and fqdn != self._vcc_45_fqdn:
                         dp = context.DeviceProxy(device_name=fqdn)
+                        # NOTE: this crashes when adminMode is memorized because it gets called before the devices are ready
                         dp.subscribe_event(
                             "longRunningCommandResult", EventType.CHANGE_EVENT, self._long_running_command_callback
                         )
