@@ -8,12 +8,11 @@ from typing import Any, Callable, Dict, List, Optional
 
 import jsonschema
 import tango
-from tango import DeviceProxy, EventData, EventType
-
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_testing import context
+from tango import EventData, EventType
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
