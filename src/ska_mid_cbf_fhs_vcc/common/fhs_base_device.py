@@ -125,33 +125,11 @@ class FhsBaseDevice(SKAObsDevice):
         self.logger.info(f"Changing ObsState from running command, calling: {hook}_{action} ")
         self.obs_state_model.perform_action(f"{hook}_{action}")
 
-    def _component_state_changed(
+    def _obs_state_action(
         self: FhsBaseDevice,
-        idle: bool | None = None,
-        configuring: bool | None = None,
-        reset: bool | None = None,
-        fault: bool | None = None,
-        power: PowerState | None = None,
+        action: str
     ) -> None:
-        super()._component_state_changed(fault=fault, power=power)
-
-        if idle is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.GO_TO_IDLE)
-
-        if configuring is not None:
-            if configuring:
-                self.obs_state_model.perform_action(FhsObsStateMachine.CONFIGURE_INVOKED)
-            else:
-                self.obs_state_model.perform_action(FhsObsStateMachine.CONFIGURE_COMPLETED)
-
-        if reset is not None:
-            if reset:
-                self.obs_state_model.perform_action(FhsObsStateMachine.RESET_INVOKED)
-            else:
-                self.obs_state_model.perform_action(FhsObsStateMachine.RESET_COMPLETED)
-
-        if fault is not None:
-            self.obs_state_model.perform_action(FhsObsStateMachine.COMPONENT_FAULT)
+        self.obs_state_model.perform_action(action)
 
     def _update_obs_state(self: FhsBaseDevice, obs_state: ObsState) -> None:
         """

@@ -13,6 +13,7 @@ from ska_control_model.faults import StateModelError
 from ska_tango_testing import context
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
+from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
 
 from .vcc_all_bands_config import schema
@@ -185,7 +186,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             Read from JSON Config argin and setup VCC All bands with initial configuration from the control
             software
             """
-            self._update_component_state(configuring=True)
+            self._obs_state_callback(FhsObsStateMachine.CONFIGURE_INVOKED)
             task_callback(status=TaskStatus.IN_PROGRESS)
             configuration = json.loads(argin)
             jsonschema.validate(configuration, schema)
@@ -305,7 +306,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self._proxies[self._wib_fqdn].expectedDishId = self.expected_dish_id
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
-            self._update_component_state(configuring=False)
+            self._obs_state_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
             return
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
@@ -317,14 +318,14 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             )
         except jsonschema.ValidationError as ex:
             self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
-            self._update_component_state(idle=True)
+            self._obs_state_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
                 task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan"
             )
         except Exception as ex:
             self.logger.error(repr(ex))
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-            self._update_component_state(idle=True)
+            self._obs_state_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
                 task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to HPS VCC devices"
             )

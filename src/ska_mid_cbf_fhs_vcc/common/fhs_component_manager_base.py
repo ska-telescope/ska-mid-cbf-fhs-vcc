@@ -50,10 +50,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         self._health_state = HealthState.UNKNOWN
 
         super().__init__(
-            idle=None,
             power=None,
-            configuring=None,
-            reset=None,
             fault=None,
             logger=logger,
             **kwargs,
