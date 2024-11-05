@@ -117,9 +117,9 @@ def test_go_to_idle(device_under_test):
 
 def test_convert_dish_id():
     assert convert_dish_id_uint16_t_to_mnemonic(0x0000) == "MKT000"
-    assert convert_dish_id_uint16_t_to_mnemonic(0x0063) == "MKT063"
+    assert convert_dish_id_uint16_t_to_mnemonic(0x003F) == "MKT063"
     assert convert_dish_id_uint16_t_to_mnemonic(0x1001) == "SKA001"
-    assert convert_dish_id_uint16_t_to_mnemonic(0x1133) == "SKA133"
+    assert convert_dish_id_uint16_t_to_mnemonic(0x1085) == "SKA133"
     assert convert_dish_id_uint16_t_to_mnemonic(0xFFFF) == "DIDINV"
 
     with pytest.raises(Exception):
@@ -129,7 +129,7 @@ def test_convert_dish_id():
         convert_dish_id_uint16_t_to_mnemonic(0x1000)  # SKA000 is not valid
 
     with pytest.raises(Exception):
-        convert_dish_id_uint16_t_to_mnemonic(0x1134)  # SKA134 is not valid
+        convert_dish_id_uint16_t_to_mnemonic(0x1086)  # SKA134 is not valid
 
     with pytest.raises(Exception):
-        convert_dish_id_uint16_t_to_mnemonic(0x0064)  # MKT134 is not valid
+        convert_dish_id_uint16_t_to_mnemonic(0x0040)  # MKT134 is not valid
