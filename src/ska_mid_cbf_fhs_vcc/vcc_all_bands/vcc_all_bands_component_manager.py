@@ -10,7 +10,9 @@ import jsonschema
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
+from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_testing import context
+from tango import EventData, EventType
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine
@@ -107,7 +109,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 for fqdn in self._proxies:
                     if fqdn != self._vcc_123_fqdn and fqdn != self._vcc_45_fqdn:
-                        self._proxies[fqdn] = context.DeviceProxy(device_name=fqdn)
+                        dp = context.DeviceProxy(device_name=fqdn)
+                        # NOTE: this crashes when adminMode is memorized because it gets called before the devices are ready
+                        dp.subscribe_event(
+                            "longRunningCommandResult", EventType.CHANGE_EVENT, self._long_running_command_callback
+                        )
+                        self._proxies[fqdn] = dp
 
                 super().start_communicating()
         except tango.DevFailed as ex:
@@ -132,7 +139,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
-            func=functools.partial(self._configure_scan),
+            func=self._configure_scan,
             args=[argin],
             task_callback=task_callback,
         )
@@ -174,6 +181,26 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             ),
             task_callback=task_callback,
         )
+
+    def abort_commands(
+        self: VCCAllBandsComponentManager,
+        task_callback: TaskCallbackType | None = None,
+    ) -> tuple[TaskStatus, str]:
+        """
+        Stop all devices.
+
+        :return: None
+        """
+        self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
+        result = super().abort_commands(task_callback)
+
+        for fqdn, proxy in self._proxies.items():
+            if proxy is not None and fqdn in [self._mac_200_fqdn, self._wib_fqdn, self._packet_validation_fqdn]:
+                self.logger.info(f"Stopping proxy {fqdn}")
+                result = proxy.Stop()
+
+        self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
+        return result
 
     def _configure_scan(
         self: VCCAllBandsComponentManager,
@@ -488,3 +515,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
         else:
             self.logger.info(f"VCC {self._vcc_id}: {ip_block_name} set to IDLE")
+
+    def _long_running_command_callback(self: VCCAllBandsComponentManager, event: EventData):
+        id, result = event.attr_value.value
+
+        self.logger.info(
+            f"VCC {self._vcc_id}: Long running command '{id}' on '{event.device.name()}' completed with result '{result}'"
+        )
+        if event.err:
+            self.logger.error(f"VCC {self._vcc_id}: Long running command failed {event.errors}")

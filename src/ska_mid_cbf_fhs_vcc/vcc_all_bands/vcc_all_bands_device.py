@@ -53,7 +53,6 @@ class VCCAllBandsController(FhsBaseDevice):
             ("EndScan", "end_scan"),
             ("ObsReset", "obs_reset"),  # TODO CIP-1850: has the potential to be left out if ticket is disgarded
             ("TestCmd", "test_cmd"),
-            ("Abort", "abort"),
         ]
 
         super().init_command_objects(commandsAndMethods)
