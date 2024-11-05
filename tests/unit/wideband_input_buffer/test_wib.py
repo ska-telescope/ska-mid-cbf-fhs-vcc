@@ -147,7 +147,6 @@ def test_go_to_idle(device_under_test):
         # Special case
         (0xFFFF, "DIDINV", does_not_raise()),
     ],
-    ids=lambda params: f"id=0x{params[0]:04X}",
 )
 def test_convert_dish_id(id, expected_mnemonic, exception_expectation):
     with exception_expectation:
