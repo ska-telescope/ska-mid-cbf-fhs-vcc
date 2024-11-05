@@ -4,10 +4,12 @@ import functools
 import json
 import logging
 from threading import Event
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 import jsonschema
+from ska_mid_cbf_fhs_vcc.common.fhs_health_monitor import FhsHealthMonitor
 import tango
+from tango import EventType, EventData
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
 from ska_tango_testing import context
@@ -60,7 +62,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         self.input_sample_rate = 0
 
-        self._proxies: Dict[str, context.DeviceProxy] = {}
+        self._proxies: dict[str, context.DeviceProxy] = {}
 
         self._proxies[mac_200_FQDN] = None
         self._proxies[packet_validation_FQDN] = None
@@ -80,7 +82,16 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self.frequency_band_offset = [0, 0]
 
         self.expected_dish_id = None
-
+        
+        # store the subscription event_ids here with a key (fqdn for deviceproxies) 
+        self.subscription_event_ids:dict[str, {int}] = {}
+        
+        self.fhs_health_monitor = FhsHealthMonitor(
+            logger=self.logger,
+            get_device_health_state=self.get_device_health_state, 
+            update_health_state_callback=health_state_callback
+        )
+        
         super().__init__(
             *args,
             logger=logger,
@@ -106,7 +117,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 for fqdn in self._proxies:
                     if fqdn != self._vcc_123_fqdn and fqdn != self._vcc_45_fqdn:
+                        dp = context.DeviceProxy(device_name=fqdn)
+                        self._subscribe_to_change_event(dp, 'healthState', fqdn, self.proxies_health_state_change_event)
                         self._proxies[fqdn] = context.DeviceProxy(device_name=fqdn)
+                        
 
                 super().start_communicating()
         except tango.DevFailed as ex:
@@ -118,6 +132,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         """Close communication with the component, then stop monitoring."""
         try:
             for fqdn in self._proxies:
+                # unsubscribe from any attribute change events
+                self._unsubscribe_from_events(fqdn)
                 self._proxies[fqdn] = None
 
             # Event unsubscription will also be placed here
@@ -447,7 +463,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._samples_per_frame = 0
         self._fsps = []
 
-    def _reset_devices(self: VCCAllBandsComponentManager, devices_name: List[str]):
+    def _reset_devices(self: VCCAllBandsComponentManager, devices_name: list[str]):
         try:
             self._reset_attributes()
             for fqdn in devices_name:
@@ -487,3 +503,27 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
         else:
             self.logger.info(f"VCC {self._vcc_id}: {ip_block_name} set to IDLE")
+            
+    def _subscribe_to_change_event(self: VCCAllBandsComponentManager, device_proxy, attribute: str, key: str, change_event_callback: Callable[[EventData], None]):
+            event_id = device_proxy.subscribe_event('healthState', EventType.CHANGE_EVENT, change_event_callback)
+            self.subscription_event_ids[key].add(event_id)
+
+    def _unsubscribe_from_events(self: VCCAllBandsComponentManager, fqdn: str):
+
+            if fqdn in self.subscription_event_ids and fqdn in self._proxies and self._proxies[fqdn] is not None:
+                for event_id in self.subscription_event_ids[fqdn]:
+                    try:
+                        self._proxies[fqdn].unsubscribe(event_id)
+                    except Exception as ex:
+                        self.logger.error(f"Unable to unsubcribe from event {event_id} for device server {fqdn}")
+                        
+                        
+    def proxies_health_state_change_event(self: VCCAllBandsComponentManager, event_data: EventData):
+        if event_data.err:
+            self.logger.error("Problem occured when recieving healthState event for {event_data.device_name}. Unable to determine health state")
+            self.fhs_health_monitor.add_health_state(event_data.device_name, HealthState.UNKNOWN)
+        else:
+            self.fhs_health_monitor.add_health_state(event_data.device_name, event_data.attr_value.value)
+        
+
+        

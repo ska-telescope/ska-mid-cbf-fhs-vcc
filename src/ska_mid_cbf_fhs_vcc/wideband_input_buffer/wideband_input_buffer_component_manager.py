@@ -61,7 +61,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             emulator_api=WibEmulatorApi,
             **kwargs,
         )
-        # self.polling_service = PollingService(interval=poll_interval_s, callback=self._poll_status)
 
         self.registers_to_check = {"meta_dish_id", "rx_sample_rate", "meta_transport_sample_rate"}
 
@@ -69,7 +68,12 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         self.expected_dish_id = None
 
         self.fhs_health_monitor = FhsHealthMonitor(
-            self._api, self.get_device_health_state, health_state_callback, self.check_registers, poll_interval=poll_interval_s
+            logger=self.logger,
+            get_device_health_state=self.get_device_health_state, 
+            update_health_state_callback=health_state_callback, 
+            check_registers_callback=self.check_registers, 
+            api=self._api, 
+            poll_interval=poll_interval_s
         )
 
     ##
@@ -119,26 +123,26 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         super().start_communicating()
 
     def check_registers(self: WidebandInputBufferComponentManager, status_str: str) -> dict[str, HealthState]:
-        status: WidebandInputBufferComponentManager = WidebandInputBufferComponentManager.schema().loads(status_str)
+        status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().loads(status_str)
 
         register_statuses = {key: HealthState.UNKNOWN for key in self.registers_to_check}
 
         for register in self.registers_to_check:
-            if register == "meta_sample_rate":
-                register_statuses["meta_sample_rate"] = self.check_meta_dish_id(status["meta_sample_rate"])
+            if register == "meta_dish_id":
+                register_statuses["meta_dish_id"] = self.check_meta_dish_id(status.meta_dish_id)
 
             if register == "rx_sample_rate":
                 register_statuses["rx_sample_rate"] = self.check_register(
                     self.expected_sample_rate,
-                    status["rx_sample_rate"],
-                    error_msg=f"rx_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status['rx_sample_rate']}",
+                    status.rx_sample_rate,
+                    error_msg=f"rx_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.rx_sample_rate}",
                 )
 
             if register == "meta_transport_sample_rate":
                 register_statuses["meta_transport_sample_rate"] = self.check_register(
                     self.expected_sample_rate,
-                    status["rx_sample_meta_transport_sample_raterate"],
-                    error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status['meta_transport_sample_rate']}",
+                    status.meta_transport_sample_rate,
+                    error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
                 )
 
         return register_statuses

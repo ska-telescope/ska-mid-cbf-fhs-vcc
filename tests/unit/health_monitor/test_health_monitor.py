@@ -2,6 +2,7 @@
 
 import asyncio
 from dataclasses import dataclass
+import logging
 import time
 from dataclasses_json import dataclass_json
 import pytest
@@ -70,6 +71,7 @@ class TestFhsLowLevelHealthMonitor():
         api = MockApi()
         
         hm: FhsHealthMonitor = FhsHealthMonitor(
+                logger=logging.Logger('test'),
                 api=api,
                 get_device_health_state=self.get_health_state,
                 update_health_state_callback=self._update_health_state,
@@ -94,6 +96,7 @@ class TestFhsLowLevelHealthMonitor():
         api = MockApi()
         
         hm: FhsHealthMonitor = FhsHealthMonitor(
+                logger=logging.Logger('test'),
                 api=api,
                 get_device_health_state=self.get_health_state,
                 update_health_state_callback=self._update_health_state,

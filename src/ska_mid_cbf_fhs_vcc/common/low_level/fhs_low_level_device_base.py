@@ -12,6 +12,7 @@ class FhsLowLevelDeviceBase(FhsBaseDevice):
     emulator_ip_block_id = device_property(dtype="str")
     emulator_id = device_property(dtype="str")
     firmware_ip_block_id = device_property(dtype="str")
+    health_monitor_poll_interval = device_property(dtype="int")
 
     @command(
         dtype_out="DevVarLongStringArray",
