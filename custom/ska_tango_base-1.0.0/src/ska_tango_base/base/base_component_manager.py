@@ -193,7 +193,6 @@ class BaseComponentManager:
         :param state: key/value pairs
         """
         self.logger = logger
-        self.logger.warn(">>>>>>>> INIT COMPONENT MGR TEST")
         self._communication_state_lock = threading.Lock()
         self._communication_state = CommunicationStatus.DISABLED
         self._communication_state_callback = communication_state_callback
@@ -271,7 +270,6 @@ class BaseComponentManager:
         :param communication_state: the new communication status of the
             component manager.
         """
-        self.logger.warn(">>>>>>>> COMM STATE CHANGED TEST")
         with self._communication_state_lock:
             if self._communication_state != communication_state:
                 self._communication_state = communication_state
@@ -305,22 +303,37 @@ class BaseComponentManager:
         """
         callback_kwargs = {}
 
-        self.logger.warn(">>>>>>>> BEFORE LOCK YEAHHHHHHHHHHHHHHHHHHHHHHHH")
-        self.logger.warn(f">>>>>>>> kwargs: {kwargs}")
+        self.logger.warning(">>>>>>>> BEFORE LOCK YEAHHHHHHHHHHHHHHHHHHHHHHHH")
+        self.logger.warning(f">>>>>>>> kwargs: {kwargs}")
         with self._component_state_lock:
-            self.logger.warn(">>>>>>>> INSIDE LOCK YEAHHHHHHHHHHHHHHHHHHHHHHHH")
+            self.logger.warning(">>>>>>>> INSIDE LOCK YEAHHHHHHHHHHHHHHHHHHHHHHHH")
             for key, value in kwargs.items():
-                self.logger.warn(">>>>>>>> LOOPING YEAHHHHHHHHHHHHHHHHHHHHHHHH")
+                self.logger.warning(">>>>>>>> LOOPING YEAHHHHHHHHHHHHHHHHHHHHHHHH")
+                self.logger.warning(f">>>>>>>> key={key}, value={value}")
+                self.logger.warning(f">>>>>>>> component_state[key]={self._component_state[key]}")
+                self.logger.warning(f">>>>>>>> {self._component_state[key]} == {value} ? : {self._component_state[key] == value}")
                 if self._component_state[key] != value:
+                    self.logger.warning(">>>>>>>> IF CONDITION MET YEAHHHHHHHHHHHHHHHHHHH")
                     self._component_state[key] = value
                     callback_kwargs[key] = value
+                else:
+                    self.logger.warning(">>>>>>>> IF CONDITION FAILED OH NOOOOOOOOOOOOOOOOOO")
+            self.logger.warning(f">>>>>>>> callback_kwargs: {callback_kwargs}")
             if callback_kwargs:
+                self.logger.warning(">>>>>>>> CALLBACK KWARGS IF CONDITION MET YEAHHHHHHHHHHHHHHHHHHH")
                 self._push_component_state_update(**callback_kwargs)
-        self.logger.warn(">>>>>>>> OUTSIDE LOCK YEAHHHHHHHHHHHHHHHHHHHHHHHH")
+            else:
+                self.logger.warning(">>>>>>>> CALLBACK KWARGS IF CONDITION FAILED OH NOOOOOOOOOOOOOOOOOO")
+        self.logger.warning(">>>>>>>> OUTSIDE LOCK YEAHHHHHHHHHHHHHHHHHHHHHHHH")
 
     def _push_component_state_update(self: BaseComponentManager, **kwargs: Any) -> None:
+        self.logger.warning(">>>>>>>> PUSH COMPONENT STATE UPDATE BEFORE IF YEAHHHHHHHHHHHHHHHHHHH")
+        self.logger.warning(f">>>>>>>> component_state_callback={self._component_state_callback}")
         if self._component_state_callback is not None:
+            self.logger.warning(">>>>>>>> STATE CALLBACK IS NOT NONE YEAHHHHHHHHHHHHHHHHHHH")
             self._component_state_callback(**kwargs)
+        else:
+            self.logger.warning(">>>>>>>> STATE CALLBACK IS NONE OH NOOOOOOOOOOOOOOOOOOOO")
 
     @check_communicating
     def off(
