@@ -4,7 +4,7 @@ from logging import Logger
 from typing import TypeVar, cast
 
 import tango
-from ska_control_model import CommunicationStatus, HealthState, ObsState, PowerState, ResultCode
+from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from ska_tango_base.commands import ArgumentValidator, FastCommand, SubmittedSlowCommand, _BaseCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
