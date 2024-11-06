@@ -545,7 +545,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         if fqdn in self.subscription_event_ids and fqdn in self._proxies and self._proxies[fqdn] is not None:
             for event_id in self.subscription_event_ids[fqdn]:
                 try:
-                    self._proxies[fqdn].unsubscribe(event_id)
+                    self._proxies[fqdn].unsubscribe_event(event_id)
                 except Exception as ex:
                     self.logger.error(f"Unable to unsubcribe from event {event_id} for device server {fqdn}: {repr(ex)}")
 
