@@ -37,6 +37,7 @@ class FhsHealthMonitor:
         # only set up polling if we're provided an api and a check_registers_callback function
         if self.api and self.check_registers_callback:
             self._polling_thread = RegisterPollingThread(
+                logger=self.logger,
                 api=self.api,
                 status_func=status_func,
                 check_registers_callback=self.check_registers_callback,
@@ -96,6 +97,7 @@ class FhsHealthMonitor:
 class RegisterPollingThread(threading.Thread):
     def __init__(
         self: RegisterPollingThread,
+        logger: logging.Logger,
         api: FhsBaseApiInterface,
         status_func: str,
         check_registers_callback: Callable,
@@ -104,6 +106,7 @@ class RegisterPollingThread(threading.Thread):
         poll_interval=1.0,
     ):
         super().__init__()
+        self.logger = logger
         self.api = api
         self.status_func = status_func
         self.check_registers_callback = check_registers_callback
@@ -117,25 +120,25 @@ class RegisterPollingThread(threading.Thread):
     def run(self: RegisterPollingThread):
         if not self._running:
             while not self._stop_event.is_set():
-                try:
-                    time.sleep(self.poll_interval)
-                    status_func = getattr(self.api, self.status_func)
+                # try:
+                time.sleep(self.poll_interval)
+                status_func = getattr(self.api, self.status_func)
 
-                    print("::::: got Status func ::::::")
+                self.logger.info("::::: got Status func ::::::")
 
-                    _, status = status_func()
+                _, status = status_func()
 
-                    print(f":::::::::: STATUS RECEIVED {status} ::::::::::")
+                self.logger.info(f":::::::::: STATUS RECEIVED {status} ::::::::::")
 
-                    health_states: dict[str, HealthState] = self.check_registers_callback(status)
-                    self.merge_health_states(health_states)
+                health_states: dict[str, HealthState] = self.check_registers_callback(status)
+                self.merge_health_states(health_states)
 
-                except Exception as ex:
-                    self.add_health_state("REGISTER_POLLING_EXCEPTION", HealthState.UNKNOWN)
-                    self.stop()
-                    print(f"Error - Unable to monitor health. {repr(ex)}")
+                # except Exception as ex:
+                #     self.add_health_state("REGISTER_POLLING_EXCEPTION", HealthState.UNKNOWN)
+                #     self.stop()
+                #     print(f"Error - Unable to monitor health. {repr(ex)}")
         else:
-            print("LowLevelHealthMonitor is already running")
+            self.logger.info("LowLevelHealthMonitor is already running")
 
     def stop(self):
         self._stop_event.set()
