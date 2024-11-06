@@ -166,7 +166,7 @@ def convert_dish_id_uint16_t_to_mnemonic(numerical_dish_id: int) -> str:
     dish_type_uint = (numerical_dish_id & 0xF000) >> DISH_INSTANCE_NUM_BITS
 
     if dish_type_uint not in (SKA_DISH_TYPE_NUM, MKT_DISH_TYPE_NUM):
-        raise ValueError("Incorrect DISH type. First four bits must be 0000 (MKT) or 0001 (SKA)")
+        raise ValueError(f"Incorrect DISH type {dish_type_uint}. First four bits must be 0000 (MKT) or 0001 (SKA)")
 
     # Convert to DISH TYPE mnemonic
     dish_type_str = SKA_DISH_TYPE_STR if dish_type_uint == SKA_DISH_TYPE_NUM else MKT_DISH_TYPE_STR
@@ -178,10 +178,12 @@ def convert_dish_id_uint16_t_to_mnemonic(numerical_dish_id: int) -> str:
         dish_instance_uint < SKA_DISH_INSTANCE_MIN or dish_instance_uint > SKA_DISH_INSTANCE_MAX
     ):
         raise ValueError(
-            f"Incorrect DISH instance. Dish instance for SKA DISH type is {SKA_DISH_INSTANCE_MIN} to {SKA_DISH_INSTANCE_MAX} incl."
+            f"Incorrect DISH instance {dish_instance_uint}. Dish instance for SKA DISH type is {SKA_DISH_INSTANCE_MIN} to {SKA_DISH_INSTANCE_MAX} incl."
         )
     if dish_type_str == MKT_DISH_TYPE_STR and dish_instance_uint > MKT_DISH_INSTANCE_MAX:
-        raise ValueError(f"Incorrect DISH instance. Dish instance for MKT DISH type is 0 to {MKT_DISH_INSTANCE_MAX} incl.")
+        raise ValueError(
+            f"Incorrect DISH instance {dish_instance_uint}. Dish instance for MKT DISH type is 0 to {MKT_DISH_INSTANCE_MAX} incl."
+        )
 
     dish_instance_str = str(dish_instance_uint)
     padding_length = DISH_TYPE_STR_LEN - min(DISH_TYPE_STR_LEN, len(dish_instance_str))
