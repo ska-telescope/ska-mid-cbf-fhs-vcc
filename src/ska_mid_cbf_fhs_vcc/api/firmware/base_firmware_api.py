@@ -61,8 +61,8 @@ class BaseFirmwareApi(FhsBaseApiInterface):
         self._driver.deconfigure(self._config_t(**config))
         return ResultCode.OK, "Deconfigure Called Successfully"
 
-    def status(self, clear: bool = False) -> tuple[ResultCode, str]:
+    def status(self, clear: bool = False) -> tuple[ResultCode, dict]:
         status_t = self._status_t()
         self._driver.status(status_t, clear)
         status = {attr: getattr(status_t, attr) for attr in dir(status_t) if not attr.startswith("_")}
-        return ResultCode.OK, json.dumps(status)
+        return ResultCode.OK, status

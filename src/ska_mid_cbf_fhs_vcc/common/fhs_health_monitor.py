@@ -120,9 +120,14 @@ class RegisterPollingThread(threading.Thread):
                 try:
                     time.sleep(self.poll_interval)
                     status_func = getattr(self.api, self.status_func)
-                    status_str: tuple[ResultCode, str] = status_func()
+                    
+                    print("::::: got Status func ::::::")
+                    
+                    _, status = status_func()
+                    
+                    print(f":::::::::: STATUS RECEIVED {status} ::::::::::")
 
-                    health_states: dict[str, HealthState] = self.check_registers_callback(status_str[1])
+                    health_states: dict[str, HealthState] = self.check_registers_callback(status)
                     self.merge_health_states(health_states)
 
                 except Exception as ex:

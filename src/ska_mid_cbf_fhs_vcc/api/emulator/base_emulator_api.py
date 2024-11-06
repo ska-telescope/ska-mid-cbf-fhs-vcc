@@ -59,10 +59,16 @@ class BaseEmulatorApi(FhsBaseApiInterface):
         self._logger.info(f"GETTING STATUS FROM {self._api_base_url}/status")
         response = requests.get(f"{self._api_base_url}/status")
         self._logger.info(response)
-        return self._get_response_status(response=response, cmd="GetStatus", success_msg=response.content)
+        
+        response_dict:dict = response.json()
+        
+        if response_dict.get('request_validation_result') is not None:
+            response_dict.pop('request_validation_result')
+        
+        return self._get_response_status(response=response, cmd="GetStatus", success_msg=response_dict)
 
     def _get_response_status(
-        self, response: requests.Response, cmd: str, success_msg: str | None = None
+        self, response: requests.Response, cmd: str, success_msg: str | dict | None = None
     ) -> tuple[ResultCode, str]:
         if response.status_code >= 200 and response.status_code < 300:
             return ResultCode.OK, (success_msg if success_msg is not None else f"{cmd} completed OK")

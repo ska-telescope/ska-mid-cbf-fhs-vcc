@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from logging import Logger
 
 from ska_control_model import ResultCode
@@ -38,7 +39,7 @@ class WidebandInputBufferSimulator(BaseSimulatorApi):
 
     def status(self, clear: bool = False) -> tuple[ResultCode, str]:
         try:
-            return ResultCode.OK, self.status_str
+            return ResultCode.OK, json.loads(self.status_str)
 
         except Exception as ex:
             print(f"status error {repr(ex)}")
