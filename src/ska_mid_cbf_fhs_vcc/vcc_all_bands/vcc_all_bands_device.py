@@ -41,6 +41,7 @@ class VCCAllBandsController(FhsBaseDevice):
             communication_state_callback=self._communication_state_changed,
             obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
+            obs_state_action_callback=self._obs_state_action,
         )
 
     def init_command_objects(self: VCCAllBandsController) -> None:
@@ -52,7 +53,6 @@ class VCCAllBandsController(FhsBaseDevice):
             ("EndScan", "end_scan"),
             ("ObsReset", "obs_reset"),  # TODO CIP-1850: has the potential to be left out if ticket is disgarded
             ("TestCmd", "test_cmd"),
-            ("Abort", "abort"),
         ]
 
         super().init_command_objects(commandsAndMethods)
