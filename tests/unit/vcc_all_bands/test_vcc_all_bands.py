@@ -172,3 +172,16 @@ def test_health_state_prop(vcc_all_bands_device, wib_device, wib_event_tracer):
     vccHealthState = vcc_all_bands_device.read_attribute('healthState')
     
     assert vccHealthState.value is HealthState.FAILED.value
+    
+def test_adminMode_offline(vcc_all_bands_device, wib_device, wib_event_tracer):
+    test_health_state_prop(vcc_all_bands_device, wib_device, wib_event_tracer)
+    prevAdminMode = vcc_all_bands_device.read_attribute('adminMode')
+    
+    assert prevAdminMode.value == AdminMode.ONLINE.value
+
+    vcc_all_bands_device.write_attribute('adminMode', 1)
+    
+    adminMode = vcc_all_bands_device.read_attribute('adminMode')
+    
+    assert adminMode.value == AdminMode.OFFLINE.value
+    

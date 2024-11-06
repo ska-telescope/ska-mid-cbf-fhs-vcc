@@ -86,7 +86,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self.expected_dish_id = None
 
         # store the subscription event_ids here with a key (fqdn for deviceproxies)
-        self.subscription_event_ids: dict[str, {int}] = {}
+        self.subscription_event_ids: dict[str, set[int]] = {}
 
         self.fhs_health_monitor = FhsHealthMonitor(
             logger=logger,
@@ -536,7 +536,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         change_event_callback: Callable[[EventData], None],
     ):
         event_id = device_proxy.subscribe_event(attribute, EventType.CHANGE_EVENT, change_event_callback)
-        self.subscription_event_ids[key] = event_id
+        if key in self.subscription_event_ids:
+            self.subscription_event_ids[key].add(event_id)            
+        else:
+            self.subscription_event_ids[key] = {event_id}
 
     def _unsubscribe_from_events(self: VCCAllBandsComponentManager, fqdn: str):
         if fqdn in self.subscription_event_ids and fqdn in self._proxies and self._proxies[fqdn] is not None:
