@@ -15,7 +15,7 @@ from ska_control_model import CommunicationStatus, HealthState, PowerState, Resu
 from ska_tango_base.base.base_component_manager import BaseComponentManager
 from ska_tango_base.executor.executor_component_manager import TaskExecutorComponentManager
 
-from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import ObsState
+from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine, ObsState
 
 
 class FhsComponentManagerBase(TaskExecutorComponentManager):
@@ -36,6 +36,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         attr_archive_callback: Callable[[str, Any], None] | None = None,
         health_state_callback: Callable[[HealthState], None] | None = None,
         obs_command_running_callback: Callable[[str, bool], None],
+        obs_state_action_callback: Callable[[str], None] | None = None,
         logger: logging.Logger,
         **kwargs: Any,
     ) -> None:
@@ -45,17 +46,14 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         self._attr_archive_callback = attr_archive_callback
         self._device_health_state_callback = health_state_callback
         self._obs_command_running_callback = obs_command_running_callback
+        self._obs_state_action_callback = obs_state_action_callback
 
         self._health_state_lock = Lock()
         self._health_state = HealthState.UNKNOWN
 
         super().__init__(
-            idle=None,
             power=None,
-            configuring=None,
-            reset=None,
             fault=None,
-            abort=None,
             logger=logger,
             **kwargs,
         )
@@ -113,7 +111,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
 
         if self.obs_state != ObsState.IDLE:
             if self.is_go_to_idle_allowed():
-                self._update_component_state(idle=True)
+                self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
         else:
             msg = "Already in the IDLE State"
 

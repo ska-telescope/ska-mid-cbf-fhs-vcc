@@ -10,6 +10,7 @@ from ska_control_model import HealthState, ObsState, ResultCode, SimulationMode,
 from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 from ska_mid_cbf_fhs_vcc.api.firmware.base_firmware_api import BaseFirmwareApi
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
+from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine
 
 
 class FhsLowLevelComponentManager(FhsComponentManagerBase):
@@ -113,9 +114,9 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
     def recover(self: FhsLowLevelComponentManager) -> tuple[ResultCode, str]:
         try:
             if self.is_recover_allowed():
-                self._update_component_state(reset=True)
+                self._obs_state_action_callback(FhsObsStateMachine.RESET_INVOKED)
                 self._api.recover()
-                self._update_component_state(reset=False)
+                self._obs_state_action_callback(FhsObsStateMachine.RESET_COMPLETED)
                 return ResultCode.OK, "Recover command completed OK"
             else:
                 return (
