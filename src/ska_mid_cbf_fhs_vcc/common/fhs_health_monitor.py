@@ -33,10 +33,10 @@ class FhsHealthMonitor:
         self.update_health_state_callback = update_health_state_callback
 
         self._health_states = [HealthState.FAILED, HealthState.DEGRADED, HealthState.UNKNOWN, HealthState.OK]
-        
+
         # only set up polling if we're provided an api and a check_registers_callback function
         if self.api and self.check_registers_callback:
-           self._polling_thread = RegisterPollingThread(
+            self._polling_thread = RegisterPollingThread(
                 api=self.api,
                 status_func=status_func,
                 check_registers_callback=self.check_registers_callback,
@@ -45,14 +45,15 @@ class FhsHealthMonitor:
                 merge_health_states=self.merge_health_states,
             )
         else:
-            self._polling_thread = None 
-            
-                
+            self._polling_thread = None
+
     def start_polling(self: FhsHealthMonitor):
         if self.api and self.check_registers_callback and self._polling_thread:
             self._polling_thread.start()
         else:
-            self.logger.warning("Unable to start polling, health monitor not configured with an api or callback function for checking registers")
+            self.logger.warning(
+                "Unable to start polling, health monitor not configured with an api or callback function for checking registers"
+            )
 
     def stop_polling(self: FhsHealthMonitor):
         if self._polling_thread:

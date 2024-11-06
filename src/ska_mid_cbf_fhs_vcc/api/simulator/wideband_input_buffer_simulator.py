@@ -39,7 +39,7 @@ class WidebandInputBufferSimulator(BaseSimulatorApi):
     def status(self, clear: bool = False) -> tuple[ResultCode, str]:
         try:
             return ResultCode.OK, self.status_str
-            
+
         except Exception as ex:
             print(f"status error {repr(ex)}")
 

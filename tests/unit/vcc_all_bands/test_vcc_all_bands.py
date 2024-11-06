@@ -12,11 +12,13 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device impo
 from tango import DevState
 from ska_tango_testing import context
 from ska_tango_testing.integration import TangoEventTracer
-from ska_control_model import AdminMode, ObsState, ResultCode
+from ska_control_model import AdminMode, HealthState, ObsState, ResultCode
+from ska_tango_testing.integration import TangoEventTracer
 
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 
+EVENT_TIMEOUT = 30
 
 @pytest.fixture(name="test_context")
 def pv_device():
@@ -113,28 +115,60 @@ def pv_device():
     with harness as test_context:
         yield test_context
 
-def test_init(device_under_test):
-    state = device_under_test.state()
+def test_init(vcc_all_bands_device):
+    state = vcc_all_bands_device.state()
     assert state == DevState.ON
     
-def test_adminMode_online(device_under_test):
+def test_adminMode_online(vcc_all_bands_device):
     
-    prevAdminMode = device_under_test.read_attribute('adminMode')
+    prevAdminMode = vcc_all_bands_device.read_attribute('adminMode')
     
-    device_under_test.write_attribute('adminMode', 0)
+    assert prevAdminMode.value == AdminMode.OFFLINE.value
+
+    vcc_all_bands_device.write_attribute('adminMode', 0)
     
-    adminMode = device_under_test.read_attribute('adminMode')
+    adminMode = vcc_all_bands_device.read_attribute('adminMode')
     
     assert adminMode.value == AdminMode.ONLINE.value
-        
-# def test_configure(device_under_test):
-#     invalid_json = '{"config_id":"1","expected_dish_id":"MKT005","dish_sample_rate":3960000000,"samples_per_frame":18,"vcc_gain":[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0],"frequency_band":"1","noise_diode_transition_holdoff_seconds":65536,"frequency_band_offset_stream_1":55.0,"frequency_band_offset_stream_2":0.0}'
-#     valid_json = '{"config_id":"1","expected_dish_id":"MKT001","dish_sample_rate":3960000000,"samples_per_frame":18,"vcc_gain":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"frequency_band":"2","fsp":[{"fsp_id":1,"frequency_slice_id":1,"function_mode":"CORR"},{"fsp_id":4,"frequency_slice_id":4,"function_mode":"CORR"},{"fsp_id":2,"frequency_slice_id":2,"function_mode":"CORR"},{"fsp_id":3,"frequency_slice_id":3,"function_mode":"CORR"}],"noise_diode_transition_holdoff_seconds":0,"frequency_band_offset_stream_1":110,"frequency_band_offset_stream_2":56}'
-#     result = device_under_test.command_inout("ConfigureScan", invalid_json)
+    
+def test_health_state_prop(vcc_all_bands_device, wib_device, wib_event_tracer):
+    
+    test_adminMode_online(vcc_all_bands_device)
+    
+    allBandsHealthState = vcc_all_bands_device.read_attribute('healthState')
+    
+    assert allBandsHealthState.value == HealthState.OK.value
+    
+    config_json = '{"expected_sample_rate": 3920000000, "noise_diode_transition_holdoff_seconds": 1.0, "expected_dish_band": 1}'
 
-#     time.sleep(10)
+    # Invoke the command
+    result = wib_device.command_inout("Configure", config_json)
     
-#     result = device_under_test.command_inout("ConfigureScan", valid_json)
+    assert wib_device.read_attribute("obsState").value is ObsState.READY.value
     
-#     time.sleep(10000)
+    result = wib_device.command_inout("Start")
+
+    # Extract the result code and message
+    result_code = result[0][0]
+
+    # Assertions
+    assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
+
+    assert_that(wib_event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
+        device_name=wib_device,
+        attribute_name="longRunningCommandResult",
+        attribute_value=(
+            f"{result[1][0]}",
+            f'[{ResultCode.OK.value}, "Start Called Successfully"]',
+        ),
+    )
+
+    time.sleep(10)    
     
+    healthState = wib_device.read_attribute("healthState")
+    
+    assert healthState.value is HealthState.FAILED.value
+    
+    vccHealthState = vcc_all_bands_device.read_attribute('healthState')
+    
+    assert vccHealthState.value is HealthState.FAILED.value

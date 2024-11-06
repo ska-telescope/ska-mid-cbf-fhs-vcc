@@ -69,11 +69,11 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
 
         self.fhs_health_monitor = FhsHealthMonitor(
             logger=self.logger,
-            get_device_health_state=self.get_device_health_state, 
-            update_health_state_callback=health_state_callback, 
-            check_registers_callback=self.check_registers, 
-            api=self._api, 
-            poll_interval=poll_interval_s
+            get_device_health_state=self.get_device_health_state,
+            update_health_state_callback=health_state_callback,
+            check_registers_callback=self.check_registers,
+            api=self._api,
+            poll_interval=poll_interval_s,
         )
 
     ##

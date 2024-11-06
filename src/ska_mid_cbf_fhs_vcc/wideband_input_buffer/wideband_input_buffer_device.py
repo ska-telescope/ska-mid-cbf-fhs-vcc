@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from tango.server import attribute, device_property
+from tango.server import attribute
 
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_component_manager import WidebandInputBufferComponentManager
 
 
 class WidebandInputBuffer(FhsLowLevelDeviceBase):
-
     @attribute(dtype="str")
     def expectedDishId(self: WidebandInputBuffer) -> str:
         return self.component_manager.expected_dish_id
