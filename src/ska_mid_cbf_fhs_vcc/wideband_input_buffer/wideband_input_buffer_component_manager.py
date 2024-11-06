@@ -1,7 +1,6 @@
 from __future__ import annotations  # allow forward references in type hints
 
 from dataclasses import dataclass
-import json
 from typing import Any, Callable, Tuple
 
 import numpy as np
@@ -124,11 +123,10 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         super().start_communicating()
 
     def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
-        
         print(":::::::::: CHECKING WIB REGISTERS :::::::::::::")
-        
+
         status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().load(status_dict)
-        
+
         print(f":::::::::: LOADED STATUS IN WIB CM:  {status} :::::::::::::")
 
         register_statuses = {key: HealthState.UNKNOWN for key in self.registers_to_check}

@@ -59,12 +59,12 @@ class BaseEmulatorApi(FhsBaseApiInterface):
         self._logger.info(f"GETTING STATUS FROM {self._api_base_url}/status")
         response = requests.get(f"{self._api_base_url}/status")
         self._logger.info(response)
-        
-        response_dict:dict = response.json()
-        
-        if response_dict.get('request_validation_result') is not None:
-            response_dict.pop('request_validation_result')
-        
+
+        response_dict: dict = response.json()
+
+        if response_dict.get("request_validation_result") is not None:
+            response_dict.pop("request_validation_result")
+
         return self._get_response_status(response=response, cmd="GetStatus", success_msg=response_dict)
 
     def _get_response_status(

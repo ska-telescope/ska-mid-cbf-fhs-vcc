@@ -5,7 +5,7 @@ import threading
 import time
 from typing import Callable
 
-from ska_control_model import HealthState, ResultCode
+from ska_control_model import HealthState
 
 from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 
@@ -120,11 +120,11 @@ class RegisterPollingThread(threading.Thread):
                 try:
                     time.sleep(self.poll_interval)
                     status_func = getattr(self.api, self.status_func)
-                    
+
                     print("::::: got Status func ::::::")
-                    
+
                     _, status = status_func()
-                    
+
                     print(f":::::::::: STATUS RECEIVED {status} ::::::::::")
 
                     health_states: dict[str, HealthState] = self.check_registers_callback(status)
