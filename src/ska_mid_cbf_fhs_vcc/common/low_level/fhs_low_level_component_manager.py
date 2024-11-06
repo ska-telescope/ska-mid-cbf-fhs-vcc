@@ -182,7 +182,7 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
     def status(
         self: FhsLowLevelComponentManager,
         clear: bool = False,
-    ) -> tuple[ResultCode, str]:
+    ) -> tuple[ResultCode, dict]:
         try:
             return self._api.status(clear)
         except Exception as ex:
