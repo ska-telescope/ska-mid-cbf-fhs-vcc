@@ -58,6 +58,7 @@ class FhsHealthMonitor:
 
     def stop_polling(self: FhsHealthMonitor):
         if self._polling_thread:
+            self.logger.info(":::::::::::: STOPPING POLLING FROM HEALTH MONITOR ::::::::::::::::::")
             self._polling_thread.stop()
 
     def add_health_state(self: FhsHealthMonitor, key: str, health_state: HealthState):
@@ -113,32 +114,34 @@ class RegisterPollingThread(threading.Thread):
         self.poll_interval = poll_interval
         self.daemon = True
         self._stop_event = threading.Event()
-        self._running = False
         self.add_health_state = add_health_state
         self.merge_health_states = merge_health_states
 
     def run(self: RegisterPollingThread):
-        if not self._running:
+            self.logger.info(":::::::::::: POLLING START :::::::::::")
+            self.logger.info(f"::::::::::: STOP EVENT SET = {self._stop_event.is_set()} :::::::::::::::::")
             while not self._stop_event.is_set():
-                # try:
-                time.sleep(self.poll_interval)
-                status_func = getattr(self.api, self.status_func)
+                try:
+                    time.sleep(self.poll_interval)
+                    status_func = getattr(self.api, self.status_func)
 
-                self.logger.info("::::: got Status func ::::::")
+                    self.logger.info("::::: got Status func ::::::")
 
-                _, status = status_func()
+                    _, status = status_func()
 
-                self.logger.info(f":::::::::: STATUS RECEIVED {status} ::::::::::")
+                    self.logger.info(f":::::::::: STATUS RECEIVED {status} ::::::::::")
 
-                health_states: dict[str, HealthState] = self.check_registers_callback(status)
-                self.merge_health_states(health_states)
-
-                # except Exception as ex:
-                #     self.add_health_state("REGISTER_POLLING_EXCEPTION", HealthState.UNKNOWN)
-                #     self.stop()
-                #     print(f"Error - Unable to monitor health. {repr(ex)}")
-        else:
-            self.logger.info("LowLevelHealthMonitor is already running")
+                    health_states: dict[str, HealthState] = self.check_registers_callback(status)
+                    self.merge_health_states(health_states)
+                    self.logger.info(":::::::::::: POLLING END :::::::::::")
+                except Exception as ex:
+                    self.add_health_state("REGISTER_POLLING_EXCEPTION", HealthState.UNKNOWN)
+                    self.stop()
+                    print(f"Error - Unable to monitor health. {repr(ex)}")
+                    raise ex
+                
+            self._stop_event.clear()
 
     def stop(self):
+        self.logger.info(":::::::::::::::::: STOPPING FROM POLLING THREAD ::::::::::::::::::::::")
         self._stop_event.set()

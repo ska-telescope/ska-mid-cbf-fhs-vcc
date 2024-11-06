@@ -110,6 +110,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         return super().start(*args, **kwargs)
 
     def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
+        self.logger.info(":::::::::::::: Stopping the WIB :::::::::::::::")
         self.fhs_health_monitor.stop_polling()
         return super().stop(*args, **kwargs)
 
