@@ -54,7 +54,6 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         super().__init__(
             power=None,
             fault=None,
-            abort=None,
             logger=logger,
             **kwargs,
         )
