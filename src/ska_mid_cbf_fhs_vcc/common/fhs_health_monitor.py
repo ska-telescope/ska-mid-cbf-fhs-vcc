@@ -36,7 +36,6 @@ class FhsHealthMonitor:
 
         self._health_states = [HealthState.FAILED, HealthState.DEGRADED, HealthState.UNKNOWN, HealthState.OK]
         self._polling_thread = None
-    
 
     def start_polling(self: FhsHealthMonitor):
         if self.api and self.check_registers_callback:
@@ -51,13 +50,13 @@ class FhsHealthMonitor:
     def stop_polling(self: FhsHealthMonitor):
         if self._polling_thread:
             self.logger.info(":::::::::::: STOPPING POLLING FROM HEALTH MONITOR ::::::::::::::::::")
-        
+
             if self._polling_thread is None or not self._polling_thread.is_alive():
-                self.logger.warning('Cannot stop the polling thread, polling thread is not started.')
+                self.logger.warning("Cannot stop the polling thread, polling thread is not started.")
                 return
-            
+
             self._polling_thread.stop()
-            
+
             if self._polling_thread is not None and self._polling_thread.is_alive():
                 if self._polling_thread.ident != threading.get_ident():
                     self._polling_thread.join()
@@ -95,7 +94,7 @@ class FhsHealthMonitor:
                     self._last_health_state = health_state
                     self.update_health_state_callback(health_state)
                 break
-            
+
     def _init_polling_thread(self: FhsHealthMonitor) -> RegisterPollingThread:
         self._polling_thread = RegisterPollingThread(
             logger=self.logger,
@@ -106,8 +105,7 @@ class FhsHealthMonitor:
             add_health_state=self.add_health_state,
             merge_health_states=self.merge_health_states,
         )
-        
-            
+
 
 class RegisterPollingThread(threading.Thread):
     def __init__(
