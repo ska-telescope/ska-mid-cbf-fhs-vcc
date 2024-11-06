@@ -132,6 +132,7 @@ class FhsBaseDevice(SKAObsDevice):
         reset: bool | None = None,
         fault: bool | None = None,
         power: PowerState | None = None,
+        abort: bool | None = None,
     ) -> None:
         super()._component_state_changed(fault=fault, power=power)
 
@@ -152,6 +153,12 @@ class FhsBaseDevice(SKAObsDevice):
 
         if fault is not None:
             self.obs_state_model.perform_action(FhsObsStateMachine.COMPONENT_FAULT)
+
+        if abort is not None:
+            if abort:
+                self.obs_state_model.perform_action(FhsObsStateMachine.ABORT_INVOKED)
+            else:
+                self.obs_state_model.perform_action(FhsObsStateMachine.ABORT_COMPLETED)
 
     def _update_obs_state(self: FhsBaseDevice, obs_state: ObsState) -> None:
         """

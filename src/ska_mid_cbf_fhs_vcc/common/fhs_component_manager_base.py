@@ -55,6 +55,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
             configuring=None,
             reset=None,
             fault=None,
+            abort=None,
             logger=logger,
             **kwargs,
         )
