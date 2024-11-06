@@ -121,17 +121,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 for fqdn in self._proxies:
                     if fqdn != self._vcc_123_fqdn and fqdn != self._vcc_45_fqdn:
                         dp = context.DeviceProxy(device_name=fqdn)
-<<<<<<< HEAD
-                        self._subscribe_to_change_event(dp, 'healthState', fqdn, self.proxies_health_state_change_event)
-                        self._proxies[fqdn] = context.DeviceProxy(device_name=fqdn)
                         
-=======
                         # NOTE: this crashes when adminMode is memorized because it gets called before the devices are ready
-                        dp.subscribe_event(
-                            "longRunningCommandResult", EventType.CHANGE_EVENT, self._long_running_command_callback
-                        )
+                        self._subscribe_to_change_event(dp, 'healthState', fqdn, self.proxies_health_state_change_event)
+                        self._subscribe_to_change_event(dp, 'longRunningCommandResult', fqdn, self._long_running_command_callback)
                         self._proxies[fqdn] = dp
->>>>>>> e9153e3bed917a9d5157566ae1b4eedb11bea559
 
                 super().start_communicating()
         except tango.DevFailed as ex:
@@ -534,7 +528,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
         else:
             self.logger.info(f"VCC {self._vcc_id}: {ip_block_name} set to IDLE")
-<<<<<<< HEAD
             
     def _subscribe_to_change_event(self: VCCAllBandsComponentManager, device_proxy, attribute: str, key: str, change_event_callback: Callable[[EventData], None]):
             event_id = device_proxy.subscribe_event('healthState', EventType.CHANGE_EVENT, change_event_callback)
@@ -559,7 +552,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         
 
         
-=======
 
     def _long_running_command_callback(self: VCCAllBandsComponentManager, event: EventData):
         id, result = event.attr_value.value
@@ -569,4 +561,3 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         )
         if event.err:
             self.logger.error(f"VCC {self._vcc_id}: Long running command failed {event.errors}")
->>>>>>> e9153e3bed917a9d5157566ae1b4eedb11bea559
