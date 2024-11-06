@@ -537,7 +537,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     ):
         event_id = device_proxy.subscribe_event(attribute, EventType.CHANGE_EVENT, change_event_callback)
         if key in self.subscription_event_ids:
-            self.subscription_event_ids[key].add(event_id)            
+            self.subscription_event_ids[key].add(event_id)
         else:
             self.subscription_event_ids[key] = {event_id}
 
