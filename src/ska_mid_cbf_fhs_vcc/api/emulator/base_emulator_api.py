@@ -1,6 +1,6 @@
+import json
 import logging
 import os
-import json
 
 import requests
 from ska_control_model import ResultCode
@@ -98,7 +98,7 @@ class BaseEmulatorApi(FhsBaseApiInterface):
             # Loop through the emulators config file checking that the given emulator_ip_block_id exists in the list of
             # emulator ip blocks, if it doesn't exist in the emulator config then we have a configuration error between
             # the device server and the emulator
-            for ip_block in emulator_config_json[self._emulator_config_ipblock_key]:
+            for ip_block in emulator_config_json["ip_blocks"]:
                 self._logger.info(f"IP_BLOCK ID: {ip_block['id']} , DEVICE_ID: {emulator_ip_block_id}")
                 if ip_block["id"] == emulator_ip_block_id:
                     api_url_base = f"http://{emulator_id}.{emulator_base_url}/{ip_block['id']}"
