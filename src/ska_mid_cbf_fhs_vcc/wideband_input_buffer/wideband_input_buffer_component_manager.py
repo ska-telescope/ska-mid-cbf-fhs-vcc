@@ -1,17 +1,17 @@
 from __future__ import annotations  # allow forward references in type hints
 
 from dataclasses import dataclass
-from typing import Any, Tuple
+from typing import Any, Callable, Tuple
 
 import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import CommunicationStatus, ResultCode, TaskStatus
+from ska_control_model import CommunicationStatus, HealthState, ResultCode, TaskStatus
 
 from ska_mid_cbf_fhs_vcc.api.emulator.wib_emulator_api import WibEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import WidebandInputBufferSimulator
+from ska_mid_cbf_fhs_vcc.common.fhs_health_monitor import FhsHealthMonitor
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
-from ska_mid_cbf_fhs_vcc.common.utils import PollingService
 
 
 @dataclass_json
@@ -52,6 +52,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         self: WidebandInputBufferComponentManager,
         *args: Any,
         poll_interval_s: str,
+        health_state_callback: Callable[[HealthState], None] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -60,10 +61,20 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             emulator_api=WibEmulatorApi,
             **kwargs,
         )
-        self.polling_service = PollingService(interval=poll_interval_s, callback=self._poll_status)
+
+        self.registers_to_check = {"meta_dish_id", "rx_sample_rate", "meta_transport_sample_rate"}
 
         self.expected_sample_rate = None
         self.expected_dish_id = None
+
+        self.fhs_health_monitor = FhsHealthMonitor(
+            logger=self.logger,
+            get_device_health_state=self.get_device_health_state,
+            update_health_state_callback=health_state_callback,
+            check_registers_callback=self.check_registers,
+            api=self._api,
+            poll_interval=poll_interval_s,
+        )
 
     ##
     # Public Commands
@@ -95,11 +106,11 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         return result
 
     def start(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
-        self.polling_service.start()
+        self.fhs_health_monitor.start_polling()
         return super().start(*args, **kwargs)
 
     def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
-        self.polling_service.stop()
+        self.fhs_health_monitor.stop_polling()
         return super().stop(*args, **kwargs)
 
     # TODO Determine what needs to be communicated with here
@@ -111,39 +122,82 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
 
         super().start_communicating()
 
-    def _poll_status(self: WidebandInputBufferComponentManager):
-        if self._simulation_mode:
-            return
+    def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
+        status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().load(status_dict)
 
-        self.logger.debug("Polling status...")
-        result = super().status()
+        register_statuses = {key: HealthState.UNKNOWN for key in self.registers_to_check}
 
-        if result[0] != ResultCode.OK:
-            self.logger.error(f"Getting status failed. {result}")
-            return
+        for register in self.registers_to_check:
+            if register == "meta_dish_id":
+                register_statuses["meta_dish_id"] = self.check_meta_dish_id(status.meta_dish_id)
+
+            if register == "rx_sample_rate":
+                register_statuses["rx_sample_rate"] = self.check_register(
+                    self.expected_sample_rate,
+                    status.rx_sample_rate,
+                    error_msg=f"rx_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.rx_sample_rate}",
+                )
+
+            if register == "meta_transport_sample_rate":
+                register_statuses["meta_transport_sample_rate"] = self.check_register(
+                    self.expected_sample_rate,
+                    status.meta_transport_sample_rate,
+                    error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
+                )
+
+        return register_statuses
+
+    def check_meta_dish_id(self: WidebandInputBufferComponentManager, meta_dish_id: int) -> HealthState:
+        result = HealthState.OK
+
+        if meta_dish_id:
+            meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(meta_dish_id)
+
+            result = self.check_register(
+                self.expected_dish_id,
+                meta_dish_id_mnemonic,
+                error_msg=f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_mnemonic} ({meta_dish_id})",
+            )
         else:
-            status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().loads(result[1], unknown="exclude")
+            self.logger.error("Unable to convert meta_dish_id.  Meta_dish_id is none")
+            result = HealthState.FAILED
 
-        if self.expected_dish_id is not None:
-            meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(status.meta_dish_id)
-            if meta_dish_id_mnemonic != self.expected_dish_id:
-                self.logger.error(
-                    f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_mnemonic} ({status.meta_dish_id})"
-                )
-            else:
-                self.logger.debug(f"dish_id matched {status.meta_dish_id}")
+        return result
 
-        if self.expected_sample_rate is not None:
-            if status.meta_transport_sample_rate != self.expected_sample_rate:
-                self.logger.error(
-                    f"meta_transport_sample_rate mismatch. Expected: {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}"
-                )
-            elif status.rx_sample_rate != self.expected_sample_rate:
-                self.logger.error(
-                    f"rx_sample_rate mismatch. Expected: {self.expected_sample_rate}, Actual: {status.rx_sample_rate}"
-                )
+    def check_register(
+        self: WidebandInputBufferComponentManager,
+        expected_value: Any,
+        register_value: Any,
+        success_msg: str = None,
+        error_msg: str = None,
+    ) -> HealthState:
+        result = HealthState.OK
+
+        if expected_value:
+            result = self.check_register_expected_value(expected_value, register_value)
+
+            if result != HealthState.OK:
+                if error_msg:
+                    self.logger.error(error_msg)
             else:
-                self.logger.debug(f"sample rate matched {status.meta_dish_id}")
+                if success_msg:
+                    self.logger.info(success_msg)
+
+        return result
+
+    def check_register_expected_value(self, expected_value: Any, register_value: Any) -> HealthState:
+        result = HealthState.FAILED
+
+        if expected_value and register_value:
+            if expected_value == register_value:
+                result = HealthState.OK
+        else:
+            self.logger.error(
+                f"Function expects an expected_value and register_value. Was given expected_value={expected_value}, register_value={register_value}"
+            )
+            result = HealthState.FAILED
+
+        return result
 
 
 def convert_dish_id_uint16_t_to_mnemonic(numerical_dish_id: int) -> str:

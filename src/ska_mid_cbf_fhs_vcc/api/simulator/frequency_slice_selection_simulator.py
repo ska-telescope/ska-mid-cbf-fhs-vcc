@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from ska_control_model import ResultCode
 
 from ska_mid_cbf_fhs_vcc.api.simulator.base_simulator_api import BaseSimulatorApi
@@ -8,8 +10,8 @@ __all__ = ["FrequencySliceSelectionSimulator"]
 
 
 class FrequencySliceSelectionSimulator(BaseSimulatorApi):
-    def status(self, clear: bool = False) -> tuple[ResultCode, str]:
+    def status(self, clear: bool = False) -> tuple[ResultCode, dict]:
         return (
             ResultCode.OK,
-            '{"band_select": 1, "band_start_channel": [0, 1]}',
+            json.loads('{"band_select": 1, "band_start_channel": [0, 1]}'),
         )

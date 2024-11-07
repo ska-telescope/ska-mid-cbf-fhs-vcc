@@ -95,9 +95,9 @@ properties:
   - name: configLocation
     default: "/app/mnt/lowLevelConfigMap"
   - name: simulationMode
-    default: "1"
-  - name: emulationMode
     default: "0"
+  - name: emulationMode
+    default: "1"
   - name: emulatorIpBlockId
   - name: emulatorId
   - name: firmwareIpBlockId
@@ -121,7 +121,7 @@ devices:
     emulatorIpBlockId: "wideband_input_buffer"
     firmwareIpBlockId: "wideband_input_buffer_unimplemented"
     properties:
-      - name: poll_interval_s
+      - name: health_monitor_poll_interval
         values:
           - "3"
   - name: "WidebandFrequencyShifter"
