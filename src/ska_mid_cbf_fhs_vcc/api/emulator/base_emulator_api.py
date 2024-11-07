@@ -1,27 +1,31 @@
 import logging
+import os
+import json
 
 import requests
 from ska_control_model import ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.common.api_config_reader import APIConfigReader
 from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 
 
 class BaseEmulatorApi(FhsBaseApiInterface):
-    _bitstream_emulator_config_key = "bitstreamEmulatorConfigPath"
-    _emulator_base_url_key = "emulatorBaseUrl"
-    _emulator_config_ipblock_key = "ip_blocks"
-    _firmware_version_key = "bitstreamVersion"
-    _bitstream_path_key = "bitstreamPath"
-    _bitstream_id_key = "bitstreamId"
-
-    # TODO have a way to dynamically grab the emulator host / port values from the emulator config file
-    def __init__(self, config_location: str, emulator_ip_block_id: str, emulator_id: str, logger: logging.Logger) -> None:
-        logger.info(f".....................EMULATOR API: {emulator_ip_block_id} {config_location}........................")
+    def __init__(
+        self,
+        bitstream_path: str,
+        emulator_ip_block_id: str,
+        emulator_id: str,
+        emulator_base_url: str,
+        logger: logging.Logger,
+    ) -> None:
+        logger.info(f".....................EMULATOR API: {bitstream_path} {emulator_ip_block_id}........................")
 
         self._logger = logger
 
-        self._api_base_url = self._generateDeviceApiUrl(config_location, emulator_ip_block_id, emulator_id)
+        bitstream_emulator_config_path = os.path.join(bitstream_path, "emulators", "config.json")
+
+        self._api_base_url = self._generateDeviceApiUrl(
+            bitstream_emulator_config_path, emulator_ip_block_id, emulator_id, emulator_base_url
+        )
         self._json_header = {"Content-Type": "application/json"}
 
     def recover(self) -> tuple[ResultCode, str]:
@@ -75,25 +79,19 @@ class BaseEmulatorApi(FhsBaseApiInterface):
         else:
             return ResultCode.FAILED, response.reason
 
-    def _generateDeviceApiUrl(self, config_location: str, emulator_ip_block_id: str, emulator_id: str) -> str:
+    def _generateDeviceApiUrl(
+        self, bitstream_emulator_config_path: str, emulator_ip_block_id: str, emulator_id: str, emulator_base_url: str
+    ) -> str:
         try:
-            self._logger.info(f"Generating {emulator_ip_block_id} api url for emulator {emulator_id}")
-
-            api_config_reader = APIConfigReader(config_location, self._logger)
-
-            bitstream_path = api_config_reader.getConfigMapValue(self._bitstream_path_key)
-            bitstream_id = api_config_reader.getConfigMapValue(self._bitstream_id_key)
-            bitstream_version = api_config_reader.getConfigMapValue(self._firmware_version_key)
-            bitstream_emulator_config_path = api_config_reader.getConfigMapValue(self._bitstream_emulator_config_key)
-            emulator_base_url = api_config_reader.getConfigMapValue(self._emulator_base_url_key)
-
-            bitstream_emulator_config_path = (
-                f"{bitstream_path}/{bitstream_id}/{bitstream_version}/{bitstream_emulator_config_path}"
+            self._logger.info(
+                f"Generating {emulator_ip_block_id} api url for emulator {emulator_id} using config {bitstream_emulator_config_path}"
             )
 
-            self._logger.info(f"Emulator Config: {bitstream_emulator_config_path}")
-
-            emulator_config_json = api_config_reader._getFileContentsAsYamlOrJson(bitstream_emulator_config_path, isYaml=False)
+            if os.path.isfile(bitstream_emulator_config_path):
+                with open(bitstream_emulator_config_path, "r") as config_file:
+                    emulator_config_json = json.load(config_file)
+            else:
+                raise FileNotFoundError(f"Unable to open file, {bitstream_emulator_config_path} not found")
 
             api_url_base = None
 

@@ -43,11 +43,10 @@ class FhsBaseDevice(SKAObsDevice):
     # Device Properties
     # -----------------
     device_id = device_property(dtype="int")
-    config_location = device_property(dtype="str")
-    simulation_mode = device_property(dtype="int")
-    emulation_mode = device_property(dtype="int")
     device_version_num = device_property(dtype="str")
     device_gitlab_hash = device_property(dtype="str")
+    simulation_mode = device_property(dtype="int")
+    emulation_mode = device_property(dtype="int")
 
     # -----------------
     # Device Attributes

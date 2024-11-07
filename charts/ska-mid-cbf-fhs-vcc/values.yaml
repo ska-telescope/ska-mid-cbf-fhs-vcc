@@ -56,16 +56,8 @@ hostInfo:
   clusterDomain: cluster.local
   fhsServerId: fhs01
   namespace: "ska-mid-cbf"
-  configMountPath: "/app/mnt/lowLevelConfigMap"
 
-lowLevel:
-  bitstreamEmulatorConfigPath: "emulators/config.json"
-  emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
-  firmwareRegistry: https://artefact.skao.int/repository/raw-internal
-  firmwareImage: ska-mid-cbf-agilex-vcc
-  bitstreamId: agilex-vcc
-  bitstreamVersion: 0.0.11
-  bitstreamPath: /app/mnt/bitstream
+bitstreamMountPath: "/app/mnt/bitstream"
 
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
 
@@ -87,20 +79,18 @@ lowLevel:
 
 # the default tango properties in each device. optionally provide a default, global value
 properties:
-  - name: deviceId
-  - name: deviceVersionNum
-    default: "0.0.1"
-  - name: deviceGitlabHash
-    default: "0"
-  - name: configLocation
-    default: "/app/mnt/lowLevelConfigMap"
-  - name: simulationMode
-    default: "0"
-  - name: emulationMode
-    default: "1"
-  - name: emulatorIpBlockId
-  - name: emulatorId
-  - name: firmwareIpBlockId
+  deviceId:
+  deviceVersionNum: "0.0.1"
+  deviceGitlabHash: "0"
+  simulationMode: "0"
+  emulationMode: "1"
+  emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
+  bitstreamPath: "/app/mnt/bitstream"
+  bitstreamId: "agilex-vcc"
+  bitstreamVersion: "0.0.11"
+  emulatorId: "vcc-emulator-<deviceId>"
+  emulatorIpBlockId:
+  firmwareIpBlockId:
 
 # the devices in each stack. optionally override any property defined in `properties`. to add extra properties, provide a `properties` dict
 devices:
@@ -165,13 +155,10 @@ devices:
 instances:
   - name: fhs-vcc-1
     deviceId: "1"
-    emulatorId: "vcc-emulator-1"
   - name: fhs-vcc-2
     deviceId: "2"
-    emulatorId: "vcc-emulator-2"
   - name: fhs-vcc-3
     deviceId: "3"
-    emulatorId: "vcc-emulator-3"
 
 deviceServers:
   fhs-vcc-stack:

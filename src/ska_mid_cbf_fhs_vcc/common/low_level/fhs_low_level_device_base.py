@@ -11,8 +11,12 @@ from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice, FhsFastCom
 
 
 class FhsLowLevelDeviceBase(FhsBaseDevice):
-    emulator_ip_block_id = device_property(dtype="str")
+    emulator_base_url = device_property(dtype="str")
+    bitstream_path = device_property(dtype="str")
+    bitstream_id = device_property(dtype="str")
+    bitstream_version = device_property(dtype="str")
     emulator_id = device_property(dtype="str")
+    emulator_ip_block_id = device_property(dtype="str")
     firmware_ip_block_id = device_property(dtype="str")
     health_monitor_poll_interval = device_property(dtype="int")
 
