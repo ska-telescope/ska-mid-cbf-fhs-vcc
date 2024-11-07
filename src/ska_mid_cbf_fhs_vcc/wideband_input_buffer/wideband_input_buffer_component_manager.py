@@ -123,7 +123,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         super().start_communicating()
 
     def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
-
         status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().load(status_dict)
 
         register_statuses = {key: HealthState.UNKNOWN for key in self.registers_to_check}
