@@ -49,7 +49,6 @@ class FhsHealthMonitor:
 
     def stop_polling(self: FhsHealthMonitor):
         if self._polling_thread:
-
             if self._polling_thread is None or not self._polling_thread.is_alive():
                 self.logger.warning("Cannot stop the polling thread, polling thread is not started.")
                 return
