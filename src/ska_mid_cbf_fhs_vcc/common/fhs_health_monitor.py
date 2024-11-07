@@ -49,7 +49,6 @@ class FhsHealthMonitor:
 
     def stop_polling(self: FhsHealthMonitor):
         if self._polling_thread:
-            self.logger.info(":::::::::::: STOPPING POLLING FROM HEALTH MONITOR ::::::::::::::::::")
 
             if self._polling_thread is None or not self._polling_thread.is_alive():
                 self.logger.warning("Cannot stop the polling thread, polling thread is not started.")
@@ -131,22 +130,15 @@ class RegisterPollingThread(threading.Thread):
         self._is_running = False
 
     def run(self: RegisterPollingThread):
-        self.logger.info(":::::::::::: POLLING START :::::::::::")
-        self.logger.info(f"::::::::::: STOP EVENT SET = {self._stop_event.is_set()} :::::::::::::::::")
         while not self._stop_event.is_set():
             try:
                 time.sleep(self.poll_interval)
                 status_func = getattr(self.api, self.status_func)
 
-                self.logger.info("::::: got Status func ::::::")
-
                 _, status = status_func()
-
-                self.logger.info(f":::::::::: STATUS RECEIVED {status} ::::::::::")
 
                 health_states: dict[str, HealthState] = self.check_registers_callback(status)
                 self.merge_health_states(health_states)
-                self.logger.info(":::::::::::: POLLING END :::::::::::")
             except Exception as ex:
                 self.add_health_state("REGISTER_POLLING_EXCEPTION", HealthState.UNKNOWN)
                 self.stop()
@@ -154,5 +146,4 @@ class RegisterPollingThread(threading.Thread):
                 raise ex
 
     def stop(self):
-        self.logger.info(":::::::::::::::::: STOPPING FROM POLLING THREAD ::::::::::::::::::::::")
         self._stop_event.set()
