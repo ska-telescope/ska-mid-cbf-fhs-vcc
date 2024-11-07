@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import tango
 from ska_control_model import ResultCode
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
@@ -12,6 +14,7 @@ class FhsLowLevelDeviceBase(FhsBaseDevice):
     emulator_ip_block_id = device_property(dtype="str")
     emulator_id = device_property(dtype="str")
     firmware_ip_block_id = device_property(dtype="str")
+    health_monitor_poll_interval = device_property(dtype="int")
 
     @command(
         dtype_out="DevVarLongStringArray",
@@ -96,4 +99,5 @@ class FhsLowLevelDeviceBase(FhsBaseDevice):
 
     class GetStatusCommand(FhsFastCommand):
         def do(self, clear: bool = False) -> tuple[ResultCode, str]:
-            return self._component_manager.status(clear=clear)
+            response, result = self._component_manager.status(clear=clear)
+            return response, json.dumps(result)

@@ -58,6 +58,9 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
             **kwargs,
         )
 
+    def get_device_health_state(self: FhsComponentManagerBase):
+        return self._health_state
+
     def update_device_health_state(
         self: FhsComponentManagerBase,
         health_state: HealthState,

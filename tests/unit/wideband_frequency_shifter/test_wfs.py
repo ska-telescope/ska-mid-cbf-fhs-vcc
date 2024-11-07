@@ -95,7 +95,7 @@ def test_status_command(device_under_test):
     clear = False  # or True, depending on the test case
 
     # Invoke the command
-    result = device_under_test.command_inout("GetStatus", clear)
+    result = device_under_test.command_inout("getstatus", clear)
 
     # Extract the result code and message
     result_code = result[0][0]
