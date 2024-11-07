@@ -110,7 +110,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         return super().start(*args, **kwargs)
 
     def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
-        self.logger.info(":::::::::::::: Stopping the WIB :::::::::::::::")
         self.fhs_health_monitor.stop_polling()
         return super().stop(*args, **kwargs)
 
@@ -124,11 +123,8 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         super().start_communicating()
 
     def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
-        self.logger.info(":::::::::: CHECKING WIB REGISTERS :::::::::::::")
 
         status: WideBandInputBufferStatus = WideBandInputBufferStatus.schema().load(status_dict)
-
-        self.logger.info(f":::::::::: LOADED STATUS IN WIB CM:  {status} :::::::::::::")
 
         register_statuses = {key: HealthState.UNKNOWN for key in self.registers_to_check}
 
@@ -149,8 +145,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
                     status.meta_transport_sample_rate,
                     error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
                 )
-
-        self.logger.info(f":::::::::: FINISHED CHECKING REGISTERS IN WIB CM:  {register_statuses} :::::::::::::")
 
         return register_statuses
 
