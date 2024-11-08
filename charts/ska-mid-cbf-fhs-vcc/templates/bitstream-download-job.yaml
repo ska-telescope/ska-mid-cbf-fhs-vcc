@@ -26,7 +26,7 @@ spec:
                 mkdir -p {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH && \
                 tar xvzf /tmp/$TARBALL -C {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH {{ if $.Values.gitlab_bitstream_url_override -}} --strip-components=3 {{- end }} ; \
               fi && \
-              {{- end }}
+              {{ end -}}
               find {{ $.Values.bitstreamMountPath }}
           volumeMounts:
             - name: bitstream-pv
