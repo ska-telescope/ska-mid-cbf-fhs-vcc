@@ -19,14 +19,7 @@ class WidebandInputBuffer(FhsLowLevelDeviceBase):
         self: WidebandInputBuffer,
     ) -> WidebandInputBufferComponentManager:
         return WidebandInputBufferComponentManager(
-            device_id=self.device_id,
-            config_location=self.config_location,
-            simulation_mode=self.simulation_mode,
-            emulation_mode=self.emulation_mode,
-            emulator_ip_block_id=self.emulator_ip_block_id,
-            emulator_id=self.emulator_id,
-            firmware_ip_block_id=self.firmware_ip_block_id,
-            poll_interval_s=self.health_monitor_poll_interval,
+            device=self,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
             health_state_callback=self._update_health_state,

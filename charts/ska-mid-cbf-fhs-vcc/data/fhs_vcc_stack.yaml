@@ -32,10 +32,10 @@ server:
       devices:
       - name: {{ include "substitute-device-id" (list $device.path $deviceId) }}
         properties:
-          {{- range $index, $property := $.Values.properties }}
-          - name: {{ snakecase $property.name }}
+          {{- range $name, $default := $.Values.properties }}
+          - name: {{ snakecase $name }}
             values:
-            - "{{ include "substitute-device-id" (list ((get $device $property.name) | default (get $instance $property.name) | default $property.default) $deviceId) }}"
+            - "{{ include "substitute-device-id" (list ((get $device $name) | default (get $instance $name) | default $default) $deviceId) }}"
           {{- end }}
           {{- range $index, $property := $device.properties }}
           - name: {{ $property.name }}
@@ -52,19 +52,9 @@ image:
   image: "{{.Values.midcbf.image.image}}"
   tag: "{{.Values.midcbf.image.tag}}"
   pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
-environment_variables:
-  - name: CONFIG_MAP_LOCATION
-    value: "{{ .Values.hostInfo.configMountPath }}"
 
 volume:
   existingClaimName: "fhs-vcc-bitstream-pv"
-  mountPath: "{{ .Values.lowLevel.bitstreamPath }}"
+  mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
 
-extraVolumes:
-  - name: low-level-config-mount
-    configMap: 
-      name:  low-level-configmap
-extraVolumeMounts:
-  - name: low-level-config-mount
-    mountPath: "{{ .Values.hostInfo.configMountPath }}"
