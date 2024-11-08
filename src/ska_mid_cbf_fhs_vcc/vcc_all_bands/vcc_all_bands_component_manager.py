@@ -562,6 +562,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 t = 10
                 while t > 0:
                     self.logger.warning("@@@@@@@@@@@@@@@@@@@@ POLLING MAC LRC")
+                    self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ POLLING MACCCCCCCCCCCCCCCCCCCCCCCC LRC: lrc_results now = {self.lrc_results}")
                     self.logger.warning(self.lrc_results.get(self._mac_200_fqdn) or "NOTHING")
                     time.sleep(1)
                     t -= 1
@@ -670,9 +671,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
     def _long_running_command_callback(self: VCCAllBandsComponentManager, event: EventData):
         id, result = event.attr_value.value
-        self.lrc_results[event.device.get_fqdn()] = result
+        self.lrc_results[event.device.dev_name()] = result
 
-        self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: device.get_fqdn = {event.device.get_fqdn()}")
+        self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: device.dev_name = {event.device.dev_name()}")
         self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: lrc_results now = {self.lrc_results}")
 
         self.logger.info(
