@@ -1,63 +1,57 @@
 from __future__ import annotations  # allow forward references in type hints
 
 import functools
-import logging
+import os
 from threading import Event
 from typing import Any, Callable, Optional
 
-from ska_control_model import HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
+from ska_control_model import ObsState, ResultCode, SimulationMode, TaskStatus
 
 from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 from ska_mid_cbf_fhs_vcc.api.firmware.base_firmware_api import BaseFirmwareApi
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
 
 
 class FhsLowLevelComponentManager(FhsComponentManagerBase):
     def __init__(
         self: FhsLowLevelComponentManager,
         *args: Any,
-        device_id: str,
-        config_location: str,
-        simulation_mode: SimulationMode,
-        emulation_mode: bool,
+        device: FhsLowLevelDeviceBase,
         simulator_api: FhsBaseApiInterface,
         emulator_api: FhsBaseApiInterface,
-        emulator_ip_block_id: str,
-        emulator_id: str,
-        firmware_ip_block_id: str,
-        attr_change_callback: Callable[[str, Any], None] | None = None,
-        attr_archive_callback: Callable[[str, Any], None] | None = None,
-        health_state_callback: Callable[[HealthState], None] | None = None,
-        obs_command_running_callback: Callable[[str, bool], None],
-        logger: logging.Logger,
         **kwargs: Any,
     ) -> None:
-        self.logger = logger
-        self._device_id = device_id
-        self._config_location = config_location
-        self._simulation_mode = simulation_mode
-        self._emulation_mode = emulation_mode
         super().__init__(
             *args,
-            obs_command_running_callback=obs_command_running_callback,
-            logger=logger,
             **kwargs,
         )
 
-        logger.info(f"Device Api starting for simulation_mode: {simulation_mode}, emulation_mode: {emulation_mode}")
+        self._device = device
+        self._device_id = device.device_id
+        self._simulation_mode = device.simulation_mode
+        self._emulation_mode = device.emulation_mode
+
+        self.logger.info(
+            f"Device Api starting for simulation_mode: {device.simulation_mode}, emulation_mode: {device.emulation_mode}"
+        )
+        bitstream_path = os.path.join(device.bitstream_path, device.bitstream_id, device.bitstream_version)
+
         self._api: FhsBaseApiInterface
-        if simulation_mode == SimulationMode.TRUE and simulator_api is not None:
+        if self._simulation_mode == SimulationMode.TRUE and simulator_api is not None:
             self._api = simulator_api(self._device_id, self.logger)
         elif (
-            simulation_mode == SimulationMode.FALSE
-            and emulation_mode
+            self._simulation_mode == SimulationMode.FALSE
+            and self._emulation_mode
             and emulator_api is not None
-            and emulator_ip_block_id is not None
+            and device.emulator_ip_block_id is not None
         ):
-            self._api = emulator_api(self._config_location, emulator_ip_block_id, emulator_id, self.logger)
+            self._api = emulator_api(
+                bitstream_path, device.emulator_ip_block_id, device.emulator_id, device.emulator_base_url, self.logger
+            )
         else:
-            self._api = BaseFirmwareApi(self._config_location, firmware_ip_block_id, self.logger)
+            self._api = BaseFirmwareApi(bitstream_path, device.firmware_ip_block_id, self.logger)
 
     ####
     # Allowance Functions
