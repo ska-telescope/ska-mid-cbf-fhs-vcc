@@ -196,8 +196,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 hook="obsreset",
                 command_thread=functools.partial(
                     self._obs_reset,
-                    from_state=self.obs_state
-                )
+                    from_state=self.obs_state,
+                ),
             ),
             task_callback=task_callback,
             is_cmd_allowed=self.is_obs_reset_allowed,
@@ -552,7 +552,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self: VCCAllBandsComponentManager,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
-        from_state = ObsState.ABORTED
+        from_state=ObsState.ABORTED,
     ) -> None:
         try:
             task_callback(status=TaskStatus.IN_PROGRESS)
