@@ -3,8 +3,8 @@ from __future__ import annotations
 import functools
 import json
 import logging
-from threading import Event
 import time
+from threading import Event
 from typing import Any, Callable, Optional
 
 import jsonschema
@@ -186,7 +186,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             is_cmd_allowed=self.is_go_to_idle_allowed,
         )
 
-    def reset(
+    def obs_reset(
         self: VCCAllBandsComponentManager,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
@@ -194,7 +194,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             func=functools.partial(
                 self._obs_command_with_callback,
                 hook="obsreset",
-                command_thread=self._reset,
+                command_thread=self._obs_reset,
             ),
             task_callback=task_callback,
             is_cmd_allowed=self.is_obsreset_allowed,
@@ -508,7 +508,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         except Exception as ex:
             self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
 
-    def _reset(
+    def _obs_reset(
         self: VCCAllBandsComponentManager,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
@@ -517,7 +517,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             task_callback(status=TaskStatus.IN_PROGRESS)
             if self.task_abort_event_is_set("ObsReset", task_callback, task_abort_event):
                 return
-            
+
             # If in FAULT state, must run Abort first to make sure all LL devices are actually stopped
             if self.obs_state is ObsState.FAULT:
                 self.abort_commands()
