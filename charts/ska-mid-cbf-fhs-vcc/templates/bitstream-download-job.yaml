@@ -1,3 +1,4 @@
+{{- if .Values.bitstreamDownloadJob.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -12,9 +13,11 @@ spec:
           args:
             - |
               apk add --no-cache curl tar && \
-              {{- range $index, $instance := $.Values.instances }}
-              BITSTREAM_ID={{ include "substitute-device-id" (list (default $instance.bitstreamId | default $.Values.properties.bitstreamId) $instance.deviceId) }} && \
-              BITSTREAM_VER={{ include "substitute-device-id" (list (default $instance.bitstreamVersion | default $.Values.properties.bitstreamVersion) $instance.deviceId) }} && \
+              {{ range $index, $instance := $.Values.instances -}}
+              {{ $bitstreamId := include "substitute-device-id" (list (default $instance.bitstreamId | default $.Values.properties.bitstreamId) $instance.deviceId) -}}
+              {{ $bitstreamVersion := include "substitute-device-id" (list (default $instance.bitstreamVersion | default $.Values.properties.bitstreamVersion) $instance.deviceId) -}}
+              BITSTREAM_ID={{ $bitstreamId }} && \
+              BITSTREAM_VER={{ $bitstreamVersion }} && \
               BITSTREAM_SUBPATH=$BITSTREAM_ID/$BITSTREAM_VER && \
               echo "Downloading bitstream $BITSTREAM_SUBPATH" && \
               TARBALL="ska-mid-cbf-$BITSTREAM_ID-$BITSTREAM_VER.tar.gz" && \
@@ -33,3 +36,4 @@ spec:
         - name: bitstream-pv
           persistentVolumeClaim:
             claimName: fhs-vcc-bitstream-pv
+{{- end }}

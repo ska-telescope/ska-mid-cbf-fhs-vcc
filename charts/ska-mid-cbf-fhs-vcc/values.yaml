@@ -59,6 +59,9 @@ hostInfo:
 
 bitstreamMountPath: "/app/mnt/bitstream"
 
+bitstreamDownloadJob:
+  enabled: True
+
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
 
 # As defined in fhs-vcc-stack.yaml, the fhs stack and underlying devices are generated dynamically from the following config.
