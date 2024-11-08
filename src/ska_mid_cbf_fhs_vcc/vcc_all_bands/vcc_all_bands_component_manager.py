@@ -673,7 +673,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self.lrc_results[event.device.get_fqdn()] = result
 
         self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: device.get_fqdn = {event.device.get_fqdn()}")
-        self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: device.fqdn = {event.device.fqdn()}")
         self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: lrc_results now = {self.lrc_results}")
 
         self.logger.info(
