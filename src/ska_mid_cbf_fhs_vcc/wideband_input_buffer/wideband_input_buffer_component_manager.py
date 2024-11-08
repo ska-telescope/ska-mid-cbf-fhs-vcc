@@ -12,6 +12,7 @@ from ska_mid_cbf_fhs_vcc.api.emulator.wib_emulator_api import WibEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 from ska_mid_cbf_fhs_vcc.common.fhs_health_monitor import FhsHealthMonitor
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
 
 
 @dataclass_json
@@ -51,12 +52,13 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
     def __init__(
         self: WidebandInputBufferComponentManager,
         *args: Any,
-        poll_interval_s: str,
+        device: FhsLowLevelDeviceBase,
         health_state_callback: Callable[[HealthState], None] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             *args,
+            device=device,
             simulator_api=WidebandInputBufferSimulator,
             emulator_api=WibEmulatorApi,
             **kwargs,
@@ -73,7 +75,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             update_health_state_callback=health_state_callback,
             check_registers_callback=self.check_registers,
             api=self._api,
-            poll_interval=poll_interval_s,
+            poll_interval=device.health_monitor_poll_interval,
         )
 
     ##
