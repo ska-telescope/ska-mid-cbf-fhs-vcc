@@ -232,8 +232,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             func=self.nullcmd,
             task_callback=task_callback,
         )
-    
-    
 
     def nullcmd(
         self: VCCAllBandsComponentManager,
