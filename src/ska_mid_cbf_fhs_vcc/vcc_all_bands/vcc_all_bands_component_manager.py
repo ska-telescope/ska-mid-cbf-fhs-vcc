@@ -567,6 +567,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 while t > 0:
                     self.logger.warning("@@@@@@@@@@@@@@@@@@@@ POLLING MAC LRC")
                     self.logger.warning(self.lrc_results.get(self._mac_200_fqdn) or "NOTHING")
+                    time.sleep(1)
+                    t -= 1
 
                 # TODO: poll state instead of sleeping?
                 time.sleep(5)
