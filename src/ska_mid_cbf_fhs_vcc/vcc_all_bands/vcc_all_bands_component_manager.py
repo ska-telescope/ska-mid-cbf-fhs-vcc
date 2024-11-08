@@ -194,7 +194,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             func=functools.partial(
                 self._obs_command_with_callback,
                 hook="obsreset",
-                command_thread=self._obs_reset,
+                command_thread=functools.partial(
+                    self._obs_reset,
+                    from_state=self.obs_state
+                )
             ),
             task_callback=task_callback,
             is_cmd_allowed=self.is_obs_reset_allowed,
@@ -549,6 +552,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self: VCCAllBandsComponentManager,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
+        from_state = ObsState.ABORTED
     ) -> None:
         try:
             task_callback(status=TaskStatus.IN_PROGRESS)
@@ -556,7 +560,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 return
 
             # If in FAULT state, must run Abort first to make sure all LL devices are actually stopped
-            if self.obs_state is ObsState.FAULT:
+            if from_state is ObsState.FAULT:
                 self.abort_commands()
 
                 t = 10
