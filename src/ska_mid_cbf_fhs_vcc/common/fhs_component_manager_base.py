@@ -89,12 +89,6 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
             health_state=HealthState.DEGRADED
         )  # TODO Determine if the health state here needs to be degraded or not
 
-    def is_go_to_idle_allowed(self: FhsComponentManagerBase) -> bool:
-        self.logger.debug("Checking if gotoidle is allowed...")
-        errorMsg = f"go_to_idle not allowed in Obstate {self.obs_state}; " "must be in Obstate.READY, ABORTED or FAULT"
-
-        return self.is_allowed(errorMsg, [ObsState.READY, ObsState.ABORTED, ObsState.FAULT])
-
     def is_allowed(self: FhsComponentManagerBase, error_msg: str, obsStates: list[ObsState]) -> bool:
         result = True
 
