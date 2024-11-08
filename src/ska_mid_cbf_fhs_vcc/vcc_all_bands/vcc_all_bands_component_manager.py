@@ -192,12 +192,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
             func=functools.partial(
-                self._obs_command_with_callback,
-                hook="obsreset",
-                command_thread=functools.partial(
-                    self._obs_reset,
-                    from_state=self.obs_state,
-                ),
+                self._obs_reset,
+                from_state=self.obs_state,
             ),
             task_callback=task_callback,
             is_cmd_allowed=self.is_obs_reset_allowed,
@@ -573,9 +569,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 # TODO: poll state instead of sleeping?
                 time.sleep(5)
 
+            self._obs_state_action_callback(FhsObsStateMachine.OBSRESET_INVOKED)
+
             # Reset all device proxies
             self._reset_devices(self._proxies.keys())
 
+            self._obs_state_action_callback(FhsObsStateMachine.OBSRESET_COMPLETED)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ObsReset completed OK")
             return
         except StateModelError as ex:
@@ -672,6 +671,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     def _long_running_command_callback(self: VCCAllBandsComponentManager, event: EventData):
         id, result = event.attr_value.value
         self.lrc_results[event.device.get_fqdn()] = result
+
+        self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: device.get_fqdn = {event.device.get_fqdn()}")
+        self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: device.fqdn = {event.device.fqdn()}")
+        self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: lrc_results now = {self.lrc_results}")
 
         self.logger.info(
             f"VCC {self._vcc_id}: Long running command '{id}' on '{event.device.name()}' completed with result '{result}'"
