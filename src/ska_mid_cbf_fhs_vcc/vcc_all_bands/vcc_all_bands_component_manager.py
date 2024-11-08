@@ -154,9 +154,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         return self.is_allowed(errorMsg, [ObsState.READY])
 
-    def is_obsreset_allowed(self: VCCAllBandsComponentManager) -> bool:
+    def is_obs_reset_allowed(self: VCCAllBandsComponentManager) -> bool:
         self.logger.debug("Checking if ObsReset is allowed...")
-        errorMsg = f"Device {self._device_id} reset not allowed in ObsState {self.obs_state}; \
+        errorMsg = f"ObsReset not allowed in ObsState {self.obs_state}; \
             must be in ObsState.FAULT or ObsState.ABORTED"
 
         return self.is_allowed(errorMsg, [ObsState.FAULT, ObsState.ABORTED])
@@ -197,7 +197,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 command_thread=self._obs_reset,
             ),
             task_callback=task_callback,
-            is_cmd_allowed=self.is_obsreset_allowed,
+            is_cmd_allowed=self.is_obs_reset_allowed,
         )
 
     def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
@@ -211,18 +211,57 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             task_callback=task_callback,
         )
 
+    # def end_scan(
+    #     self: VCCAllBandsComponentManager,
+    #     task_callback: Optional[Callable] = None,
+    # ) -> tuple[TaskStatus, str]:
+    #     return self.submit_task(
+    #         func=functools.partial(
+    #             self._obs_command_with_callback,
+    #             hook="stop",
+    #             command_thread=self._end_scan,
+    #         ),
+    #         task_callback=task_callback,
+    #     )
+
     def end_scan(
         self: VCCAllBandsComponentManager,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="stop",
-                command_thread=self._end_scan,
-            ),
+            func=self.nullcmd,
             task_callback=task_callback,
         )
+    
+    
+
+    def nullcmd(
+        self: VCCAllBandsComponentManager,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """
+        End scan operation.
+
+        :return: None
+        """
+        try:
+            task_callback(status=TaskStatus.IN_PROGRESS)
+            if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
+                return
+            self._obs_state_action_callback(FhsObsStateMachine.COMPONENT_FAULT)
+
+            # Update obsState callback
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
+            return
+        except StateModelError as ex:
+            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call EndScan command from an incorrect state",
+            )
 
     def abort_commands(
         self: VCCAllBandsComponentManager,
