@@ -95,8 +95,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             update_health_state_callback=health_state_callback,
         )
 
-        self.lrc_results = {}
-
         super().__init__(
             *args,
             logger=logger,
@@ -192,8 +190,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
             func=functools.partial(
-                self._obs_reset,
-                from_state=self.obs_state,
+                self._obs_command_with_callback,
+                hook="obsreset",
+                command_thread=functools.partial(
+                    self._obs_reset,
+                    from_state=self.obs_state,
+                ),
             ),
             task_callback=task_callback,
             is_cmd_allowed=self.is_obs_reset_allowed,
@@ -272,10 +274,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
         result = super().abort_commands(task_callback)
 
-        for fqdn, proxy in self._proxies.items():
-            if proxy is not None and fqdn in [self._mac_200_fqdn, self._wib_fqdn, self._packet_validation_fqdn]:
-                self.logger.info(f"Stopping proxy {fqdn}")
-                result = proxy.Stop()
+        result = self._stop_proxies()
 
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
         return result
@@ -555,29 +554,13 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             if self.task_abort_event_is_set("ObsReset", task_callback, task_abort_event):
                 return
 
-            # If in FAULT state, must run Abort first to make sure all LL devices are actually stopped
+            # If in FAULT state, devices may still be running, so make sure they are stopped
             if from_state is ObsState.FAULT:
-                self.abort_commands()
-
-                t = 10
-                while t > 0:
-                    self.logger.warning("@@@@@@@@@@@@@@@@@@@@ POLLING MAC LRC")
-                    self.logger.info(
-                        f"@@@@@@@@@@@@@@@@@@@@ POLLING MACCCCCCCCCCCCCCCCCCCCCCCC LRC: lrc_results now = {self.lrc_results}"
-                    )
-                    self.logger.warning(self.lrc_results.get(self._mac_200_fqdn) or "NOTHING")
-                    time.sleep(1)
-                    t -= 1
-
-                # TODO: poll state instead of sleeping?
-                time.sleep(5)
-
-            self._obs_state_action_callback(FhsObsStateMachine.OBSRESET_INVOKED)
+                self._stop_proxies()
 
             # Reset all device proxies
             self._reset_devices(self._proxies.keys())
 
-            self._obs_state_action_callback(FhsObsStateMachine.OBSRESET_COMPLETED)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ObsReset completed OK")
             return
         except StateModelError as ex:
@@ -590,6 +573,14 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             )
         except Exception as ex:
             self.logger.error(f"Unexpected error in ObsReset command: {repr(ex)}")
+
+    def _stop_proxies(self: VCCAllBandsComponentManager):
+        result = None
+        for fqdn, proxy in self._proxies.items():
+            if proxy is not None and fqdn in [self._mac_200_fqdn, self._wib_fqdn, self._packet_validation_fqdn]:
+                self.logger.info(f"Stopping proxy {fqdn}")
+                result = proxy.Stop()
+        return result
 
     def _reset_attributes(self: VCCAllBandsComponentManager):
         self._config_id = ""
@@ -673,10 +664,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
     def _long_running_command_callback(self: VCCAllBandsComponentManager, event: EventData):
         id, result = event.attr_value.value
-        self.lrc_results[event.device.dev_name()] = result
-
-        self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: device.dev_name = {event.device.dev_name()}")
-        self.logger.info(f"@@@@@@@@@@@@@@@@@@@@ LRC: lrc_results now = {self.lrc_results}")
 
         self.logger.info(
             f"VCC {self._vcc_id}: Long running command '{id}' on '{event.device.name()}' completed with result '{result}'"
