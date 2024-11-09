@@ -211,55 +211,18 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             task_callback=task_callback,
         )
 
-    # def end_scan(
-    #     self: VCCAllBandsComponentManager,
-    #     task_callback: Optional[Callable] = None,
-    # ) -> tuple[TaskStatus, str]:
-    #     return self.submit_task(
-    #         func=functools.partial(
-    #             self._obs_command_with_callback,
-    #             hook="stop",
-    #             command_thread=self._end_scan,
-    #         ),
-    #         task_callback=task_callback,
-    #     )
-
     def end_scan(
         self: VCCAllBandsComponentManager,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
-            func=self.nullcmd,
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="stop",
+                command_thread=self._end_scan,
+            ),
             task_callback=task_callback,
         )
-
-    def nullcmd(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-    ) -> None:
-        """
-        End scan operation.
-
-        :return: None
-        """
-        try:
-            task_callback(status=TaskStatus.IN_PROGRESS)
-            if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
-                return
-            self._obs_state_action_callback(FhsObsStateMachine.COMPONENT_FAULT)
-
-            # Update obsState callback
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
-            return
-        except StateModelError as ex:
-            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call EndScan command from an incorrect state",
-            )
 
     def abort_commands(
         self: VCCAllBandsComponentManager,
