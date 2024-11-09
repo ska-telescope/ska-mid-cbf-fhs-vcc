@@ -91,12 +91,11 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
 
         return self.is_allowed(errorMsg, [ObsState.IDLE, ObsState.READY, ObsState.ABORTED, ObsState.FAULT])
 
-    def is_reset_allowed(self: FhsLowLevelComponentManager) -> bool:
-        self.logger.debug("Checking if status is allowed...")
-        errorMsg = f"Device {self._device_id} reset not allowed in ObsState {self.obs_state}; \
-            must be in ObsState.FAULT"
+    def is_go_to_idle_allowed(self: FhsComponentManagerBase) -> bool:
+        self.logger.debug("Checking if gotoidle is allowed...")
+        errorMsg = f"go_to_idle not allowed in ObsState {self.obs_state}; " "must be in ObsState.READY"
 
-        return self.is_allowed(errorMsg, [ObsState.FAULT, ObsState.READY, ObsState.IDLE, ObsState.ABORTED])
+        return self.is_allowed(errorMsg, [ObsState.READY, ObsState.ABORTED, ObsState.FAULT])
 
     #####
     # Command Functions
@@ -108,9 +107,9 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
     def recover(self: FhsLowLevelComponentManager) -> tuple[ResultCode, str]:
         try:
             if self.is_recover_allowed():
-                self._obs_state_action_callback(FhsObsStateMachine.RESET_INVOKED)
+                self._obs_state_action_callback(FhsObsStateMachine.RECOVER_INVOKED)
                 self._api.recover()
-                self._obs_state_action_callback(FhsObsStateMachine.RESET_COMPLETED)
+                self._obs_state_action_callback(FhsObsStateMachine.RECOVER_COMPLETED)
                 return ResultCode.OK, "Recover command completed OK"
             else:
                 return (
