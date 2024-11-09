@@ -51,7 +51,7 @@ class VCCAllBandsController(FhsBaseDevice):
             ("ConfigureScan", "configure_scan"),
             ("Scan", "scan"),
             ("EndScan", "end_scan"),
-            ("ObsReset", "obs_reset"),  # TODO CIP-1850: has the potential to be left out if ticket is disgarded
+            ("ObsReset", "obs_reset"),
             ("TestCmd", "test_cmd"),
         ]
 
@@ -140,6 +140,12 @@ class VCCAllBandsController(FhsBaseDevice):
     @command(dtype_out="DevVarLongStringArray")
     def EndScan(self: VCCAllBandsController) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="EndScan")
+        result_code, command_id = command_handler()
+        return [[result_code], [command_id]]
+
+    @command(dtype_out="DevVarLongStringArray")
+    def ObsReset(self: VCCAllBandsController) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="ObsReset")
         result_code, command_id = command_handler()
         return [[result_code], [command_id]]
 
