@@ -4,7 +4,7 @@ boogie:
 image:
   repository: docker.io/library
   image: ska-mid-cbf-fhs-vcc-boogie
-  tag: 0.0.1
+  tag: 0.1.0
   pullPolicy: IfNotPresent
 
 service:
