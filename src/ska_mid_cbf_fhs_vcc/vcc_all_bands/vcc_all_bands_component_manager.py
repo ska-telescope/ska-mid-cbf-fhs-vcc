@@ -3,7 +3,6 @@ from __future__ import annotations
 import functools
 import json
 import logging
-import time
 from threading import Event
 from typing import Any, Callable, Optional
 
