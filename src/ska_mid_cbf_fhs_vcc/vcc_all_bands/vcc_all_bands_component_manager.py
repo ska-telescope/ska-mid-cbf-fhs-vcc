@@ -8,7 +8,7 @@ from typing import Any, Callable, Optional
 
 import jsonschema
 import tango
-from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
+from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_testing import context
@@ -145,6 +145,19 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         except tango.DevFailed as ex:
             self.logger.error(f"Failed close device proxies to FHS Low-level devices; {ex}")
 
+    def is_go_to_idle_allowed(self: VCCAllBandsComponentManager) -> bool:
+        self.logger.debug("Checking if gotoidle is allowed...")
+        errorMsg = f"go_to_idle not allowed in ObsState {self.obs_state}; " "must be in ObsState.READY"
+
+        return self.is_allowed(errorMsg, [ObsState.READY])
+
+    def is_obs_reset_allowed(self: VCCAllBandsComponentManager) -> bool:
+        self.logger.debug("Checking if ObsReset is allowed...")
+        errorMsg = f"ObsReset not allowed in ObsState {self.obs_state}; \
+            must be in ObsState.FAULT or ObsState.ABORTED"
+
+        return self.is_allowed(errorMsg, [ObsState.FAULT, ObsState.ABORTED])
+
     def configure_scan(
         self: VCCAllBandsComponentManager,
         argin: str,
@@ -168,6 +181,23 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             ),
             task_callback=task_callback,
             is_cmd_allowed=self.is_go_to_idle_allowed,
+        )
+
+    def obs_reset(
+        self: VCCAllBandsComponentManager,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="obsreset",
+                command_thread=functools.partial(
+                    self._obs_reset,
+                    from_state=self.obs_state,
+                ),
+            ),
+            task_callback=task_callback,
+            is_cmd_allowed=self.is_obs_reset_allowed,
         )
 
     def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
@@ -206,10 +236,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
         result = super().abort_commands(task_callback)
 
-        for fqdn, proxy in self._proxies.items():
-            if proxy is not None and fqdn in [self._mac_200_fqdn, self._wib_fqdn, self._packet_validation_fqdn]:
-                self.logger.info(f"Stopping proxy {fqdn}")
-                result = proxy.Stop()
+        result = self._stop_proxies()
 
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
         return result
@@ -407,7 +434,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.REJECTED,
-                "Attempted to call ConfigureScan command from an incorrect state",
+                "Attempted to call Scan command from an incorrect state",
             )
 
     def _end_scan(
@@ -447,7 +474,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.REJECTED,
-                "Attempted to call ConfigureScan command from an incorrect state",
+                "Attempted to call EndScan command from an incorrect state",
             )
 
     # A replacement for unconfigure
@@ -473,10 +500,49 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.REJECTED,
-                "Attempted to call ConfigureScan command from an incorrect state",
+                "Attempted to call GoToIdle command from an incorrect state",
             )
         except Exception as ex:
             self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
+
+    def _obs_reset(
+        self: VCCAllBandsComponentManager,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+        from_state=ObsState.ABORTED,
+    ) -> None:
+        try:
+            task_callback(status=TaskStatus.IN_PROGRESS)
+            if self.task_abort_event_is_set("ObsReset", task_callback, task_abort_event):
+                return
+
+            # If in FAULT state, devices may still be running, so make sure they are stopped
+            if from_state is ObsState.FAULT:
+                self._stop_proxies()
+
+            # Reset all device proxies
+            self._reset_devices(self._proxies.keys())
+
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ObsReset completed OK")
+            return
+        except StateModelError as ex:
+            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ObsReset command from an incorrect state",
+            )
+        except Exception as ex:
+            self.logger.error(f"Unexpected error in ObsReset command: {repr(ex)}")
+
+    def _stop_proxies(self: VCCAllBandsComponentManager):
+        result = None
+        for fqdn, proxy in self._proxies.items():
+            if proxy is not None and fqdn in [self._mac_200_fqdn, self._wib_fqdn, self._packet_validation_fqdn]:
+                self.logger.info(f"Stopping proxy {fqdn}")
+                result = proxy.Stop()
+        return result
 
     def _reset_attributes(self: VCCAllBandsComponentManager):
         self._config_id = ""

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.0.2"
+version = "0.1.0"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
     "Jason Turner <jason.turner@mda.space>",

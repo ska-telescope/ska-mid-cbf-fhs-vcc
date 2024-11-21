@@ -1,26 +1,33 @@
 # FHS-VCC Design
+
 ## Introduction
+
 ### Purpose
+
 This page will describe the initial design and flow of the HFS-VCC device servers with regards to the following:
-1.	Design of the top level VCC Tango Device Servers running on the FHS
-2.	The control interface between the MCS and FHS-VCC Controller
-3.	The Emulator configuration
-4.	Any design / implementation updates required by MCS
+
+1. Design of the top level VCC Tango Device Servers running on the FHS
+2. The control interface between the MCS and FHS-VCC Controller
+3. The Emulator configuration
+4. Any design / implementation updates required by MCS
 
 ### Overview
-In general, the initial design will not deviate much from that of the Talon-DX high level device servers.  The main differences will be in the device server implementation which will be ported from C++ to Python using PyTango instead.  
+
+In general, the initial design will not deviate much from that of the Talon-DX high level device servers. The main differences will be in the device server implementation which will be ported from C++ to Python using PyTango instead.
 
 Along with this change is that the device servers will not run as stand-alone processes but instead will be running from within Docker containers.
 
-The other major difference will be when the flow reaches the low-level device servers.  This will be dependent on a new state of the system which will be emulation mode.  If the system is running in emulation mode, instead of using the FW APIs in the low-level device servers to talk to the FW IP Blocks the data will be directed to use the Emulator APIs which will in turn communicate with the Emulator instead of the Agile-x hardware.
+The other major difference will be when the flow reaches the low-level device servers. This will be dependent on a new state of the system which will be emulation mode. If the system is running in emulation mode, instead of using the FW APIs in the low-level device servers to talk to the FW IP Blocks the data will be directed to use the Emulator APIs which will in turn communicate with the Emulator instead of the Agile-x hardware.
 
 ## Interface Parameters
 
 ## Configuration and Deployment
+
 This section will outline how the high / low level device servers get configured and spun up as well as how in emulation mode the emulator also gets configured and run.
 
 ### Device Server Configuration and Deployment
-The FHS device servers will be configured from .yaml files that outline the device servers and their properties.  This will follow the same procedure as that of MCS for deploying and configuring device servers.  Each VCC stack of device servers will be spun up in their own pod, this is to minimize overhead from having too many pods.  Each VCC pod will container
+
+The FHS device servers will be configured from .yaml files that outline the device servers and their properties. This will follow the same procedure as that of MCS for deploying and configuring device servers. Each VCC stack of device servers will be spun up in their own pod, this is to minimize overhead from having too many pods. Each VCC pod will container
 
 - vcc_all_bands
 - b123_vcc_osppfb_channeliser
@@ -30,74 +37,19 @@ The FHS device servers will be configured from .yaml files that outline the devi
 - wideband_input_buffer
 - wideband_freuqency_shifter
 
-#### Device Server .YAML Example
-``` 
-name: vcc
-function: vcc
-domain: sensing
-command: "B123VccOsppfbChanneliser"
-instances: ["vcc"]
-depends_on:
-  - device: sys/database/2
-readinessProbe:
-  initialDelaySeconds: 0
-  periodSeconds: 10
-  timeoutSeconds: 5
-  successThreshold: 1
-  failureThreshold: 3
-livenessProbe:
-  initialDelaySeconds: 0
-  periodSeconds: 10
-  timeoutSeconds: 5
-  successThreshold: 1
-  failureThreshold: 3
-server:
-  name: "B123VccOsppfbChanneliser"
-  instances:
-  - name: "vcc"
-    classes:
-    - name: "B123VccOsppfbChanneliser"
-      devices:
-      - name: "fhs/vcc/001"
-        properties:
-          - name: "device_id"
-            values:
-            - "b123vcc"
-          - name: "device_version_num"
-            values:
-            - "0.0.1"
-          - name: "device_gitlab_hash"
-            values:
-            - "0"
-          - name: "config_location"
-            values:
-            - "{{ .Values.hostInfo.configLocation }}"
-image:
-  registry: "{{.Values.midcbf.image.registry}}"
-  image: "{{.Values.midcbf.image.image}}"
-  tag: "{{.Values.midcbf.image.tag}}"
-  pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
-  
-extraVolumes:
-- name: low-level-config-mount
-  configMap: 
-    name:  low-level-configmap
-extraVolumeMounts:
-  - name: low-level-config-mount
-    mountPath: "{{ .Values.hostInfo.configLocation }}"
-```
-
 ### Emulator Configuration
-The Emulator engine requires that for each ip block needed to be emulated that an emulated version be created in python along with its state transition model.  These will live in the same repos as the FW API’s and will be pulled in from the same location in each repo to the bitstream package on build.  
 
-A configuration file for the emulator will also be necessary that will outline the ip blocks needed and how they connect to each other in the emulator engine.  This configuration should mimic that of the FW Ip blocks.  This will also be required to be pulled into the bitstream package for use on setup.
- Once the bitstream package is built, on configuration of the FHS the bitstream package will be downloaded and the emulator ip blocks and configuration placed in a location to be mounted by the emulator engine container.
+The Emulator engine requires that for each ip block needed to be emulated that an emulated version be created in python along with its state transition model. These will live in the same repos as the FW API’s and will be pulled in from the same location in each repo to the bitstream package on build.
+
+A configuration file for the emulator will also be necessary that will outline the ip blocks needed and how they connect to each other in the emulator engine. This configuration should mimic that of the FW Ip blocks. This will also be required to be pulled into the bitstream package for use on setup.
+Once the bitstream package is built, on configuration of the FHS the bitstream package will be downloaded and the emulator ip blocks and configuration placed in a location to be mounted by the emulator engine container.
 
 The emulator engine will then use retrieve the configuration and emulator ip blocks, use the configuration file to initiate the emulator engine configuration and set up the ip blocks with the relevant rabbitmq connections / rest endpoints.
 
 For more detailed information please see the ska-mid-cbf-emulators [readthedocs](https://readthedocs.org/projects/ska-telescope-ska-mid-cbf-emulators/)
 
 #### Emulator Configuration .JSON Example
+
 ```
 {
   "id": "vcc",

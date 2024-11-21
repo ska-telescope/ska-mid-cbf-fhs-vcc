@@ -22,18 +22,22 @@ def pv_device():
     Fixture to set up the packet validation device for testing with a mock Tango database.
     """
     harness = context.ThreadedTestTangoContextManager()
-    harness.add_device(device_name="test/wib/1", 
-                       device_class=WidebandInputBuffer, 
-                       device_id="1",
-                       device_version_num="1.0",
-                       device_gitlab_hash="abc123",
-                       config_location="../../resources/",
-                       simulation_mode="1",
-                       emulation_mode="0",
-                       emulator_ip_block_id="wideband_input_buffer",
-                       emulator_id="vcc-emulator-1",
-                       health_monitor_poll_interval="1"
-                       )
+    harness.add_device(
+        device_name="test/wib/1",
+        device_class=WidebandInputBuffer,
+        device_id="1",
+        device_version_num="1.0",
+        device_gitlab_hash="abc123",
+        emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
+        bitstream_path="../resources",
+        bitstream_id="agilex-vcc",
+        bitstream_version="0.0.1",
+        simulation_mode="1",
+        emulation_mode="0",
+        emulator_ip_block_id="wideband_input_buffer",
+        emulator_id="vcc-emulator-1",
+        health_monitor_poll_interval="1",
+    )
 
     with harness as test_context:
         yield test_context
@@ -116,7 +120,7 @@ def test_go_to_idle(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
     assert device_under_test.read_attribute("obsState").value is ObsState.IDLE.value
-    
+
 
 @pytest.mark.parametrize(
     ("id", "expected_mnemonic", "exception_expectation"),
@@ -153,6 +157,8 @@ def test_go_to_idle(device_under_test):
 def test_convert_dish_id(id, expected_mnemonic, exception_expectation):
     with exception_expectation:
         assert convert_dish_id_uint16_t_to_mnemonic(id) == expected_mnemonic
+
+
 def test_start_command(device_under_test, event_tracer: TangoEventTracer):
     """
     Test the Start command of the Mac200 device.
@@ -202,17 +208,17 @@ def test_stop_command(device_under_test, event_tracer: TangoEventTracer):
 
     obs_state = device_under_test.read_attribute("obsState").value
     assert obs_state is ObsState.READY.value
-    
+
+
 def test_register_polling_healthstate_failed(device_under_test, event_tracer):
-    
-   
+
     config_json = '{"expected_sample_rate": 3920000000, "noise_diode_transition_holdoff_seconds": 1.0, "expected_dish_band": 1}'
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
-    
+
     assert device_under_test.read_attribute("obsState").value is ObsState.READY.value
-    
+
     result = device_under_test.command_inout("Start")
 
     # Extract the result code and message
@@ -230,22 +236,22 @@ def test_register_polling_healthstate_failed(device_under_test, event_tracer):
         ),
     )
 
-    time.sleep(5)    
-    
+    time.sleep(5)
+
     healthState = device_under_test.read_attribute("healthState")
-    
+
     assert healthState.value is HealthState.FAILED.value
-    
+
+
 def test_register_polling_healthstate_ok(device_under_test, event_tracer):
-    
-   
+
     config_json = '{"expected_sample_rate": 3960000000, "noise_diode_transition_holdoff_seconds": 1.0, "expected_dish_band": 1}'
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
-    
+
     assert device_under_test.read_attribute("obsState").value is ObsState.READY.value
-    
+
     result = device_under_test.command_inout("Start")
 
     # Extract the result code and message
@@ -263,8 +269,8 @@ def test_register_polling_healthstate_ok(device_under_test, event_tracer):
         ),
     )
 
-    time.sleep(5)    
-    
+    time.sleep(5)
+
     healthState = device_under_test.read_attribute("healthState")
-    
+
     assert healthState.value is HealthState.OK.value

@@ -6,36 +6,31 @@ import sys
 
 from ska_control_model import ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.common.api_config_reader import APIConfigReader
 from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 
 
 class BaseFirmwareApi(FhsBaseApiInterface):
-    def __init__(self: BaseFirmwareApi, config_location: str, firmware_id: str, logger: logging.Logger) -> None:
-        logger.info(f"FIRMWARE API: {config_location}")
+    def __init__(self: BaseFirmwareApi, bitstream_path: str, firmware_ip_block_id: str, logger: logging.Logger) -> None:
+        logger.info(f".....................FIRMWARE API: {bitstream_path} {firmware_ip_block_id}........................")
 
         self._logger = logger
 
-        api_config_reader = APIConfigReader(config_location, self._logger)
-
-        bitstream_path = api_config_reader.getConfigMapValue("bitstreamPath")
-        bitstream_id = api_config_reader.getConfigMapValue("bitstreamId")
-        bitstream_version = api_config_reader.getConfigMapValue("bitstreamVersion")
-
-        driver_path = os.path.join(bitstream_path, bitstream_id, bitstream_version, "drivers")
+        driver_path = os.path.join(bitstream_path, "drivers")
 
         try:
             logger.info("Loading driver from: " + driver_path)
             sys.path.append(driver_path)
             from py_driver_initializer import Py_Driver_Initializer
         except ImportError as e:
-            msg = f"Driver version {bitstream_id}/{bitstream_version} not found in volume mount {driver_path}: {e!r}"
+            msg = f"Driver not found in {driver_path}: {e!r}"
             logger.error(msg)
             raise RuntimeError(msg)
 
         memory_map_file = ""
-        logger.info(f"Initializing driver with firmware_id: {firmware_id}, and memory_map: {memory_map_file}")
-        self._initializer = Py_Driver_Initializer(instance_name=firmware_id, memory_map_file=memory_map_file, logger=logger)
+        logger.info(f"Initializing driver with firmware_id: {firmware_ip_block_id}, and memory_map: {memory_map_file}")
+        self._initializer = Py_Driver_Initializer(
+            instance_name=firmware_ip_block_id, memory_map_file=memory_map_file, logger=logger
+        )
         self._config_t = self._initializer.driver_submodule.config_t
         self._status_t = self._initializer.driver_submodule.status_t
         self._driver = self._initializer.driver

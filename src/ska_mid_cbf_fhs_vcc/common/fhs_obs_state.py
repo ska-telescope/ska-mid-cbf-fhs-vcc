@@ -35,10 +35,12 @@ class FhsObsStateMachine(Machine):
     START_COMPLETED = "start_completed"
     STOP_INVOKED = "stop_invoked"
     STOP_COMPLETED = "stop_completed"
-    RESET_INVOKED = "reset_invoked"
-    RESET_COMPLETED = "reset_completed"
+    RECOVER_INVOKED = "recover_invoked"
+    RECOVER_COMPLETED = "recover_completed"
     ABORT_INVOKED = "abort_invoked"
     ABORT_COMPLETED = "abort_completed"
+    OBSRESET_INVOKED = "obsreset_invoked"
+    OBSRESET_COMPLETED = "obsreset_completed"
     GO_TO_IDLE = "go_to_idle"
 
     def __init__(self, callback: Optional[Callable] = None, **extra_kwargs: Any) -> None:
@@ -111,13 +113,23 @@ class FhsObsStateMachine(Machine):
                 "dest": "READY",
             },
             {
-                "source": ["IDLE", "READY", "FAULT", "SCANNING"],
-                "trigger": self.RESET_INVOKED,
+                "source": ["IDLE", "READY", "FAULT", "SCANNING", "ABORTED"],
+                "trigger": self.RECOVER_INVOKED,
                 "dest": "RESETTING",
             },
             {
                 "source": ["FAULT", "IDLE", "RESETTING", "READY"],
-                "trigger": self.RESET_COMPLETED,
+                "trigger": self.RECOVER_COMPLETED,
+                "dest": "IDLE",
+            },
+            {
+                "source": ["FAULT", "ABORTED"],
+                "trigger": self.OBSRESET_INVOKED,
+                "dest": "RESETTING",
+            },
+            {
+                "source": ["RESETTING"],
+                "trigger": self.OBSRESET_COMPLETED,
                 "dest": "IDLE",
             },
             {
@@ -130,7 +142,11 @@ class FhsObsStateMachine(Machine):
                 "trigger": self.ABORT_COMPLETED,
                 "dest": "ABORTED",
             },
-            {"source": ["READY", "RESETTING", "FAULT", "CONFIGURING"], "trigger": self.GO_TO_IDLE, "dest": "IDLE"},
+            {
+                "source": ["READY", "RESETTING", "FAULT", "CONFIGURING"],
+                "trigger": self.GO_TO_IDLE,
+                "dest": "IDLE",
+            },
         ]
         super().__init__(
             states=states,

@@ -1,3 +1,0 @@
-emulatorBaseUrl: emulators.ska-mid-cbf-emulators.svc.cluster.local:5001
-emulatorConfigPath: ../resources
-emulatorId: emulator-1

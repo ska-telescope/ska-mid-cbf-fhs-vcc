@@ -20,16 +20,21 @@ def fss_device():
     Fixture to set up the FSS device for testing with a mock Tango database.
     """
     harness = context.ThreadedTestTangoContextManager()
-    harness.add_device(device_name="test/fss/1", 
-                       device_class=FrequencySliceSelection,
-                       device_id="1",
-                       device_version_num="1.0",
-                       device_gitlab_hash="abc123",
-                       config_location="../../resources/",
-                       simulation_mode="1",
-                       emulation_mode="0",
-                       emulator_ip_block_id="fs_selection_26_2_1",
-                       emulator_id="vcc-emulator-1")
+    harness.add_device(
+        device_name="test/fss/1",
+        device_class=FrequencySliceSelection,
+        device_id="1",
+        device_version_num="1.0",
+        device_gitlab_hash="abc123",
+        emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
+        bitstream_path="../resources",
+        bitstream_id="agilex-vcc",
+        bitstream_version="0.0.1",
+        simulation_mode="1",
+        emulation_mode="0",
+        emulator_ip_block_id="fs_selection_26_2_1",
+        emulator_id="vcc-emulator-1",
+    )
 
     with harness as test_context:
         yield test_context
@@ -55,7 +60,7 @@ def test_configure_command(device_under_test):
     """
 
     # Define configuration input
-    config_json = '{"band_select": 1, "band_start_channel": [0, 1]}' 
+    config_json = '{"band_select": 1, "band_start_channel": [0, 1]}'
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
@@ -67,15 +72,15 @@ def test_configure_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
     assert device_under_test.read_attribute("obsState").value is ObsState.READY.value
-    
-    
+
+
 def test_configure_command_invalid_config(device_under_test):
     """
     Test the Configure command of the fss device.
     """
 
     # Define configuration input
-    config_json = '{"invalid": [{"output": 1, "input":1}]}' 
+    config_json = '{"invalid": [{"output": 1, "input":1}]}'
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
@@ -83,9 +88,8 @@ def test_configure_command_invalid_config(device_under_test):
     # Extract the result code and message
     result_code = result[0][0]
 
-    # TODO Do we need to set a fault obs_state here? 
+    # TODO Do we need to set a fault obs_state here?
     assert result_code == ResultCode.FAILED.value, f"Expected ResultCode.FAILED ({ResultCode.FAILED.value}), got {result_code}"
-
 
 
 def test_deconfigure_command(device_under_test):
@@ -102,11 +106,11 @@ def test_deconfigure_command(device_under_test):
 
     # Extract the result code and message
     result_code = result[0][0]
-    
+
     # Assertions
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
     assert device_under_test.read_attribute("obsState").value is ObsState.IDLE.value
-    
+
 
 def test_status_command(device_under_test):
     """
@@ -120,7 +124,7 @@ def test_status_command(device_under_test):
 
     # Extract the result code and message
     result_code, message = result[0][0], result[1][0]
-    
+
     expectedStatus = '{"band_select": 1, "band_start_channel": [0, 1]}'
 
     # Assertions
@@ -141,15 +145,16 @@ def test_recover_command(device_under_test):
 
     # Assertions
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
-    
+
+
 def test_go_to_idle(device_under_test):
     test_configure_command(device_under_test)
-    
+
     assert device_under_test.read_attribute("obsState").value is ObsState.READY.value
-    
+
     result = device_under_test.command_inout("GoToIdle")
     result_code = result[0][0]
-    
+
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
-    
+
     assert device_under_test.read_attribute("obsState").value is ObsState.IDLE.value
