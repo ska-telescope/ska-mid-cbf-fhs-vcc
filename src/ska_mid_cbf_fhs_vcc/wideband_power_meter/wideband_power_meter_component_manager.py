@@ -1,9 +1,9 @@
 from __future__ import annotations  # allow forward references in type hints
 
 from dataclasses import dataclass
-from dataclasses_json import dataclass_json
 from typing import Any
 
+from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 

@@ -8,8 +8,8 @@ from typing import Any, Callable, Optional
 from ska_control_model import ObsState, ResultCode, SimulationMode, TaskStatus
 
 from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
-from ska_mid_cbf_fhs_vcc.api.firmware.base_firmware_api import BaseFirmwareApi
 from ska_mid_cbf_fhs_vcc.api.emulator.base_emulator_api import BaseEmulatorApi
+from ska_mid_cbf_fhs_vcc.api.firmware.base_firmware_api import BaseFirmwareApi
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
