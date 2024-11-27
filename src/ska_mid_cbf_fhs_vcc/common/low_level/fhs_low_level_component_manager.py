@@ -9,6 +9,7 @@ from ska_control_model import ObsState, ResultCode, SimulationMode, TaskStatus
 
 from ska_mid_cbf_fhs_vcc.api.common.fhs_base_api_interface import FhsBaseApiInterface
 from ska_mid_cbf_fhs_vcc.api.firmware.base_firmware_api import BaseFirmwareApi
+from ska_mid_cbf_fhs_vcc.api.emulator.base_emulator_api import BaseEmulatorApi
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
@@ -20,7 +21,6 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         *args: Any,
         device: FhsLowLevelDeviceBase,
         simulator_api: FhsBaseApiInterface,
-        emulator_api: FhsBaseApiInterface,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -41,13 +41,8 @@ class FhsLowLevelComponentManager(FhsComponentManagerBase):
         self._api: FhsBaseApiInterface
         if self._simulation_mode == SimulationMode.TRUE and simulator_api is not None:
             self._api = simulator_api(self._device_id, self.logger)
-        elif (
-            self._simulation_mode == SimulationMode.FALSE
-            and self._emulation_mode
-            and emulator_api is not None
-            and device.emulator_ip_block_id is not None
-        ):
-            self._api = emulator_api(
+        elif self._simulation_mode == SimulationMode.FALSE and self._emulation_mode and device.emulator_ip_block_id is not None:
+            self._api = BaseEmulatorApi(
                 bitstream_path, device.emulator_ip_block_id, device.emulator_id, device.emulator_base_url, self.logger
             )
         else:

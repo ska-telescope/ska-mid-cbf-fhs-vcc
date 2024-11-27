@@ -6,7 +6,6 @@ from typing import Any
 import numpy as np
 from ska_control_model import CommunicationStatus
 
-from ska_mid_cbf_fhs_vcc.api.emulator.packet_validation_emulator_api import PacketValidationEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.packet_validation_simulator import PacketValidationControllerSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
@@ -38,7 +37,6 @@ class PacketValidationComponentManager(FhsLowLevelComponentManager):
         super().__init__(
             *args,
             simulator_api=PacketValidationControllerSimulator,
-            emulator_api=PacketValidationEmulatorApi,
             **kwargs,
         )
 
