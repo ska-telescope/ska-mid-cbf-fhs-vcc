@@ -7,6 +7,7 @@ from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import Packe
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device import WidebandFrequencyShifter
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
+from ska_mid_cbf_fhs_vcc.wideband_power_meter.wideband_power_meter_device import WidebandPowerMeter
 
 10
 __all__ = ["main"]
@@ -21,6 +22,7 @@ def main(args=None, **kwargs):  # noqa: E302
             PacketValidation,
             WidebandInputBuffer,
             WidebandFrequencyShifter,
+            WidebandPowerMeter,
             VCCAllBandsController,
         ),
         args=args,
