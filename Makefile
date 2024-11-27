@@ -43,7 +43,8 @@ KUBECONFIG ?= /etc/deploy/config ## KUBECONFIG location
 #HOST_IP = $(shell ip a 2> /dev/null | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | grep 192.168) 
 JIVE ?= false# Enable jive
 TARANTA ?= false# Enable Taranta
-MINIKUBE ?= true ## Minikube or not
+MINIKUBE ?= false ## Minikube or not
+K3D = true
 EXPOSE_All_DS ?= true ## Expose All Tango Services to the external network (enable Loadbalancer service)
 SKA_TANGO_OPERATOR ?= false
 ITANGO_ENABLED ?= true## ITango enabled in ska-tango-base
@@ -62,6 +63,7 @@ endif
 
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
+	--set global.k3d=$(K3D) \
 	--set global.exposeAllDS=$(EXPOSE_All_DS) \
 	--set global.tango_host=$(TANGO_HOST) \
 	--set global.cluster_domain=$(CLUSTER_DOMAIN) \

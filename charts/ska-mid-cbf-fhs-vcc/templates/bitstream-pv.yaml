@@ -1,4 +1,3 @@
-
 {{- $labels := coalesce .Values.global.labels .Values.labels "label:none" }}
 {{- $annotations := coalesce .Values.global.annotations .Values.annotations }}
 
@@ -17,11 +16,17 @@ metadata:
 spec:
 {{- if (coalesce .Values.global.minikube .Values.minikube false)  }}
   storageClassName: standard
+{{- else if .Values.global.k3d }}
+  storageClassName: local-path
 {{- else }}
   storageClassName: nfss1
 {{- end }}
   accessModes:
+  {{- if .Values.global.k3d }}
+    - ReadWriteOnce
+  {{- else }}
     - ReadWriteMany
+  {{- end }}
   resources:
     requests:
       storage: "1Gi"

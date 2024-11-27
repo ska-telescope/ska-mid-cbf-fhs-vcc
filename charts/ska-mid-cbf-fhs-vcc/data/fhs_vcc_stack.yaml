@@ -58,3 +58,11 @@ volume:
   mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
 
+initContainers:
+- name: wait-for-bitstream-download-job
+  image: bitnami/kubectl:latest
+  command: 
+    - sh
+    - -c
+  args:
+    - kubectl wait --for=condition=complete --timeout=60s job/bitstream-download-job

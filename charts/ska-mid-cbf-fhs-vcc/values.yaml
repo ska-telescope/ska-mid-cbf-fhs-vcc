@@ -16,6 +16,7 @@ labels:
 
 global:
   minikube: false
+  k3d: false
   exposeDatabaseDS: true
   exposeAllDS: false
   tango_host: databaseds-tango-base-test:10000
