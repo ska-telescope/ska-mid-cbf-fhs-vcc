@@ -3,31 +3,36 @@ from __future__ import annotations  # allow forward references in type hints
 from dataclasses import dataclass, field
 from typing import Any
 
+from enum import Enum
 import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, PowerState, ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.emulator.b123_vcc_osppfb_channeliser_emulator_api import B123VccOsppfbChanneliserEmulatorApi
-from ska_mid_cbf_fhs_vcc.api.simulator.b123_vcc_osppfb_channeliser_simulator import B123VccOsppfbChanneliserSimulator
+from ska_mid_cbf_fhs_vcc.api.emulator.vcc_osppfb_channelizer_emulator_api import VccOsppfbChannelizerEmulatorApi
+from ska_mid_cbf_fhs_vcc.api.simulator.vcc_osppfb_channelizer_simulator import VccOsppfbChannelizerSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
 
 @dataclass_json
 @dataclass
-class B123VccOsppfbChanneliserConfig:
+class VccOsppfbChannelizerConfig:
     sample_rate: np.uint64
     pol: dict
     channel: np.uint16
     gain: np.float32
 
+class ChannelizerType(Enum):
+    _B123 = 0
+    _B45A = 1
+    _B5B  = 2
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
 ##
 @dataclass_json
 @dataclass
-class B123VccOsppfbChanneliserStatus:
+class VccOsppfbChannelizerStatus:
     sample_rate: np.uint32
     num_channels: int
     num_polarisations: int
@@ -38,51 +43,32 @@ class B123VccOsppfbChanneliserStatus:
 @dataclass
 class VccConfigArgin:
     sample_rate: np.uint64 = 3960000000  # default values
-    gains: list[float] = field(
-        default_factory=lambda: [
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-        ]
-    )  # default gain values
+    gains: list[float] # default gain values
 
 
-class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
+class VccOsppfbChannelizerComponentManager(FhsLowLevelComponentManager):
     def __init__(
-        self: B123VccOsppfbChanneliserComponentManager,
+        self: VccOsppfbChannelizerComponentManager,
+        channelizer_type: ChannelizerType,
         *args: Any,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             *args,
-            simulator_api=B123VccOsppfbChanneliserSimulator,
-            emulator_api=B123VccOsppfbChanneliserEmulatorApi,
+            simulator_api=VccOsppfbChannelizerSimulator(self._device_id, self.logger, channelizer_type),
+            emulator_api=VccOsppfbChannelizerEmulatorApi,
             **kwargs,
         )
+        
+        self._mode = channelizer_type
+        self._num_channels = 10 if channelizer_type == ChannelizerType._B123 else 15
 
     ##
     # Public Commands
     ##
 
     # TODO Determine what needs to be communicated with here
-    def start_communicating(self: B123VccOsppfbChanneliserComponentManager) -> None:
+    def start_communicating(self: VccOsppfbChannelizerComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
 
         self.logger.info("Starting Communication for VCC...")
@@ -100,7 +86,7 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
     #####
     # Commands
     #####
-    def go_to_idle(self: B123VccOsppfbChanneliserComponentManager) -> tuple[ResultCode, str]:
+    def go_to_idle(self: VccOsppfbChannelizerComponentManager) -> tuple[ResultCode, str]:
         result = self.deconfigure()
 
         if result[0] is not ResultCode.FAILED:
@@ -108,7 +94,7 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
 
         return result
 
-    def configure(self: B123VccOsppfbChanneliserComponentManager, argin: str) -> tuple[ResultCode, str]:
+    def configure(self: VccOsppfbChannelizerComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
             self.logger.info("VCC Configuring..")
 
@@ -127,12 +113,14 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
             return ResultCode.FAILED, errorMsg
             # TODO helthstate check
 
-    def deconfigure(self: B123VccOsppfbChanneliserComponentManager, argin: str = None) -> tuple[ResultCode, str]:
+    def deconfigure(self: VccOsppfbChannelizerComponentManager, argin: str = None) -> tuple[ResultCode, str]:
         try:
             self.logger.info("VCC Deconfiguring..")
 
             # Get the default values
             vccConfigArgin = VccConfigArgin()
+            # number of gains = number of channels * polarization
+            vccConfigArgin.gains = [1 for x in range(self._num_channels * 2)]
 
             # If the argin is not none then we're 'reconfiguring' using the values set otherwise we use the default values
             if argin is not None:
@@ -152,7 +140,7 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
             # TODO helthstate check
 
     def _generate_and_configure(
-        self: B123VccOsppfbChanneliserComponentManager, vccConfigArgin: VccConfigArgin, configure
+        self: VccOsppfbChannelizerComponentManager, vccConfigArgin: VccConfigArgin, configure
     ) -> dict:
         result: tuple[ResultCode, str] = (
             ResultCode.OK,
@@ -162,7 +150,7 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
         # Channels are dual-polarized i.e. 2 gain values per channel[x, y]
         chan = 0
         for i, gain in enumerate(vccConfigArgin.gains):
-            vccConfig = B123VccOsppfbChanneliserConfig(
+            vccConfig = VccOsppfbChannelizerConfig(
                 sample_rate=vccConfigArgin.sample_rate,
                 gain=gain,
                 channel=chan,

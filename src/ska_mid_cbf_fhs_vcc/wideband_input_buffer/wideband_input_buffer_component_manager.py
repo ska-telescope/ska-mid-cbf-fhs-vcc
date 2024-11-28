@@ -173,33 +173,14 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
         success_msg: str = None,
         error_msg: str = None,
     ) -> HealthState:
-        result = HealthState.OK
-
-        if expected_value:
-            result = self.check_register_expected_value(expected_value, register_value)
-
-            if result != HealthState.OK:
-                if error_msg:
-                    self.logger.error(error_msg)
-            else:
-                if success_msg:
-                    self.logger.info(success_msg)
-
-        return result
-
-    def check_register_expected_value(self, expected_value: Any, register_value: Any) -> HealthState:
-        result = HealthState.FAILED
-
         if expected_value and register_value:
             if expected_value == register_value:
-                result = HealthState.OK
-        else:
-            self.logger.error(
-                f"Function expects an expected_value and register_value. Was given expected_value={expected_value}, register_value={register_value}"
-            )
-            result = HealthState.FAILED
-
-        return result
+                self.logger.info(success_msg)
+                return HealthState.OK
+            elif error_msg:
+                self.logger.error(error_msg)
+            
+        return HealthState.FAILED
 
 
 def convert_dish_id_uint16_t_to_mnemonic(numerical_dish_id: int) -> str:

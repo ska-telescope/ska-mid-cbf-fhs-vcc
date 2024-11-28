@@ -121,10 +121,30 @@ devices:
     path: "fhs/wfs/<deviceId000>"
     emulatorIpBlockId: "wideband_frequency_shifter"
     firmwareIpBlockId: "wideband_frequency_shifter_unimplemented"
-  - name: "B123VccOsppfbChanneliser"
-    path: "fhs/vcc/<deviceId000>"
+  - name: "VccOsppfbChanneliser"
+    path: "fhs/vcc123/<deviceId000>"
     emulatorIpBlockId: "b123vcc"
     firmwareIpBlockId: "receptor<receptorId>_band123_vcc"
+    properties:
+      - name: channelizer_type
+        values:
+          - "B123"
+  - name: "VccOsppfbChanneliser"
+    path: "fhs/vcc45A/<deviceId000>"
+    emulatorIpBlockId: "b45avcc"
+    firmwareIpBlockId: "receptor<receptorId>_band45A_vcc"
+    properties:
+      - name: channelizer_type
+        values:
+          - "B45A"
+  - name: "VccOsppfbChanneliser"
+    path: "fhs/vcc5B/<deviceId000>"
+    emulatorIpBlockId: "b5bvcc"
+    firmwareIpBlockId: "receptor<receptorId>_band5B_vcc"
+    properties:
+      - name: channelizer_type
+        values:
+          - "B5B"
   - name: "FrequencySliceSelection"
     path: "fhs/fss/<deviceId000>"
     emulatorIpBlockId: "fs_selection_26_2_1"
