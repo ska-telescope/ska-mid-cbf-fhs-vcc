@@ -30,10 +30,10 @@ server:
     {{- $deviceId := $device.deviceId | default $instance.deviceId | int }}
     {{- $deviceId000 := (printf "%03d" $deviceId) }}
     {{- $receptorId := (mod (sub $deviceId 1) 3) }}
-    {{- range $multiplicity := (untilStep 1 ($device.multiplicity | int | default 1 | add1 | int ) 1) }}
-    {{- $scope := dict "deviceId" $deviceId "deviceId000" $deviceId000 "receptorId" $receptorId "multiplicity" $multiplicity }}
-    - name: {{ tpl $device.name $scope }}
+    - name: {{ $device.name }}
       devices:
+      {{- range $multiplicity := (untilStep 1 ($device.multiplicity | int | default 1 | add1 | int ) 1) }}
+      {{- $scope := dict "deviceId" $deviceId "deviceId000" $deviceId000 "receptorId" $receptorId "multiplicity" $multiplicity }}
       - name: {{ tpl $device.path $scope }}
         properties:
           {{- range $name, $default := $.Values.properties }}
@@ -48,7 +48,7 @@ server:
             - "{{ tpl $value $scope }}"
             {{- end }}
           {{- end }}
-    {{- end }}
+      {{- end }}
     {{- end }}
 {{- end }}
 
