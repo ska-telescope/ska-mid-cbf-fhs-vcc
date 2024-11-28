@@ -10,7 +10,7 @@ from ska_tango_testing.integration import TangoEventTracer
 from unittest.mock import MagicMock, patch
 from ska_control_model import ObsState, ResultCode, SimulationMode
 
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device import B123VccOsppfbChanneliser
+from ska_mid_cbf_fhs_vcc.vcc_osppfb_channelizer.vcc_osppfb_channelizer_device import VccOsppfbChannelizer
 
 EVENT_TIMEOUT = 30
 
@@ -23,7 +23,7 @@ def vcc123_device():
     harness = context.ThreadedTestTangoContextManager()
     harness.add_device(
         device_name="test/vcc123/1",
-        device_class=B123VccOsppfbChanneliser,
+        device_class=VccOsppfbChannelizer,
         device_id="1",
         device_version_num="1.0",
         device_gitlab_hash="abc123",
@@ -34,6 +34,7 @@ def vcc123_device():
         simulation_mode="1",
         emulation_mode="0",
         emulator_ip_block_id="b123vcc",
+        channelizer_type = "B123"
     )
 
     with harness as test_context:
@@ -60,7 +61,7 @@ def test_configure_command(device_under_test):
     """
 
     # Define configuration input
-    config_json = '{"gains": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "sample_rate": 3960000000}'
+    config_json = '{"gains": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "sample_rate": 3960000000}'
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
@@ -80,7 +81,7 @@ def test_configure_command_invalid_config(device_under_test):
     """
 
     # Define configuration input
-    config_json = '{"gains": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "wrong_value": 3960000000}'
+    config_json = '{"gains": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "wrong_value": 3960000000}'
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
@@ -127,7 +128,7 @@ def test_status_command(device_under_test):
 
     msgDict = json.loads(message)
     expectedStatus = json.loads(
-        '{"sample_rate": 3960000000, "num_channels": 10, "num_polarisations": 2, "gains": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}'
+        '{"sample_rate": 3960000000, "num_channels": 10, "num_polarisations": 2, "gains": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}'
     )
 
     # Assertions

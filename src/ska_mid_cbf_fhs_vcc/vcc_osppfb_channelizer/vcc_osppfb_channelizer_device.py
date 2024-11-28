@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_vcc.vcc_osppfb_channeliser.vcc_osppfb_channelizer_component_manager import (
-    VccOsppfbChanneliserComponentManager,
+from ska_mid_cbf_fhs_vcc.vcc_osppfb_channelizer.vcc_osppfb_channelizer_component_manager import (
+    VccOsppfbChannelizerComponentManager,
 )
 from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
 from tango.server import device_property
 
 
-class VccOsppfbChanneliser(FhsLowLevelDeviceBase):
+class VccOsppfbChannelizer(FhsLowLevelDeviceBase):
     channelizer_type = device_property(dtype="str")
     
     def create_component_manager(
-        self: VccOsppfbChanneliser,
-    ) -> VccOsppfbChanneliserComponentManager:
-        return VccOsppfbChanneliserComponentManager(
+        self: VccOsppfbChannelizer,
+    ) -> VccOsppfbChannelizerComponentManager:
+        return VccOsppfbChannelizerComponentManager(
             device=self,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
@@ -27,13 +27,13 @@ class VccOsppfbChanneliser(FhsLowLevelDeviceBase):
             logger=self.logger,
         )
 
-    def always_executed_hook(self: VccOsppfbChanneliser) -> None:
+    def always_executed_hook(self: VccOsppfbChannelizer) -> None:
         """Hook to be executed before any commands."""
 
-    def delete_device(self: VccOsppfbChanneliser) -> None:
+    def delete_device(self: VccOsppfbChannelizer) -> None:
         """Hook to delete device."""
 
-    def init_command_objects(self: VccOsppfbChanneliser) -> None:
+    def init_command_objects(self: VccOsppfbChannelizer) -> None:
         super().init_command_objects()
 
         # init the fast commands
@@ -49,7 +49,7 @@ class VccOsppfbChanneliser(FhsLowLevelDeviceBase):
 
 
 def main(args=None, **kwargs):
-    return VccOsppfbChanneliser.run_server(args=args or None, **kwargs)
+    return VccOsppfbChannelizer.run_server(args=args or None, **kwargs)
 
 
 if __name__ == "__main__":

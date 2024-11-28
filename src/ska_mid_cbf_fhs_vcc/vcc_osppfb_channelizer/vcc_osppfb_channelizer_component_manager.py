@@ -23,9 +23,9 @@ class VccOsppfbChannelizerConfig:
     gain: np.float32
 
 class ChannelizerType(Enum):
-    _B123 = 0
-    _B45A = 1
-    _B5B  = 2
+    _B123 = "B123"
+    _B45A = "B45A"
+    _B5B  = "B5B"
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
@@ -49,7 +49,7 @@ class VccConfigArgin:
 class VccOsppfbChannelizerComponentManager(FhsLowLevelComponentManager):
     def __init__(
         self: VccOsppfbChannelizerComponentManager,
-        channelizer_type: ChannelizerType,
+        channelizer_type: str,
         *args: Any,
         **kwargs: Any,
     ) -> None:
