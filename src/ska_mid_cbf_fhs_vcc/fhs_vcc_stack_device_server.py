@@ -13,6 +13,22 @@ from ska_mid_cbf_fhs_vcc.wideband_power_meter.wideband_power_meter_device import
 __all__ = ["main"]
 
 
+class B123WidebandPowerMeter(WidebandPowerMeter):
+    pass
+
+
+class B45AWidebandPowerMeter(WidebandPowerMeter):
+    pass
+
+
+class B5BWidebandPowerMeter(WidebandPowerMeter):
+    pass
+
+
+class FSWidebandPowerMeter(WidebandPowerMeter):
+    pass
+
+
 def main(args=None, **kwargs):  # noqa: E302
     return run(
         classes=(
@@ -22,7 +38,10 @@ def main(args=None, **kwargs):  # noqa: E302
             PacketValidation,
             WidebandInputBuffer,
             WidebandFrequencyShifter,
-            WidebandPowerMeter,
+            B123WidebandPowerMeter,
+            B45AWidebandPowerMeter,
+            B5BWidebandPowerMeter,
+            FSWidebandPowerMeter,
             VCCAllBandsController,
         ),
         args=args,
