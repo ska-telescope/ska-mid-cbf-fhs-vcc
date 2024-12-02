@@ -8,10 +8,13 @@ import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, PowerState, ResultCode
+import logging
 
 from ska_mid_cbf_fhs_vcc.api.emulator.vcc_osppfb_channelizer_emulator_api import VccOsppfbChannelizerEmulatorApi
-from ska_mid_cbf_fhs_vcc.api.simulator.vcc_osppfb_channelizer_simulator import VccOsppfbChannelizerSimulator
+from ska_mid_cbf_fhs_vcc.api.simulator.b123_vcc_osppfb_channelizer_simulator import B123VccOsppfbChannelizerSimulator
+from ska_mid_cbf_fhs_vcc.api.simulator.b45_vcc_osppfb_channelizer_simulator import B45VccOsppfbChannelizerSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
 
 
 @dataclass_json
@@ -43,25 +46,58 @@ class VccOsppfbChannelizerStatus:
 @dataclass
 class VccConfigArgin:
     sample_rate: np.uint64 = 3960000000  # default values
-    gains: list[float] # default gain values
+    gains: list[float]= field(
+        default_factory=lambda: [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+        ]
+    )  # default gain values
 
 
 class VccOsppfbChannelizerComponentManager(FhsLowLevelComponentManager):
     def __init__(
         self: VccOsppfbChannelizerComponentManager,
+        device: FhsLowLevelDeviceBase,
+        logger: logging.Logger,
         channelizer_type: str,
         *args: Any,
         **kwargs: Any,
     ) -> None:
+        self._mode = channelizer_type
+        simulator = None
+        if channelizer_type == ChannelizerType._B123.value:
+            self._num_channels = 10
+            simulator = B123VccOsppfbChannelizerSimulator
+        else:
+            self._num_channels = 15
+            simulator = B45VccOsppfbChannelizerSimulator
+        
         super().__init__(
+            device=device,
+            logger=logger,
             *args,
-            simulator_api=VccOsppfbChannelizerSimulator(self._device_id, self.logger, channelizer_type),
+            simulator_api=simulator,
             emulator_api=VccOsppfbChannelizerEmulatorApi,
             **kwargs,
         )
-        
-        self._mode = channelizer_type
-        self._num_channels = 10 if channelizer_type == ChannelizerType._B123 else 15
 
     ##
     # Public Commands
