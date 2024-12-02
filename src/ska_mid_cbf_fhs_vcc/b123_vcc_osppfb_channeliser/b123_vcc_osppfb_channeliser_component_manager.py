@@ -8,7 +8,6 @@ from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, PowerState, ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.emulator.b123_vcc_osppfb_channeliser_emulator_api import B123VccOsppfbChanneliserEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.b123_vcc_osppfb_channeliser_simulator import B123VccOsppfbChanneliserSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
@@ -73,7 +72,6 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
         super().__init__(
             *args,
             simulator_api=B123VccOsppfbChanneliserSimulator,
-            emulator_api=B123VccOsppfbChanneliserEmulatorApi,
             **kwargs,
         )
 

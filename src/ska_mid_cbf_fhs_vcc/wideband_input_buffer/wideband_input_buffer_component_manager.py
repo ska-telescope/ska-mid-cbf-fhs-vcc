@@ -8,7 +8,6 @@ from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, TaskStatus
 
-from ska_mid_cbf_fhs_vcc.api.emulator.wib_emulator_api import WibEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 from ska_mid_cbf_fhs_vcc.common.fhs_health_monitor import FhsHealthMonitor
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
@@ -60,7 +59,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
             *args,
             device=device,
             simulator_api=WidebandInputBufferSimulator,
-            emulator_api=WibEmulatorApi,
             **kwargs,
         )
 

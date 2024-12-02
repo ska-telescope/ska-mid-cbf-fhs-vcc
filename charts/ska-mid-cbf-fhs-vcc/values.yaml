@@ -76,9 +76,10 @@ bitstreamDownloadJob:
 # - `instance.simulationMode`, defined in `instances`
 # - `simulationMode.default`, defined in `properties` (the global, default value)
 # Every string value in name, path, properties, or a instance or device-scoped override, may contain the following placeholder which will be replaced:
-#   - `<deviceId>` will be replaced with the device id of the device (deviceId must be defined in either the device or instance)
-#   - `<deviceId000>` will be replaced with the device id of the device, padded with zeros
-#   - `<receptorId>` will be replaced with the receptor id of the device (calculated by (deviceId - 1) % 3)
+#   - `{{.deviceId}}` will be replaced with the device id of the device (deviceId must be defined in either the device or instance)
+#   - `{{.deviceId000}}` will be replaced with the device id of the device, padded with zeros
+#   - `{{.receptorId}}` will be replaced with the receptor id of the device (calculated by (deviceId - 1) % 3)
+#   - `{{.multiplicity}}` will be replaced with index of the iteration in the range of `devices.multiplicity`
 
 # the default tango properties in each device. optionally provide a default, global value
 properties:
@@ -91,26 +92,26 @@ properties:
   bitstreamPath: "/app/mnt/bitstream"
   bitstreamId: "agilex-vcc"
   bitstreamVersion: "0.0.12"
-  emulatorId: "vcc-emulator-<deviceId>"
+  emulatorId: "vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
   firmwareIpBlockId: ""
 
 # the devices in each stack. optionally override any property defined in `properties`. to add extra properties, provide a `properties` dict
 devices:
   - name: "Mac200"
-    path: "fhs/mac200/<deviceId000>"
+    path: "fhs/mac200/{{.deviceId000}}"
     emulatorIpBlockId: "ethernet_200g"
-    firmwareIpBlockId: "eth200g_<receptorId>"
+    firmwareIpBlockId: "eth200g_{{.receptorId}}"
     properties:
       - name: MacType
         values:
           - "mac200"
   - name: "PacketValidation"
-    path: "fhs/packetvalidation/<deviceId000>"
+    path: "fhs/packetvalidation/{{.deviceId000}}"
     emulatorIpBlockId: "packet_validation"
     firmwareIpBlockId: "packet_validation_unimplemented"
   - name: "WidebandInputBuffer"
-    path: "fhs/wib/<deviceId000>"
+    path: "fhs/wib/{{.deviceId000}}"
     emulatorIpBlockId: "wideband_input_buffer"
     firmwareIpBlockId: "wideband_input_buffer_unimplemented"
     properties:
@@ -118,38 +119,55 @@ devices:
         values:
           - "3"
   - name: "WidebandFrequencyShifter"
-    path: "fhs/wfs/<deviceId000>"
+    path: "fhs/wfs/{{.deviceId000}}"
     emulatorIpBlockId: "wideband_frequency_shifter"
     firmwareIpBlockId: "wideband_frequency_shifter_unimplemented"
   - name: "B123VccOsppfbChanneliser"
-    path: "fhs/vcc/<deviceId000>"
+    path: "fhs/vcc/{{.deviceId000}}"
     emulatorIpBlockId: "b123vcc"
-    firmwareIpBlockId: "receptor<receptorId>_band123_vcc"
+    firmwareIpBlockId: "receptor{{.receptorId}}_band123_vcc"
   - name: "FrequencySliceSelection"
-    path: "fhs/fss/<deviceId000>"
+    path: "fhs/fss/{{.deviceId000}}"
     emulatorIpBlockId: "fs_selection_26_2_1"
-    firmwareIpBlockId: "receptor<receptorId>_fs_selector"
+    firmwareIpBlockId: "receptor{{.receptorId}}_fs_selector"
+  - name: "B123WidebandPowerMeter"
+    path: "fhs/b123wpm/{{.deviceId000}}"
+    emulatorIpBlockId: "b123_wideband_power_meter"
+    firmwareIpBlockId: "receptor{{.receptorId}}_band123_wideband_power_meter"
+  - name: "B45AWidebandPowerMeter"
+    path: "fhs/b45awpm/{{.deviceId000}}"
+    emulatorIpBlockId: "b45a_wideband_power_meter"
+    firmwareIpBlockId: "receptor{{.receptorId}}_band45a_wideband_power_meter"
+  - name: "B5BWidebandPowerMeter"
+    path: "fhs/b5bwpm/{{.deviceId000}}"
+    emulatorIpBlockId: "b5b_wideband_power_meter"
+    firmwareIpBlockId: "receptor{{.receptorId}}_band5b_wideband_power_meter"
+  - name: "FSWidebandPowerMeter"
+    multiplicity: 26
+    path: "fhs/fs{{.multiplicity}}wpm/{{.deviceId000}}"
+    emulatorIpBlockId: "fs{{.multiplicity}}_wideband_power_meter"
+    firmwareIpBlockId: "receptor{{.receptorId}}_fs{{.multiplicity}}_power_meter"
   - name: "VCCAllBandsController"
-    path: "fhs/vcc-all-bands/<deviceId000>"
+    path: "fhs/vcc-all-bands/{{.deviceId000}}"
     properties:
       - name: wideband_input_buffer_fqdn
         values:
-          - "fhs/wib/<deviceId000>"
+          - "fhs/wib/{{.deviceId000}}"
       - name: vcc123_channelizer_fqdn
         values:
-          - "fhs/vcc/<deviceId000>"
+          - "fhs/vcc/{{.deviceId000}}"
       - name: fs_selection_fqdn
         values:
-          - "fhs/fss/<deviceId000>"
+          - "fhs/fss/{{.deviceId000}}"
       - name: wideband_frequency_shifter_fqdn
         values:
-          - "fhs/wfs/<deviceId000>"
+          - "fhs/wfs/{{.deviceId000}}"
       - name: mac_200_fqdn
         values:
-          - "fhs/mac200/<deviceId000>"
+          - "fhs/mac200/{{.deviceId000}}"
       - name: packet_validation_fqdn
         values:
-          - "fhs/packetvalidation/<deviceId000>"
+          - "fhs/packetvalidation/{{.deviceId000}}"
       - name: vcc45_channelizer_fqdn # yet to be implemented
         values:
           - "placeholder"
