@@ -7,7 +7,6 @@ from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.emulator.circuit_switch_emulator_api import CircuitSwitchEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.circuit_switch_simulator import CircuitSwitchSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
@@ -45,7 +44,6 @@ class CircuitSwitchComponentManager(FhsLowLevelComponentManager):
         super().__init__(
             *args,
             simulator_api=CircuitSwitchSimulator,
-            emulator_api=CircuitSwitchEmulatorApi,
             **kwargs,
         )
 
