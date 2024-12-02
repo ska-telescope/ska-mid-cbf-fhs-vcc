@@ -147,6 +147,10 @@ devices:
     path: "fhs/fs{{.multiplicity}}wpm/{{.deviceId000}}"
     emulatorIpBlockId: "fs{{.multiplicity}}_wideband_power_meter"
     firmwareIpBlockId: "receptor{{.receptorId}}_fs{{.multiplicity}}_power_meter"
+  - name: "Packetizer"
+    path: "fhs/packetizer/{{.deviceId000}}"
+    emulatorIpBlockId: "packetizer"
+    firmwareIpBlockId: "fs_packetizer"
   - name: "VCCAllBandsController"
     path: "fhs/vcc-all-bands/{{.deviceId000}}"
     properties:
