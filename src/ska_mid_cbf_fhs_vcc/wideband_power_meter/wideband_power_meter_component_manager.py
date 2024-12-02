@@ -3,6 +3,7 @@ from __future__ import annotations  # allow forward references in type hints
 from dataclasses import dataclass
 from typing import Any
 
+import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
@@ -15,7 +16,8 @@ from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import
 @dataclass
 class WidebandPowerMeterConfig:
     averaging_time: float  # Averaging interval in seconds
-    sample_rate: float  # Sample rate in sampes per second
+    sample_rate: np.uint64  # Sample rate in sampes per second
+    flagging: np.uint8  # Handling for flagged data, 0 - ignore, 1 - use, 2 - saturate and use
 
 
 ##
@@ -30,6 +32,9 @@ class WidebandPowerMeterStatus:
     avg_power_polY_noise_diode_on: float  # Average signal power
     avg_power_polX_noise_diode_off: float  # Average signal power
     abg_power_polY_noise_diode_off: float  # Average signal power
+    flag: bool  # Flagged data detected during averaging interval
+    # Overflow detected during averaging interval: bit 0 nd on pol X, bit 1 nd on pol Y, bit 2 nd off pol X, bit 3 nd off pol Y
+    overflow: np.uint8
 
 
 class WidebandPowerMeterComponentManager(FhsLowLevelComponentManager):

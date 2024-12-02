@@ -22,7 +22,9 @@ class WidebandPowerMeterSimulator(BaseSimulatorApi):
                     "avg_power_polX_noise_diode_on": 0.0,
                     "avg_power_polY_noise_diode_on": 0.0,
                     "avg_power_polX_noise_diode_off": 0.0,
-                    "abg_power_polY_noise_diode_off": 0.0
+                    "abg_power_polY_noise_diode_off": 0.0,
+                    "flag": 0,
+                    "overflow": 0
                 }
                 """
             ),
