@@ -50,6 +50,7 @@ schema = {
     ],
 }
 
+# fmt: off
 example_config = {
     "config_id": "1",
     "expected_dish_id": "MKT001",
@@ -73,6 +74,6 @@ example_config = {
         {"vlan_id": 2, "fs_id": 7, "averaging_time": 1, "flagging": 0},
         {"vlan_id": 2, "fs_id": 8, "averaging_time": 1, "flagging": 0},
         {"vlan_id": 2, "fs_id": 9, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 10, "averaging_time": 1, "flagging": 0},
-    ],
+        {"vlan_id": 2, "fs_id": 10, "averaging_time": 1, "flagging": 0}
+    ]
 }
