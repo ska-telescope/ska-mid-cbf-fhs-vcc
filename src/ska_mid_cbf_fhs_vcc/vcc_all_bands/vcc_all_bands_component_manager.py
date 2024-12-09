@@ -62,9 +62,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._proxies[device.b45a_wideband_power_meter_fqdn] = None
         self._proxies[device.b5b_wideband_power_meter_fqdn] = None
 
-        self._fs_wpm_fqdns = [device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 26 + 1)]
-        for fqdn in self._fs_wpm_fqdns:
-            self._proxies[fqdn] = None
+        for i in range(1, 26 + 1):
+            self._proxies[device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i))] = None
 
         # self._circuit_switch_proxy = None
 
@@ -378,22 +377,19 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 for (
                     fqdn,
-                    pwrm,
-                ) in zip(
-                    [
-                        self.device.b123_wideband_power_meter_fqdn,
-                        self.device.b45a_wideband_power_meter_fqdn,
-                        self.device.b5b_wideband_power_meter_fqdn,
-                    ],
-                    [self._b123_pwrm, self._b45a_pwrm, self._b5b_pwrm],
-                ):
-                    self.logger.info(f"Configuring {fqdn}")
+                    config,
+                ) in [
+                    (self.device.b123_wideband_power_meter_fqdn, self._b123_pwrm),
+                    (self.device.b45a_wideband_power_meter_fqdn, self._b45a_pwrm),
+                    (self.device.b5b_wideband_power_meter_fqdn, self._b5b_pwrm),
+                ]:
+                    self.logger.info(f"Configuring {fqdn} with {config}")
                     result = self._proxies[fqdn].Configure(
                         json.dumps(
                             {
-                                "averaging_time": pwrm["averaging"],
+                                "averaging_time": config["averaging"],
                                 "sample_rate": self._sample_rate,
-                                "flagging": pwrm["flagging"],
+                                "flagging": config["flagging"],
                             }
                         )
                     )
@@ -411,22 +407,15 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 # Post-channelizer WPM Configuration
                 self._fs_lanes = configuration["fs_lanes"]
 
-                # Only configure required wpms. TODO: is this already limited in fs_lanes?
-                if self._frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                    num_bands = 10
-                elif self._frequency_band in {FrequencyBandEnum._4, FrequencyBandEnum._5A}:
-                    num_bands = 10
-                else:
-                    num_bands = 26
-
-                for fqdn, pwrm, _ in zip(self._fs_wpm_fqdns, self._fs_lanes, range(num_bands)):
-                    self.logger.info(f"Configuring {fqdn}")
+                for config in self._fs_lanes:
+                    fqdn = self.device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(config["fs_id"]))
+                    self.logger.info(f"Configuring {fqdn} with {config}")
                     result = self._proxies[fqdn].Configure(
                         json.dumps(
                             {
-                                "averaging_time": pwrm["averaging"],
+                                "averaging_time": config["averaging"],
                                 "sample_rate": self._sample_rate,
-                                "flagging": pwrm["flagging"],
+                                "flagging": config["flagging"],
                             }
                         )
                     )
