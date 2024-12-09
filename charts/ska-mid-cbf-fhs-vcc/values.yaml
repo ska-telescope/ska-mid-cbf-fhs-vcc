@@ -187,6 +187,9 @@ devices:
       - name: fs_wideband_power_meter_fqdn
         values:
           - "fhs/fs<multiplicity>wpm/{{.deviceId000}}"
+      - name: packetizer_fqdn
+        values:
+          - "fhs/packetizer/{{.deviceId000}}"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 instances:

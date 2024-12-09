@@ -61,6 +61,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._proxies[device.b123_wideband_power_meter_fqdn] = None
         self._proxies[device.b45a_wideband_power_meter_fqdn] = None
         self._proxies[device.b5b_wideband_power_meter_fqdn] = None
+        self._proxies[device.packetizer_fqdn] = None
 
         for i in range(1, 26 + 1):
             self._proxies[device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i))] = None
@@ -290,6 +291,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 return
 
             if not self.simulation_mode:
+
+                # VCC123 Channelizer Configuration
+                self.logger.info("VCC123 Channelizer Configuring..")
                 if self._frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
                     result = self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
@@ -318,6 +322,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     return
 
                 # WFS Configuration
+                self.logger.info("Wideband Frequency Shifter Configuring..")
                 result = self._proxies[self.device.wideband_frequency_shifter_fqdn].Configure(
                     json.dumps({"shift_frequency": self.frequency_band_offset[0]})
                 )
@@ -343,6 +348,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     return
 
                 # WIB Configuration
+                self.logger.info("Wideband Input Buffer Configuring..")
                 result = self._proxies[self.device.wideband_input_buffer_fqdn].Configure(
                     json.dumps(
                         {
@@ -371,6 +377,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self._proxies[self.device.wideband_input_buffer_fqdn].expectedDishId = self._expected_dish_id
 
                 # Pre-channelizer WPM Configuration
+                self.logger.info("Pre-channelizer Wideband Power Meters Configuring..")
                 self._b123_pwrm = configuration["b123_pwrm"]
                 self._b45a_pwrm = configuration["b45a_pwrm"]
                 self._b5b_pwrm = configuration["b5b_pwrm"]
@@ -405,6 +412,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         return
 
                 # Post-channelizer WPM Configuration
+                self.logger.info("Post-channelizer Wideband Power Meters Configuring..")
                 self._fs_lanes = configuration["fs_lanes"]
 
                 for config in self._fs_lanes:
@@ -429,6 +437,23 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                             "Configuration of low-level fhs device failed",
                         )
                         return
+
+                # Packetizer Configuration
+                self.logger.info("Packetizer Configuring..")
+                packetizer_fs_lanes = [
+                    {"vlan_id": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]} for lane in self._fs_lanes
+                ]
+                result = self._proxies[self.device.packetizer_fqdn].Configure(json.dumps({"fs_lanes": packetizer_fs_lanes}))
+                if result[0] == ResultCode.FAILED:
+                    self.logger.error(f"Configuration of Packetizer failed: {result[1]}")
+                    self._reset_devices([self.device.packetizer_fqdn])
+                    self._set_task_callback(
+                        task_callback,
+                        TaskStatus.COMPLETED,
+                        ResultCode.REJECTED,
+                        "Configuration of low-level fhs device failed",
+                    )
+                    return
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)

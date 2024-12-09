@@ -32,6 +32,12 @@ class PacketizerStatus:
     packet_count_register: np.uint32  # Packet count.
 
 
+@dataclass_json
+@dataclass
+class PacketizerConfigArgin:
+    fs_lanes: list[dict]
+
+
 class PacketizerComponentManager(FhsLowLevelComponentManager):
     def __init__(
         self: PacketizerComponentManager,
@@ -52,21 +58,29 @@ class PacketizerComponentManager(FhsLowLevelComponentManager):
         try:
             self.logger.info("Packetizer Configuring..")
 
-            packetizerJsonConfig: PacketizerConfig = PacketizerConfig.schema().loads(argin)
+            configJson: PacketizerConfigArgin = PacketizerConfigArgin.schema().loads(argin)
 
-            self.logger.info(f"CONFIG JSON CONFIG: {packetizerJsonConfig.to_json()}")
+            self.logger.info(f"CONFIG JSON CONFIG: {configJson.to_json()}")
 
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
                 f"{self._device_id} configured successfully",
             )
 
-            self.logger.info(f"Packetizer JSON CONFIG: {packetizerJsonConfig.to_json()}")
+            for fs_lane in configJson.fs_lanes:
+                packetizerJsonConfig = PacketizerConfig(
+                    vid=fs_lane.get("vlan_id"),
+                    vcc_id=fs_lane.get("vcc_id"),
+                    fs_id=fs_lane.get("fs_id"),
+                )
 
-            result = super().configure(packetizerJsonConfig.to_dict())
+                self.logger.info(f"Packetizer JSON CONFIG: {packetizerJsonConfig.to_json()}")
 
-            if result[0] != ResultCode.OK:
-                self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
+                result = super().configure(packetizerJsonConfig.to_dict())
+
+                if result[0] != ResultCode.OK:
+                    self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
+                    break
 
         except ValidationError as vex:
             errorMsg = "Validation error: argin doesn't match the required schema"

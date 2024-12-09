@@ -22,6 +22,7 @@ class VCCAllBandsController(FhsBaseDevice):
     b45a_wideband_power_meter_fqdn = device_property(dtype="str")
     b5b_wideband_power_meter_fqdn = device_property(dtype="str")
     fs_wideband_power_meter_fqdn = device_property(dtype="str")
+    packetizer_fqdn = device_property(dtype="str")
 
     @attribute
     def expectedDishId(self):
