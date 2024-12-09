@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
-from ska_mid_cbf_fhs_vcc.wideband_power_meter.wideband_power_meter_component_manager import PacketizerComponentManager
+from ska_mid_cbf_fhs_vcc.packetizer.packetizer_component_manager import PacketizerComponentManager
 
 
 class Packetizer(FhsLowLevelDeviceBase):
