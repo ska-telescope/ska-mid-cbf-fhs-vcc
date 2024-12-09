@@ -393,7 +393,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     result = self._proxies[fqdn].Configure(
                         json.dumps(
                             {
-                                "averaging_time": config["averaging"],
+                                "averaging_time": config["averaging_time"],
                                 "sample_rate": self._sample_rate,
                                 "flagging": config["flagging"],
                             }
@@ -414,13 +414,20 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self.logger.info("Post-channelizer Wideband Power Meters Configuring..")
                 self._fs_lanes = configuration["fs_lanes"]
 
+                # Verify vlan_id is within range
+                # ((config.vid >= 2 && config.vid <= 1001) || (config.vid >= 1006 && config.vid <= 4094))
+                for config in self._fs_lanes:
+                    if not (2 <= config["vlan_id"] <= 1001 or 1006 <= config["vlan_id"] <= 4094):
+                        self.logger.error(f"VLAN ID {config['vlan_id']} is not within range")
+                        raise Exception("VLAN ID is not within range")
+
                 for config in self._fs_lanes:
                     fqdn = self.device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(config["fs_id"]))
                     self.logger.info(f"Configuring {fqdn} with {config}")
                     result = self._proxies[fqdn].Configure(
                         json.dumps(
                             {
-                                "averaging_time": config["averaging"],
+                                "averaging_time": config["averaging_time"],
                                 "sample_rate": self._sample_rate,
                                 "flagging": config["flagging"],
                             }
