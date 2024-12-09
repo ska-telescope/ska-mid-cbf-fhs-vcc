@@ -291,7 +291,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 return
 
             if not self.simulation_mode:
-
                 # VCC123 Channelizer Configuration
                 self.logger.info("VCC123 Channelizer Configuring..")
                 if self._frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
