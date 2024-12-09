@@ -160,6 +160,9 @@ devices:
       - name: vcc123_channelizer_fqdn
         values:
           - "fhs/vcc/{{.deviceId000}}"
+      - name: vcc45_channelizer_fqdn # yet to be implemented
+        values:
+          - "placeholder"
       - name: fs_selection_fqdn
         values:
           - "fhs/fss/{{.deviceId000}}"
@@ -172,9 +175,18 @@ devices:
       - name: packet_validation_fqdn
         values:
           - "fhs/packetvalidation/{{.deviceId000}}"
-      - name: vcc45_channelizer_fqdn # yet to be implemented
+      - name: b123_wideband_power_meter_fqdn
         values:
-          - "placeholder"
+          - "fhs/b123wpm/{{.deviceId000}}"
+      - name: b45a_wideband_power_meter_fqdn
+        values:
+          - "fhs/b45awpm/{{.deviceId000}}"
+      - name: b5b_wideband_power_meter_fqdn
+        values:
+          - "fhs/b5bwpm/{{.deviceId000}}"
+      - name: fs_wideband_power_meter_fqdn
+        values:
+          - "fhs/fs<multiplicity>wpm/{{.deviceId000}}"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 instances:

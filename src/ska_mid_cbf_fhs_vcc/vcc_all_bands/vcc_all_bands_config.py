@@ -26,6 +26,13 @@ schema = {
         "vcc_gain": {"type": "array", "items": {"type": "number"}},
         "noise_diode_transition_holdoff_seconds": {"type": "integer", "minimum": 0, "maximum": 65535},
         "band_5_tuning": {"type": "number"},
+        "b123_pwrm": {"type": "object", "properties": {"averaging": {"type": "integer"}, "flagging": {"type": "integer"}}},
+        "b45a_pwrm": {"type": "object", "properties": {"averaging": {"type": "integer"}, "flagging": {"type": "integer"}}},
+        "b5b_pwrm": {"type": "object", "properties": {"averaging": {"type": "integer"}, "flagging": {"type": "integer"}}},
+        "fs_lanes": {
+            "type": "array",
+            "items": {"type": "object", "properties": {"averaging": {"type": "integer"}, "flagging": {"type": "integer"}}},
+        },
     },
     "required": [
         "config_id",
@@ -37,5 +44,8 @@ schema = {
         "frequency_band_offset_stream_2",
         "vcc_gain",
         "noise_diode_transition_holdoff_seconds",
+        "b123_pwrm",
+        "b45a_pwrm",
+        "b5b_pwrm",
     ],
 }
