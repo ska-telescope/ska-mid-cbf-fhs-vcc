@@ -15,7 +15,7 @@ from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser
 EVENT_TIMEOUT = 30
 
 
-@pytest.fixture(name="test_context")
+@pytest.fixture(name="test_context", scope="module")
 def vcc123_device():
     """
     Fixture to set up the Vcc device for testing with a mock Tango database.
