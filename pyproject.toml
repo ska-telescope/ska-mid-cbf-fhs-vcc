@@ -3,23 +3,16 @@ name = "ska-mid-cbf-fhs-vcc"
 version = "0.1.0"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
-    "Jason Turner <jason.turner@mda.space>",
-    "Ben Herriott <ben.herriott@mda.space>",
-    "Justin Wamback <justin.wamback@mda.space>",
+  "Jason Turner <jason.turner@mda.space>",
+  "Ben Herriott <ben.herriott@mda.space>",
+  "Justin Wamback <justin.wamback@mda.space>",
 ]
 license = "BSD license"
 readme = "README.md"
 packages = [{ include = "ska_mid_cbf_fhs_vcc", from = "src" }]
 
 [tool.poetry.scripts]
-Mac200='ska_mid_cbf_fhs_vcc.mac.mac_200_device:main'
-PacketValidation='ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device:main'
-B123VccOsppfbChanneliser='ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device:main'
-FrequencySliceSelection='ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device:main'
-WidebandFrequencyShifter='ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device:main'
-WidebandInputBuffer='ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device:main'
-VCCAllBandsController='ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device:main'
-FhsVccStackDeviceServer='ska_mid_cbf_fhs_vcc.fhs_vcc_stack_device_server:main'
+FhsVccStackDeviceServer = 'ska_mid_cbf_fhs_vcc.fhs_vcc_stack_device_server:main'
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"

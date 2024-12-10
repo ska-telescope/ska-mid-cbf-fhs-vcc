@@ -7,7 +7,6 @@ import numpy as np
 from dataclasses_json import dataclass_json
 from ska_control_model import CommunicationStatus, ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.emulator.mac_emulator_api import MacEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.mac_controller_simulator import MacBaseControllerSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
@@ -69,7 +68,6 @@ class MacComponentManager(FhsLowLevelComponentManager):
         super().__init__(
             *args,
             simulator_api=MacBaseControllerSimulator,
-            emulator_api=MacEmulatorApi,
             **kwargs,
         )
 

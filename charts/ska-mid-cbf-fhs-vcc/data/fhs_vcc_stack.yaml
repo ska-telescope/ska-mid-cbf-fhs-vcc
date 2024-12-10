@@ -27,23 +27,28 @@ server:
   - name: "{{ $instance.name }}"
     classes:
     {{- range $index, $device := $.Values.devices }}
-    {{ $deviceId := $device.deviceId | default $instance.deviceId }}
+    {{- $deviceId := $device.deviceId | default $instance.deviceId | int }}
+    {{- $deviceId000 := (printf "%03d" $deviceId) }}
+    {{- $receptorId := (mod (sub $deviceId 1) 3) }}
     - name: {{ $device.name }}
       devices:
-      - name: {{ include "substitute-device-id" (list $device.path $deviceId) }}
+      {{- range $multiplicity := (untilStep 1 ($device.multiplicity | int | default 1 | add1 | int ) 1) }}
+      {{- $scope := dict "deviceId" $deviceId "deviceId000" $deviceId000 "receptorId" $receptorId "multiplicity" $multiplicity }}
+      - name: {{ tpl $device.path $scope }}
         properties:
           {{- range $name, $default := $.Values.properties }}
           - name: {{ snakecase $name }}
             values:
-            - "{{ include "substitute-device-id" (list ((get $device $name) | default (get $instance $name) | default $default) $deviceId) }}"
+            - "{{ tpl ((get $device $name) | default (get $instance $name) | default $default) $scope }}"
           {{- end }}
           {{- range $index, $property := $device.properties }}
           - name: {{ $property.name }}
             values:
             {{- range $index, $value := $property.values }}
-            - "{{ include "substitute-device-id" (list $value $deviceId) }}"
+            - "{{ tpl $value $scope }}"
             {{- end }}
           {{- end }}
+      {{- end }}
     {{- end }}
 {{- end }}
 
