@@ -68,7 +68,7 @@ class VCCAllBandsController(FhsBaseDevice):
             ["1", "2", "3", "4", "5a", "5b"]).
         :rtype: tango.DevEnum
         """
-        return self.component_manager.frequency_band.value
+        return self.component_manager._frequency_band.value
 
     @attribute(
         dtype=tango.DevULong64,
@@ -82,7 +82,7 @@ class VCCAllBandsController(FhsBaseDevice):
             ["1", "2", "3", "4", "5a", "5b"]).
         :rtype: tango.DevEnum
         """
-        return self.component_manager.input_sample_rate
+        return self.component_manager._input_sample_rate
 
     @attribute(
         dtype=tango.DevLong,
@@ -98,7 +98,7 @@ class VCCAllBandsController(FhsBaseDevice):
             ["1", "2", "3", "4", "5a", "5b"]).
         :rtype: tango.DevLong
         """
-        return self.component_manager.frequency_band_offset
+        return self.component_manager._frequency_band_offset
 
     """
         Commands

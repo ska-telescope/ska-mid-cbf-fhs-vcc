@@ -74,7 +74,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._fsps = []
         self._maximum_fsps = 10
 
-        self.frequency_band_offset = [0, 0]
+        self._frequency_band_offset = [0, 0]
 
         self._expected_dish_id = None
 
@@ -259,10 +259,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._config_id = configuration["config_id"]
 
             if "frequency_band_offset_stream_1" in configuration:
-                self.frequency_band_offset[0] = configuration["frequency_band_offset_stream_1"]
+                self._frequency_band_offset[0] = configuration["frequency_band_offset_stream_1"]
 
             if "frequency_band_offset_stream_2" in configuration:
-                self.frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
+                self._frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
 
             # VCC number of gains is equal to = number of channels * number of polizations
             self._vcc_gains = configuration["vcc_gain"]
@@ -323,7 +323,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 # WFS Configuration
                 self.logger.info("Wideband Frequency Shifter Configuring..")
                 result = self._proxies[self.device.wideband_frequency_shifter_fqdn].Configure(
-                    json.dumps({"shift_frequency": self.frequency_band_offset[0]})
+                    json.dumps({"shift_frequency": self._frequency_band_offset[0]})
                 )
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of Wideband Frequency Shifter failed: {result[1]}")
@@ -642,7 +642,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._config_id = ""
         self._scan_id = 0
         self._frequency_band = FrequencyBandEnum._1
-        self.frequency_band_offset = [0, 0]
+        self._frequency_band_offset = [0, 0]
         self._sample_rate = 0
         self._samples_per_frame = 0
         self._fsps = []
