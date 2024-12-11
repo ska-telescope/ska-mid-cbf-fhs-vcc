@@ -152,21 +152,21 @@ spec:
 {{- end }}
       serviceAccountName: {{ $deviceserver_name | toString }}-sa-{{ $chart.Release.Name }}
       initContainers:
-        - name: wait-for-bitstream-download-job
-          image: bitnami/kubectl:latest
-          command: 
-            - sh
-            - -c
-          args:
-            - echo "WAITING FOR JOB....."
-        - name: wait-for-configuration
-          image: "bitnami/kubectl:latest"
-          imagePullPolicy: IfNotPresent
-          command:
-            - sh
-            - -c
-          args:
-            - kubectl wait job --for=jsonpath='{.status.succeeded}'=1 {{ $deviceserver_name | toString }}-{{ $chart.Release.Name }}-config --timeout={{ $kubectl_wait_timeout }} || ( ! kubectl get job {{ $deviceserver_name | toString }}-{{ $chart.Release.Name }}-config ); echo $?
+      - name: wait-for-bitstream-download-job
+        image: bitnami/kubectl:latest
+        command: 
+          - sh
+          - -c
+        args:
+          - echo "WAITING FOR JOB....."
+      - name: wait-for-configuration
+        image: "bitnami/kubectl:latest"
+        imagePullPolicy: IfNotPresent
+        command:
+          - sh
+          - -c
+        args:
+          - kubectl wait job --for=jsonpath='{.status.succeeded}'=1 {{ $deviceserver_name | toString }}-{{ $chart.Release.Name }}-config --timeout={{ $kubectl_wait_timeout }} || ( ! kubectl get job {{ $deviceserver_name | toString }}-{{ $chart.Release.Name }}-config ); echo $?
 {{- $dependencies := concat ($deviceserver.depends_on | default list) ($instance.depends_on | default list)}}
 {{- if $dependencies }}
 {{- range $index, $device := $dependencies }}
