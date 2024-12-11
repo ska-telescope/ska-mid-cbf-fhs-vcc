@@ -70,4 +70,6 @@ initContainers:
     - sh
     - -c
   args:
-    - kubectl wait --for=condition=complete --timeout=60s job/bitstream-download-job
+    - 
+      echo "WAITING FOR JOB....."
+      kubectl wait --for=condition=complete --timeout=60s job/bitstream-download-job
