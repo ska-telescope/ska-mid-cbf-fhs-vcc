@@ -401,7 +401,14 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     )
                     if result[0] == ResultCode.FAILED:
                         self.logger.error(f"Configuration of Wideband Power Meter failed: {result[1]}")
-                        self._reset_devices([self.device.vcc123_channelizer_fqdn])
+                        self._reset_devices(
+                            [
+                                self.device.vcc123_channelizer_fqdn,
+                                self.device.wideband_frequency_shifter_fqdn,
+                                self.device.fs_selection_fqdn,
+                                self.device.wideband_input_buffer_fqdn,
+                            ]
+                        )
                         self._set_task_callback(
                             task_callback,
                             TaskStatus.COMPLETED,
@@ -435,7 +442,17 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     )
                     if result[0] == ResultCode.FAILED:
                         self.logger.error(f"Configuration of Wideband Power Meter failed: {result[1]}")
-                        self._reset_devices([self.device.vcc123_channelizer_fqdn])
+                        self._reset_devices(
+                            [
+                                self.device.vcc123_channelizer_fqdn,
+                                self.device.wideband_frequency_shifter_fqdn,
+                                self.device.fs_selection_fqdn,
+                                self.device.wideband_input_buffer_fqdn,
+                                self.device.b123_wideband_power_meter_fqdn,
+                                self.device.b45a_wideband_power_meter_fqdn,
+                                self.device.b5b_wideband_power_meter_fqdn,
+                            ]
+                        )
                         self._set_task_callback(
                             task_callback,
                             TaskStatus.COMPLETED,
