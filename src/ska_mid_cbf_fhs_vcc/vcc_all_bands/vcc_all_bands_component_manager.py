@@ -63,8 +63,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._proxies[device.b5b_wideband_power_meter_fqdn] = None
         self._proxies[device.packetizer_fqdn] = None
 
-        for i in range(1, 26 + 1):
-            self._proxies[device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i))] = None
+        self._power_meter_fqdns = {
+            i: device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 26 + 1)
+        }
+        for fqdn in self._power_meter_fqdns.values():
+            self._proxies[fqdn] = None
 
         # self._circuit_switch_proxy = None
 
@@ -429,7 +432,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         raise Exception("VLAN ID is not within range")
 
                 for config in self._fs_lanes:
-                    fqdn = self.device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(config["fs_id"]))
+                    fqdn = self._power_meter_fqdns[int(config["fs_id"])]
                     self.logger.info(f"Configuring {fqdn} with {config}")
                     result = self._proxies[fqdn].Configure(
                         json.dumps(
