@@ -62,7 +62,7 @@ class FhsHealthMonitor:
 
     def add_health_state(self: FhsHealthMonitor, key: str, health_state: HealthState):
         with self.lock:
-            if key and health_state:
+            if key and health_state is not None:
                 self.component_statuses[key] = health_state
             else:
                 raise ValueError(

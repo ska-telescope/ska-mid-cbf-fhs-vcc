@@ -99,8 +99,8 @@ class BaseEmulatorApi(FhsBaseApiInterface):
             # emulator ip blocks, if it doesn't exist in the emulator config then we have a configuration error between
             # the device server and the emulator
             for ip_block in emulator_config_json["ip_blocks"]:
-                self._logger.info(f"IP_BLOCK ID: {ip_block['id']} , DEVICE_ID: {emulator_ip_block_id}")
                 if ip_block["id"] == emulator_ip_block_id:
+                    self._logger.info(f"IP_BLOCK ID: {ip_block['id']}, DEVICE_ID: {emulator_ip_block_id}")
                     api_url_base = f"http://{emulator_id}.{emulator_base_url}/{ip_block['id']}"
                     break
 

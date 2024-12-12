@@ -91,7 +91,7 @@ properties:
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
   bitstreamId: "agilex-vcc"
-  bitstreamVersion: "0.0.12"
+  bitstreamVersion: "0.0.15"
   emulatorId: "vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
   firmwareIpBlockId: ""
@@ -147,6 +147,10 @@ devices:
     path: "fhs/fs{{.multiplicity}}wpm/{{.deviceId000}}"
     emulatorIpBlockId: "fs{{.multiplicity}}_wideband_power_meter"
     firmwareIpBlockId: "receptor{{.receptorId}}_fs{{.multiplicity}}_power_meter"
+  - name: "Packetizer"
+    path: "fhs/packetizer/{{.deviceId000}}"
+    emulatorIpBlockId: "packetizer"
+    firmwareIpBlockId: "fs_packetizer"
   - name: "VCCAllBandsController"
     path: "fhs/vcc-all-bands/{{.deviceId000}}"
     properties:
@@ -156,6 +160,9 @@ devices:
       - name: vcc123_channelizer_fqdn
         values:
           - "fhs/vcc/{{.deviceId000}}"
+      - name: vcc45_channelizer_fqdn # yet to be implemented
+        values:
+          - "placeholder"
       - name: fs_selection_fqdn
         values:
           - "fhs/fss/{{.deviceId000}}"
@@ -168,9 +175,21 @@ devices:
       - name: packet_validation_fqdn
         values:
           - "fhs/packetvalidation/{{.deviceId000}}"
-      - name: vcc45_channelizer_fqdn # yet to be implemented
+      - name: b123_wideband_power_meter_fqdn
         values:
-          - "placeholder"
+          - "fhs/b123wpm/{{.deviceId000}}"
+      - name: b45a_wideband_power_meter_fqdn
+        values:
+          - "fhs/b45awpm/{{.deviceId000}}"
+      - name: b5b_wideband_power_meter_fqdn
+        values:
+          - "fhs/b5bwpm/{{.deviceId000}}"
+      - name: fs_wideband_power_meter_fqdn
+        values:
+          - "fhs/fs<multiplicity>wpm/{{.deviceId000}}"
+      - name: packetizer_fqdn
+        values:
+          - "fhs/packetizer/{{.deviceId000}}"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 instances:

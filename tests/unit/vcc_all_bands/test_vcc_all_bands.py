@@ -8,6 +8,8 @@ from ska_mid_cbf_fhs_vcc.mac.mac_200_device import Mac200
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device import WidebandFrequencyShifter
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
+from ska_mid_cbf_fhs_vcc.wideband_power_meter.wideband_power_meter_device import WidebandPowerMeter
+from ska_mid_cbf_fhs_vcc.packetizer.packetizer_device import Packetizer
 from tango import DevState
 from ska_tango_testing import context
 from ska_tango_testing.integration import TangoEventTracer
@@ -20,7 +22,7 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsCo
 EVENT_TIMEOUT = 30
 
 
-@pytest.fixture(name="test_context")
+@pytest.fixture(name="test_context", scope="module")
 def pv_device():
     """
     Fixture to set up the packet validation device for testing with a mock Tango database.
@@ -125,6 +127,71 @@ def pv_device():
     )
 
     harness.add_device(
+        device_name="fhs/b123wpm/1",
+        device_class=WidebandPowerMeter,
+        device_id="1",
+        device_version_num="1.0",
+        device_gitlab_hash="abc123",
+        emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
+        bitstream_path="../resources",
+        bitstream_id="agilex-vcc",
+        bitstream_version="0.0.1",
+        simulation_mode="1",
+        emulation_mode="0",
+        emulator_ip_block_id="b123_wideband_power_meter",
+        emulator_id="vcc-emulator-1",
+    )
+
+    harness.add_device(
+        device_name="fhs/b45awpm/1",
+        device_class=WidebandPowerMeter,
+        device_id="1",
+        device_version_num="1.0",
+        device_gitlab_hash="abc123",
+        emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
+        bitstream_path="../resources",
+        bitstream_id="agilex-vcc",
+        bitstream_version="0.0.1",
+        simulation_mode="1",
+        emulation_mode="0",
+        emulator_ip_block_id="b45a_wideband_power_meter",
+        emulator_id="vcc-emulator-1",
+    )
+
+    harness.add_device(
+        device_name="fhs/b5bwpm/1",
+        device_class=WidebandPowerMeter,
+        device_id="1",
+        device_version_num="1.0",
+        device_gitlab_hash="abc123",
+        emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
+        bitstream_path="../resources",
+        bitstream_id="agilex-vcc",
+        bitstream_version="0.0.1",
+        simulation_mode="1",
+        emulation_mode="0",
+        emulator_ip_block_id="b5b_wideband_power_meter",
+        emulator_id="vcc-emulator-1",
+    )
+
+    for i in range(1, 26 + 1):
+        harness.add_device(
+            device_name=f"fhs/fs{i}wpm/1",
+            device_class=WidebandPowerMeter,
+            device_id="1",
+            device_version_num="1.0",
+            device_gitlab_hash="abc123",
+            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
+            bitstream_path="../resources",
+            bitstream_id="agilex-vcc",
+            bitstream_version="0.0.1",
+            simulation_mode="1",
+            emulation_mode="0",
+            emulator_ip_block_id=f"fs_wideband_power_meter_{i}",
+            emulator_id="vcc-emulator-1",
+        )
+
+    harness.add_device(
         device_name="test/vccallbands/1",
         device_class=VCCAllBandsController,
         device_id="1",
@@ -144,6 +211,11 @@ def pv_device():
         wideband_frequency_shifter_fqdn="test/wfs/1",
         circuit_switch_fqdn="cs",
         fs_selection_fqdn="test/fss/1",
+        b123_wideband_power_meter_fqdn="fhs/b123wpm/1",
+        b45a_wideband_power_meter_fqdn="fhs/b45awpm/1",
+        b5b_wideband_power_meter_fqdn="fhs/b5bwpm/1",
+        fs_wideband_power_meter_fqdn="fhs/fs<multiplicity>wpm/1",
+        packetizer_fqdn="fhs/packetizer/1",
     )
 
     with harness as test_context:
