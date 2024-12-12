@@ -19,7 +19,7 @@ EVENT_TIMEOUT = 30
 #         yield harness
 
 
-@pytest.fixture(name="test_context")
+@pytest.fixture(name="test_context", scope="module")
 def mac200_device():
     """
     Fixture to set up the Mac200 device for testing with a mock Tango database.
