@@ -40,7 +40,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self.device = device
         self._vcc_id = device.device_id
 
-        self._frequency_band = FrequencyBandEnum._1
+        self.frequency_band = FrequencyBandEnum._1
         self._config_id = ""
         self._scan_id = 0
 
@@ -74,7 +74,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._fsps = []
         self._maximum_fsps = 10
 
-        self._frequency_band_offset = [0, 0]
+        self.frequency_band_offset = [0, 0]
 
         self._expected_dish_id = None
 
@@ -254,20 +254,20 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
             self._sample_rate = configuration["dish_sample_rate"]
             self._samples_per_frame = configuration["samples_per_frame"]
-            self._frequency_band = freq_band_dict()[configuration["frequency_band"]]
+            self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
             self._expected_dish_id = configuration["expected_dish_id"]
             self._config_id = configuration["config_id"]
 
             if "frequency_band_offset_stream_1" in configuration:
-                self._frequency_band_offset[0] = configuration["frequency_band_offset_stream_1"]
+                self.frequency_band_offset[0] = configuration["frequency_band_offset_stream_1"]
 
             if "frequency_band_offset_stream_2" in configuration:
-                self._frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
+                self.frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
 
             # VCC number of gains is equal to = number of channels * number of polizations
             self._vcc_gains = configuration["vcc_gain"]
 
-            if self._frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
+            if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
                 # number of channels * number of polarizations
                 self._num_vcc_gains = 10 * 2
             else:
@@ -293,7 +293,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             if not self.simulation_mode:
                 # VCC123 Channelizer Configuration
                 self.logger.info("VCC123 Channelizer Configuring..")
-                if self._frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
+                if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
                     result = self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
                     )
@@ -316,14 +316,14 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         task_callback,
                         TaskStatus.COMPLETED,
                         ResultCode.FAILED,
-                        f"ConfigureScan failed unsupported band specified: {self._frequency_band}",
+                        f"ConfigureScan failed unsupported band specified: {self.frequency_band}",
                     )
                     return
 
                 # WFS Configuration
                 self.logger.info("Wideband Frequency Shifter Configuring..")
                 result = self._proxies[self.device.wideband_frequency_shifter_fqdn].Configure(
-                    json.dumps({"shift_frequency": self._frequency_band_offset[0]})
+                    json.dumps({"shift_frequency": self.frequency_band_offset[0]})
                 )
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of Wideband Frequency Shifter failed: {result[1]}")
@@ -335,7 +335,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 # FSS Configuration
                 result = self._proxies[self.device.fs_selection_fqdn].Configure(
-                    json.dumps({"band_select": self._frequency_band.value + 1, "band_start_channel": [0, 1]})
+                    json.dumps({"band_select": self.frequency_band.value + 1, "band_start_channel": [0, 1]})
                 )
 
                 if result[0] == ResultCode.FAILED:
@@ -353,7 +353,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         {
                             "expected_sample_rate": self._sample_rate,
                             "noise_diode_transition_holdoff_seconds": configuration["noise_diode_transition_holdoff_seconds"],
-                            "expected_dish_band": self._frequency_band.value
+                            "expected_dish_band": self.frequency_band.value
                             + 1,  # FW Drivers rely on integer indexes, that are 1-based
                         }
                     )
@@ -658,8 +658,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     def _reset_attributes(self: VCCAllBandsComponentManager):
         self._config_id = ""
         self._scan_id = 0
-        self._frequency_band = FrequencyBandEnum._1
-        self._frequency_band_offset = [0, 0]
+        self.frequency_band = FrequencyBandEnum._1
+        self.frequency_band_offset = [0, 0]
         self._sample_rate = 0
         self._samples_per_frame = 0
         self._fsps = []
