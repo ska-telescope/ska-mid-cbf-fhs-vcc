@@ -62,14 +62,3 @@ volume:
   existingClaimName: "fhs-vcc-bitstream-pv"
   mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
-
-initContainers:
-- name: wait-for-bitstream-download-job
-  image: bitnami/kubectl:latest
-  command: 
-    - sh
-    - -c
-  args:
-    - 
-      echo "WAITING FOR JOB....."
-      kubectl wait --for=condition=complete --timeout=60s job/bitstream-download-job

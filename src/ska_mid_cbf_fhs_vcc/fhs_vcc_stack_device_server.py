@@ -1,3 +1,6 @@
+import subprocess
+import time
+
 from tango.server import run
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device import B123VccOsppfbChanneliser
@@ -9,7 +12,6 @@ from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_d
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
 from ska_mid_cbf_fhs_vcc.wideband_power_meter.wideband_power_meter_device import WidebandPowerMeter
 
-10
 __all__ = ["main"]
 
 
@@ -30,6 +32,9 @@ class FSWidebandPowerMeter(WidebandPowerMeter):
 
 
 def main(args=None, **kwargs):  # noqa: E302
+    # Call the kubectl command and wait until the bitstreams have been successfully downloaded
+    wait_for_job_completion("bitstream-download-job")
+
     return run(
         classes=(
             B123VccOsppfbChanneliser,
@@ -47,6 +52,18 @@ def main(args=None, **kwargs):  # noqa: E302
         args=args,
         **kwargs,
     )
+
+
+def wait_for_job_completion(job_name) -> bool:
+    cmd = ["kubectl", "wait", "--for=condition=complete", "--timeout=60s", f"job/{job_name}"]
+
+    try:
+        subprocess.run(cmd, check=True)
+        print(f"Job {job_name} completed successfully...")
+        return True
+    except subprocess.CalledProcessError as ex:
+        print(f"Job {job_name} did not complete successfully.. {repr(ex)}")
+        return False
 
 
 if __name__ == "__main__":  # noqa: #E305

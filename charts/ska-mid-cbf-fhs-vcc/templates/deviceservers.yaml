@@ -23,7 +23,7 @@
 {{- if ((hasKey $device_server_config "enabled") | ternary $device_server_config.enabled true) }}
 {{ template "ska-tango-util.multidevice-job.tpl" $context }}
 # {{ template "ska-tango-util.deviceserver-pvc.tpl" $volume_context }}
-{{ template "ska-mid-cbf-fhs.vcc.ska-tango-util.multidevice-svc.tpl" $context }}
+{{ template "ska-tango-util.multidevice-svc.tpl" $context }}
 {{- end }}
 
 {{- end }}
