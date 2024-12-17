@@ -228,7 +228,6 @@ def test_init(vcc_all_bands_device):
 
 
 def test_adminMode_online(vcc_all_bands_device):
-
     prevAdminMode = vcc_all_bands_device.read_attribute("adminMode")
 
     assert prevAdminMode.value == AdminMode.OFFLINE.value
@@ -241,7 +240,6 @@ def test_adminMode_online(vcc_all_bands_device):
 
 
 def test_health_state_prop(vcc_all_bands_device, wib_device, wib_event_tracer):
-
     test_adminMode_online(vcc_all_bands_device)
 
     allBandsHealthState = vcc_all_bands_device.read_attribute("healthState")

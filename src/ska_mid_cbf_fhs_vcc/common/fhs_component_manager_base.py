@@ -12,6 +12,7 @@ from threading import Lock
 from typing import Any, Awaitable, Callable, Optional, cast
 
 from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, TaskStatus
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.base.base_component_manager import BaseComponentManager
 
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine, ObsState

@@ -51,4 +51,29 @@ schema = {
 }
 
 # fmt: off
-example_config = { "config_id": "1", "expected_dish_id": "MKT001", "dish_sample_rate": 3960000000, "samples_per_frame": 18, "vcc_gain": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "frequency_band": "2", "noise_diode_transition_holdoff_seconds": 0, "frequency_band_offset_stream_1": 110, "frequency_band_offset_stream_2": 56, "b123_pwrm": {"averaging_time": 1, "flagging": 0}, "b45a_pwrm": {"averaging_time": 1, "flagging": 0}, "b5b_pwrm": {"averaging_time": 1, "flagging": 0}, "fs_lanes": [ {"vlan_id": 2, "fs_id": 1, "averaging_time": 1, "flagging": 0}, {"vlan_id": 2, "fs_id": 2, "averaging_time": 1, "flagging": 0}, {"vlan_id": 2, "fs_id": 3, "averaging_time": 1, "flagging": 0}, {"vlan_id": 2, "fs_id": 4, "averaging_time": 1, "flagging": 0}, {"vlan_id": 2, "fs_id": 5, "averaging_time": 1, "flagging": 0}, {"vlan_id": 2, "fs_id": 6, "averaging_time": 1, "flagging": 0}, {"vlan_id": 2, "fs_id": 7, "averaging_time": 1, "flagging": 0}, {"vlan_id": 2, "fs_id": 8, "averaging_time": 1, "flagging": 0}, {"vlan_id": 2, "fs_id": 9, "averaging_time": 1, "flagging": 0}, {"vlan_id": 2, "fs_id": 10, "averaging_time": 1, "flagging": 0} ] }
+example_config = {
+    "config_id": "1",
+    "expected_dish_id": "MKT001",
+    "dish_sample_rate": 3960000000,
+    "samples_per_frame": 18,
+    "vcc_gain": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "frequency_band": "2",
+    "noise_diode_transition_holdoff_seconds": 0,
+    "frequency_band_offset_stream_1": 110,
+    "frequency_band_offset_stream_2": 56,
+    "b123_pwrm": {"averaging_time": 1, "flagging": 0},
+    "b45a_pwrm": {"averaging_time": 1, "flagging": 0},
+    "b5b_pwrm": {"averaging_time": 1, "flagging": 0},
+    "fs_lanes": [
+        {"vlan_id": 2, "fs_id": 1, "averaging_time": 1, "flagging": 0},
+        {"vlan_id": 2, "fs_id": 2, "averaging_time": 1, "flagging": 0},
+        {"vlan_id": 2, "fs_id": 3, "averaging_time": 1, "flagging": 0},
+        {"vlan_id": 2, "fs_id": 4, "averaging_time": 1, "flagging": 0},
+        {"vlan_id": 2, "fs_id": 5, "averaging_time": 1, "flagging": 0},
+        {"vlan_id": 2, "fs_id": 6, "averaging_time": 1, "flagging": 0},
+        {"vlan_id": 2, "fs_id": 7, "averaging_time": 1, "flagging": 0},
+        {"vlan_id": 2, "fs_id": 8, "averaging_time": 1, "flagging": 0},
+        {"vlan_id": 2, "fs_id": 9, "averaging_time": 1, "flagging": 0},
+        {"vlan_id": 2, "fs_id": 10, "averaging_time": 1, "flagging": 0}
+    ]
+}

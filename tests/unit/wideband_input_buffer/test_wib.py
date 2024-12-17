@@ -211,7 +211,6 @@ def test_stop_command(device_under_test, event_tracer: TangoEventTracer):
 
 
 def test_register_polling_healthstate_failed(device_under_test, event_tracer):
-
     config_json = '{"expected_sample_rate": 3920000000, "noise_diode_transition_holdoff_seconds": 1.0, "expected_dish_band": 1}'
 
     # Invoke the command
@@ -244,7 +243,6 @@ def test_register_polling_healthstate_failed(device_under_test, event_tracer):
 
 
 def test_register_polling_healthstate_ok(device_under_test, event_tracer):
-
     config_json = '{"expected_sample_rate": 3960000000, "noise_diode_transition_holdoff_seconds": 1.0, "expected_dish_band": 1}'
 
     # Invoke the command

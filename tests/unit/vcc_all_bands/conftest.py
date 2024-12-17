@@ -19,6 +19,7 @@ def vcc_all_bands_device_fixture(
     """
     return test_context.get_device("test/vccallbands/1")
 
+
 @pytest.fixture(name="wib_device")
 def wib_device_fixture(
     test_context: TangoTestHarnessContext,
@@ -30,6 +31,7 @@ def wib_device_fixture(
     :return: the DeviceProxy to device under test
     """
     return test_context.get_device("test/wib/1")
+
 
 @pytest.fixture(name="wib_event_tracer", autouse=True)
 def wib_tango_event_tracer(
@@ -44,13 +46,7 @@ def wib_tango_event_tracer(
     """
     tracer = TangoEventTracer()
 
-    change_event_attr_list = [
-        "longRunningCommandResult",
-        "obsState",
-        "adminMode",
-        "state",
-        "healthState"
-    ]
+    change_event_attr_list = ["longRunningCommandResult", "obsState", "adminMode", "state", "healthState"]
     for attr in change_event_attr_list:
         tracer.subscribe_event(wib_device, attr)
 
