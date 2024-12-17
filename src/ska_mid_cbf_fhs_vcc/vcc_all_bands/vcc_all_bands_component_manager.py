@@ -353,6 +353,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
             return
+        except asyncio.CancelledError:
+            self._set_task_callback_aborted(task_callback, "ConfigureScan was cancelled")
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
             self._set_task_callback(
@@ -407,6 +409,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             # Update obsState callback
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Scan completed OK")
             return
+        except asyncio.CancelledError:
+            self._set_task_callback_aborted(task_callback, "Scan was cancelled")
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
             self._set_task_callback(
@@ -440,6 +444,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             # Update obsState callback
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
             return
+        except asyncio.CancelledError:
+            self._set_task_callback_aborted(task_callback, "EndScan was cancelled")
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
             self._set_task_callback(
@@ -460,6 +466,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
             return
+        except asyncio.CancelledError:
+            self._set_task_callback_aborted(task_callback, "GoToIdle was cancelled")
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
             self._set_task_callback(
@@ -488,6 +496,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ObsReset completed OK")
             return
+        except asyncio.CancelledError:
+            self._set_task_callback_aborted(task_callback, "ObsReset was cancelled")
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
             self._set_task_callback(
