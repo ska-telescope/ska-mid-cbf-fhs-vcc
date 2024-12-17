@@ -4,12 +4,12 @@ from logging import Logger
 from typing import TypeVar, cast
 
 import tango
-from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode
-from ska_tango_base.base.base_device import DevVarLongStringArrayType
+from ska_control_model import AdminMode, CommunicationStatus, HealthState, ObsState, ResultCode
+from ska_tango_base.base.base_device import DevVarLongStringArrayType, SKABaseDevice
 from ska_tango_base.commands import ArgumentValidator, FastCommand, SubmittedSlowCommand, _BaseCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
 from tango import DebugIt, DevState
-from tango.server import attribute, command, device_property
+from tango.server import Device, attribute, command, device_property
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
@@ -54,6 +54,45 @@ class FhsBaseDevice(SKAObsDevice):
     @attribute(dtype=CommunicationStatus)
     def communicationState(self: FhsBaseDevice) -> CommunicationStatus:
         return self.component_manager.communication_state
+
+    # Do not memorize because we don't want to call start_communicating on device init.
+    # Overridden from SKABaseDevice to enable start_communicating to be async
+    @attribute(dtype=AdminMode, memorized=False, hw_memorized=False)
+    def adminMode(self: SKABaseDevice) -> AdminMode:
+        """
+        Read the Admin Mode of the device.
+
+        It may interpret the current device condition and condition of all managed
+         devices to set this. Most possibly an aggregate attribute.
+
+        :return: Admin Mode of the device
+        """
+        return self._admin_mode
+
+    @adminMode.write  # type: ignore[no-redef]
+    async def adminMode(self: SKABaseDevice, value: AdminMode) -> None:
+        """
+        Set the Admin Mode of the device.
+
+        :param value: Admin Mode of the device.
+
+        :raises ValueError: for unknown adminMode
+        """
+        if value == AdminMode.NOT_FITTED:
+            self.admin_mode_model.perform_action("to_notfitted")
+        elif value == AdminMode.OFFLINE:
+            self.admin_mode_model.perform_action("to_offline")
+            await self.component_manager.stop_communicating()
+        elif value == AdminMode.ENGINEERING:
+            self.admin_mode_model.perform_action("to_engineering")
+            await self.component_manager.start_communicating()
+        elif value == AdminMode.ONLINE:
+            self.admin_mode_model.perform_action("to_online")
+            await self.component_manager.start_communicating()
+        elif value == AdminMode.RESERVED:
+            self.admin_mode_model.perform_action("to_reserved")
+        else:
+            raise ValueError(f"Unknown adminMode {value}")
 
     ##############
     # Commands

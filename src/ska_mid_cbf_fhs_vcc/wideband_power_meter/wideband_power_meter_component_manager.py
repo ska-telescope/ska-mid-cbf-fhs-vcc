@@ -85,7 +85,7 @@ class WidebandPowerMeterComponentManager(FhsLowLevelComponentManager):
         return result
 
     # TODO Determine what needs to be communicated with here
-    def start_communicating(self: WidebandPowerMeterComponentManager) -> None:
+    async def start_communicating(self: WidebandPowerMeterComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
         if self._communication_state == CommunicationStatus.ESTABLISHED:
             self.logger.info("Already communicating.")

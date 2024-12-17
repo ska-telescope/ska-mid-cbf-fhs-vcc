@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import functools
 import json
 import logging
@@ -12,7 +13,8 @@ from ska_control_model import CommunicationStatus, HealthState, ObsState, Result
 from ska_control_model.faults import StateModelError
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_testing import context
-from tango import EventData, EventType
+from tango import EventData, EventType, GreenMode
+from tango.device_proxy import get_device_proxy
 
 from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
@@ -103,7 +105,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             **kwargs,
         )
 
-    def start_communicating(self: VCCAllBandsComponentManager) -> None:
+    async def start_communicating(self: VCCAllBandsComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
         try:
             if not self.simulation_mode:
@@ -113,14 +115,18 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 self.logger.info("Establishing Communication with low-level proxies")
 
-                for fqdn, dp in self._proxies.items():
-                    if dp is None:
-                        self.logger.info(f"Establishing Communication with {fqdn}")
-                        dp = context.DeviceProxy(device_name=fqdn)
-                        # NOTE: this crashes when adminMode is memorized because it gets called before the devices are ready
-                        self._subscribe_to_change_event(dp, "healthState", fqdn, self.proxies_health_state_change_event)
-                        self._subscribe_to_change_event(dp, "longRunningCommandResult", fqdn, self._long_running_command_callback)
-                        self._proxies[fqdn] = dp
+                async def _connect_device(fqdn: str):
+                    self.logger.info(f"Establishing Communication with {fqdn}")
+                    dp = await get_device_proxy(fqdn, green_mode=GreenMode.Asyncio, wait=False)
+                    # NOTE: this crashes when adminMode is memorized because it gets called before the devices are ready
+                    await self._subscribe_to_change_event(dp, "healthState", fqdn, self.proxies_health_state_change_event)
+                    await self._subscribe_to_change_event(
+                        dp, "longRunningCommandResult", fqdn, self._long_running_command_callback
+                    )
+                    self.logger.info(f"Connected to {fqdn}")
+                    self._proxies[fqdn] = dp
+
+                await asyncio.gather(*[_connect_device(fqdn) for fqdn, dp in self._proxies.items() if dp is None])
                 print(f"HEALTH_STATE REGISTERED EVENTS: {self.subscription_event_ids}")
                 super().start_communicating()
         except tango.DevFailed as ex:
@@ -128,7 +134,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
             return
 
-    def stop_communicating(self: VCCAllBandsComponentManager) -> None:
+    async def stop_communicating(self: VCCAllBandsComponentManager) -> None:
         """Close communication with the component, then stop monitoring."""
         try:
             for fqdn in self._proxies:
@@ -708,14 +714,14 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         else:
             self.logger.info(f"VCC {self._vcc_id}: {ip_block_name} set to IDLE")
 
-    def _subscribe_to_change_event(
+    async def _subscribe_to_change_event(
         self: VCCAllBandsComponentManager,
         device_proxy,
         attribute: str,
         key: str,
         change_event_callback: Callable[[EventData], None],
     ):
-        event_id = device_proxy.subscribe_event(attribute, EventType.CHANGE_EVENT, change_event_callback)
+        event_id = await device_proxy.subscribe_event(attribute, EventType.CHANGE_EVENT, change_event_callback)
         if key in self.subscription_event_ids:
             self.subscription_event_ids[key].add(event_id)
         else:

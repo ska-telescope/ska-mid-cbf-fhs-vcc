@@ -80,7 +80,7 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
     ##
 
     # TODO Determine what needs to be communicated with here
-    def start_communicating(self: B123VccOsppfbChanneliserComponentManager) -> None:
+    async def start_communicating(self: B123VccOsppfbChanneliserComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
 
         self.logger.info("Starting Communication for VCC...")
