@@ -92,6 +92,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             update_health_state_callback=health_state_callback,
         )
 
+        self.tasks = []
+
         super().__init__(
             *args,
             logger=logger,
@@ -165,19 +167,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         argin: str,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=self.__configure_scan,
-            args=[argin],
-            task_callback=task_callback,
-        )
-
-    def __configure_scan(
-        self: VCCAllBandsComponentManager,
-        argin: str,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-    ) -> None:
-        asyncio.run(self._configure_scan(argin, task_callback, task_abort_event))
+        self.tasks.append(asyncio.create_task(self._configure_scan(argin, task_callback)))
+        return (TaskStatus.QUEUED, "ConfigureScan queued")
 
     def go_to_idle(
         self: VCCAllBandsComponentManager,
@@ -269,8 +260,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     async def _configure_scan(
         self: VCCAllBandsComponentManager,
         argin: str,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
+        task_callback: Optional[Callable],
     ) -> None:
         try:
             """
@@ -281,8 +271,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             task_callback(status=TaskStatus.IN_PROGRESS)
             configuration = json.loads(argin)
             jsonschema.validate(configuration, schema)
-            if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
-                return
 
             self._sample_rate = configuration["dish_sample_rate"]
             self._samples_per_frame = configuration["samples_per_frame"]
