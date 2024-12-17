@@ -8,7 +8,7 @@ from ska_control_model import AdminMode, CommunicationStatus, HealthState, ObsSt
 from ska_tango_base.base.base_device import DevVarLongStringArrayType, SKABaseDevice
 from ska_tango_base.commands import ArgumentValidator, FastCommand, SubmittedSlowCommand, _BaseCommand
 from ska_tango_base.obs.obs_device import SKAObsDevice
-from tango import DebugIt, DevState
+from tango import DebugIt, DevState, GreenMode
 from tango.server import Device, attribute, command, device_property
 
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
@@ -39,6 +39,8 @@ class FhsFastCommand(FastCommand):
 #
 # -----------------------------------------------------
 class FhsBaseDevice(SKAObsDevice):
+    green_mode = GreenMode.Asyncio
+
     # -----------------
     # Device Properties
     # -----------------
