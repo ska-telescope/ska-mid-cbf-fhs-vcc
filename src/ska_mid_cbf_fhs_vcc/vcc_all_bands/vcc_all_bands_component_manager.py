@@ -166,10 +166,18 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
-            func=self._configure_scan,
+            func=self.__configure_scan,
             args=[argin],
             task_callback=task_callback,
         )
+
+    def __configure_scan(
+        self: VCCAllBandsComponentManager,
+        argin: str,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        asyncio.run(self._configure_scan(argin, task_callback, task_abort_event))
 
     def go_to_idle(
         self: VCCAllBandsComponentManager,
@@ -243,7 +251,22 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
         return result
 
-    def _configure_scan(
+    async def _configure_device(self, fqdn: str, config: dict) -> None:
+        """
+        Configure the device with the given config
+
+        :param fqdn: The FQDN of the device to configure
+        :param config: The config to apply to the device
+        :return: None
+        """
+        self.logger.info(f"{fqdn} configuring with {config}..")
+        proxy = self._proxies[fqdn]
+        result = await proxy.Configure(json.dumps(config))
+
+        if result[0] == ResultCode.FAILED:
+            raise Exception(f"Configuration of {fqdn} failed: {result[1]}")
+
+    async def _configure_scan(
         self: VCCAllBandsComponentManager,
         argin: str,
         task_callback: Optional[Callable] = None,
@@ -299,193 +322,84 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 )
                 return
 
-            if not self.simulation_mode:
-                # VCC123 Channelizer Configuration
-                self.logger.info("VCC123 Channelizer Configuring..")
-                if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                    result = self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
-                        json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
-                    )
+            tasks = []
 
-                    if result[0] == ResultCode.FAILED:
-                        self.logger.error(f"Configuration of VCC123 Channelizer failed: {result[1]}")
-                        self._reset_attributes()
-                        self._set_task_callback(
-                            task_callback,
-                            TaskStatus.COMPLETED,
-                            ResultCode.REJECTED,
-                            "Configuration of low-level fhs device failed",
-                        )
-                        return
+            # VCC123 Channelizer Configuration
+            if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
+                config = {"sample_rate": self._sample_rate, "gains": self._vcc_gains}
+                tasks.append(self._configure_device(self.device.vcc123_channelizer_fqdn, config))
+            else:
+                # TODO: Implement routing to the 5 Channelizer once outlined
+                raise Exception(f"ConfigureScan failed unsupported band specified: {self.frequency_band}")
 
-                else:
-                    # TODO: Implement routing to the 5 Channelizer once outlined
-                    self._reset_attributes()
-                    self._set_task_callback(
-                        task_callback,
-                        TaskStatus.COMPLETED,
-                        ResultCode.FAILED,
-                        f"ConfigureScan failed unsupported band specified: {self.frequency_band}",
-                    )
-                    return
+            # WFS Configuration
+            config = {"shift_frequency": self.frequency_band_offset[0]}
+            tasks.append(self._configure_device(self.device.wideband_frequency_shifter_fqdn, config))
 
-                # WFS Configuration
-                self.logger.info("Wideband Frequency Shifter Configuring..")
-                result = self._proxies[self.device.wideband_frequency_shifter_fqdn].Configure(
-                    json.dumps({"shift_frequency": self.frequency_band_offset[0]})
-                )
-                if result[0] == ResultCode.FAILED:
-                    self.logger.error(f"Configuration of Wideband Frequency Shifter failed: {result[1]}")
-                    self._reset_devices([self.device.vcc123_channelizer_fqdn])
-                    self._set_task_callback(
-                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
-                    )
-                    return
+            # FSS Configuration
+            config = {"band_select": self.frequency_band.value + 1, "band_start_channel": [0, 1]}
+            tasks.append(self._configure_device(self.device.fs_selection_fqdn, config))
 
-                # FSS Configuration
-                result = self._proxies[self.device.fs_selection_fqdn].Configure(
-                    json.dumps({"band_select": self.frequency_band.value + 1, "band_start_channel": [0, 1]})
-                )
-
-                if result[0] == ResultCode.FAILED:
-                    self.logger.error(f"Configuration of FS Selection failed: {result[1]}")
-                    self._reset_devices([self.device.vcc123_channelizer_fqdn, self.device.wideband_frequency_shifter_fqdn])
-                    self._set_task_callback(
-                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
-                    )
-                    return
-
-                # WIB Configuration
-                self.logger.info("Wideband Input Buffer Configuring..")
-                result = self._proxies[self.device.wideband_input_buffer_fqdn].Configure(
-                    json.dumps(
-                        {
-                            "expected_sample_rate": self._sample_rate,
-                            "noise_diode_transition_holdoff_seconds": configuration["noise_diode_transition_holdoff_seconds"],
-                            "expected_dish_band": self.frequency_band.value
-                            + 1,  # FW Drivers rely on integer indexes, that are 1-based
-                        }
-                    )
-                )
-
-                if result[0] == ResultCode.FAILED:
-                    self.logger.error(f"Configuration of WIB failed: {result[1]}")
-                    self._reset_devices(
-                        [
-                            self.device.vcc123_channelizer_fqdn,
-                            self.device.wideband_frequency_shifter_fqdn,
-                            self.device.fs_selection_fqdn,
-                        ]
-                    )
-                    self._set_task_callback(
-                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
-                    )
-                    return
-
+            # WIB Configuration
+            async def _configure_wib():
+                config = {
+                    "expected_sample_rate": self._sample_rate,
+                    "noise_diode_transition_holdoff_seconds": configuration["noise_diode_transition_holdoff_seconds"],
+                    "expected_dish_band": self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
+                }
+                await self._configure_device(self.device.wideband_input_buffer_fqdn, config)
                 self._proxies[self.device.wideband_input_buffer_fqdn].expectedDishId = self._expected_dish_id
 
-                # Pre-channelizer WPM Configuration
-                self.logger.info("Pre-channelizer Wideband Power Meters Configuring..")
-                self._b123_pwrm = configuration["b123_pwrm"]
-                self._b45a_pwrm = configuration["b45a_pwrm"]
-                self._b5b_pwrm = configuration["b5b_pwrm"]
+            tasks.append(_configure_wib())
 
-                for (
-                    fqdn,
-                    config,
-                ) in [
-                    (self.device.b123_wideband_power_meter_fqdn, self._b123_pwrm),
-                    (self.device.b45a_wideband_power_meter_fqdn, self._b45a_pwrm),
-                    (self.device.b5b_wideband_power_meter_fqdn, self._b5b_pwrm),
-                ]:
-                    self.logger.info(f"Configuring {fqdn} with {config}")
-                    result = self._proxies[fqdn].Configure(
-                        json.dumps(
-                            {
-                                "averaging_time": config["averaging_time"],
-                                "sample_rate": self._sample_rate,
-                                "flagging": config["flagging"],
-                            }
-                        )
-                    )
-                    if result[0] == ResultCode.FAILED:
-                        self.logger.error(f"Configuration of Wideband Power Meter failed: {result[1]}")
-                        self._reset_devices(
-                            [
-                                self.device.vcc123_channelizer_fqdn,
-                                self.device.wideband_frequency_shifter_fqdn,
-                                self.device.fs_selection_fqdn,
-                                self.device.wideband_input_buffer_fqdn,
-                            ]
-                        )
-                        self._set_task_callback(
-                            task_callback,
-                            TaskStatus.COMPLETED,
-                            ResultCode.REJECTED,
-                            "Configuration of low-level fhs device failed",
-                        )
-                        return
+            # Pre-channelizer WPM Configuration
+            self._b123_pwrm = configuration["b123_pwrm"]
+            self._b45a_pwrm = configuration["b45a_pwrm"]
+            self._b5b_pwrm = configuration["b5b_pwrm"]
 
-                # Post-channelizer WPM Configuration
-                self.logger.info("Post-channelizer Wideband Power Meters Configuring..")
-                self._fs_lanes = configuration["fs_lanes"]
+            for (
+                fqdn,
+                lane,
+            ) in [
+                (self.device.b123_wideband_power_meter_fqdn, self._b123_pwrm),
+                (self.device.b45a_wideband_power_meter_fqdn, self._b45a_pwrm),
+                (self.device.b5b_wideband_power_meter_fqdn, self._b5b_pwrm),
+            ]:
+                config = {
+                    "averaging_time": lane["averaging_time"],
+                    "sample_rate": self._sample_rate,
+                    "flagging": lane["flagging"],
+                }
+                tasks.append(self._configure_device(fqdn, config))
 
-                # Verify vlan_id is within range
-                # ((config.vid >= 2 && config.vid <= 1001) || (config.vid >= 1006 && config.vid <= 4094))
-                for config in self._fs_lanes:
-                    if not (2 <= config["vlan_id"] <= 1001 or 1006 <= config["vlan_id"] <= 4094):
-                        self.logger.error(f"VLAN ID {config['vlan_id']} is not within range")
-                        raise Exception("VLAN ID is not within range")
+            # Post-channelizer WPM Configuration
+            self._fs_lanes = configuration["fs_lanes"]
 
-                for config in self._fs_lanes:
-                    fqdn = self._power_meter_fqdns[int(config["fs_id"])]
-                    self.logger.info(f"Configuring {fqdn} with {config}")
-                    result = self._proxies[fqdn].Configure(
-                        json.dumps(
-                            {
-                                "averaging_time": config["averaging_time"],
-                                "sample_rate": self._sample_rate,
-                                "flagging": config["flagging"],
-                            }
-                        )
-                    )
-                    if result[0] == ResultCode.FAILED:
-                        self.logger.error(f"Configuration of Wideband Power Meter failed: {result[1]}")
-                        self._reset_devices(
-                            [
-                                self.device.vcc123_channelizer_fqdn,
-                                self.device.wideband_frequency_shifter_fqdn,
-                                self.device.fs_selection_fqdn,
-                                self.device.wideband_input_buffer_fqdn,
-                                self.device.b123_wideband_power_meter_fqdn,
-                                self.device.b45a_wideband_power_meter_fqdn,
-                                self.device.b5b_wideband_power_meter_fqdn,
-                            ]
-                        )
-                        self._set_task_callback(
-                            task_callback,
-                            TaskStatus.COMPLETED,
-                            ResultCode.REJECTED,
-                            "Configuration of low-level fhs device failed",
-                        )
-                        return
+            # Verify vlan_id is within range
+            # ((config.vid >= 2 && config.vid <= 1001) || (config.vid >= 1006 && config.vid <= 4094))
+            for lane in self._fs_lanes:
+                if not (2 <= lane["vlan_id"] <= 1001 or 1006 <= lane["vlan_id"] <= 4094):
+                    self.logger.error(f"VLAN ID {lane['vlan_id']} is not within range")
+                    raise Exception("VLAN ID is not within range")
 
-                # Packetizer Configuration
-                self.logger.info("Packetizer Configuring..")
-                packetizer_fs_lanes = [
+            for lane in self._fs_lanes:
+                fqdn = self._power_meter_fqdns[int(lane["fs_id"])]
+                config = {
+                    "averaging_time": config["averaging_time"],
+                    "sample_rate": self._sample_rate,
+                    "flagging": config["flagging"],
+                }
+                tasks.append(self._configure_device(fqdn, config))
+
+            # Packetizer Configuration
+            config = {
+                "fs_lanes": [
                     {"vlan_id": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]} for lane in self._fs_lanes
                 ]
-                result = self._proxies[self.device.packetizer_fqdn].Configure(json.dumps({"fs_lanes": packetizer_fs_lanes}))
-                if result[0] == ResultCode.FAILED:
-                    self.logger.error(f"Configuration of Packetizer failed: {result[1]}")
-                    self._reset_devices([self.device.packetizer_fqdn])
-                    self._set_task_callback(
-                        task_callback,
-                        TaskStatus.COMPLETED,
-                        ResultCode.REJECTED,
-                        "Configuration of low-level fhs device failed",
-                    )
-                    return
+            }
+            tasks.append(self._configure_device(self.device.packetizer_fqdn, config))
+
+            await asyncio.gather(*tasks)
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
