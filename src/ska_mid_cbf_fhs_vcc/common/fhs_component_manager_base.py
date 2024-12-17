@@ -13,12 +13,11 @@ from typing import Any, Awaitable, Callable, Optional, cast
 
 from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, TaskStatus
 from ska_tango_base.base.base_component_manager import BaseComponentManager
-from ska_tango_base.executor.executor_component_manager import TaskExecutorComponentManager
 
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine, ObsState
 
 
-class FhsComponentManagerBase(TaskExecutorComponentManager):
+class FhsComponentManagerBase(BaseComponentManager):
     @property
     def faulty(self: FhsComponentManagerBase) -> Optional[bool]:
         """

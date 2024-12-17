@@ -4,18 +4,15 @@ import asyncio
 import functools
 import json
 import logging
-from threading import Event
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import jsonschema
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
 from ska_tango_base.base.base_component_manager import TaskCallbackType
-from ska_tango_testing import context
-from tango import EventData, EventType, GreenMode
+from tango import EventData, EventType
 from tango.asyncio import DeviceProxy
-from tango.device_proxy import get_device_proxy
 
 from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
