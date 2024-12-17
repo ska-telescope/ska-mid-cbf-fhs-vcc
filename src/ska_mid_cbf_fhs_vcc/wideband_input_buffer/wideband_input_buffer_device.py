@@ -30,10 +30,10 @@ class WidebandInputBuffer(FhsLowLevelDeviceBase):
             logger=self.logger,
         )
 
-    def always_executed_hook(self: WidebandInputBuffer) -> None:
+    async def always_executed_hook(self: WidebandInputBuffer) -> None:
         """Hook to be executed before any commands."""
 
-    def delete_device(self: WidebandInputBuffer) -> None:
+    async def delete_device(self: WidebandInputBuffer) -> None:
         """Hook to delete device."""
 
     def init_command_objects(self: WidebandInputBuffer) -> None:

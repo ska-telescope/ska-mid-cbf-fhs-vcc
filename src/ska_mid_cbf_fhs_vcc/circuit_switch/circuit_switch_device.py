@@ -20,10 +20,10 @@ class CircuitSwitch(FhsLowLevelDeviceBase):
             logger=self.logger,
         )
 
-    def always_executed_hook(self: CircuitSwitch) -> None:
+    async def always_executed_hook(self: CircuitSwitch) -> None:
         """Hook to be executed before any commands."""
 
-    def delete_device(self: CircuitSwitch) -> None:
+    async def delete_device(self: CircuitSwitch) -> None:
         """Hook to delete device."""
 
     def init_command_objects(self: CircuitSwitch) -> None:

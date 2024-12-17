@@ -151,8 +151,11 @@ class FhsBaseDevice(SKAObsDevice):
         super()._communication_state_changed(communication_state=communication_state)
         self.push_change_event("communicationState", communication_state)
 
-    def init_device(self: FhsBaseDevice) -> None:
-        super().init_device()
+    async def init_device(self: FhsBaseDevice) -> None:
+        # SKABaseDevice calls Device.init_device(), but does not await it, and thus in asyncio mode this prevents the coroutine from being scheduled.
+        # We therefore await Device.init_device() here to ensure that the device is fully initialised before we call SKABaseDevice.init_device().
+        await Device.init_device(self)
+        await SKABaseDevice.init_device(self)
         self.set_state(DevState.ON)
         self.set_status("ON")
         self.set_change_event("communicationState", True)

@@ -23,10 +23,10 @@ class B123VccOsppfbChanneliser(FhsLowLevelDeviceBase):
             logger=self.logger,
         )
 
-    def always_executed_hook(self: B123VccOsppfbChanneliser) -> None:
+    async def always_executed_hook(self: B123VccOsppfbChanneliser) -> None:
         """Hook to be executed before any commands."""
 
-    def delete_device(self: B123VccOsppfbChanneliser) -> None:
+    async def delete_device(self: B123VccOsppfbChanneliser) -> None:
         """Hook to delete device."""
 
     def init_command_objects(self: B123VccOsppfbChanneliser) -> None:

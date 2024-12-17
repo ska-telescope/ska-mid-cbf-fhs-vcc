@@ -1,5 +1,6 @@
 import subprocess
 
+from tango import GreenMode
 from tango.server import run
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device import B123VccOsppfbChanneliser
@@ -50,6 +51,7 @@ def main(args=None, **kwargs):  # noqa: E302
             Packetizer,
             VCCAllBandsController,
         ),
+        green_mode=GreenMode.Asyncio,
         args=args,
         **kwargs,
     )

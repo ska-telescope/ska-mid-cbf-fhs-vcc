@@ -30,10 +30,10 @@ class Mac200(FhsLowLevelDeviceBase):
             logger=self.logger,
         )
 
-    def always_executed_hook(self: Mac200) -> None:
+    async def always_executed_hook(self: Mac200) -> None:
         """Hook to be executed before any commands."""
 
-    def delete_device(self: Mac200) -> None:
+    async def delete_device(self: Mac200) -> None:
         """Hook to delete device."""
 
     def init_command_objects(self: Mac200) -> None:

@@ -22,10 +22,10 @@ class WidebandFrequencyShifter(FhsLowLevelDeviceBase):
             logger=self.logger,
         )
 
-    def always_executed_hook(self: WidebandFrequencyShifter) -> None:
+    async def always_executed_hook(self: WidebandFrequencyShifter) -> None:
         """Hook to be executed before any commands."""
 
-    def delete_device(self: WidebandFrequencyShifter) -> None:
+    async def delete_device(self: WidebandFrequencyShifter) -> None:
         """Hook to delete device."""
 
     def init_command_objects(self: WidebandFrequencyShifter) -> None:

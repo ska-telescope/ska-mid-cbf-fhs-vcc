@@ -20,10 +20,10 @@ class Packetizer(FhsLowLevelDeviceBase):
             logger=self.logger,
         )
 
-    def always_executed_hook(self: Packetizer) -> None:
+    async def always_executed_hook(self: Packetizer) -> None:
         """Hook to be executed before any commands."""
 
-    def delete_device(self: Packetizer) -> None:
+    async def delete_device(self: Packetizer) -> None:
         """Hook to delete device."""
 
     def init_command_objects(self: Packetizer) -> None:

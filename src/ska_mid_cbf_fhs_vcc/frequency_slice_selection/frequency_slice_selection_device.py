@@ -22,10 +22,10 @@ class FrequencySliceSelection(FhsLowLevelDeviceBase):
             logger=self.logger,
         )
 
-    def always_executed_hook(self: FrequencySliceSelection) -> None:
+    async def always_executed_hook(self: FrequencySliceSelection) -> None:
         """Hook to be executed before any commands."""
 
-    def delete_device(self: FrequencySliceSelection) -> None:
+    async def delete_device(self: FrequencySliceSelection) -> None:
         """Hook to delete device."""
 
     def init_command_objects(self: FrequencySliceSelection) -> None:
