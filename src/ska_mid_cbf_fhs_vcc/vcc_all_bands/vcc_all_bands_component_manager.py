@@ -93,8 +93,6 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             update_health_state_callback=health_state_callback,
         )
 
-        self.tasks = []
-
         super().__init__(
             *args,
             logger=logger,
@@ -151,12 +149,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self.logger.error(f"Failed close device proxies to FHS Low-level devices; {ex}")
 
     def configure_scan(self: VCCAllBandsComponentManager, argin: str, task_callback: TaskCallbackType) -> tuple[TaskStatus, str]:
-        self.tasks.append(asyncio.create_task(self._configure_scan(argin, task_callback=task_callback)))
+        self._asyncio_tasks.append(asyncio.create_task(self._configure_scan(argin, task_callback=task_callback)))
         return (TaskStatus.QUEUED, "ConfigureScan queued")
 
     def go_to_idle(self: VCCAllBandsComponentManager, task_callback: TaskCallbackType) -> tuple[TaskStatus, str]:
         if self.obs_state in [ObsState.READY]:
-            self.tasks.append(
+            self._asyncio_tasks.append(
                 asyncio.create_task(
                     self._obs_command_with_callback(
                         hook="deconfigure", command_thread=self._go_to_idle, task_callback=task_callback
@@ -171,7 +169,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
     def obs_reset(self: VCCAllBandsComponentManager, task_callback: TaskCallbackType) -> tuple[TaskStatus, str]:
         if self.obs_state in [ObsState.FAULT, ObsState.ABORTED]:
-            self.tasks.append(
+            self._asyncio_tasks.append(
                 asyncio.create_task(
                     self._obs_command_with_callback(
                         hook="obsreset",
@@ -186,8 +184,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self.logger.warning(errorMsg)
             return (TaskStatus.REJECTED, errorMsg)
 
-    def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: TaskCallbackType = None) -> tuple[TaskStatus, str]:
-        self.tasks.append(
+    def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: TaskCallbackType) -> tuple[TaskStatus, str]:
+        self._asyncio_tasks.append(
             asyncio.create_task(
                 self._obs_command_with_callback(hook="start", command_thread=self._scan, task_callback=task_callback)
             )
@@ -198,23 +196,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self: VCCAllBandsComponentManager,
         task_callback: TaskCallbackType,
     ) -> tuple[TaskStatus, str]:
-        self.tasks.append(
+        self._asyncio_tasks.append(
             asyncio.create_task(
                 self._obs_command_with_callback(hook="stop", command_thread=self._end_scan, task_callback=task_callback)
             )
         )
         return (TaskStatus.QUEUED, "EndScan queued")
-
-    def abort_commands(
-        self: VCCAllBandsComponentManager,
-        task_callback: TaskCallbackType | None = None,
-    ) -> tuple[TaskStatus, str]:
-        # NOTE: AbortCommandsCommand doesn't provide a task_callback
-        result = super().abort_commands(task_callback)
-        self.tasks.append(
-            self._obs_command_with_callback(hook="abort", command_thread=self._abort_commands, task_callback=task_callback)
-        )
-        return result
 
     async def _configure_device(self, fqdn: str, config: dict) -> None:
         """
@@ -521,10 +508,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         )
 
     async def _abort_commands(self: VCCAllBandsComponentManager):
+        super()._abort_commands()
         await self._stop_devices()
-        for task in self.tasks:
-            task.cancel()
-        self.tasks.clear()
 
     def _reset_attributes(self: VCCAllBandsComponentManager):
         self._config_id = ""

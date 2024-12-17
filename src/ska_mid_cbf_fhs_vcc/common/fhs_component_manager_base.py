@@ -30,7 +30,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         return cast(bool, self._component_state["fault"])
 
     def __init__(
-        self: TaskExecutorComponentManager,
+        self: FhsComponentManagerBase,
         *args: Any,
         attr_change_callback: Callable[[str, Any], None] | None = None,
         attr_archive_callback: Callable[[str, Any], None] | None = None,
@@ -41,6 +41,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         **kwargs: Any,
     ) -> None:
         self.obs_state = ObsState.IDLE
+        self._asyncio_tasks = []
 
         self._attr_change_callback = attr_change_callback
         self._attr_archive_callback = attr_archive_callback
@@ -112,6 +113,17 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
 
         return ResultCode.OK, msg
 
+    def abort_commands(
+        self: FhsComponentManagerBase,
+        task_callback: TaskCallbackType | None = None,
+    ) -> tuple[TaskStatus, str]:
+        # NOTE: AbortCommandsCommand doesn't provide a task_callback
+        result = super().abort_commands(task_callback)
+        self._asyncio_tasks.append(
+            self._obs_command_with_callback(hook="abort", command_thread=self._abort_commands, task_callback=task_callback)
+        )
+        return result
+
     ########
     # Private Commands
     ########
@@ -124,6 +136,11 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
     def stop_communicating(self: BaseComponentManager) -> None:
         self._component_state_callback(power=PowerState.UNKNOWN)
         self._update_communication_state(communication_state=CommunicationStatus.DISABLED)
+
+    def _abort_commands(self: FhsComponentManagerBase):
+        for task in self._asyncio_tasks:
+            task.cancel()
+        self._asyncio_tasks.clear()
 
     ###
     # Utility functions
