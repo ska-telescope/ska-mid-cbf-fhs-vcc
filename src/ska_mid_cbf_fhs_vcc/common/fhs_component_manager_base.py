@@ -9,7 +9,7 @@ from __future__ import annotations  # allow forward references in type hints
 
 import logging
 from threading import Lock
-from typing import Any, Callable, Optional, cast
+from typing import Any, Awaitable, Callable, Optional, cast
 
 from ska_control_model import CommunicationStatus, HealthState, PowerState, ResultCode, TaskStatus
 from ska_tango_base.base.base_component_manager import BaseComponentManager
@@ -90,13 +90,11 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         )  # TODO Determine if the health state here needs to be degraded or not
 
     def is_allowed(self: FhsComponentManagerBase, error_msg: str, obsStates: list[ObsState]) -> bool:
-        result = True
-
         if self.obs_state not in obsStates:
             self.logger.warning(error_msg)
-            result = False
+            return False
 
-        return result
+        return True
 
     ########
     # Commands
@@ -131,10 +129,10 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
     # Utility functions
     ###
 
-    def _obs_command_with_callback(
+    async def _obs_command_with_callback(
         self: FhsComponentManagerBase,
         *args,
-        command_thread: Callable[[Any], None],
+        command_thread: Callable[[Any], Awaitable[None]],
         hook: str,
         **kwargs,
     ):
@@ -145,7 +143,7 @@ class FhsComponentManagerBase(TaskExecutorComponentManager):
         :param hook: hook for state machine action
         """
         self._obs_command_running_callback(hook=hook, running=True)
-        command_thread(*args, **kwargs)
+        await command_thread(*args, **kwargs)
         self._obs_command_running_callback(hook=hook, running=False)
 
     def _set_task_callback_aborted(self: FhsComponentManagerBase, task_callback: Callable, message: str) -> None:

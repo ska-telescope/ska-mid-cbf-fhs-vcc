@@ -14,6 +14,7 @@ from ska_control_model.faults import StateModelError
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_testing import context
 from tango import EventData, EventType, GreenMode
+from tango.asyncio import DeviceProxy
 from tango.device_proxy import get_device_proxy
 
 from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
@@ -51,7 +52,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         self.input_sample_rate = 0
 
-        self._proxies: dict[str, context.DeviceProxy] = {}
+        self._proxies: dict[str, DeviceProxy] = {}
 
         self._proxies[device.mac_200_fqdn] = None
         self._proxies[device.packet_validation_fqdn] = None
@@ -119,9 +120,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 async def _connect_device(fqdn: str):
                     self.logger.info(f"Establishing Communication with {fqdn}")
-                    dp = await get_device_proxy(fqdn, green_mode=GreenMode.Asyncio, wait=False)
+                    dp = await DeviceProxy(fqdn, wait=False)
                     # NOTE: this crashes when adminMode is memorized because it gets called before the devices are ready
-                    await self._subscribe_to_change_event(dp, "healthState", fqdn, self.proxies_health_state_change_event)
+                    await self._subscribe_to_change_event(dp, "healthState", fqdn, self._proxies_health_state_change_event)
                     await self._subscribe_to_change_event(
                         dp, "longRunningCommandResult", fqdn, self._long_running_command_callback
                     )
@@ -141,7 +142,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         try:
             for fqdn in self._proxies:
                 # unsubscribe from any attribute change events
-                self._unsubscribe_from_events(fqdn)
+                await self._unsubscribe_from_events(fqdn)
                 self._proxies[fqdn] = None
 
             # Event unsubscription will also be placed here
@@ -149,97 +150,70 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         except tango.DevFailed as ex:
             self.logger.error(f"Failed close device proxies to FHS Low-level devices; {ex}")
 
-    def is_go_to_idle_allowed(self: VCCAllBandsComponentManager) -> bool:
-        self.logger.debug("Checking if gotoidle is allowed...")
-        errorMsg = f"go_to_idle not allowed in ObsState {self.obs_state}; " "must be in ObsState.READY"
-
-        return self.is_allowed(errorMsg, [ObsState.READY])
-
-    def is_obs_reset_allowed(self: VCCAllBandsComponentManager) -> bool:
-        self.logger.debug("Checking if ObsReset is allowed...")
-        errorMsg = f"ObsReset not allowed in ObsState {self.obs_state}; \
-            must be in ObsState.FAULT or ObsState.ABORTED"
-
-        return self.is_allowed(errorMsg, [ObsState.FAULT, ObsState.ABORTED])
-
-    def configure_scan(
-        self: VCCAllBandsComponentManager,
-        argin: str,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        self.tasks.append(asyncio.create_task(self._configure_scan(argin, task_callback)))
+    def configure_scan(self: VCCAllBandsComponentManager, argin: str, task_callback: TaskCallbackType) -> tuple[TaskStatus, str]:
+        self.tasks.append(asyncio.create_task(self._configure_scan(argin, task_callback=task_callback)))
         return (TaskStatus.QUEUED, "ConfigureScan queued")
 
-    def go_to_idle(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="deconfigure",
-                command_thread=self._go_to_idle,
-            ),
-            task_callback=task_callback,
-            is_cmd_allowed=self.is_go_to_idle_allowed,
-        )
+    def go_to_idle(self: VCCAllBandsComponentManager, task_callback: TaskCallbackType) -> tuple[TaskStatus, str]:
+        if self.obs_state in [ObsState.READY]:
+            self.tasks.append(
+                asyncio.create_task(
+                    self._obs_command_with_callback(
+                        hook="deconfigure", command_thread=self._go_to_idle, task_callback=task_callback
+                    )
+                )
+            )
+            return (TaskStatus.QUEUED, "GoToIdle queued")
+        else:
+            errorMsg = f"GoToIdle not allowed in ObsState {self.obs_state}; must be in ObsState.READY"
+            self.logger.warning(errorMsg)
+            return (TaskStatus.REJECTED, errorMsg)
 
-    def obs_reset(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="obsreset",
-                command_thread=functools.partial(
-                    self._obs_reset,
-                    from_state=self.obs_state,
-                ),
-            ),
-            task_callback=task_callback,
-            is_cmd_allowed=self.is_obs_reset_allowed,
-        )
+    def obs_reset(self: VCCAllBandsComponentManager, task_callback: TaskCallbackType) -> tuple[TaskStatus, str]:
+        if self.obs_state in [ObsState.FAULT, ObsState.ABORTED]:
+            self.tasks.append(
+                asyncio.create_task(
+                    self._obs_command_with_callback(
+                        hook="obsreset",
+                        command_thread=functools.partial(self._obs_reset, from_state=self.obs_state),
+                        task_callback=task_callback,
+                    )
+                )
+            )
+            return (TaskStatus.QUEUED, "ObsReset queued")
+        else:
+            errorMsg = f"ObsReset not allowed in ObsState {self.obs_state}; must be in ObsState.FAULT or ObsState.ABORTED"
+            self.logger.warning(errorMsg)
+            return (TaskStatus.REJECTED, errorMsg)
 
-    def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="start",
-                command_thread=self._scan,
-            ),
-            args=[argin],
-            task_callback=task_callback,
+    def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: TaskCallbackType = None) -> tuple[TaskStatus, str]:
+        self.tasks.append(
+            asyncio.create_task(
+                self._obs_command_with_callback(hook="start", command_thread=self._scan, task_callback=task_callback)
+            )
         )
+        return (TaskStatus.QUEUED, "Scan queued")
 
     def end_scan(
         self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
+        task_callback: TaskCallbackType,
     ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="stop",
-                command_thread=self._end_scan,
-            ),
-            task_callback=task_callback,
+        self.tasks.append(
+            asyncio.create_task(
+                self._obs_command_with_callback(hook="stop", command_thread=self._end_scan, task_callback=task_callback)
+            )
         )
+        return (TaskStatus.QUEUED, "EndScan queued")
 
     def abort_commands(
         self: VCCAllBandsComponentManager,
         task_callback: TaskCallbackType | None = None,
     ) -> tuple[TaskStatus, str]:
-        """
-        Stop all devices.
-
-        :return: None
-        """
-        self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
+        # NOTE: AbortCommandsCommand doesn't provide a task_callback
         result = super().abort_commands(task_callback)
-
-        result = self._stop_proxies()
-
-        self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
+        self.tasks.append(
+            self._obs_command_with_callback(hook="abort", command_thread=self._abort_commands, task_callback=task_callback)
+        )
         return result
 
     async def _configure_device(self, fqdn: str, config: dict) -> None:
@@ -252,7 +226,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         """
         self.logger.info(f"{fqdn} configuring with {config}..")
         proxy = self._proxies[fqdn]
-        result = await proxy.Configure(json.dumps(config))
+        result = await proxy.Configure(json.dumps(config), wait=False)
 
         if result[0] == ResultCode.FAILED:
             raise Exception(f"Configuration of {fqdn} failed: {result[1]}")
@@ -260,7 +234,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     async def _configure_scan(
         self: VCCAllBandsComponentManager,
         argin: str,
-        task_callback: Optional[Callable],
+        task_callback: TaskCallbackType,
     ) -> None:
         try:
             """
@@ -414,11 +388,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to HPS VCC devices"
             )
 
-    def _scan(
+    async def _scan(
         self: VCCAllBandsComponentManager,
         argin: int,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
+        task_callback: TaskCallbackType,
     ) -> None:
         """
         Begin scan operation.
@@ -430,18 +403,19 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         try:
             # set task status in progress, check for abort event
             self._scan_id = argin
-            if not self.simulation_mode:
-                try:
-                    self._proxies[self.device.mac_200_fqdn].Start()
-                    self._proxies[self.device.packet_validation_fqdn].Start()
-                    self._proxies[self.device.wideband_input_buffer_fqdn].Start()
-                except tango.DevFailed as ex:
-                    self.logger.error(repr(ex))
-                    self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-                    self._set_task_callback(
-                        task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
-                    )
-                    return
+            try:
+                await asyncio.gather(
+                    self._proxies[self.device.mac_200_fqdn].Start(wait=False),
+                    self._proxies[self.device.packet_validation_fqdn].Start(wait=False),
+                    self._proxies[self.device.wideband_input_buffer_fqdn].Start(wait=False),
+                )
+            except tango.DevFailed as ex:
+                self.logger.error(repr(ex))
+                self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+                self._set_task_callback(
+                    task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
+                )
+                return
 
             # Update obsState callback
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Scan completed OK")
@@ -455,10 +429,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 "Attempted to call Scan command from an incorrect state",
             )
 
-    def _end_scan(
+    async def _end_scan(
         self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
+        task_callback: TaskCallbackType,
     ) -> None:
         """
         End scan operation.
@@ -467,21 +440,15 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         """
         try:
             task_callback(status=TaskStatus.IN_PROGRESS)
-            if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
+            try:
+                await self._stop_devices()
+            except tango.DevFailed as ex:
+                self.logger.error(repr(ex))
+                self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+                self._set_task_callback(
+                    task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
+                )
                 return
-
-            if not self.simulation_mode:
-                try:
-                    self._proxies[self.device.mac_200_fqdn].Stop()
-                    self._proxies[self.device.packet_validation_fqdn].Stop()
-                    self._proxies[self.device.wideband_input_buffer_fqdn].Stop()
-                except tango.DevFailed as ex:
-                    self.logger.error(repr(ex))
-                    self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-                    self._set_task_callback(
-                        task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
-                    )
-                    return
 
             # Update obsState callback
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
@@ -496,19 +463,13 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             )
 
     # A replacement for unconfigure
-    def _go_to_idle(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-    ) -> None:
+    async def _go_to_idle(self: VCCAllBandsComponentManager, task_callback: TaskCallbackType) -> None:
         try:
             # TODO: Check if ReceiveEnable is still required on the Agilex for the WIB
             task_callback(status=TaskStatus.IN_PROGRESS)
-            if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
-                return
 
             # Reset all device proxies
-            self._reset_devices(self._proxies.keys())
+            await self._reset_devices(self._proxies.keys())
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
             return
@@ -523,23 +484,20 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         except Exception as ex:
             self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
 
-    def _obs_reset(
+    async def _obs_reset(
         self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
+        task_callback: TaskCallbackType,
         from_state=ObsState.ABORTED,
     ) -> None:
         try:
             task_callback(status=TaskStatus.IN_PROGRESS)
-            if self.task_abort_event_is_set("ObsReset", task_callback, task_abort_event):
-                return
 
             # If in FAULT state, devices may still be running, so make sure they are stopped
             if from_state is ObsState.FAULT:
-                self._stop_proxies()
+                await self._stop_devices()
 
             # Reset all device proxies
-            self._reset_devices(self._proxies.keys())
+            await self._reset_devices(self._proxies.keys())
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ObsReset completed OK")
             return
@@ -554,17 +512,19 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         except Exception as ex:
             self.logger.error(f"Unexpected error in ObsReset command: {repr(ex)}")
 
-    def _stop_proxies(self: VCCAllBandsComponentManager):
-        result = None
-        for fqdn, proxy in self._proxies.items():
-            if proxy is not None and fqdn in [
-                self.device.mac_200_fqdn,
-                self.device.wideband_input_buffer_fqdn,
-                self.device.packet_validation_fqdn,
-            ]:
-                self.logger.info(f"Stopping proxy {fqdn}")
-                result = proxy.Stop()
-        return result
+    async def _stop_devices(self: VCCAllBandsComponentManager):
+        self.logger.info("Stopping mac, packet_validation and wideband_input_buffer")
+        await asyncio.gather(
+            self._proxies[self.device.mac_200_fqdn].Stop(wait=False),
+            self._proxies[self.device.packet_validation_fqdn].Stop(wait=False),
+            self._proxies[self.device.wideband_input_buffer_fqdn].Stop(wait=False),
+        )
+
+    async def _abort_commands(self: VCCAllBandsComponentManager):
+        await self._stop_devices()
+        for task in self.tasks:
+            task.cancel()
+        self.tasks.clear()
 
     def _reset_attributes(self: VCCAllBandsComponentManager):
         self._config_id = ""
@@ -575,46 +535,19 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._samples_per_frame = 0
         self._fsps = []
 
-    def _reset_devices(self: VCCAllBandsComponentManager, devices_name: list[str]):
+    async def _reset_device(self: VCCAllBandsComponentManager, fqdn: str):
+        result = await self._proxies[fqdn].GoToIdle(wait=False)
+        if result[0] != ResultCode.OK:
+            self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {fqdn}")
+        else:
+            self.logger.info(f"VCC {self._vcc_id}: {fqdn} set to IDLE")
+
+    async def _reset_devices(self: VCCAllBandsComponentManager, devices_name: list[str]):
         try:
             self._reset_attributes()
-            for fqdn in devices_name:
-                if self._proxies[fqdn] is not None:
-                    self._log_go_to_idle_status(fqdn, self._proxies[fqdn].GoToIdle())
+            await asyncio.gather(*[self._reset_device(fqdn) for fqdn in devices_name if self._proxies[fqdn] is not None])
         except Exception as ex:
             self.logger.error(f"Error resetting specific devices : {repr(ex)}")
-
-    def task_abort_event_is_set(
-        self: VCCAllBandsComponentManager,
-        command_name: str,
-        task_callback: Callable,
-        task_abort_event: Event,
-    ) -> bool:
-        """
-        Helper method for checking task abort event during command thread.
-
-        :param command_name: name of command for result message
-        :param task_callback: command tracker update_command_info callback
-        :param task_abort_event: task executor abort event
-
-        :return: True if abort event is set, otherwise False
-        """
-        if task_abort_event.is_set():
-            task_callback(
-                status=TaskStatus.ABORTED,
-                result=(
-                    ResultCode.ABORTED,
-                    f"{command_name} command aborted by task executor abort event.",
-                ),
-            )
-            return True
-        return False
-
-    def _log_go_to_idle_status(self: VCCAllBandsComponentManager, ip_block_name: str, result: tuple[ResultCode, str]):
-        if result[0] != ResultCode.OK:
-            self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
-        else:
-            self.logger.info(f"VCC {self._vcc_id}: {ip_block_name} set to IDLE")
 
     async def _subscribe_to_change_event(
         self: VCCAllBandsComponentManager,
@@ -623,21 +556,21 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         key: str,
         change_event_callback: Callable[[EventData], None],
     ):
-        event_id = await device_proxy.subscribe_event(attribute, EventType.CHANGE_EVENT, change_event_callback)
+        event_id = await device_proxy.subscribe_event(attribute, EventType.CHANGE_EVENT, change_event_callback, wait=False)
         if key in self.subscription_event_ids:
             self.subscription_event_ids[key].add(event_id)
         else:
             self.subscription_event_ids[key] = {event_id}
 
-    def _unsubscribe_from_events(self: VCCAllBandsComponentManager, fqdn: str):
+    async def _unsubscribe_from_events(self: VCCAllBandsComponentManager, fqdn: str):
         if fqdn in self.subscription_event_ids and fqdn in self._proxies and self._proxies[fqdn] is not None:
             for event_id in self.subscription_event_ids[fqdn]:
                 try:
-                    self._proxies[fqdn].unsubscribe_event(event_id)
+                    await self._proxies[fqdn].unsubscribe_event(event_id, wait=False)
                 except Exception as ex:
                     self.logger.error(f"Unable to unsubcribe from event {event_id} for device server {fqdn}: {repr(ex)}")
 
-    def proxies_health_state_change_event(self: VCCAllBandsComponentManager, event_data: EventData):
+    def _proxies_health_state_change_event(self: VCCAllBandsComponentManager, event_data: EventData):
         if event_data.err:
             self.logger.error(
                 f"Problem occured when recieving healthState event for {event_data.device.dev_name()}. Unable to determine health state"
