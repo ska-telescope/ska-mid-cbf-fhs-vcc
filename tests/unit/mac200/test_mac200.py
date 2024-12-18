@@ -13,13 +13,13 @@ from ska_mid_cbf_fhs_vcc.mac.mac_200_device import Mac200
 
 EVENT_TIMEOUT = 30
 
-# @pytest.fixture(scope="module")
+# @pytest.fixture(scope="session")
 # def test_harness():
 #     with TangoTestHarness() as harness:
 #         yield harness
 
 
-@pytest.fixture(name="test_context", scope="module")
+@pytest.fixture(name="test_context" )
 def mac200_device():
     """
     Fixture to set up the Mac200 device for testing with a mock Tango database.

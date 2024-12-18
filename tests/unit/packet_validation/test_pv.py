@@ -14,7 +14,7 @@ from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import Packe
 EVENT_TIMEOUT = 30
 
 
-@pytest.fixture(name="test_context", scope="module")
+@pytest.fixture(name="test_context" )
 def pv_device():
     """
     Fixture to set up the packet validation device for testing with a mock Tango database.

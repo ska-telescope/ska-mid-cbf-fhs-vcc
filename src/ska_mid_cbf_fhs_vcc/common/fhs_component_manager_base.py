@@ -118,6 +118,7 @@ class FhsComponentManagerBase(BaseComponentManager):
         task_callback: TaskCallbackType | None = None,
     ) -> tuple[TaskStatus, str]:
         # NOTE: AbortCommandsCommand doesn't provide a task_callback
+        # TODO: don't do this
         result = super().abort_commands(task_callback)
         self._asyncio_tasks.append(
             self._obs_command_with_callback(hook="abort", command_thread=self._abort_commands, task_callback=task_callback)

@@ -15,7 +15,7 @@ from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser
 EVENT_TIMEOUT = 30
 
 
-@pytest.fixture(name="test_context", scope="module")
+@pytest.fixture(name="test_context")
 def vcc123_device():
     """
     Fixture to set up the Vcc device for testing with a mock Tango database.
@@ -40,30 +40,28 @@ def vcc123_device():
         yield test_context
 
 
-def test_device_initialization(device_under_test):
+async def test_device_initialization(device_under_test):
     """
     Test that the Vcc device initializes correctly.
     """
-
     # Check device state
-    state = device_under_test.state()
+    state = await device_under_test.state()
     assert state == DevState.ON, f"Expected state ON, got {state}"
 
     # # Check device status
-    status = device_under_test.status()
+    status = await device_under_test.status()
     assert status == "ON", f"Expected status 'ON', got '{status}'"
 
 
-def test_configure_command(device_under_test):
+async def test_configure_command(device_under_test):
     """
     Test the Configure command of the Vcc device.
     """
-
     # Define configuration input
     config_json = '{"gains": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "sample_rate": 3960000000}'
 
     # Invoke the command
-    result = device_under_test.command_inout("Configure", config_json)
+    result = await device_under_test.command_inout("Configure", config_json, wait=False)
 
     # Extract the result code and message
     result_code = result[0][0]
@@ -71,7 +69,7 @@ def test_configure_command(device_under_test):
     # Assertions
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
-    assert device_under_test.read_attribute("obsState").value is ObsState.READY.value
+    assert (await device_under_test.read_attribute("obsState")).value is ObsState.READY.value
 
 
 def test_configure_command_invalid_config(device_under_test):
@@ -126,7 +124,9 @@ def test_status_command(device_under_test):
     result_code, message = result[0][0], result[1][0]
 
     msgDict = json.loads(message)
-    expectedStatus = json.loads('{"sample_rate": 3960000000, "num_channels": 10, "num_polarisations": 2, "gains": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}')
+    expectedStatus = json.loads(
+        '{"sample_rate": 3960000000, "num_channels": 10, "num_polarisations": 2, "gains": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}'
+    )
 
     # Assertions
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"

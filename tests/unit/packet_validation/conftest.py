@@ -22,7 +22,7 @@ from ska_tango_testing.integration import TangoEventTracer
 EVENT_TIMEOUT = 30
 
 
-@pytest.fixture(name="device_under_test", scope="module")
+@pytest.fixture(name="device_under_test" )
 def device_under_test_fixture(
     test_context: TangoTestHarnessContext,
 ):
@@ -35,7 +35,7 @@ def device_under_test_fixture(
     return test_context.get_device("test/packet_validation/1")
 
 
-@pytest.fixture(name="event_tracer", scope="module", autouse=True)
+@pytest.fixture(name="event_tracer" , autouse=True)
 def tango_event_tracer(
     device_under_test,
 ) -> Generator[TangoEventTracer, None, None]:

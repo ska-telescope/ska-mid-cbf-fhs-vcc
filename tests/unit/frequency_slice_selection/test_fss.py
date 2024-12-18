@@ -14,7 +14,7 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_dev
 EVENT_TIMEOUT = 30
 
 
-@pytest.fixture(name="test_context", scope="module")
+@pytest.fixture(name="test_context" )
 def fss_device():
     """
     Fixture to set up the FSS device for testing with a mock Tango database.

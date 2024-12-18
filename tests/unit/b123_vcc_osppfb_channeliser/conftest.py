@@ -14,14 +14,19 @@ from __future__ import annotations
 from typing import Generator
 
 import pytest
-from ska_tango_testing import context
+from tango import GreenMode, asyncio_executor
 from ska_tango_testing.harness import TangoTestHarnessContext
 from ska_tango_testing.integration import TangoEventTracer
 
 EVENT_TIMEOUT = 30
 
 
-@pytest.fixture(name="device_under_test", scope="module")
+@pytest.fixture()
+def event_loop():
+    yield asyncio_executor.get_global_executor().loop
+
+
+@pytest.fixture(name="device_under_test")
 def device_under_test_fixture(
     test_context: TangoTestHarnessContext,
 ):
@@ -31,10 +36,15 @@ def device_under_test_fixture(
     :param test_context: the context in which the tests run
     :return: the DeviceProxy to device under test
     """
-    return test_context.get_device("test/vcc123/1")
+    # print("DUT Event loop is " + str(asyncio.get_running_loop()._thread_id))
+    # asyncio_executor.get_global_executor().loop = asyncio.get_running_loop()
+    # dev = await get_device_proxy("test/vcc123/1", green_mode=GreenMode.Asyncio, wait=False)
+    dev = test_context.get_device("test/vcc123/1")
+    dev.set_green_mode(GreenMode.Asyncio)  # for some reason it does not get set by the device class
+    return dev
 
 
-@pytest.fixture(name="event_tracer", scope="module", autouse=True)
+@pytest.fixture(name="event_tracer", autouse=True)
 def tango_event_tracer(
     device_under_test,
 ) -> Generator[TangoEventTracer, None, None]:
