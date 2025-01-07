@@ -7,7 +7,7 @@
 
 {{- $device_server_config := $deviceserver }}
 {{- $file_device_server := dict }}
-{{- $file_device_server_context := dict "name" $key "deviceserver" $deviceserver "image" $deviceserver.image "local" $localchart "instances" [$instance] }}
+{{- $file_device_server_context := dict "name" $key "deviceserver" $deviceserver "image" $deviceserver.image "local" $localchart "instances" ([$instance] | toYaml) }}
 
 {{- if hasKey $deviceserver "file"}}  # If File
 {{- $file_device_server = tpl ($.Files.Get $deviceserver.file) (merge $file_device_server_context $) | fromYaml }}
