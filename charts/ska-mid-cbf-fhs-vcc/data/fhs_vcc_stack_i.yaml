@@ -1,0 +1,31 @@
+name: fhsvcc
+function: fhsvcc
+domain: sensing
+command: "FhsVccStackDeviceServer"
+depends_on:
+  - device: sys/database/2
+readinessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+livenessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+server:
+  name: "FhsVccStackDeviceServer"
+
+image:
+  registry: "{{.Values.midcbf.image.registry}}"
+  image: "{{.Values.midcbf.image.image}}"
+  tag: "{{.Values.midcbf.image.tag}}"
+  pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
+
+volume:
+  existingClaimName: "fhs-vcc-bitstream-pv"
+  mountPath: "{{ .Values.bitstreamMountPath }}"
+  readOnly: false
