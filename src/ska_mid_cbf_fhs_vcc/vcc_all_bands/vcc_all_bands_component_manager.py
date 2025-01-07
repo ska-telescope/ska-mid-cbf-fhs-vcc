@@ -29,11 +29,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         vcc_id: str,
         mac_200_FQDN: str,
         vcc_123_channelizer_FQDN: str,
-        vcc_45_channelizer_FQDN: str,
+        vcc_45_1_channelizer_FQDN: str,
+        vcc_45_2_channelizer_FQDN: str,
         wideband_input_buffer_FQDN: str,
         wideband_frequency_shifter_FQDN: str,
         packet_validation_FQDN: str,
-        circuit_switch_FQDN: str,
         fs_selection_FQDN: str,
         logger: logging.Logger,
         simulation_mode: SimulationMode = SimulationMode.FALSE,
@@ -53,7 +53,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._scan_id = 0
         self._packet_validation_fqdn = packet_validation_FQDN
         self._vcc_123_fqdn = vcc_123_channelizer_FQDN
-        self._vcc_45_fqdn = vcc_45_channelizer_FQDN
+        self._vcc_45_1_fqdn = vcc_45_1_channelizer_FQDN
+        self._vcc_45_2_fqdn = vcc_45_2_channelizer_FQDN
         self._wib_fqdn = wideband_input_buffer_FQDN
         self._wfs_fqdn = wideband_frequency_shifter_FQDN
         # self._circuit_switch_fqdn = circuit_switch_FQDN
@@ -71,7 +72,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._proxies[wideband_input_buffer_FQDN] = None
         self._proxies[wideband_frequency_shifter_FQDN] = None
         self._proxies[vcc_123_channelizer_FQDN] = None
-        self._proxies[vcc_45_channelizer_FQDN] = None
+        self._proxies[vcc_45_1_channelizer_FQDN] = None
+        self._proxies[vcc_45_2_channelizer_FQDN] = None
         self._proxies[fs_selection_FQDN] = None
         # self._circuit_switch_proxy = None
 
@@ -272,28 +274,37 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self.frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
 
             # VCC number of gains is equal to = number of channels * number of polizations
-            self._vcc_gains = configuration["vcc_gain"]
+            self._vcc_gains_stream_1 = configuration["vcc_gain_stream_1"]
+            self._vcc_gains_stream_2 = configuration["vcc_gain_stream_2"]
 
+            total_gains = 0
             if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                # number of channels * number of polarizations
-                self._num_vcc_gains = 10 * 2
+                # 10 (number of channels) * 2 (number of polarizations)
+                self._num_vcc_gains = 20
+                total_gains = len(self._vcc_gains_stream_1)
+            elif self.frequency_band in {FrequencyBandEnum._5A, FrequencyBandEnum._5B}:
+                # Band 5 (a or b) handles 2 2.5GHz streams which are go through 2 B45 Channelizers which output 15 FS
+                # therefore, the number of gains values required is = 2 * 15 (number of channels) * 2 (polarization)
+                self._num_vcc_gains = 60
+                total_gains = len(self._vcc_gains_stream_1) + len(self._vcc_gains_stream_2)
             else:
-                self._reset_attributes()
+                # Band 3 = 10 channels and Band 4 = 15 channels using a singular Ch30 channelizer
+                # however, both are out of scope at this time
                 self._set_task_callback(
                     task_callback,
                     TaskStatus.COMPLETED,
                     ResultCode.FAILED,
-                    "Bands 5A/B not implemented",
+                    f"Unsupported frequency band supplied: {self.frequency_band.value}",
                 )
                 return
 
-            if len(self._vcc_gains) != self._num_vcc_gains:
+            if total_gains != self._num_vcc_gains:
                 self._reset_attributes()
                 self._set_task_callback(
                     task_callback,
                     TaskStatus.COMPLETED,
                     ResultCode.FAILED,
-                    f"Incorrect number of gain values supplied: {self._vcc_gains} != {self._num_vcc_gains}",
+                    f"Incorrect number of gain values supplied: {self._vcc_gains} != {self._num_vcc_gains} for frequency band {self.frequency_band.value}",
                 )
                 return
 
@@ -301,7 +312,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
                     self._proxies[self._vcc_123_fqdn] = context.DeviceProxy(device_name=self._vcc_123_fqdn)
                     result = self._proxies[self._vcc_123_fqdn].Configure(
-                        json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
+                        json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_1})
                     )
 
                     if result[0] == ResultCode.FAILED:
@@ -317,13 +328,25 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 else:
                     # TODO: Implement routing to the 5 Channelizer once outlined
-                    self._reset_attributes()
-                    self._set_task_callback(
-                        task_callback,
-                        TaskStatus.COMPLETED,
-                        ResultCode.FAILED,
-                        f"ConfigureScan failed unsupported band specified: {self.frequency_band}",
+                    self._proxies[self._vcc_45_1_fqdn] = context.DeviceProxy(device_name=self._vcc_45_1_fqdn)
+                    result = self._proxies[self._vcc_45_1_fqdn].Configure(
+                        json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_1})
                     )
+                    
+                    self._proxies[self._vcc_45_2_fqdn] = context.DeviceProxy(device_name=self._vcc_45_2_fqdn)
+                    result2 = self._proxies[self._vcc_45_2_fqdn].Configure(
+                        json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_2})
+                    )
+                    
+                    if result[0] == ResultCode.FAILED or result2[0] == ResultCode.FAILED:
+                        self.logger.error(f"Configuration of B45 Channelizer failed: {result[1]}")
+                        self._reset_attributes()
+                        self._set_task_callback(
+                            task_callback,
+                            TaskStatus.COMPLETED,
+                            ResultCode.REJECTED,
+                            "Configuration of low-level fhs device failed",
+                        )
                     return
 
                 # WFS Configuration

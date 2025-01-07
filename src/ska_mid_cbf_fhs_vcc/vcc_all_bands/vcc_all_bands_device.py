@@ -13,7 +13,8 @@ class VCCAllBandsController(FhsBaseDevice):
     mac_200_fqdn = device_property(dtype="str")
     packet_validation_fqdn = device_property(dtype="str")
     vcc123_channelizer_fqdn = device_property(dtype="str")
-    vcc45_channelizer_fqdn = device_property(dtype="str")
+    vcc45_1_channelizer_fqdn = device_property(dtype="str")
+    vcc45_2_channelizer_fqdn = device_property(dtype="str")
     wideband_input_buffer_fqdn = device_property(dtype="str")
     wideband_frequency_shifter_fqdn = device_property(dtype="str")
     circuit_switch_fqdn = device_property(dtype="str")
@@ -29,7 +30,8 @@ class VCCAllBandsController(FhsBaseDevice):
             mac_200_FQDN=self.mac_200_fqdn,
             packet_validation_FQDN=self.packet_validation_fqdn,
             vcc_123_channelizer_FQDN=self.vcc123_channelizer_fqdn,
-            vcc_45_channelizer_FQDN=self.vcc45_channelizer_fqdn,
+            vcc_45_1_channelizer_FQDN=self.vcc45_1_channelizer_fqdn,
+            vcc_45_2_channelizer_FQDN=self.vcc45_2_channelizer_fqdn,
             wideband_input_buffer_FQDN=self.wideband_input_buffer_fqdn,
             wideband_frequency_shifter_FQDN=self.wideband_frequency_shifter_fqdn,
             circuit_switch_FQDN=self.circuit_switch_fqdn,

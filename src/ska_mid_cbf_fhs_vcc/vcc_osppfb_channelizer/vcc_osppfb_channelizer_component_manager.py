@@ -27,8 +27,7 @@ class VccOsppfbChannelizerConfig:
 
 class ChannelizerType(Enum):
     _B123 = "B123"
-    _B45A = "B45A"
-    _B5B  = "B5B"
+    _B45 = "B45"
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
