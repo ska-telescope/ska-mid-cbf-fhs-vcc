@@ -3,7 +3,7 @@
 {{- range $key, $deviceserver := .Values.deviceServers }}  # Begin DS loop
 
 {{- if eq $key "fhs-vcc-stack-i" }}  # If Stack
-{{- range $idx, $instance := .Values.instances }}  # Begin Stack Instance loop
+{{- range $idx, $instance := $localchart.Values.instances }}  # Begin Stack Instance loop
 
 {{- $device_server_config := $deviceserver }}
 {{- $file_device_server := dict }}
@@ -11,7 +11,7 @@
 
 {{- if hasKey $deviceserver "file"}}  # If File
 {{- $file_device_server = tpl ($.Files.Get $deviceserver.file) (merge $file_device_server_context $) | fromYaml }}
-{{- $config_instance := include "ska-mid-cbf-fhs-vcc.stack-instance" (dict "Values" .Values "instance" $instance) }}
+{{- $config_instance := include "ska-mid-cbf-fhs-vcc.stack-instance" (dict "Values" $localchart.Values "instance" $instance) }}
 {{- $_ := set $file_device_server "instances" $config_instance }}
 {{- $_ := set $device_server_config "instances" (coalesce $localchart.Values.global.instances $deviceserver.instances $file_device_server.instances) }}
 {{- end }}  # End If File
