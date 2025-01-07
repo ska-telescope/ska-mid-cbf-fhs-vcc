@@ -1,48 +1,46 @@
 {{ $localchart := . }}
 
-{{- range $key, $deviceserver := .Values.deviceServers }}  # Begin DS loop
+{{- range $key, $deviceserver := .Values.deviceServers }}
 
-{{- if eq $key "fhs-vcc-stack-i" }}  # If Stack
-{{- range $idx, $instance := $localchart.Values.instances }}  # Begin Stack Instance loop
+{{- if eq $key "fhs-vcc-stack-i" }}
+{{- range $idx, $instance := $localchart.Values.instances }}
 
 {{- $device_server_config := $deviceserver }}
 {{- $file_device_server := dict }}
 {{- $file_device_server_context := dict "name" $key "deviceserver" $deviceserver "image" $deviceserver.image "local" $localchart "instances" (list $instance) }}
 
-{{- if hasKey $deviceserver "file"}}  # If File
+{{- if hasKey $deviceserver "file"}}
 {{- $file_device_server = tpl ($.Files.Get $deviceserver.file) (merge $file_device_server_context $) | fromYaml }}
 {{- $config_instance := include "ska-mid-cbf-fhs-vcc.stack-instance" (dict "Values" $localchart.Values "instance" $instance) }}
-{{- $_ := set $file_device_server "instances" $config_instance }}
-{{- $_ := set $device_server_config "instances" (coalesce $localchart.Values.global.instances $deviceserver.instances $file_device_server.instances) }}
-{{- end }}  # End If File
+{{- $_ := set $file_device_server "instances" (list $config_instance) }}
+{{- end }}
 
 {{- $device_server_config := merge $deviceserver $file_device_server }}
-{{- $_ := set $device_server_config "instances" (coalesce $localchart.Values.global.instances $deviceserver.instances) }}
+{{- $_ := set $device_server_config "instances" (coalesce $file_device_server.instances $localchart.Values.global.instances $deviceserver.instances) }}
 {{- $context := dict "name" $key "deviceserver" $device_server_config "image" $device_server_config.image "local" $localchart }}
 {{- $volume_context := dict "volume" $device_server_config.volume "local" $localchart }}
 
 {{ template "ska-tango-util.multidevice-config.tpl" $context }}
 {{ template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
 
-{{- if ((hasKey $device_server_config "enabled") | ternary $device_server_config.enabled true) }}  # If Enabled
+{{- if ((hasKey $device_server_config "enabled") | ternary $device_server_config.enabled true) }}
 {{ template "ska-tango-util.multidevice-job.tpl" $context }}
 # {{ template "ska-tango-util.deviceserver-pvc.tpl" $volume_context }}
 {{ template "ska-tango-util.multidevice-svc.tpl" $context }}
-{{- end }}  # End If Enabled
+{{- end }}
 
-{{- end }}  # End Stack Instance loop
+{{- end }}
 
-# End If Stack
-{{- else }}  # If Not Stack
+{{- else }}
 
 {{- $device_server_config := $deviceserver }}
 {{- $file_device_server := dict }}
 {{- $file_device_server_context := dict "name" $key "deviceserver" $deviceserver "image" $deviceserver.image "local" $localchart }}
 
-{{- if hasKey $deviceserver "file"}}  # If File
+{{- if hasKey $deviceserver "file"}}
 {{- $file_device_server = tpl ($.Files.Get $deviceserver.file) (merge $file_device_server_context $) | fromYaml }}
 {{- $_ := set $device_server_config "instances" (coalesce $localchart.Values.global.instances $deviceserver.instances $file_device_server.instances) }}
-{{- end }}  # End If File
+{{- end }}
 
 {{- $device_server_config := merge $deviceserver $file_device_server }}
 {{- $_ := set $device_server_config "instances" (coalesce $localchart.Values.global.instances $deviceserver.instances) }}
@@ -52,12 +50,12 @@
 {{ template "ska-tango-util.multidevice-config.tpl" $context }}
 {{ template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
 
-{{- if ((hasKey $device_server_config "enabled") | ternary $device_server_config.enabled true) }}  # If Enabled
+{{- if ((hasKey $device_server_config "enabled") | ternary $device_server_config.enabled true) }}
 {{ template "ska-tango-util.multidevice-job.tpl" $context }}
 # {{ template "ska-tango-util.deviceserver-pvc.tpl" $volume_context }}
 {{ template "ska-tango-util.multidevice-svc.tpl" $context }}
-{{- end }}  # End If Enabled
+{{- end }}
 
-{{- end }}  # End If Not Stack
+{{- end }}
 
-{{- end }}  # End DS loop
+{{- end }}

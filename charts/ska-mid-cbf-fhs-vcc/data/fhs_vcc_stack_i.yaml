@@ -2,6 +2,7 @@ name: fhsvcc
 function: fhsvcc
 domain: sensing
 command: "FhsVccStackDeviceServer"
+instances: []
 depends_on:
   - device: sys/database/2
 readinessProbe:
@@ -18,6 +19,7 @@ livenessProbe:
   failureThreshold: 3
 server:
   name: "FhsVccStackDeviceServer"
+  instances: []
 
 image:
   registry: "{{.Values.midcbf.image.registry}}"
