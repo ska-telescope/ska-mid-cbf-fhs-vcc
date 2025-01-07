@@ -3,7 +3,7 @@
 {{- range $key, $deviceserver := .Values.deviceServers }}  # Begin DS loop
 
 {{- if eq $key "fhs-vcc-stack-i" }}  # If Stack
-{{- range $instance := .Values.instances }}  # Begin Stack Instance loop
+{{- range $idx, $instance := .Values.instances }}  # Begin Stack Instance loop
 
 {{- $device_server_config := $deviceserver }}
 {{- $file_device_server := dict }}
