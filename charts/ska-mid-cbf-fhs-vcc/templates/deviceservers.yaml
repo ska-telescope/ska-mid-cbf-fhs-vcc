@@ -6,17 +6,18 @@
 {{- range $idx, $instance := $localchart.Values.instances }}
 
 {{- $device_server_config := $deviceserver }}
+{{- $instance_list := (list $instance)}}
 {{- $file_device_server := dict }}
 {{- $file_device_server_context := dict "name" $key "deviceserver" $deviceserver "image" $deviceserver.image "local" $localchart "instances" (list $instance) }}
 
 {{- if hasKey $deviceserver "file"}}
 {{- $file_device_server = tpl ($.Files.Get $deviceserver.file) (merge $file_device_server_context $) | fromYaml }}
 {{- $config_instance := include "ska-mid-cbf-fhs-vcc.stack-instance" (dict "Values" $localchart.Values "instance" $instance) }}
-{{- $_ := set $file_device_server "instances" (list $config_instance) }}
+{{- $_ := set $file_device_server.server "instances" (list $config_instance) }}
 {{- end }}
 
 {{- $device_server_config := merge $deviceserver $file_device_server }}
-{{- $_ := set $device_server_config "instances" (coalesce $file_device_server.instances $localchart.Values.global.instances $deviceserver.instances) }}
+{{- $_ := set $device_server_config "instances" (coalesce $localchart.Values.global.instances $deviceserver.instances) }}
 {{- $context := dict "name" $key "deviceserver" $device_server_config "image" $device_server_config.image "local" $localchart }}
 {{- $volume_context := dict "volume" $device_server_config.volume "local" $localchart }}
 
