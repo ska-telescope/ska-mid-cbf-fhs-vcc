@@ -14,8 +14,8 @@ spec:
             - |
               apk add --no-cache curl tar && \
               {{ range $index, $instance := $.Values.instances -}}
-              {{ $bitstreamId := include "substitute-device-id" (list (default $instance.bitstreamId | default $.Values.properties.bitstreamId) $instance.deviceId) -}}
-              {{ $bitstreamVersion := include "substitute-device-id" (list (default $instance.bitstreamVersion | default $.Values.properties.bitstreamVersion) $instance.deviceId) -}}
+              {{ $bitstreamId := tpl (default $instance.bitstreamId | default $.Values.properties.bitstreamId) $instance -}}
+              {{ $bitstreamVersion := tpl (default $instance.bitstreamVersion | default $.Values.properties.bitstreamVersion) $instance -}}
               BITSTREAM_ID={{ $bitstreamId }} && \
               BITSTREAM_VER={{ $bitstreamVersion }} && \
               BITSTREAM_SUBPATH=$BITSTREAM_ID/$BITSTREAM_VER && \

@@ -14,6 +14,7 @@ from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_testing import context
 from tango import EventData, EventType
 
+from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
 from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
 from ska_mid_cbf_fhs_vcc.common.fhs_health_monitor import FhsHealthMonitor
 from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine
@@ -26,15 +27,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     def __init__(
         self: VCCAllBandsComponentManager,
         *args: Any,
-        vcc_id: str,
-        mac_200_FQDN: str,
-        vcc_123_channelizer_FQDN: str,
-        vcc_45_1_channelizer_FQDN: str,
-        vcc_45_2_channelizer_FQDN: str,
-        wideband_input_buffer_FQDN: str,
-        wideband_frequency_shifter_FQDN: str,
-        packet_validation_FQDN: str,
-        fs_selection_FQDN: str,
+        device: FhsBaseDevice,
         logger: logging.Logger,
         simulation_mode: SimulationMode = SimulationMode.FALSE,
         attr_change_callback: Callable[[str, Any], None] | None = None,
@@ -44,21 +37,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         emulation_mode: bool = False,
         **kwargs: Any,
     ) -> None:
-        self._vcc_id = vcc_id
+        self.device = device
+        self._vcc_id = device.device_id
 
         self.frequency_band = FrequencyBandEnum._1
-
-        self._mac_200_fqdn = mac_200_FQDN
         self._config_id = ""
         self._scan_id = 0
-        self._packet_validation_fqdn = packet_validation_FQDN
-        self._vcc_123_fqdn = vcc_123_channelizer_FQDN
-        self._vcc_45_1_fqdn = vcc_45_1_channelizer_FQDN
-        self._vcc_45_2_fqdn = vcc_45_2_channelizer_FQDN
-        self._wib_fqdn = wideband_input_buffer_FQDN
-        self._wfs_fqdn = wideband_frequency_shifter_FQDN
-        # self._circuit_switch_fqdn = circuit_switch_FQDN
-        self._fss_fqdn = fs_selection_FQDN
 
         self.simulation_mode = simulation_mode
         self.emulation_mode = emulation_mode
@@ -67,14 +51,25 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         self._proxies: dict[str, context.DeviceProxy] = {}
 
-        self._proxies[mac_200_FQDN] = None
-        self._proxies[packet_validation_FQDN] = None
-        self._proxies[wideband_input_buffer_FQDN] = None
-        self._proxies[wideband_frequency_shifter_FQDN] = None
-        self._proxies[vcc_123_channelizer_FQDN] = None
-        self._proxies[vcc_45_1_channelizer_FQDN] = None
-        self._proxies[vcc_45_2_channelizer_FQDN] = None
-        self._proxies[fs_selection_FQDN] = None
+        self._proxies[device.mac_200_FQDN] = None
+        self._proxies[device.packet_validation_FQDN] = None
+        self._proxies[device.wideband_input_buffer_FQDN] = None
+        self._proxies[device.wideband_frequency_shifter_FQDN] = None
+        self._proxies[device.vcc_123_channelizer_FQDN] = None
+        self._proxies[device.vcc_45_1_channelizer_FQDN] = None
+        self._proxies[device.vcc_45_2_channelizer_FQDN] = None
+        self._proxies[device.fs_selection_FQDN] = None
+        self._proxies[device.packetizer_fqdn] = None
+        
+        self._proxies[device.b123_wideband_power_meter_fqdn] = None
+        self._proxies[device.b45a_wideband_power_meter_fqdn] = None
+        self._proxies[device.b5b_wideband_power_meter_fqdn] = None
+        
+        self._power_meter_fqdns = {
+            i: device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 26 + 1)
+        }
+        for fqdn in self._power_meter_fqdns.values():
+            self._proxies[fqdn] = None
         # self._circuit_switch_proxy = None
 
         # vcc channels * number of polarizations
@@ -85,7 +80,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         self.frequency_band_offset = [0, 0]
 
-        self.expected_dish_id = None
+        self._expected_dish_id = None
 
         # store the subscription event_ids here with a key (fqdn for deviceproxies)
         self.subscription_event_ids: dict[str, set[int]] = {}
@@ -119,10 +114,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 self.logger.info("Establishing Communication with low-level proxies")
 
-                for fqdn in self._proxies:
-                    if fqdn != self._vcc_123_fqdn and fqdn != self._vcc_45_fqdn:
+                for fqdn, dp in self._proxies.items():
+                    if dp is None:
+                        self.logger.info(f"Establishing Communication with {fqdn}")
                         dp = context.DeviceProxy(device_name=fqdn)
-
                         # NOTE: this crashes when adminMode is memorized because it gets called before the devices are ready
                         self._subscribe_to_change_event(dp, "healthState", fqdn, self.proxies_health_state_change_event)
                         self._subscribe_to_change_event(dp, "longRunningCommandResult", fqdn, self._long_running_command_callback)
@@ -264,7 +259,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._sample_rate = configuration["dish_sample_rate"]
             self._samples_per_frame = configuration["samples_per_frame"]
             self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
-            self.expected_dish_id = configuration["expected_dish_id"]
+            self._expected_dish_id = configuration["expected_dish_id"]
             self._config_id = configuration["config_id"]
 
             if "frequency_band_offset_stream_1" in configuration:
@@ -309,9 +304,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 return
 
             if not self.simulation_mode:
+                # VCC123 Channelizer Configuration
+                self.logger.info("VCC123 Channelizer Configuring..")
                 if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                    self._proxies[self._vcc_123_fqdn] = context.DeviceProxy(device_name=self._vcc_123_fqdn)
-                    result = self._proxies[self._vcc_123_fqdn].Configure(
+                    result = self._proxies[self.device.vcc_123_channelizer_FQDN].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_1})
                     )
 
@@ -328,13 +324,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 else:
                     # TODO: Implement routing to the 5 Channelizer once outlined
-                    self._proxies[self._vcc_45_1_fqdn] = context.DeviceProxy(device_name=self._vcc_45_1_fqdn)
-                    result = self._proxies[self._vcc_45_1_fqdn].Configure(
+                    result = self._proxies[self.device.vcc_45_1_channelizer_FQDN].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_1})
                     )
                     
-                    self._proxies[self._vcc_45_2_fqdn] = context.DeviceProxy(device_name=self._vcc_45_2_fqdn)
-                    result2 = self._proxies[self._vcc_45_2_fqdn].Configure(
+                    result2 = self._proxies[self.device.vcc_45_2_channelizer_FQDN].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_2})
                     )
                     
@@ -350,30 +344,34 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     return
 
                 # WFS Configuration
-                result = self._proxies[self._wfs_fqdn].Configure(json.dumps({"shift_frequency": self.frequency_band_offset[0]}))
+                self.logger.info("Wideband Frequency Shifter Configuring..")
+                result = self._proxies[self.device.wideband_frequency_shifter_fqdn].Configure(
+                    json.dumps({"shift_frequency": self.frequency_band_offset[0]})
+                )
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of Wideband Frequency Shifter failed: {result[1]}")
-                    self._reset_devices([self._vcc_123_fqdn])
+                    self._reset_devices([self.device.vcc123_channelizer_fqdn])
                     self._set_task_callback(
                         task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
                     )
                     return
 
                 # FSS Configuration
-                result = self._proxies[self._fss_fqdn].Configure(
+                result = self._proxies[self.device.fs_selection_fqdn].Configure(
                     json.dumps({"band_select": self.frequency_band.value + 1, "band_start_channel": [0, 1]})
                 )
 
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of FS Selection failed: {result[1]}")
-                    self._reset_devices([self._vcc_123_fqdn, self._wfs_fqdn])
+                    self._reset_devices([self.device.vcc123_channelizer_fqdn, self.device.wideband_frequency_shifter_fqdn])
                     self._set_task_callback(
                         task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
                     )
                     return
 
                 # WIB Configuration
-                result = self._proxies[self._wib_fqdn].Configure(
+                self.logger.info("Wideband Input Buffer Configuring..")
+                result = self._proxies[self.device.wideband_input_buffer_fqdn].Configure(
                     json.dumps(
                         {
                             "expected_sample_rate": self._sample_rate,
@@ -386,13 +384,122 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of WIB failed: {result[1]}")
-                    self._reset_devices([self._vcc_123_fqdn, self._wfs_fqdn, self._fss_fqdn])
+                    self._reset_devices(
+                        [
+                            self.device.vcc123_channelizer_fqdn,
+                            self.device.wideband_frequency_shifter_fqdn,
+                            self.device.fs_selection_fqdn,
+                        ]
+                    )
                     self._set_task_callback(
                         task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
                     )
                     return
 
-                self._proxies[self._wib_fqdn].expectedDishId = self.expected_dish_id
+                self._proxies[self.device.wideband_input_buffer_fqdn].expectedDishId = self._expected_dish_id
+
+                # Pre-channelizer WPM Configuration
+                self.logger.info("Pre-channelizer Wideband Power Meters Configuring..")
+                self._b123_pwrm = configuration["b123_pwrm"]
+                self._b45a_pwrm = configuration["b45a_pwrm"]
+                self._b5b_pwrm = configuration["b5b_pwrm"]
+
+                for (
+                    fqdn,
+                    config,
+                ) in [
+                    (self.device.b123_wideband_power_meter_fqdn, self._b123_pwrm),
+                    (self.device.b45a_wideband_power_meter_fqdn, self._b45a_pwrm),
+                    (self.device.b5b_wideband_power_meter_fqdn, self._b5b_pwrm),
+                ]:
+                    self.logger.info(f"Configuring {fqdn} with {config}")
+                    result = self._proxies[fqdn].Configure(
+                        json.dumps(
+                            {
+                                "averaging_time": config["averaging_time"],
+                                "sample_rate": self._sample_rate,
+                                "flagging": config["flagging"],
+                            }
+                        )
+                    )
+                    if result[0] == ResultCode.FAILED:
+                        self.logger.error(f"Configuration of Wideband Power Meter failed: {result[1]}")
+                        self._reset_devices(
+                            [
+                                self.device.vcc123_channelizer_fqdn,
+                                self.device.wideband_frequency_shifter_fqdn,
+                                self.device.fs_selection_fqdn,
+                                self.device.wideband_input_buffer_fqdn,
+                            ]
+                        )
+                        self._set_task_callback(
+                            task_callback,
+                            TaskStatus.COMPLETED,
+                            ResultCode.REJECTED,
+                            "Configuration of low-level fhs device failed",
+                        )
+                        return
+
+                # Post-channelizer WPM Configuration
+                self.logger.info("Post-channelizer Wideband Power Meters Configuring..")
+                self._fs_lanes = configuration["fs_lanes"]
+
+                # Verify vlan_id is within range
+                # ((config.vid >= 2 && config.vid <= 1001) || (config.vid >= 1006 && config.vid <= 4094))
+                for config in self._fs_lanes:
+                    if not (2 <= config["vlan_id"] <= 1001 or 1006 <= config["vlan_id"] <= 4094):
+                        self.logger.error(f"VLAN ID {config['vlan_id']} is not within range")
+                        raise Exception("VLAN ID is not within range")
+
+                for config in self._fs_lanes:
+                    fqdn = self._power_meter_fqdns[int(config["fs_id"])]
+                    self.logger.info(f"Configuring {fqdn} with {config}")
+                    result = self._proxies[fqdn].Configure(
+                        json.dumps(
+                            {
+                                "averaging_time": config["averaging_time"],
+                                "sample_rate": self._sample_rate,
+                                "flagging": config["flagging"],
+                            }
+                        )
+                    )
+                    if result[0] == ResultCode.FAILED:
+                        self.logger.error(f"Configuration of Wideband Power Meter failed: {result[1]}")
+                        self._reset_devices(
+                            [
+                                self.device.vcc123_channelizer_fqdn,
+                                self.device.wideband_frequency_shifter_fqdn,
+                                self.device.fs_selection_fqdn,
+                                self.device.wideband_input_buffer_fqdn,
+                                self.device.b123_wideband_power_meter_fqdn,
+                                self.device.b45a_wideband_power_meter_fqdn,
+                                self.device.b5b_wideband_power_meter_fqdn,
+                            ]
+                        )
+                        self._set_task_callback(
+                            task_callback,
+                            TaskStatus.COMPLETED,
+                            ResultCode.REJECTED,
+                            "Configuration of low-level fhs device failed",
+                        )
+                        return
+
+                # Packetizer Configuration
+                self.logger.info("Packetizer Configuring..")
+                packetizer_fs_lanes = [
+                    {"vlan_id": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]} for lane in self._fs_lanes
+                ]
+                result = self._proxies[self.device.packetizer_fqdn].Configure(json.dumps({"fs_lanes": packetizer_fs_lanes}))
+                if result[0] == ResultCode.FAILED:
+                    self.logger.error(f"Configuration of Packetizer failed: {result[1]}")
+                    self._reset_devices([self.device.packetizer_fqdn])
+                    self._set_task_callback(
+                        task_callback,
+                        TaskStatus.COMPLETED,
+                        ResultCode.REJECTED,
+                        "Configuration of low-level fhs device failed",
+                    )
+                    return
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
@@ -437,9 +544,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._scan_id = argin
             if not self.simulation_mode:
                 try:
-                    self._proxies[self._mac_200_fqdn].Start()
-                    self._proxies[self._packet_validation_fqdn].Start()
-                    self._proxies[self._wib_fqdn].Start()
+                    self._proxies[self.device.mac_200_fqdn].Start()
+                    self._proxies[self.device.packet_validation_fqdn].Start()
+                    self._proxies[self.device.wideband_input_buffer_fqdn].Start()
                 except tango.DevFailed as ex:
                     self.logger.error(repr(ex))
                     self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
@@ -477,9 +584,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
             if not self.simulation_mode:
                 try:
-                    self._proxies[self._mac_200_fqdn].Stop()
-                    self._proxies[self._packet_validation_fqdn].Stop()
-                    self._proxies[self._wib_fqdn].Stop()
+                    self._proxies[self.device.mac_200_fqdn].Stop()
+                    self._proxies[self.device.packet_validation_fqdn].Stop()
+                    self._proxies[self.device.wideband_input_buffer_fqdn].Stop()
                 except tango.DevFailed as ex:
                     self.logger.error(repr(ex))
                     self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
@@ -562,7 +669,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
     def _stop_proxies(self: VCCAllBandsComponentManager):
         result = None
         for fqdn, proxy in self._proxies.items():
-            if proxy is not None and fqdn in [self._mac_200_fqdn, self._wib_fqdn, self._packet_validation_fqdn]:
+            if proxy is not None and fqdn in [
+                self.device.mac_200_fqdn,
+                self.device.wideband_input_buffer_fqdn,
+                self.device.packet_validation_fqdn,
+            ]:
                 self.logger.info(f"Stopping proxy {fqdn}")
                 result = proxy.Stop()
         return result

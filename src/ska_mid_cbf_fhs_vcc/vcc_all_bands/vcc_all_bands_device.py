@@ -19,6 +19,11 @@ class VCCAllBandsController(FhsBaseDevice):
     wideband_frequency_shifter_fqdn = device_property(dtype="str")
     circuit_switch_fqdn = device_property(dtype="str")
     fs_selection_fqdn = device_property(dtype="str")
+    b123_wideband_power_meter_fqdn = device_property(dtype="str")
+    b45a_wideband_power_meter_fqdn = device_property(dtype="str")
+    b5b_wideband_power_meter_fqdn = device_property(dtype="str")
+    fs_wideband_power_meter_fqdn = device_property(dtype="str")
+    packetizer_fqdn = device_property(dtype="str")
 
     @attribute
     def expectedDishId(self):
@@ -26,16 +31,7 @@ class VCCAllBandsController(FhsBaseDevice):
 
     def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager:
         return VCCAllBandsComponentManager(
-            vcc_id=self.device_id,
-            mac_200_FQDN=self.mac_200_fqdn,
-            packet_validation_FQDN=self.packet_validation_fqdn,
-            vcc_123_channelizer_FQDN=self.vcc123_channelizer_fqdn,
-            vcc_45_1_channelizer_FQDN=self.vcc45_1_channelizer_fqdn,
-            vcc_45_2_channelizer_FQDN=self.vcc45_2_channelizer_fqdn,
-            wideband_input_buffer_FQDN=self.wideband_input_buffer_fqdn,
-            wideband_frequency_shifter_FQDN=self.wideband_frequency_shifter_fqdn,
-            circuit_switch_FQDN=self.circuit_switch_fqdn,
-            fs_selection_FQDN=self.fs_selection_fqdn,
+            device=self,
             logger=self.logger,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
@@ -87,7 +83,7 @@ class VCCAllBandsController(FhsBaseDevice):
             ["1", "2", "3", "4", "5a", "5b"]).
         :rtype: tango.DevEnum
         """
-        return self.component_manager.input_sample_rate
+        return self.component_manager._input_sample_rate
 
     @attribute(
         dtype=tango.DevLong,

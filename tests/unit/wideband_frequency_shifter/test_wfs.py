@@ -14,7 +14,7 @@ from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_d
 EVENT_TIMEOUT = 30
 
 
-@pytest.fixture(name="test_context")
+@pytest.fixture(name="test_context", scope="module")
 def pv_device():
     """
     Fixture to set up the packet validation device for testing with a mock Tango database.

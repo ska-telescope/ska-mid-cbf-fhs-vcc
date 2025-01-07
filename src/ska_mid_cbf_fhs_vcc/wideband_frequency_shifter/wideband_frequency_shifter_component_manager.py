@@ -7,7 +7,6 @@ from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 
-from ska_mid_cbf_fhs_vcc.api.emulator.wfs_emulator_api import WfsEmulatorApi
 from ska_mid_cbf_fhs_vcc.api.simulator.wideband_frequency_shifter import WidebandFrequencyShifterSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 
@@ -36,7 +35,6 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
         super().__init__(
             *args,
             simulator_api=WidebandFrequencyShifterSimulator,
-            emulator_api=WfsEmulatorApi,
             **kwargs,
         )
 
