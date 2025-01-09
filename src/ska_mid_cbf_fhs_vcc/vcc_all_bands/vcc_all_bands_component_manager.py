@@ -51,14 +51,14 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         self._proxies: dict[str, context.DeviceProxy] = {}
 
-        self._proxies[device.mac_200_FQDN] = None
-        self._proxies[device.packet_validation_FQDN] = None
-        self._proxies[device.wideband_input_buffer_FQDN] = None
-        self._proxies[device.wideband_frequency_shifter_FQDN] = None
-        self._proxies[device.vcc_123_channelizer_FQDN] = None
-        self._proxies[device.vcc_45_1_channelizer_FQDN] = None
-        self._proxies[device.vcc_45_2_channelizer_FQDN] = None
-        self._proxies[device.fs_selection_FQDN] = None
+        self._proxies[device.mac_200_fqdn] = None
+        self._proxies[device.packet_validation_fqdn] = None
+        self._proxies[device.wideband_input_buffer_fqdn] = None
+        self._proxies[device.wideband_frequency_shifter_fqdn] = None
+        self._proxies[device.vcc_123_channelizer_fqdn] = None
+        self._proxies[device.vcc45_channelizer1_fqdn] = None
+        self._proxies[device.vcc45_channelizer2_fqdn] = None
+        self._proxies[device.fs_selection_fqdn] = None
         self._proxies[device.packetizer_fqdn] = None
         
         self._proxies[device.b123_wideband_power_meter_fqdn] = None
@@ -307,7 +307,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 # VCC123 Channelizer Configuration
                 self.logger.info("VCC123 Channelizer Configuring..")
                 if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                    result = self._proxies[self.device.vcc_123_channelizer_FQDN].Configure(
+                    result = self._proxies[self.device.vcc_123_channelizer_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_1})
                     )
 
@@ -324,11 +324,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 else:
                     # TODO: Implement routing to the 5 Channelizer once outlined
-                    result = self._proxies[self.device.vcc_45_1_channelizer_FQDN].Configure(
+                    result = self._proxies[self.device.vcc_45_channelizer1_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_1})
                     )
                     
-                    result2 = self._proxies[self.device.vcc_45_2_channelizer_FQDN].Configure(
+                    result2 = self._proxies[self.device.vcc_45_channelizer2_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_2})
                     )
                     

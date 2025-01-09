@@ -2,7 +2,7 @@ import subprocess
 
 from tango.server import run
 
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device import B123VccOsppfbChanneliser
+from ska_mid_cbf_fhs_vcc.vcc_osppfb_channelizer.vcc_osppfb_channelizer_device import VccOsppfbChannelizer
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device import FrequencySliceSelection
 from ska_mid_cbf_fhs_vcc.mac.mac_200_device import Mac200
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
@@ -14,6 +14,15 @@ from ska_mid_cbf_fhs_vcc.wideband_power_meter.wideband_power_meter_device import
 
 __all__ = ["main"]
 
+
+class B123VccOsppfbChannelizer(VccOsppfbChannelizer):
+    pass
+
+class B45VccOsppfbChannelizer1(VccOsppfbChannelizer):
+    pass
+
+class B45VccOsppfbChannelizer2(VccOsppfbChannelizer):
+    pass
 
 class B123WidebandPowerMeter(WidebandPowerMeter):
     pass
@@ -37,7 +46,9 @@ def main(args=None, **kwargs):  # noqa: E302
 
     return run(
         classes=(
-            B123VccOsppfbChanneliser,
+            B123VccOsppfbChannelizer,
+            B45VccOsppfbChannelizer1,
+            B45VccOsppfbChannelizer2,
             FrequencySliceSelection,
             Mac200,
             PacketValidation,

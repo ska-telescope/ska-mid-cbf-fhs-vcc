@@ -123,7 +123,7 @@ devices:
     path: "fhs/wfs/{{.deviceId000}}"
     emulatorIpBlockId: "wideband_frequency_shifter"
     firmwareIpBlockId: "wideband_frequency_shifter_unimplemented"
-  - name: "VccOsppfbChanneliser"
+  - name: "B123VccOsppfbChannelizer"
     path: "fhs/vcc123/<deviceId000>"
     emulatorIpBlockId: "b123vcc"
     firmwareIpBlockId: "receptor{{.receptorId}}_band123_vcc"
@@ -131,17 +131,17 @@ devices:
       - name: channelizer_type
         values:
           - "B123"
-  - name: "VccOsppfbChanneliser"
-    path: "fhs/vcc45stream1/<deviceId000>"
-    emulatorIpBlockId: "b45stream1vcc"
+  - name: "B45VccOsppfbChannelizer1"
+    path: "fhs/vcc451/<deviceId000>"
+    emulatorIpBlockId: "b45vcc_1"
     firmwareIpBlockId: "receptor{{.receptorId}}_band45_1_vcc"
     properties:
       - name: channelizer_type
         values:
           - "B45"
-  - name: "VccOsppfbChanneliser"
-    path: "fhs/vcc45stream2/<deviceId000>"
-    emulatorIpBlockId: "b45stream2vcc"
+  - name: "B45VccOsppfbChannelizer2"
+    path: "fhs/vcc452/<deviceId000>"
+    emulatorIpBlockId: "b45vcc_2"
     firmwareIpBlockId: "receptor{{.receptorId}}_band45_2_vcc"
     properties:
       - name: channelizer_type
@@ -181,9 +181,12 @@ devices:
       - name: vcc123_channelizer_fqdn
         values:
           - "fhs/vcc/{{.deviceId000}}"
-      - name: vcc45_channelizer_fqdn # yet to be implemented
+      - name: vcc45_channelizer1_fqdn # yet to be implemented
         values:
-          - "placeholder"
+          - "fhs/vcc451/{{.deviceId000}}"
+      - name: vcc45_channelizer2_fqdn # yet to be implemented
+        values:
+          - "fhs/vcc452/{{.deviceId000}}"
       - name: fs_selection_fqdn
         values:
           - "fhs/fss/{{.deviceId000}}"
