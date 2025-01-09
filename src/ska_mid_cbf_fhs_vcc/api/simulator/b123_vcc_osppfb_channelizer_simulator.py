@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 
 from ska_control_model import ResultCode
-from logging import Logger
+
 from ska_mid_cbf_fhs_vcc.api.simulator.base_simulator_api import BaseSimulatorApi
 
 __all__ = ["B123VccOsppfbChannelizerSimulator"]

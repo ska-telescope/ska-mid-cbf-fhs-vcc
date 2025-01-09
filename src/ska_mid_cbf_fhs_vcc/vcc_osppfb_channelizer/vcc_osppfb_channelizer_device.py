@@ -1,16 +1,17 @@
 from __future__ import annotations
 
+from tango.server import device_property
+
+from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
+from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
 from ska_mid_cbf_fhs_vcc.vcc_osppfb_channelizer.vcc_osppfb_channelizer_component_manager import (
     VccOsppfbChannelizerComponentManager,
 )
-from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
-from tango.server import device_property
 
 
 class VccOsppfbChannelizer(FhsLowLevelDeviceBase):
     channelizer_type = device_property(dtype="str")
-    
+
     def create_component_manager(
         self: VccOsppfbChannelizer,
     ) -> VccOsppfbChannelizerComponentManager:

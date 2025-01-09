@@ -1,18 +1,17 @@
 from __future__ import annotations  # allow forward references in type hints
 
+import logging
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
-from enum import Enum
 import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, PowerState, ResultCode
-import logging
 
-from ska_mid_cbf_fhs_vcc.api.emulator.vcc_osppfb_channelizer_emulator_api import VccOsppfbChannelizerEmulatorApi
-from ska_mid_cbf_fhs_vcc.api.simulator.b123_vcc_osppfb_channelizer_simulator import B123VccOsppfbChannelizerSimulator
 from ska_mid_cbf_fhs_vcc.api.simulator.b45_vcc_osppfb_channelizer_simulator import B45VccOsppfbChannelizerSimulator
+from ska_mid_cbf_fhs_vcc.api.simulator.b123_vcc_osppfb_channelizer_simulator import B123VccOsppfbChannelizerSimulator
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
 from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
 
@@ -25,9 +24,11 @@ class VccOsppfbChannelizerConfig:
     channel: np.uint16
     gain: np.float32
 
+
 class ChannelizerType(Enum):
     _B123 = "B123"
     _B45 = "B45"
+
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
@@ -45,7 +46,7 @@ class VccOsppfbChannelizerStatus:
 @dataclass
 class VccConfigArgin:
     sample_rate: np.uint64 = 3960000000  # default values
-    gains: list[float]= field(
+    gains: list[float] = field(
         default_factory=lambda: [
             1.0,
             1.0,
@@ -88,13 +89,12 @@ class VccOsppfbChannelizerComponentManager(FhsLowLevelComponentManager):
         else:
             self._num_channels = 15
             simulator = B45VccOsppfbChannelizerSimulator
-        
+
         super().__init__(
             device=device,
             logger=logger,
             *args,
             simulator_api=simulator,
-            emulator_api=VccOsppfbChannelizerEmulatorApi,
             **kwargs,
         )
 
@@ -174,9 +174,7 @@ class VccOsppfbChannelizerComponentManager(FhsLowLevelComponentManager):
             return ResultCode.FAILED, errorMsg
             # TODO helthstate check
 
-    def _generate_and_configure(
-        self: VccOsppfbChannelizerComponentManager, vccConfigArgin: VccConfigArgin, configure
-    ) -> dict:
+    def _generate_and_configure(self: VccOsppfbChannelizerComponentManager, vccConfigArgin: VccConfigArgin, configure) -> dict:
         result: tuple[ResultCode, str] = (
             ResultCode.OK,
             f"{self._device_id} configured successfully",

@@ -2,12 +2,12 @@ import subprocess
 
 from tango.server import run
 
-from ska_mid_cbf_fhs_vcc.vcc_osppfb_channelizer.vcc_osppfb_channelizer_device import VccOsppfbChannelizer
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device import FrequencySliceSelection
 from ska_mid_cbf_fhs_vcc.mac.mac_200_device import Mac200
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
 from ska_mid_cbf_fhs_vcc.packetizer.packetizer_device import Packetizer
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
+from ska_mid_cbf_fhs_vcc.vcc_osppfb_channelizer.vcc_osppfb_channelizer_device import VccOsppfbChannelizer
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device import WidebandFrequencyShifter
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
 from ska_mid_cbf_fhs_vcc.wideband_power_meter.wideband_power_meter_device import WidebandPowerMeter
@@ -18,11 +18,14 @@ __all__ = ["main"]
 class B123VccOsppfbChannelizer(VccOsppfbChannelizer):
     pass
 
+
 class B45VccOsppfbChannelizer1(VccOsppfbChannelizer):
     pass
 
+
 class B45VccOsppfbChannelizer2(VccOsppfbChannelizer):
     pass
+
 
 class B123WidebandPowerMeter(WidebandPowerMeter):
     pass

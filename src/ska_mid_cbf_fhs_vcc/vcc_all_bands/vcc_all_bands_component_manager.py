@@ -60,11 +60,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._proxies[device.vcc45_channelizer2_fqdn] = None
         self._proxies[device.fs_selection_fqdn] = None
         self._proxies[device.packetizer_fqdn] = None
-        
+
         self._proxies[device.b123_wideband_power_meter_fqdn] = None
         self._proxies[device.b45a_wideband_power_meter_fqdn] = None
         self._proxies[device.b5b_wideband_power_meter_fqdn] = None
-        
+
         self._power_meter_fqdns = {
             i: device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 26 + 1)
         }
@@ -327,11 +327,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     result = self._proxies[self.device.vcc_45_channelizer1_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_1})
                     )
-                    
+
                     result2 = self._proxies[self.device.vcc_45_channelizer2_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_2})
                     )
-                    
+
                     if result[0] == ResultCode.FAILED or result2[0] == ResultCode.FAILED:
                         self.logger.error(f"Configuration of B45 Channelizer failed: {result[1]}")
                         self._reset_attributes()
