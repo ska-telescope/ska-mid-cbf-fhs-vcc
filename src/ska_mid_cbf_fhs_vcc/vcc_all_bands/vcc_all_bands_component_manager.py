@@ -278,8 +278,8 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self._num_vcc_gains = 20
                 total_gains = len(self._vcc_gains_stream_1)
             elif self.frequency_band in {FrequencyBandEnum._5A, FrequencyBandEnum._5B}:
-                # Band 5 (a or b) handles 2 2.5GHz streams which are go through 2 B45 Channelizers which output 15 FS
-                # therefore, the number of gains values required is = 2 * 15 (number of channels) * 2 (polarization)
+                # Band 5 (a or b) handles 2 2.5GHz streams which are go through 2 B45 Channelizers outputting 15 FS
+                # num_vcc_gains = 2 * 15 (number of channels) * 2 (polarization)
                 self._num_vcc_gains = 60
                 total_gains = len(self._vcc_gains_stream_1) + len(self._vcc_gains_stream_2)
             else:
