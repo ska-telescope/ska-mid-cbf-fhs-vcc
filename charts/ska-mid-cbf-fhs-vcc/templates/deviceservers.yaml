@@ -1,45 +1,34 @@
 {{ $localchart := . }}
 
-{{- range $key, $deviceserver := .Values.deviceServers }}
+{{- range $key, $deviceServer := .Values.deviceServers }}
 
-
-  {{- $file_device_server_context_orig := dict "name" $key "deviceserver" $deviceserver "image" $deviceserver.image "local" $localchart }}
+  {{- $fileDeviceServerContextOrig := dict "name" $key "deviceServer" $deviceServer "image" $deviceServer.image "local" $localchart }}
 
   {{- range $index, $fhsVccUnit := $.Values.fhsVccUnits }}
-    {{- println "PRINTING" }}
-    {{- println $fhsVccUnit }}
 
-    {{- $device_server_config := $deviceserver }}
-    {{- $file_device_server := dict }}
-    {{- $context := dict }}
-    {{- $volume_context := dict}}
+    {{- $deviceServerConfig := $deviceServer }}
 
-    {{- $file_device_server_context := merge $file_device_server_context_orig (dict "fhsVccUnit" $fhsVccUnit) }}
+    {{- $fileDeviceServerTemp := deepCopy $fileDeviceServerContextOrig }}
+    {{- $fileDeviceServerContext := merge $fileDeviceServerTemp (dict "fhsVccUnit" $fhsVccUnit) }}
 
-    {{- println "FILE DEVICE SERVER CONTEXT" }}
-    {{- println $file_device_server_context }}
+    {{- $fileDeviceServer := tpl ($.Files.Get $deviceServer.file) (merge $fileDeviceServerContext $) | fromYaml }}
 
-    {{- $file_device_server = tpl ($.Files.Get $deviceserver.file) (merge $file_device_server_context $) | fromYaml }}
+    {{- $_ := set $deviceServerConfig "instances" $fileDeviceServer.instances }}
 
-    {{- $_ := set $device_server_config "instances" $file_device_server.instances }}
+    {{- $deviceServerTemp := deepCopy $deviceServer}}
+    {{- $deviceServerConfig := merge $deviceServerTemp $fileDeviceServer }}
 
-    {{- $device_server_config = merge $deviceserver $file_device_server }}
-
-
-    {{- $context = dict "name" (printf "%s-%d" $key $index) "deviceserver" $device_server_config "image" $device_server_config.image "local" $localchart }}
-    {{- $volume_context = dict "volume" $device_server_config.volume "local" $localchart }}
+    {{- $context := dict "name" (printf "%s-%d" $key $index) "deviceserver" $deviceServerConfig "image" $deviceServerConfig.image "local" $localchart }}
+    {{- $volume_context := dict "volume" $deviceServerConfig.volume "local" $localchart }}
 
     {{ template "ska-tango-util.multidevice-config.tpl" $context }}
     {{ template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
 
-    {{- if ((hasKey $device_server_config "enabled") | ternary $device_server_config.enabled true) }}
+    {{- if ((hasKey $deviceServerConfig "enabled") | ternary $deviceServerConfig.enabled true) }}
       {{ template "ska-tango-util.multidevice-job.tpl" $context }}
       # {{ template "ska-tango-util.deviceserver-pvc.tpl" $volume_context }}
       {{ template "ska-tango-util.multidevice-svc.tpl" $context }}
     {{- end }}
 
-
   {{- end }}
-
-
 {{- end }}
