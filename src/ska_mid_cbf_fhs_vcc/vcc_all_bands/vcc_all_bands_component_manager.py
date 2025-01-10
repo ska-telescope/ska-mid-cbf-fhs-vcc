@@ -55,7 +55,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._proxies[device.packet_validation_fqdn] = None
         self._proxies[device.wideband_input_buffer_fqdn] = None
         self._proxies[device.wideband_frequency_shifter_fqdn] = None
-        self._proxies[device.vcc_123_channelizer_fqdn] = None
+        self._proxies[device.vcc123_channelizer_fqdn] = None
         self._proxies[device.vcc45_channelizer1_fqdn] = None
         self._proxies[device.vcc45_channelizer2_fqdn] = None
         self._proxies[device.fs_selection_fqdn] = None
@@ -307,7 +307,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 # VCC123 Channelizer Configuration
                 self.logger.info("VCC123 Channelizer Configuring..")
                 if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                    result = self._proxies[self.device.vcc_123_channelizer_fqdn].Configure(
+                    result = self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_1})
                     )
 
