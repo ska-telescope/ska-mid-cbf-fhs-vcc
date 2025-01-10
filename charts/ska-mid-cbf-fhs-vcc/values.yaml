@@ -193,13 +193,30 @@ devices:
           - "fhs/packetizer/{{.deviceId000}}"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
-instances:
-  - name: fhs-vcc-1
-    deviceId: "1"
-  - name: fhs-vcc-2
-    deviceId: "2"
-  - name: fhs-vcc-3
-    deviceId: "3"
+fhsVccUnits:
+  - id: "FhsVccStackDeviceServer1"
+    is_emulated: true
+    networkSwitchId: 127.0.0.1
+    bmc-endpoint: "ip"
+    instances:
+      - name: fhs-vcc-1
+        deviceId: "1"
+      - name: fhs-vcc-2
+        deviceId: "2"
+      - name: fhs-vcc-3
+        deviceId: "3"
+  - id: "FhsVccStackDeviceServer2"
+    is_emulated: true
+    networkSwitchId: 127.0.0.1
+    bmc-endpoint: "ip"
+    instances:
+      - name: fhs-vcc-7
+        deviceId: "7"
+      - name: fhs-vcc-8
+        deviceId: "8"
+      - name: fhs-vcc-9
+        deviceId: "9"
+
 
 deviceServers:
   fhs-vcc-stack:
