@@ -269,8 +269,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self.frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
 
             # VCC number of gains is equal to = number of channels * number of polizations
-            self._vcc_gains_stream_1 = configuration["vcc_gain_stream_1"]
-            self._vcc_gains_stream_2 = configuration["vcc_gain_stream_2"]
+            self._vcc_gains_stream_1 = configuration["vcc_gains_stream_1"]
+            # TODO: add check around existence 
+            self._vcc_gains_stream_2 = configuration["vcc_gains_stream_2"]
 
             total_gains = 0
             if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
@@ -324,11 +325,11 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
                 else:
                     # TODO: Implement routing to the 5 Channelizer once outlined
-                    result = self._proxies[self.device.vcc_45_channelizer1_fqdn].Configure(
+                    result = self._proxies[self.device.vcc45_channelizer1_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_1})
                     )
 
-                    result2 = self._proxies[self.device.vcc_45_channelizer2_fqdn].Configure(
+                    result2 = self._proxies[self.device.vcc45_channelizer2_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains_stream_2})
                     )
 
