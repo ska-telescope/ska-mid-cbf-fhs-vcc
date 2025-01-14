@@ -8,7 +8,7 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 
 from ska_mid_cbf_fhs_vcc.api.simulator.frequency_slice_selection_simulator import FrequencySliceSelectionSimulator
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
 
 @dataclass_json
@@ -35,7 +35,7 @@ class FssConfigArgin:
     band_start_channel: list[int] = field(default_factory=lambda: [0, 1, 2])
 
 
-class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManager):
+class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: FrequencySliceSelectionComponentManager,
         *args: Any,

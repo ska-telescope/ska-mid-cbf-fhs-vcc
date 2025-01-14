@@ -5,7 +5,7 @@ from ska_control_model import ResultCode
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command, device_property
 
-from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
+from ska_mid_cbf_fhs_common import FhsBaseDevice
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VCCAllBandsComponentManager
 
 

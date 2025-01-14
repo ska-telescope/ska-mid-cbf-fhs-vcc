@@ -16,6 +16,7 @@ FhsVccStackDeviceServer = 'ska_mid_cbf_fhs_vcc.fhs_vcc_stack_device_server:main'
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
+ska-mid-cbf-fhs-common = {path = "../ska-mid-cbf-fhs-common/", develop = true}
 backoff = "^2.2.1"
 typing-extensions = "^4.8.0"
 pytango = "^9.5.1"

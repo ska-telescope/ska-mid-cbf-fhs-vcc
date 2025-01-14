@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_component_manager import CircuitSwitchComponentManager
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
 
 
 class CircuitSwitch(FhsLowLevelDeviceBase):

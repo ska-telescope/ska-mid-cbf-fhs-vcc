@@ -7,7 +7,7 @@ import numpy as np
 from ska_control_model import CommunicationStatus
 
 from ska_mid_cbf_fhs_vcc.api.simulator.packet_validation_simulator import PacketValidationControllerSimulator
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
 
 ##
@@ -28,7 +28,7 @@ class PacketValidationStatus:
         hardware_id: np.uint64
 
 
-class PacketValidationComponentManager(FhsLowLevelComponentManager):
+class PacketValidationComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: PacketValidationComponentManager,
         *args: Any,

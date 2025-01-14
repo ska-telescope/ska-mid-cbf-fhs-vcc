@@ -8,7 +8,7 @@ from dataclasses_json import dataclass_json
 from ska_control_model import CommunicationStatus, ResultCode
 
 from ska_mid_cbf_fhs_vcc.api.simulator.mac_controller_simulator import MacBaseControllerSimulator
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
 
 @dataclass_json
@@ -59,7 +59,7 @@ class MacStatus:
         tx_crcerr: np.uint32 = 0
 
 
-class MacComponentManager(FhsLowLevelComponentManager):
+class MacComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: MacComponentManager,
         *args: Any,

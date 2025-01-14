@@ -14,10 +14,7 @@ from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_testing import context
 from tango import EventData, EventType
 
-from ska_mid_cbf_fhs_vcc.common.fhs_base_device import FhsBaseDevice
-from ska_mid_cbf_fhs_vcc.common.fhs_component_manager_base import FhsComponentManagerBase
-from ska_mid_cbf_fhs_vcc.common.fhs_health_monitor import FhsHealthMonitor
-from ska_mid_cbf_fhs_vcc.common.fhs_obs_state import FhsObsStateMachine
+from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsComponentManagerBase, FhsHealthMonitor, FhsObsStateMachine
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
 
 from .vcc_all_bands_config import schema
