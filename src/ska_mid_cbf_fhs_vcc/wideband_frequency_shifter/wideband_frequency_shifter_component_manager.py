@@ -6,9 +6,9 @@ from typing import Any
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
+from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.api.simulator.wideband_frequency_shifter import WidebandFrequencyShifterSimulator
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_simulator import WidebandFrequencyShifterSimulator
 
 
 @dataclass_json
@@ -26,7 +26,7 @@ class WidebandFrequencyShifterStatus:
     shift_frequency: float
 
 
-class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManager):
+class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: WidebandFrequencyShifterComponentManager,
         *args: Any,

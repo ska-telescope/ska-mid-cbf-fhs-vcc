@@ -7,9 +7,11 @@ import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, PowerState, ResultCode
+from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.api.simulator.b123_vcc_osppfb_channeliser_simulator import B123VccOsppfbChanneliserSimulator
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_simulator import (
+    B123VccOsppfbChanneliserSimulator,
+)
 
 
 @dataclass_json
@@ -63,7 +65,7 @@ class VccConfigArgin:
     )  # default gain values
 
 
-class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManager):
+class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: B123VccOsppfbChanneliserComponentManager,
         *args: Any,

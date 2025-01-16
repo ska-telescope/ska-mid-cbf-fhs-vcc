@@ -7,9 +7,9 @@ import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
+from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.api.simulator.packetizer_simulator import PacketizerSimulator
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.packetizer.packetizer_simulator import PacketizerSimulator
 
 
 @dataclass_json
@@ -38,7 +38,7 @@ class PacketizerConfigArgin:
     fs_lanes: list[dict]
 
 
-class PacketizerComponentManager(FhsLowLevelComponentManager):
+class PacketizerComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: PacketizerComponentManager,
         *args: Any,
