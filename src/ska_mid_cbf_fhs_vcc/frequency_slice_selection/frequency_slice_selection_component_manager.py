@@ -8,7 +8,7 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.api.simulator.frequency_slice_selection_simulator import FrequencySliceSelectionSimulator
+from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_simulator import FrequencySliceSelectionSimulator
 
 
 @dataclass_json

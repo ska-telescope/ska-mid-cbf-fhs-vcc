@@ -8,7 +8,7 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.api.simulator.wideband_frequency_shifter import WidebandFrequencyShifterSimulator
+from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_simulator import WidebandFrequencyShifterSimulator
 
 
 @dataclass_json

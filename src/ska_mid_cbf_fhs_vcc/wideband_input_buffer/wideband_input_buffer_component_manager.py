@@ -9,7 +9,7 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, TaskStatus
 from ska_mid_cbf_fhs_common import FhsHealthMonitor, FhsLowLevelComponentManagerBase, FhsLowLevelDeviceBase
 
-from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import WidebandInputBufferSimulator
+from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 
 
 @dataclass_json

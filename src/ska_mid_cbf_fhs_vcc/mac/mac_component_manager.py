@@ -8,7 +8,7 @@ from dataclasses_json import dataclass_json
 from ska_control_model import CommunicationStatus, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.api.simulator.mac_controller_simulator import MacBaseControllerSimulator
+from ska_mid_cbf_fhs_vcc.mac.mac_controller_simulator import MacBaseControllerSimulator
 
 
 @dataclass_json

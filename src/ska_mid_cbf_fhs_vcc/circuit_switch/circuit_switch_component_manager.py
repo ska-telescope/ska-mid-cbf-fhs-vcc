@@ -8,7 +8,7 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.api.simulator.circuit_switch_simulator import CircuitSwitchSimulator
+from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_simulator import CircuitSwitchSimulator
 
 
 @dataclass_json
