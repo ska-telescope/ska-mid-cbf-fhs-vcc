@@ -5,9 +5,9 @@ from typing import Any
 
 import numpy as np
 from ska_control_model import CommunicationStatus
+from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
 from ska_mid_cbf_fhs_vcc.api.simulator.packet_validation_simulator import PacketValidationControllerSimulator
-from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
 
 ##

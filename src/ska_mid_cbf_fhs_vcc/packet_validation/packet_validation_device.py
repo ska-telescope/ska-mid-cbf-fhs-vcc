@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
+
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_component_manager import PacketValidationComponentManager
 
 

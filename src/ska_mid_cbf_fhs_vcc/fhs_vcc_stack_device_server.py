@@ -1,5 +1,6 @@
 import subprocess
 
+from ska_mid_cbf_fhs_common import WidebandPowerMeter
 from tango.server import run
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device import B123VccOsppfbChanneliser
@@ -10,7 +11,6 @@ from ska_mid_cbf_fhs_vcc.packetizer.packetizer_device import Packetizer
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device import WidebandFrequencyShifter
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
-from ska_mid_cbf_fhs_common import WidebandPowerMeter
 
 __all__ = ["main"]
 

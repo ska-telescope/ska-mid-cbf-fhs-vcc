@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
+
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_component_manager import (
     WidebandFrequencyShifterComponentManager,
 )

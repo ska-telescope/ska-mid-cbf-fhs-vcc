@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
 from tango.server import attribute
 
-from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_component_manager import WidebandInputBufferComponentManager
 
 

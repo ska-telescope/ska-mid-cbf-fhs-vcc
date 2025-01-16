@@ -7,9 +7,9 @@ import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, TaskStatus
+from ska_mid_cbf_fhs_common import FhsHealthMonitor, FhsLowLevelComponentManagerBase, FhsLowLevelDeviceBase
 
 from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import WidebandInputBufferSimulator
-from ska_mid_cbf_fhs_common import FhsHealthMonitor, FhsLowLevelComponentManagerBase, FhsLowLevelDeviceBase
 
 
 @dataclass_json
