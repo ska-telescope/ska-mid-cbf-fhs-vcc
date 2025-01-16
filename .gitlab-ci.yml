@@ -22,6 +22,7 @@ stages:
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   MINIKUBE: "false"
+  CI_POETRY_VERSION: "2.0.1"
 
 # Include CI templates
 include:
