@@ -7,11 +7,9 @@ import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, TaskStatus
+from ska_mid_cbf_fhs_common import FhsHealthMonitor, FhsLowLevelComponentManagerBase, FhsLowLevelDeviceBase
 
-from ska_mid_cbf_fhs_vcc.api.simulator.wideband_input_buffer_simulator import WidebandInputBufferSimulator
-from ska_mid_cbf_fhs_vcc.common.fhs_health_monitor import FhsHealthMonitor
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 
 
 @dataclass_json
@@ -47,7 +45,7 @@ class WibArginConfig:
     expected_dish_band: np.uint8
 
 
-class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
+class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: WidebandInputBufferComponentManager,
         *args: Any,
@@ -79,7 +77,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManager):
     ##
     # Public Commands
     ##
-    def configure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
+    def configure(self: FhsLowLevelComponentManagerBase, argin: str) -> tuple[ResultCode, str]:
         try:
             self.logger.info("WIB Configuring..")
 

@@ -4,13 +4,14 @@ FROM artefact.skao.int/ska-tango-images-pytango-runtime:9.5.0 AS runtime
 COPY --from=buildenv . .
 
 USER root 
-RUN poetry config virtualenvs.create false
 
 # Copy poetry.lock* in case it doesn't exist in the repo
 COPY pyproject.toml poetry.lock* ./
 
 # Install runtime dependencies and the app
-RUN poetry install --only main
+RUN poetry config virtualenvs.create false
+RUN poetry self update
+RUN poetry lock && poetry install --without docs
 
 RUN apt-get update && \
   apt-get install -y apt-transport-https ca-certificates curl gnupg && \
