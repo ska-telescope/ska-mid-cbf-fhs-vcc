@@ -9,7 +9,9 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, PowerState, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_simulator import B123VccOsppfbChanneliserSimulator
+from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_simulator import (
+    B123VccOsppfbChanneliserSimulator,
+)
 
 
 @dataclass_json
