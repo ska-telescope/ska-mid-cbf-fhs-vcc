@@ -59,7 +59,7 @@ python-lint:
     - |
       if [[ -n $CI_POETRY_VERSION ]] && [[ $(poetry --version) != *$CI_POETRY_VERSION* ]]; then
         echo "python-lint: Updating poetry to $CI_POETRY_VERSION";
-        time poetry self update $CI_POETRY_VERSION;
+        time pipx upgrade poetry;
       fi;
 
       echo "python-lint: Installing with poetry";
