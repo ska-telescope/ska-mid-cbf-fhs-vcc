@@ -1,0 +1,69 @@
+@startuml fhs_vcc_configure_scan
+!pragma teoz true
+
+title FHS-VCC: ConfigureScan()
+
+!$MCSLifeline = "#DDDDEE"
+!$FHSVCCBackground = "#f0dbb7"
+!$AllBands = "#ffe680"
+!$AllBandsLifeline = "#ffe680"
+!$LowLevelDSBackground = "#cbecec"
+!$LowLevelDS = "#99e6ff"
+!$LowLevelDSLifeline = "#99e6ff"
+
+participant "Control Software (MCS)" as mcs
+
+box "FHS-VCC" $FHSVCCBackground
+participant "All Bands Controller" as allbands $AllBands
+box "Low-Level Device Servers" $LowLevelDSBackground
+participant "200Gb Ethernet" as eth_ds $LowLevelDS
+participant "Packet Validation" as pv_ds $LowLevelDS
+participant "WIB" as wib_ds $LowLevelDS
+participant "Pre-VCC WPMs" as wpm_pre_ds $LowLevelDS
+participant "WFS" as wfs_ds $LowLevelDS
+participant "VCCs" as vcc_ds $LowLevelDS
+participant "FSS" as fss_ds $LowLevelDS
+participant "Post-VCC WPMs" as wpm_post_ds $LowLevelDS
+participant "Packetizer" as packetizer_ds $LowLevelDS
+end box
+end box
+
+mcs -> allbands ++ $AllBandsLifeline: ConfigureScan()
+allbands -> allbands: ObsState = CONFIGURING
+allbands -> allbands: Validate configuration and store parameters
+
+allbands -> vcc_ds ++ $LowLevelDSLifeline: Configure()
+group VCC Configure()
+vcc_ds -> vcc_ds: ObsState = CONFIGURING
+vcc_ds -> vcc_ds: configure() the FW for\nevery gain value\n(20 or 30 times total)
+vcc_ds -> vcc_ds: ObsState = READY
+end
+allbands <-- vcc_ds --: ResultCode.OK
+
+allbands -> wfs_ds ++ $LowLevelDSLifeline: Configure()
+group Default Configure()
+wfs_ds -> wfs_ds: ObsState = CONFIGURING
+wfs_ds -> wfs_ds: configure() the FW
+wfs_ds -> wfs_ds: ObsState = READY
+end
+allbands <-- wfs_ds --: ResultCode.OK
+
+allbands -> fss_ds ++ $LowLevelDSLifeline: Configure()
+allbands <-- fss_ds --: ResultCode.OK
+
+allbands -> wib_ds ++ $LowLevelDSLifeline: Configure()
+allbands <-- wib_ds --: ResultCode.OK
+
+allbands -> wpm_pre_ds ++ $LowLevelDSLifeline: Configure()
+allbands <-- wpm_pre_ds --: ResultCode.OK
+
+allbands -> wpm_post_ds ++ $LowLevelDSLifeline: Configure()
+allbands <-- wpm_post_ds --: ResultCode.OK
+
+allbands -> packetizer_ds ++ $LowLevelDSLifeline: Configure()
+allbands <-- packetizer_ds --: ResultCode.OK
+
+allbands -> allbands: ObsState = READY
+mcs <-- allbands --: ResultCode.OK
+
+@enduml

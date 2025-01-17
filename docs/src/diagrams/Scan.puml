@@ -1,0 +1,51 @@
+@startuml fhs_vcc_scan
+!pragma teoz true
+
+title FHS-VCC: Scan()
+
+!$MCSLifeline = "#DDDDEE"
+!$FHSVCCBackground = "#f0dbb7"
+!$AllBands = "#ffe680"
+!$AllBandsLifeline = "#ffe680"
+!$LowLevelDSBackground = "#cbecec"
+!$LowLevelDS = "#99e6ff"
+!$LowLevelDSLifeline = "#99e6ff"
+
+participant "Control Software (MCS)" as mcs
+
+box "FHS-VCC" $FHSVCCBackground
+participant "All Bands Controller" as allbands $AllBands
+box "Low-Level Device Servers" $LowLevelDSBackground
+participant "200Gb Ethernet" as eth_ds $LowLevelDS
+participant "Packet Validation" as pv_ds $LowLevelDS
+participant "WIB" as wib_ds $LowLevelDS
+participant "Pre-VCC WPMs" as wpm_pre_ds $LowLevelDS
+participant "WFS" as wfs_ds $LowLevelDS
+participant "VCCs" as vcc_ds $LowLevelDS
+participant "FSS" as fss_ds $LowLevelDS
+participant "Post-VCC WPMs" as wpm_post_ds $LowLevelDS
+participant "Packetizer" as packetizer_ds $LowLevelDS
+end box
+end box
+
+mcs -> allbands ++ $AllBandsLifeline: Scan()
+allbands -> allbands: ObsState = STARTING
+
+allbands -> eth_ds ++ $LowLevelDSLifeline: Start()
+group Start()
+eth_ds -> eth_ds: ObsState = STARTING
+eth_ds -> eth_ds: start() the FW
+eth_ds -> eth_ds: ObsState = SCANNING
+end
+allbands <-- eth_ds --: ResultCode.OK
+
+allbands -> pv_ds ++ $LowLevelDSLifeline: Start()
+allbands <-- pv_ds --: ResultCode.OK
+
+allbands -> wib_ds ++ $LowLevelDSLifeline: Start()
+allbands <-- wib_ds --: ResultCode.OK
+
+allbands -> allbands: ObsState = SCANNING
+mcs <-- allbands --: ResultCode.OK
+
+@enduml
