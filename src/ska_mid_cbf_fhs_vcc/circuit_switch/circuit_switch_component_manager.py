@@ -6,9 +6,9 @@ from typing import Any
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
+from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.api.simulator.circuit_switch_simulator import CircuitSwitchSimulator
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_component_manager import FhsLowLevelComponentManager
+from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_simulator import CircuitSwitchSimulator
 
 
 @dataclass_json
@@ -35,7 +35,7 @@ class CircuitSwitchConfigArgin:
     band: list[dict]
 
 
-class CircuitSwitchComponentManager(FhsLowLevelComponentManager):
+class CircuitSwitchComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: CircuitSwitchComponentManager,
         *args: Any,
@@ -50,7 +50,7 @@ class CircuitSwitchComponentManager(FhsLowLevelComponentManager):
     ##
     # Public Commands
     ##
-    def configure(self: FhsLowLevelComponentManager, argin: str) -> tuple[ResultCode, str]:
+    def configure(self: FhsLowLevelComponentManagerBase, argin: str) -> tuple[ResultCode, str]:
         try:
             self.logger.info("Circuit Switch Configuring..")
 

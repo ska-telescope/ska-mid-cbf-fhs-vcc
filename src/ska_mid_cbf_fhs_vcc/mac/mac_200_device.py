@@ -8,9 +8,9 @@
 
 from __future__ import annotations
 
+from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
 from tango.server import device_property
 
-from ska_mid_cbf_fhs_vcc.common.low_level.fhs_low_level_device_base import FhsLowLevelDeviceBase
 from ska_mid_cbf_fhs_vcc.mac.mac_component_manager import MacComponentManager
 
 
