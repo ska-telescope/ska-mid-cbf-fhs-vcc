@@ -1,3 +1,4 @@
+{{- define "ska-mid-cbf-fhs-vcc.fhsVccStack" -}}
 name: fhsvcc
 function: fhsvcc
 domain: sensing
@@ -60,3 +61,4 @@ volume:
   existingClaimName: "fhs-vcc-bitstream-pv"
   mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
+{{- end -}}

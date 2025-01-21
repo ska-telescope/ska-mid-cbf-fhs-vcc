@@ -193,7 +193,7 @@ devices:
           - "fhs/packetizer/{{.deviceId000}}"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
-fhsVccUnits:
+VCCUnits:
   - id: "FhsVccStackDeviceServer1"
     is_emulated: true
     networkSwitchId: 127.0.0.1
@@ -217,8 +217,5 @@ fhsVccUnits:
       - name: fhs-vcc-9
         deviceId: "9"
 
-
-deviceServers:
-  fhs-vcc-stack:
-    enabled: true
-    file: "data/fhs_vcc_stack.yaml"
+deviceServerName: "fhs-vcc-stack"
+fhsVccStackFile: "data/fhs_vcc_stack.yaml"
