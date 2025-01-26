@@ -22,7 +22,7 @@ livenessProbe:
   successThreshold: 1
   failureThreshold: 3
 server:
-  name: "{{ .fhsVccUnit.id }}"
+  name: "FhsVccStackDeviceServer"
   instances:
   {{- range $index, $instance := .fhsVccUnit.instances }}
   - name: "{{ $instance.name }}"
@@ -61,4 +61,15 @@ volume:
   existingClaimName: "fhs-vcc-bitstream-pv"
   mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
+
+{{- if .fhsVccUnit.fhsToleration }}
+{{ $fhsToleration := .fhsVccUnit.fhsToleration }}
+tolerations:
+  - key: {{ .fhsVccUnit.fhsToleration | quote }}
+    operator: "Equal"
+    value: {{ .fhsVccUnit.id | quote }}
+    effect: "NoSchedule"
+
+{{- end }}
+
 {{- end -}}

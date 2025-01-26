@@ -205,6 +205,7 @@ VCCUnits:
         deviceId: "2"
       - name: fhs-vcc-3
         deviceId: "3"
+    fhsToleration: "fhs-vcc-1"
   - id: "FhsVccStackDeviceServer2"
     is_emulated: true
     networkSwitchId: 127.0.0.1
@@ -216,6 +217,7 @@ VCCUnits:
         deviceId: "8"
       - name: fhs-vcc-9
         deviceId: "9"
+    fhsToleration: "fhs-vcc-2"
 
 deviceServerName: "fhs-vcc-stack"
 fhsVccStackFile: "data/fhs_vcc_stack.yaml"

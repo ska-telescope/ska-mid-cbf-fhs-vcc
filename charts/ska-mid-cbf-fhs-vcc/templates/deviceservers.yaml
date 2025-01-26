@@ -12,8 +12,13 @@
 
   {{- $fileDeviceServer := include "ska-mid-cbf-fhs-vcc.fhsVccStack" (merge $fileDeviceServerContext $) | fromYaml }}
 
+
   {{/*{{- $release := index $localchart "Release" }}
   {{- $_ := set $release "Namespace" (printf "%s-%d"  $.Values.hostInfo.namespace $index) }}*/}}
+
+  {{- if $fileDeviceServer.tolerations }}
+    {{- $_ := set $.Values "tolerations" $fileDeviceServer.tolerations }}
+  {{- end }}
 
   {{- $context := dict "name" (printf "%s-%d" $name $index) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
   {{- $volume_context := dict "volume" $fileDeviceServer.volume "local" $localchart }}
