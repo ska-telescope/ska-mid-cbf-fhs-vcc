@@ -32,7 +32,7 @@
 
 .. toctree::
   :maxdepth: 2
-  :caption: Firware Interface
+  :caption: Firmware Interface
   
   blocks/Ethernet_MAC
   blocks/Packet_Validation
