@@ -251,13 +251,14 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             jsonschema.validate(configuration, schema)
             if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
                 return
-
+            
             self._sample_rate = configuration["dish_sample_rate"]
             self._samples_per_frame = configuration["samples_per_frame"]
             self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
             self._expected_dish_id = configuration["expected_dish_id"]
             self._config_id = configuration["config_id"]
-
+            self.logger.info(f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}")
+            
             if "frequency_band_offset_stream_1" in configuration:
                 self.frequency_band_offset[0] = configuration["frequency_band_offset_stream_1"]
 
@@ -272,27 +273,15 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 self._num_vcc_gains = 10 * 2
             else:
                 self._reset_attributes()
-                self._set_task_callback(
-                    task_callback,
-                    TaskStatus.COMPLETED,
-                    ResultCode.FAILED,
-                    "Bands 5A/B not implemented",
-                )
-                return
+                raise ValueError("Bands 5A/B not implemented")
 
             if len(self._vcc_gains) != self._num_vcc_gains:
                 self._reset_attributes()
-                self._set_task_callback(
-                    task_callback,
-                    TaskStatus.COMPLETED,
-                    ResultCode.FAILED,
-                    f"Incorrect number of gain values supplied: {self._vcc_gains} != {self._num_vcc_gains}",
-                )
-                return
+                raise ValueError(f"Incorrect number of gain values supplied: {self._vcc_gains} != {self._num_vcc_gains}")
 
             if not self.simulation_mode:
                 # VCC123 Channelizer Configuration
-                self.logger.info("VCC123 Channelizer Configuring..")
+                self.logger.debug("VCC123 Channelizer Configuring..")
                 if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
                     result = self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
                         json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
@@ -301,37 +290,22 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     if result[0] == ResultCode.FAILED:
                         self.logger.error(f"Configuration of VCC123 Channelizer failed: {result[1]}")
                         self._reset_attributes()
-                        self._set_task_callback(
-                            task_callback,
-                            TaskStatus.COMPLETED,
-                            ResultCode.REJECTED,
-                            "Configuration of low-level fhs device failed",
-                        )
-                        return
+                        raise ChildProcessError("Configuration of low-level fhs device failed: VCC123")
 
                 else:
                     # TODO: Implement routing to the 5 Channelizer once outlined
                     self._reset_attributes()
-                    self._set_task_callback(
-                        task_callback,
-                        TaskStatus.COMPLETED,
-                        ResultCode.FAILED,
-                        f"ConfigureScan failed unsupported band specified: {self.frequency_band}",
-                    )
-                    return
+                    raise ValueError(f"ConfigureScan failed unsupported band specified: {self.frequency_band}")
 
                 # WFS Configuration
-                self.logger.info("Wideband Frequency Shifter Configuring..")
+                self.logger.debug("Wideband Frequency Shifter Configuring..")
                 result = self._proxies[self.device.wideband_frequency_shifter_fqdn].Configure(
                     json.dumps({"shift_frequency": self.frequency_band_offset[0]})
                 )
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of Wideband Frequency Shifter failed: {result[1]}")
                     self._reset_devices([self.device.vcc123_channelizer_fqdn])
-                    self._set_task_callback(
-                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
-                    )
-                    return
+                    raise ChildProcessError("Configuration of low-level fhs device failed: Wideband Frequency Shifter")
 
                 # FSS Configuration
                 result = self._proxies[self.device.fs_selection_fqdn].Configure(
@@ -341,13 +315,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of FS Selection failed: {result[1]}")
                     self._reset_devices([self.device.vcc123_channelizer_fqdn, self.device.wideband_frequency_shifter_fqdn])
-                    self._set_task_callback(
-                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
-                    )
-                    return
+                    raise ChildProcessError("Configuration of low-level fhs device failed: FS Selection")
 
                 # WIB Configuration
-                self.logger.info("Wideband Input Buffer Configuring..")
+                self.logger.debug("Wideband Input Buffer Configuring..")
                 result = self._proxies[self.device.wideband_input_buffer_fqdn].Configure(
                     json.dumps(
                         {
@@ -368,15 +339,12 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                             self.device.fs_selection_fqdn,
                         ]
                     )
-                    self._set_task_callback(
-                        task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Configuration of low-level fhs device failed"
-                    )
-                    return
+                    raise ChildProcessError("Configuration of low-level fhs device failed: WIB")
 
                 self._proxies[self.device.wideband_input_buffer_fqdn].expectedDishId = self._expected_dish_id
 
                 # Pre-channelizer WPM Configuration
-                self.logger.info("Pre-channelizer Wideband Power Meters Configuring..")
+                self.logger.debug("Pre-channelizer Wideband Power Meters Configuring..")
                 self._b123_pwrm = configuration["b123_pwrm"]
                 self._b45a_pwrm = configuration["b45a_pwrm"]
                 self._b5b_pwrm = configuration["b5b_pwrm"]
@@ -389,7 +357,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                     (self.device.b45a_wideband_power_meter_fqdn, self._b45a_pwrm),
                     (self.device.b5b_wideband_power_meter_fqdn, self._b5b_pwrm),
                 ]:
-                    self.logger.info(f"Configuring {fqdn} with {config}")
+                    self.logger.debug(f"Configuring {fqdn} with {config}")
                     result = self._proxies[fqdn].Configure(
                         json.dumps(
                             {
@@ -409,28 +377,21 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                                 self.device.wideband_input_buffer_fqdn,
                             ]
                         )
-                        self._set_task_callback(
-                            task_callback,
-                            TaskStatus.COMPLETED,
-                            ResultCode.REJECTED,
-                            "Configuration of low-level fhs device failed",
-                        )
-                        return
+                        raise ChildProcessError("Configuration of low-level fhs device failed: Wideband Power Meter")
 
                 # Post-channelizer WPM Configuration
-                self.logger.info("Post-channelizer Wideband Power Meters Configuring..")
+                self.logger.debug("Post-channelizer Wideband Power Meters Configuring..")
                 self._fs_lanes = configuration["fs_lanes"]
 
                 # Verify vlan_id is within range
                 # ((config.vid >= 2 && config.vid <= 1001) || (config.vid >= 1006 && config.vid <= 4094))
                 for config in self._fs_lanes:
                     if not (2 <= config["vlan_id"] <= 1001 or 1006 <= config["vlan_id"] <= 4094):
-                        self.logger.error(f"VLAN ID {config['vlan_id']} is not within range")
-                        raise Exception("VLAN ID is not within range")
+                        raise ValueError(f"VLAN ID {config['vlan_id']} is not within range")
 
                 for config in self._fs_lanes:
                     fqdn = self._power_meter_fqdns[int(config["fs_id"])]
-                    self.logger.info(f"Configuring {fqdn} with {config}")
+                    self.logger.debug(f"Configuring {fqdn} with {config}")
                     result = self._proxies[fqdn].Configure(
                         json.dumps(
                             {
@@ -453,16 +414,10 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                                 self.device.b5b_wideband_power_meter_fqdn,
                             ]
                         )
-                        self._set_task_callback(
-                            task_callback,
-                            TaskStatus.COMPLETED,
-                            ResultCode.REJECTED,
-                            "Configuration of low-level fhs device failed",
-                        )
-                        return
+                        raise ChildProcessError("Configuration of low-level fhs device failed: FS Power Meter")
 
                 # Packetizer Configuration
-                self.logger.info("Packetizer Configuring..")
+                self.logger.debug("Packetizer Configuring..")
                 packetizer_fs_lanes = [
                     {"vlan_id": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]} for lane in self._fs_lanes
                 ]
@@ -470,14 +425,9 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Configuration of Packetizer failed: {result[1]}")
                     self._reset_devices([self.device.packetizer_fqdn])
-                    self._set_task_callback(
-                        task_callback,
-                        TaskStatus.COMPLETED,
-                        ResultCode.REJECTED,
-                        "Configuration of low-level fhs device failed",
-                    )
-                    return
+                    raise ChildProcessError("Configuration of low-level fhs device failed: FS Packetizer")
 
+            self.logger.info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}")
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
             return
@@ -489,18 +439,23 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                 ResultCode.REJECTED,
                 "Attempted to call ConfigureScan command from an incorrect state",
             )
+        except ValueError as ex:
+            self.logger.error(f"Error due to config not meeting scan requirements: {repr(ex)}")
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, f"Arg provided does not meet ConfigureScan criteria: {ex}")
+        except ChildProcessError as ex:
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, ex)
         except jsonschema.ValidationError as ex:
             self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
-                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan"
+                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, f"Arg provided does not meet ConfigureScan criteria: {ex}"
             )
         except Exception as ex:
             self.logger.error(repr(ex))
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
-                task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to HPS VCC devices"
+                task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to an unexpected exception during ConfigureScan"
             )
 
     def _scan(
