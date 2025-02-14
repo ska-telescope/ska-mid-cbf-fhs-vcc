@@ -251,14 +251,16 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             jsonschema.validate(configuration, schema)
             if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
                 return
-            
+
             self._sample_rate = configuration["dish_sample_rate"]
             self._samples_per_frame = configuration["samples_per_frame"]
             self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
             self._expected_dish_id = configuration["expected_dish_id"]
             self._config_id = configuration["config_id"]
-            self.logger.info(f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}")
-            
+            self.logger.info(
+                f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}"
+            )
+
             if "frequency_band_offset_stream_1" in configuration:
                 self.frequency_band_offset[0] = configuration["frequency_band_offset_stream_1"]
 
@@ -441,14 +443,22 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             )
         except ValueError as ex:
             self.logger.error(f"Error due to config not meeting scan requirements: {repr(ex)}")
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, f"Arg provided does not meet ConfigureScan criteria: {ex}")
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                f"Arg provided does not meet ConfigureScan criteria: {ex}",
+            )
         except ChildProcessError as ex:
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, ex)
         except jsonschema.ValidationError as ex:
             self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
-                task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, f"Arg provided does not meet ConfigureScan criteria: {ex}"
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                f"Arg provided does not meet ConfigureScan criteria: {ex}",
             )
         except Exception as ex:
             self.logger.error(repr(ex))
