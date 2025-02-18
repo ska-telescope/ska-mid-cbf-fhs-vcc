@@ -71,6 +71,18 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | averaging | float  | Averaging interval in seconds. The power meters implement a block moving average, when interval `t` ends the accumulated power is divided by `t` to produce an average power value. The power accumulators are then reset to start a new block average. (Used for PowerMeter[fs_id]) |                                                       |
 | flagging  | int    | The flagging mode used for handling flagged data used to configure PowerMeter[fs_id]                                                                                                                                                                                                 | 0 - Ignore<br><br>1 - Use<br><br>2 - Saturate and use |
 
+##### Returns
+Implmented as a LRC once the task has completed for a successful command completion, the command with return `ResultCode.OK` and message `ConfigureScan completed OK` 
+##### Errors
+Bad Request: provided configuration does not match required JSON schema definition or input critieria for a specific band. Returns `ResultCode.REJECTED` and message: `Arg provided does not meet ConfigureScan criteria: {reason}`
+
+State Model violation: there was an attempt to call a command that violates the current ObsState. Returns `ResultCode.REJECTED` and message `Attempted to call ConfigureScan command from an incorrect state`
+
+Low-level device failure: error configuring a IP block low-level device. Returns `ResultCode: REJECTED, message: Configuration of low-level fhs device failed: {device name}`
+
+Server Error: unexpected error occured on server. Returns `ResultCode: FAILED, message: Failed to an unexpected exception during ConfigureScan`
+
+
 #### `Scan()`
 ##### Parameters
 | Name     | Type   | Description                    |
