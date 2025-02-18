@@ -61,7 +61,7 @@ hostInfo:
 bitstreamMountPath: "/app/mnt/bitstream"
 
 bitstreamDownloadJob:
-  enabled: True
+  enabled: False
 
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
 
@@ -194,10 +194,12 @@ devices:
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 VCCUnits:
-  - id: "FhsVccStackDeviceServer1"
+  - id: "fhs-vcc-unit-1"
     is_emulated: true
     networkSwitchId: 127.0.0.1
     bmc-endpoint: "ip"
+    toleration: "fhs-vcc-1"
+    affinity: "fhs-vcc-1"
     instances:
       - name: fhs-vcc-1
         deviceId: "1"
@@ -205,11 +207,12 @@ VCCUnits:
         deviceId: "2"
       - name: fhs-vcc-3
         deviceId: "3"
-    fhsToleration: "fhs-vcc-1"
-  - id: "FhsVccStackDeviceServer2"
+  - id: "fhs-vcc-unit-2"
     is_emulated: true
     networkSwitchId: 127.0.0.1
     bmc-endpoint: "ip"
+    toleration: "fhs-vcc-2"
+    affinity: "fhs-vcc-2"
     instances:
       - name: fhs-vcc-7
         deviceId: "7"
@@ -217,7 +220,6 @@ VCCUnits:
         deviceId: "8"
       - name: fhs-vcc-9
         deviceId: "9"
-    fhsToleration: "fhs-vcc-2"
 
 deviceServerName: "fhs-vcc-stack"
 fhsVccStackFile: "data/fhs_vcc_stack.yaml"

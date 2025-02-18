@@ -20,6 +20,10 @@
     {{- $_ := set $.Values "tolerations" $fileDeviceServer.tolerations }}
   {{- end }}
 
+  {{- if $fileDeviceServer.affinity }}
+    {{- $_ := set $.Values "affinity" $fileDeviceServer.affinity }}
+  {{- end }}
+
   {{- $context := dict "name" (printf "%s-%d" $name $index) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
   {{- $volume_context := dict "volume" $fileDeviceServer.volume "local" $localchart }}
 
