@@ -1,34 +1,36 @@
 {{- define "ska-mid-cbf-fhs-vcc.fhsVccStack" -}}
+{{- $seqObj := fromJson (include "generateInstanceSequence" .fhsVccUnit.instancesRange | trim) -}}
+{{- $sequence := $seqObj.sequence -}}
 name: fhsvcc
 function: fhsvcc
 domain: sensing
 command: "FhsVccStackDeviceServer"
 instances:
-{{ range .fhsVccUnit.instances }}
-  - {{ .name }}
+{{ range $sequence }}
+  - fhs-vcc-{{ . }}
 {{- end }}
 depends_on:
   - device: sys/database/2
 readinessProbe:
-  initialDelaySeconds: 0
+  initialDelaySeconds: 20
   periodSeconds: 10
   timeoutSeconds: 5
   successThreshold: 1
-  failureThreshold: 3
+  failureThreshold: 10
 livenessProbe:
-  initialDelaySeconds: 0
+  initialDelaySeconds: 30
   periodSeconds: 10
   timeoutSeconds: 5
   successThreshold: 1
-  failureThreshold: 3
+  failureThreshold: 10
 server:
   name: "FhsVccStackDeviceServer"
   instances:
-  {{- range $index, $instance := .fhsVccUnit.instances }}
-  - name: "{{ $instance.name }}"
+  {{ range $index, $instance := $sequence }}
+  - name: fhs-vcc-{{ $instance }}
     classes:
     {{- range $index, $device := $.Values.devices }}
-    {{- $deviceId := $device.deviceId | default $instance.deviceId | int }}
+    {{- $deviceId := coalesce $device.deviceId $instance | int }}
     - name: {{ $device.name }}
       devices:
       {{- range $multiplicity := (untilStep 1 ($device.multiplicity | int | default 1 | add1 | int ) 1) }}
@@ -38,7 +40,7 @@ server:
           {{- range $name, $default := $.Values.properties }}
           - name: {{ snakecase $name }}
             values:
-            - "{{ tpl ((get $device $name) | default (get $instance $name) | default $default) $scope }}"
+            - "{{ tpl ((get $device $name) | default $default) $scope }}"
           {{- end }}
           {{- range $index, $property := $device.properties }}
           - name: {{ $property.name }}

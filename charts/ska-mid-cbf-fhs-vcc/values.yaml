@@ -61,7 +61,7 @@ hostInfo:
 bitstreamMountPath: "/app/mnt/bitstream"
 
 bitstreamDownloadJob:
-  enabled: False
+  enabled: True
 
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
 
@@ -84,7 +84,7 @@ bitstreamDownloadJob:
 
 # the default tango properties in each device. optionally provide a default, global value
 properties:
-  deviceId: ""
+  deviceId: "{{ .deviceId }}"
   deviceVersionNum: "0.0.1"
   deviceGitlabHash: "0"
   simulationMode: "0"
@@ -198,28 +198,11 @@ VCCUnits:
     is_emulated: true
     networkSwitchId: 127.0.0.1
     bmc-endpoint: "ip"
-    toleration: "fhs-vcc-1"
-    affinity: "fhs-vcc-1"
-    instances:
-      - name: fhs-vcc-1
-        deviceId: "1"
-      - name: fhs-vcc-2
-        deviceId: "2"
-      - name: fhs-vcc-3
-        deviceId: "3"
+    instancesRange: [1, 6]
   - id: "fhs-vcc-unit-2"
     is_emulated: true
     networkSwitchId: 127.0.0.1
     bmc-endpoint: "ip"
-    toleration: "fhs-vcc-2"
-    affinity: "fhs-vcc-2"
-    instances:
-      - name: fhs-vcc-7
-        deviceId: "7"
-      - name: fhs-vcc-8
-        deviceId: "8"
-      - name: fhs-vcc-9
-        deviceId: "9"
+    instancesRange: [7, 12]
 
 deviceServerName: "fhs-vcc-stack"
-fhsVccStackFile: "data/fhs_vcc_stack.yaml"
