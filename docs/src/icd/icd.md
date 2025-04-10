@@ -8,7 +8,7 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | Name                          | Type                                                      | Read/Write | Description                                                                                                                                                      |
 | ----------------------------- | --------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `dishID`                      | DevString                                                 | R          | Associated dish identifier                                                                                                                                       |
-| `vccGains`                    | `Arr<Array<Tango::DevDouble>>(max_size = 2 if in band 5)` | R          | Read attribute for gain values                                                                                                                                   |
+| `vccGains`                    | `Array<Array<Tango::DevDouble>>` | R          | Read attribute for gain values. Dimensions -> `[n=number of sub-bands][m=2*channels]`                                                                                                                                   |
 | `frequencyBand`               | DevEnum                                                   | R          | Frequency band that is currently configured                                                                                                                      |
 | `configID`                    | DevString                                                 | R          | Identifier of the current scan configuration                                                                                                                     |
 | `scanID`                      | DevULong                                                  | R          | Identifier of the current scan                                                                                                                                   |
@@ -94,7 +94,7 @@ Returns `ResultCode.REJECTED` if the VCC is already assigned to a subarray and t
 **PSS Config**
 | Name                 | Type                                      | Description                                                                                                                                                                                                                                                                          | Range      |
 | -------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
-| search_window        | Array of SearchWindow Config (max_size=2) | VLAN identifier for use in network switch map to the given FS to an FSP (Used for the Packetizer)                                                                                                                                                                                    |            |
+| search_window        | Array of SearchWindow Config (max_size=2) | Placeholder for future Search Window configuration.                                                                                                                                                                                  |            |
 | rdt                  | JSON Object (format RDT Config)           | See below definition.                                                                                                                                                                                                                                                                |            |
 | is_tbc               | bool                                      | Is Transient Buffer capture required?                                                                                                                                                                                                                                                |            |
 | tbc_duration         | int                                       | Averaging interval in seconds. The power meters implement a block moving average, when interval `t` ends the accumulated power is divided by `t` to produce an average power value. The power accumulators are then reset to start a new block average. (Used for PowerMeter[fs_id]) | 22s or 44s |
@@ -164,11 +164,11 @@ n/a
 | ------------------- | -------------------------------------- | ----------- | ----- |
 | requested_rfi_headroom  | int - Optional                                 | Requested RFI Headroom to be accounted for pre-requantization (default: 3 dB)           |       |
 
-#### `OffloadTransientBufferCapture(int)`
+#### `OffloadTransientBufferCapture(DevLong)`
 ##### Parameters
 | Name                | Type                                   | Description | Range |
 | ------------------- | -------------------------------------- | ----------- | ----- |
-| epoch_start_time  | int                                 | Epoch start time to begin transient buffer capture            |       |
+| epoch_start_time  | long                                 | Epoch start time to begin transient buffer capture            |       |
 
 #### `GetBandpassCorrectionCoefficients(int) - Fast Command`
 ##### Parameters
