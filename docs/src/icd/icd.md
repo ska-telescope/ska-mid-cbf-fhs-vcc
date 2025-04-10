@@ -176,7 +176,9 @@ n/a
 | ------------------- | -------------------------------------- | ----------- | ----- |
 | band_id  | int - Optional                                 | Frequency Band of interest for retrieving gain corrections (uses same definition as Frequency Band used within ConfigureScan)            |  1-6     |
 ##### Returns
-A `Float[][]` of gain corrections applied by prior auto-set gains stablizations for the given band. If a band_id is not provided all gains corrections are returned of the format [i → frequency band, j → gain value for channel i, pol % 2]
+Returns a `Float[][][]` of digital bandpass corrections for the specified of `band_id`. 
+
+If a `band_id` is not provided All gains corrections are returned of the format `[i → frequency band, j → gain value for channel i, pol % 2]`
 #### `Abort()`
 ##### Parameters
 n/a
