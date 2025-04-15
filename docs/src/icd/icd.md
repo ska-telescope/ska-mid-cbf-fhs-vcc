@@ -35,6 +35,14 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | `widebandFrequencyShifterFQDN` | DevString                       | FQDN for Wideband Frequency Shifter lower level device                                                                   |
 | `widebandInputBufferFQDN`      | DevString                       | FQDN for Wideband Frequency Input Buffer lower level device                                                              |
 | `macFQDN   `                   | DevString                       | FQDN for Ethernet Media Access Control (MAC) lower level device likely only needed for testing purposes in loopback mode |
+
+#### Publish Events
+| Name          | Type                            | Description                                                                                                                                                                                           |
+| ------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| healthState   | HealthState Enum                | Publishes a change event on the health state if any changes were detected from the low-level devices, the value holds the reason for the change in state.                                                                            |
+| gains         | `Array<Array<Tango::DevDouble>>` | Publishes a change event if the gain values have been updated as a result of a gains stabilization.<br><br>The array of gain values is a 2-dimensional array to account for both sub-bands in Band 5. |
+| frequencyBand | DevEnum                         | Change event published if the band changed successfully.                                                                                                                                            |
+
 ### Commands
 | Name                                  | Input Type  | Input Parameter                                | Allowed in modes      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------------------- | ----------- | ---------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -202,11 +210,3 @@ n/a
 #### `ObsReset()`
 ##### Parameters
 n/a
-
-### Design decisions
-1. On the new Agilex architecture switching frequency bands for a VCC can be done by partial reconfiguration of the FPGA board, the previous design had a top level device controller and a device per band, with it now being easier to switch bands that design can be simplified to have one top level device per VCC. Thus for this ICD the functionality between what was previously the DS-VCC-Controller and the DSVccBand1and2 has been merged. The main function merger was  between the `ConfigureBand()` and the `SetInternalParameters()` functions, both of which were called in close sequence by the control software but, were previously on different devices servers. The attributes for both are now shared.
-2. Also the need for a VCC base class has also been reduced at the top level therefore the attributes are merged into the one core class.
-3. Following design decisions made for MCS, setting `AdminMode = ONLINE` will be utlized to handle previous `On()` command functionality and setting `AdminMode = OFFLINE` will be used to handle the functionality of the previously implemented `Disable()` command.
-4. Implementation specific comments:
-- All commands apart from power-related On/Off commands will be implemented as fast commands
-- By implementing with PyTango it should allow the removal of the MCS VCC device, this will require changes to the MCS subarray device as commands will have to be changed to target the FHS device. Also threads will have to be allocated within the device to accomodate long runnning commands across multiple VCCs
