@@ -32,10 +32,8 @@ mcs -> allbands ++ $AllBandsLifeline: EndScan()
 allbands -> allbands: ObsState = STOPPING
 
 allbands -> eth_ds ++ $LowLevelDSLifeline: Stop()
-group Stop()
-eth_ds -> eth_ds: ObsState = STOPPING
+group Stop() (repeat for all LL devices)
 eth_ds -> eth_ds: stop() the FW
-eth_ds -> eth_ds: ObsState = READY
 end
 allbands <-- eth_ds --: ResultCode.OK
 
