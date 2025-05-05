@@ -32,9 +32,8 @@ mcs -> allbands ++ $AllBandsLifeline: GoToIdle()
 allbands -> allbands: Reset stored parameters
 
 allbands -> eth_ds ++ $LowLevelDSLifeline: GoToIdle()
-group GoToIdle()
+group GoToIdle() (repeat for all LL devices)
 eth_ds -> eth_ds: deconfigure() the FW\nif it has configuration
-eth_ds -> eth_ds: ObsState = IDLE
 end
 allbands <-- eth_ds --: ResultCode.OK
 
