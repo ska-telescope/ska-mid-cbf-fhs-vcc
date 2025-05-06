@@ -33,18 +33,12 @@ allbands -> allbands: ObsState = CONFIGURING
 allbands -> allbands: Validate configuration and store parameters
 
 allbands -> vcc_ds ++ $LowLevelDSLifeline: Configure()
-group VCC Configure()
-vcc_ds -> vcc_ds: ObsState = CONFIGURING
 vcc_ds -> vcc_ds: configure() the FW for\nevery gain value\n(20 or 30 times total)
-vcc_ds -> vcc_ds: ObsState = READY
-end
 allbands <-- vcc_ds --: ResultCode.OK
 
 allbands -> wfs_ds ++ $LowLevelDSLifeline: Configure()
-group Default Configure()
-wfs_ds -> wfs_ds: ObsState = CONFIGURING
+group Configure() (repeat for all LL devices except VCC)
 wfs_ds -> wfs_ds: configure() the FW
-wfs_ds -> wfs_ds: ObsState = READY
 end
 allbands <-- wfs_ds --: ResultCode.OK
 
