@@ -42,7 +42,9 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | Name          | Type                            | Description                                                                                                                                                                                           |
 | ------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | healthState   | HealthState Enum                | Publishes a change event on the health state if any changes were detected from the low-level devices, the value holds the reason for the change in state.                                                                            |
-| gains         | `Array<Tango::DevDouble>` | Publishes a change event if the gain values have been updated as a result of a gains stabilization.<br><br>The array of gain values is a 2-dimensional array to account for both sub-bands in Band 5. |
+| gains         | `Array<Tango::DevDouble>` | Publishes a change event if the gain values have been updated as a result of a gains stabilization.|
+| pssGains         | `Array<Tango::DevDouble>` | Publishes a change event if the gain values have been updated as a result of a gains stabilization across PSS fine channels.|
+| tcbGains         | `Array<Tango::DevDouble>` | Publishes a change event if the gain values have been updated as a result of a gains stabilization on selected FSs used for TCB.|
 | frequencyBand | DevEnum                         | Change event published if the band changed successfully.                                                                                                                                            |
 
 ### Commands
