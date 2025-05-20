@@ -17,6 +17,8 @@ import pytest
 from ska_tango_testing import context
 from ska_tango_testing.harness import TangoTestHarnessContext
 from ska_tango_testing.integration import TangoEventTracer
+import polling2
+from tango import DevState
 
 EVENT_TIMEOUT = 30
 
@@ -49,7 +51,6 @@ def tango_event_tracer(
 
     change_event_attr_list = [
         "longRunningCommandResult",
-        "obsState",
         "adminMode",
         "state",
     ]

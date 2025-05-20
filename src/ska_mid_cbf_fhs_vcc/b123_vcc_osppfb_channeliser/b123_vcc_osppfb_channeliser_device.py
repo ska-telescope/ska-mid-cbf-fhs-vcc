@@ -8,6 +8,8 @@ from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser
 
 
 class B123VccOsppfbChanneliser(FhsLowLevelDeviceBase):
+
+    
     def create_component_manager(
         self: B123VccOsppfbChanneliser,
     ) -> B123VccOsppfbChanneliserComponentManager:
@@ -17,9 +19,7 @@ class B123VccOsppfbChanneliser(FhsLowLevelDeviceBase):
             attr_archive_callback=self.push_archive_event,
             health_state_callback=self._update_health_state,
             communication_state_callback=self._communication_state_changed,
-            obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
-            obs_state_action_callback=self._obs_state_action,
             logger=self.logger,
         )
 
