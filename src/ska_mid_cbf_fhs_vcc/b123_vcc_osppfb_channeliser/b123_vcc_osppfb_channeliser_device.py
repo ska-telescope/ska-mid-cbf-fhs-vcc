@@ -8,8 +8,6 @@ from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser
 
 
 class B123VccOsppfbChanneliser(FhsLowLevelDeviceBase):
-
-    
     def create_component_manager(
         self: B123VccOsppfbChanneliser,
     ) -> B123VccOsppfbChanneliserComponentManager:

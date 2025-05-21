@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_common.base_classes.device.obs.fhs_obs_base_device import FhsObsBaseDevice
 import tango
 from ska_control_model import ResultCode
+from ska_mid_cbf_fhs_common.base_classes.device.obs.fhs_obs_base_device import FhsObsBaseDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command, device_property
 

@@ -7,11 +7,11 @@ from threading import Event
 from typing import Any, Callable, Optional
 
 import jsonschema
-from ska_mid_cbf_fhs_common.base_classes.device.obs.fhs_obs_component_manager_base import FhsObsComponentManagerBase
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
 from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsHealthMonitor, FhsObsStateMachine
+from ska_mid_cbf_fhs_common.base_classes.device.obs.fhs_obs_component_manager_base import FhsObsComponentManagerBase
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_testing import context
 from tango import EventData, EventType
