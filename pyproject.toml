@@ -1,20 +1,21 @@
 [project]
+license = "BSD license"
 name = "ska-mid-cbf-fhs-vcc"
 version = "0.1.0"
 description = "SKA Mid.CBF FHS VCC"
-authors = [
-  { name = "Jason Turner", email = "jason.turner@mda.space" },
-  { name = "Ben Herriott", email = "ben.herriott@mda.space" },
-  { name = "Justin Wamback", email = "justin.wamback@mda.space" },
-]
-license = "BSD license"
-readme = "README.md"
 
 [project.scripts]
 FhsVccStackDeviceServer = 'ska_mid_cbf_fhs_vcc.fhs_vcc_stack_device_server:main'
 
 [tool.poetry]
 packages = [{ include = "ska_mid_cbf_fhs_vcc", from = "src" }]
+name = "ska-mid-cbf-fhs-vcc"
+version = "0.1.0"
+description = "SKA Mid.CBF FHS VCC"
+authors = [
+  "Jason Turner <jason.turner@mda.space>", "Ben Herriott <ben.herriott@mda.space>", "Justin Wamback <justin.wamback@mda.space>"
+]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
@@ -31,7 +32,7 @@ ska-telmodel = "1.15.0"
 polling2 = "^0.5.0"
 dataclasses-json = "^0.6.7"
 debugpy = "^1.8.5"
-ska-mid-cbf-fhs-common = {path = "../ska-mid-cbf-fhs-common", develop = true}
+ska-mid-cbf-fhs-common = { version = "0.0.1+dev.cd2bd268e", source = "gitlab-fhs-common" }
 
 [tool.poetry.group.dev.dependencies]
 pytest-pydocstyle = "2.3.2"
@@ -61,6 +62,10 @@ sphinxcontrib-plantuml = "^0.26"
 [[tool.poetry.source]]
 name = "ska-nexus"
 url = "https://artefact.skao.int/repository/pypi-internal/simple"
+
+[[tool.poetry.source]]
+name="gitlab-fhs-common"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
 
 
 [[tool.poetry.source]]

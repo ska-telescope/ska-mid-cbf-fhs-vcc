@@ -14,8 +14,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "appdirs"
@@ -31,8 +31,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "assertpy"
@@ -47,8 +47,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "astroid"
@@ -67,8 +67,8 @@ typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.11\""}
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "astropy"
@@ -124,8 +124,8 @@ test-all = ["coverage[toml]", "ipython (>=4.2)", "objgraph", "pytest (>=7.0,<8)"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "attrs"
@@ -149,8 +149,8 @@ tests-mypy = ["mypy (>=1.11.1) ; platform_python_implementation == \"CPython\" a
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "babel"
@@ -169,8 +169,8 @@ dev = ["freezegun (>=1.0,<2.0)", "pytest (>=6.0)", "pytest-cov"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "backoff"
@@ -186,8 +186,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "black"
@@ -238,8 +238,8 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "certifi"
@@ -255,8 +255,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "charset-normalizer"
@@ -275,8 +275,8 @@ unicode-backport = ["unicodedata2"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "click"
@@ -295,8 +295,8 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "colorama"
@@ -313,8 +313,8 @@ markers = {dev = "sys_platform == \"win32\"", docs = "sys_platform == \"win32\" 
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "coverage"
@@ -396,8 +396,8 @@ toml = ["tomli ; python_full_version <= \"3.11.0a6\""]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "dataclasses-json"
@@ -417,8 +417,8 @@ typing-inspect = ">=0.4.0,<1"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "debugpy"
@@ -458,8 +458,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "dill"
@@ -479,8 +479,8 @@ profile = ["gprof2dot (>=2022.7.29)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "docopt"
@@ -495,8 +495,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "docutils"
@@ -512,8 +512,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "exceptiongroup"
@@ -533,8 +533,8 @@ test = ["pytest (>=6)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "execnet"
@@ -553,8 +553,8 @@ testing = ["hatch", "pre-commit", "pytest", "tox"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "flake8"
@@ -575,8 +575,8 @@ pyflakes = ">=3.1.0,<3.2.0"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "idna"
@@ -595,8 +595,8 @@ all = ["flake8 (>=7.1.1)", "mypy (>=1.11.2)", "pytest (>=8.3.2)", "ruff (>=0.6.2
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "imagesize"
@@ -612,8 +612,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "iniconfig"
@@ -629,8 +629,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "isort"
@@ -649,8 +649,8 @@ colors = ["colorama (>=0.4.6)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "jinja2"
@@ -672,8 +672,8 @@ i18n = ["Babel (>=2.7)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "jsonschema"
@@ -699,8 +699,8 @@ format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "jsonschema-specifications"
@@ -719,8 +719,8 @@ referencing = ">=0.31.0"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "junit-xml-2"
@@ -739,8 +739,8 @@ six = "*"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "katversion"
@@ -756,8 +756,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "mako"
@@ -781,8 +781,8 @@ testing = ["pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "markdown-it-py"
@@ -811,8 +811,8 @@ testing = ["coverage", "pytest", "pytest-cov", "pytest-regressions"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "markupsafe"
@@ -887,8 +887,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "marshmallow"
@@ -912,8 +912,8 @@ tests = ["pytest", "simplejson"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "mccabe"
@@ -929,8 +929,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "mdit-py-plugins"
@@ -954,8 +954,8 @@ testing = ["coverage", "pytest", "pytest-cov", "pytest-regressions"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "mdurl"
@@ -971,8 +971,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "mypy-extensions"
@@ -988,8 +988,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "myst-parser"
@@ -1020,8 +1020,8 @@ testing-docutils = ["pygments", "pytest (>=7,<8)", "pytest-param-files (>=0.3.4,
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "numpy"
@@ -1071,8 +1071,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "packaging"
@@ -1088,8 +1088,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "parse"
@@ -1105,8 +1105,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "parse-type"
@@ -1131,8 +1131,8 @@ testing = ["pytest (<5.0) ; python_version < \"3.0\"", "pytest (>=5.0) ; python_
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pathspec"
@@ -1148,8 +1148,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "platformdirs"
@@ -1170,8 +1170,8 @@ type = ["mypy (>=1.11.2)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pluggy"
@@ -1191,8 +1191,8 @@ testing = ["pytest", "pytest-benchmark"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "polling2"
@@ -1208,8 +1208,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "psutil"
@@ -1244,8 +1244,8 @@ test = ["enum34", "futures", "ipaddress", "mock (==1.0.1)", "pytest (==4.6.11)",
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "py"
@@ -1261,8 +1261,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pycodestyle"
@@ -1278,8 +1278,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pydocstyle"
@@ -1301,8 +1301,8 @@ toml = ["tomli (>=1.2.3) ; python_version < \"3.11\""]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pyerfa"
@@ -1334,8 +1334,8 @@ test = ["pytest", "pytest-doctestplus (>=0.7)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pyflakes"
@@ -1351,8 +1351,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pygments"
@@ -1371,8 +1371,8 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pylint"
@@ -1406,8 +1406,8 @@ testutils = ["gitpython (>3)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pylint-junit"
@@ -1426,8 +1426,8 @@ pylint = "*"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytango"
@@ -1478,8 +1478,8 @@ tests = ["gevent (>=20.0)", "pytest", "pytest-asyncio", "pytest-cov", "pytest-fo
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest"
@@ -1506,8 +1506,8 @@ dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-bdd"
@@ -1531,8 +1531,8 @@ typing-extensions = "*"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-cov"
@@ -1555,8 +1555,8 @@ testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-forked"
@@ -1576,8 +1576,8 @@ pytest = ">=3.10"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-json-report"
@@ -1597,8 +1597,8 @@ pytest-metadata = "*"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-metadata"
@@ -1620,8 +1620,8 @@ test = ["black (>=22.1.0)", "flake8 (>=4.0.1)", "pre-commit (>=2.17.0)", "tox (>
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-mock"
@@ -1643,8 +1643,8 @@ dev = ["pre-commit", "pytest-asyncio", "tox"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-pycodestyle"
@@ -1667,8 +1667,8 @@ tests = ["pytest-isort"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-pydocstyle"
@@ -1690,8 +1690,8 @@ tests = ["pytest-isort", "pytest-pycodestyle (>=2.3,<3.0)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-pylint"
@@ -1712,8 +1712,8 @@ tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-repeat"
@@ -1732,8 +1732,8 @@ pytest = "*"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pytest-xdist"
@@ -1758,8 +1758,8 @@ testing = ["filelock"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "python-gitlab"
@@ -1783,8 +1783,8 @@ yaml = ["PyYaml (>=5.2)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "pyyaml"
@@ -1851,8 +1851,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "referencing"
@@ -1872,8 +1872,8 @@ rpds-py = ">=0.7.0"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "requests"
@@ -1899,8 +1899,8 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "requests-toolbelt"
@@ -1919,8 +1919,8 @@ requests = ">=2.0.1,<3.0.0"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "rpds-py"
@@ -2024,8 +2024,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "schema"
@@ -2041,8 +2041,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "simpleeval"
@@ -2058,8 +2058,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "six"
@@ -2075,8 +2075,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "ska-control-model"
@@ -2101,31 +2101,34 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.0.1"
+version = "0.0.1+dev.cd2bd268e"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<3.13"
 groups = ["main"]
-files = []
-develop = true
+files = [
+    {file = "ska_mid_cbf_fhs_common-0.0.1+dev.cd2bd268e-py3-none-any.whl", hash = "sha256:a131a4b85fb3f66be57872d15062bd26f527887a67d35431682ed76278ff805e"},
+    {file = "ska_mid_cbf_fhs_common-0.0.1+dev.cd2bd268e.tar.gz", hash = "sha256:f4ae90efb2f6931b07455c5b3ffd7f0eda2f987cecfc93638434f5e508e9d8da"},
+]
 
 [package.dependencies]
-dataclasses-json = "^0.6.7"
-debugpy = "^1.8.5"
-polling2 = "^0.5.0"
-pytango = "^9.5.1"
-pyyaml = "^6.0.1"
-requests = "^2.32.3"
+dataclasses-json = ">=0.6.7,<0.7.0"
+debugpy = ">=1.8.5,<2.0.0"
+polling2 = ">=0.5.0,<0.6.0"
+pytango = ">=9.5.1,<10.0.0"
+pyyaml = ">=6.0.1,<7.0.0"
+requests = ">=2.32.3,<3.0.0"
 ska-control-model = "1.1.0"
-ska-ser-log-transactions = "^0.2.2+ae0f5c92"
+ska-ser-log-transactions = ">=0.2.2+ae0f5c92,<0.3.0"
 ska-tango-base = "1.0.0"
 ska-tango-testing = "0.7.2"
 ska-telmodel = "1.15.0"
-typing-extensions = "^4.8.0"
+typing-extensions = ">=4.8.0,<5.0.0"
 
 [package.source]
-type = "directory"
-url = "../ska-mid-cbf-fhs-common"
+type = "legacy"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "ska-ser-log-transactions"
@@ -2301,8 +2304,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinx"
@@ -2341,8 +2344,8 @@ test = ["cython", "filelock", "html5lib", "pytest (>=4.6)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinx-collapse"
@@ -2365,8 +2368,8 @@ test = ["pre-commit", "pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinx-rtd-theme"
@@ -2390,8 +2393,8 @@ dev = ["bump2version", "sphinxcontrib-httpdomain", "transifex-client", "wheel"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinxcontrib-applehelp"
@@ -2412,8 +2415,8 @@ test = ["pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinxcontrib-devhelp"
@@ -2434,8 +2437,8 @@ test = ["pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinxcontrib-htmlhelp"
@@ -2456,8 +2459,8 @@ test = ["html5lib", "pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinxcontrib-jquery"
@@ -2476,8 +2479,8 @@ Sphinx = ">=1.8"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinxcontrib-jsmath"
@@ -2496,8 +2499,8 @@ test = ["flake8", "mypy", "pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinxcontrib-mermaid"
@@ -2513,8 +2516,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinxcontrib-plantuml"
@@ -2535,8 +2538,8 @@ test = ["Pillow", "flake8", "pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinxcontrib-qthelp"
@@ -2557,8 +2560,8 @@ test = ["defusedxml (>=0.7.1)", "pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "sphinxcontrib-serializinghtml"
@@ -2579,8 +2582,8 @@ test = ["pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "tomli"
@@ -2597,8 +2600,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "tomlkit"
@@ -2614,8 +2617,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "toolz"
@@ -2631,8 +2634,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "transitions"
@@ -2655,8 +2658,8 @@ test = ["pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "typing-extensions"
@@ -2673,8 +2676,8 @@ markers = {docs = "python_version < \"3.11\""}
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "typing-inspect"
@@ -2694,8 +2697,8 @@ typing-extensions = ">=3.7.4"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "urllib3"
@@ -2716,10 +2719,10 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "41006bf64236d7930d349fa6489bf2f19077f58b0819aa1f38577aca03348abb"
+content-hash = "4cb798b8568e3174ec756f2bf51e257b6f9517626ab7e87f571ea77afb03a679"
