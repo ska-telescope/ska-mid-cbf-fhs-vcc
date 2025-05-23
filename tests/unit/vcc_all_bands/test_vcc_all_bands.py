@@ -4,12 +4,11 @@ from assertpy import assert_that
 import pytest
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device import B123VccOsppfbChanneliser
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device import FrequencySliceSelection
-from ska_mid_cbf_fhs_vcc.mac.mac_200_device import Mac200
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device import WidebandFrequencyShifter
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
-from ska_mid_cbf_fhs_common import WidebandPowerMeter
-from ska_mid_cbf_fhs_vcc.packetizer.packetizer_device import Packetizer
+from ska_mid_cbf_fhs_common import WidebandPowerMeter, FtileEthernet
+from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_device import VCCStreamMerge
 from tango import DevState
 from ska_tango_testing import context
 from ska_tango_testing.integration import TangoEventTracer
@@ -62,8 +61,8 @@ def pv_device():
     )
 
     harness.add_device(
-        device_name="test/mac200/1",
-        device_class=Mac200,
+        device_name="test/ethernet200g/1",
+        device_class=FtileEthernet,
         device_id="1",
         device_version_num="1.0",
         device_gitlab_hash="abc123",
@@ -127,7 +126,7 @@ def pv_device():
     )
 
     harness.add_device(
-        device_name="fhs/b123wpm/1",
+        device_name="test/b123wpm/1",
         device_class=WidebandPowerMeter,
         device_id="1",
         device_version_num="1.0",
@@ -143,7 +142,7 @@ def pv_device():
     )
 
     harness.add_device(
-        device_name="fhs/b45awpm/1",
+        device_name="test/b45awpm/1",
         device_class=WidebandPowerMeter,
         device_id="1",
         device_version_num="1.0",
@@ -159,7 +158,7 @@ def pv_device():
     )
 
     harness.add_device(
-        device_name="fhs/b5bwpm/1",
+        device_name="test/b5bwpm/1",
         device_class=WidebandPowerMeter,
         device_id="1",
         device_version_num="1.0",
@@ -174,9 +173,26 @@ def pv_device():
         emulator_id="vcc-emulator-1",
     )
 
+    for i in range(1, 3):
+        harness.add_device(
+            device_name=f"test/vcc-stream-merge{i}/1",
+            device_class=FtileEthernet,
+            device_id="1",
+            device_version_num="1.0",
+            device_gitlab_hash="abc123",
+            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
+            bitstream_path="../resources",
+            bitstream_id="agilex-vcc",
+            bitstream_version="0.0.1",
+            simulation_mode="1",
+            emulation_mode="0",
+            emulator_ip_block_id=f"vcc_stream_merge{i}",
+            emulator_id="vcc-emulator-1",
+        )
+
     for i in range(1, 26 + 1):
         harness.add_device(
-            device_name=f"fhs/fs{i}wpm/1",
+            device_name=f"test/fs{i}wpm/1",
             device_class=WidebandPowerMeter,
             device_id="1",
             device_version_num="1.0",
@@ -203,7 +219,7 @@ def pv_device():
         bitstream_version="0.0.1",
         simulation_mode="0",
         emulation_mode="1",
-        mac_200_fqdn="test/mac200/1",
+        ethernet_200g_fqdn="test/ethernet200g/1",
         packet_validation_fqdn="test/packet_validation/1",
         vcc123_channelizer_fqdn="test/vcc123/1",
         vcc45_channelizer_fqdn="vcc45",
@@ -211,11 +227,11 @@ def pv_device():
         wideband_frequency_shifter_fqdn="test/wfs/1",
         circuit_switch_fqdn="cs",
         fs_selection_fqdn="test/fss/1",
-        b123_wideband_power_meter_fqdn="fhs/b123wpm/1",
-        b45a_wideband_power_meter_fqdn="fhs/b45awpm/1",
-        b5b_wideband_power_meter_fqdn="fhs/b5bwpm/1",
-        fs_wideband_power_meter_fqdn="fhs/fs<multiplicity>wpm/1",
-        packetizer_fqdn="fhs/packetizer/1",
+        b123_wideband_power_meter_fqdn="test/b123wpm/1",
+        b45a_wideband_power_meter_fqdn="test/b45awpm/1",
+        b5b_wideband_power_meter_fqdn="test/b5bwpm/1",
+        fs_wideband_power_meter_fqdn="test/fs<multiplicity>wpm/1",
+        vcc_stream_merge_fqdn="test/vcc-stream-merge<multiplicity>/1",
     )
 
     with harness as test_context:

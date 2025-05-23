@@ -48,7 +48,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
         self._proxies: dict[str, context.DeviceProxy] = {}
 
-        self._proxies[device.mac_200_fqdn] = None
+        self._proxies[device.ethernet_200g_fqdn] = None
         self._proxies[device.packet_validation_fqdn] = None
         self._proxies[device.wideband_input_buffer_fqdn] = None
         self._proxies[device.wideband_frequency_shifter_fqdn] = None
@@ -58,12 +58,17 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         self._proxies[device.b123_wideband_power_meter_fqdn] = None
         self._proxies[device.b45a_wideband_power_meter_fqdn] = None
         self._proxies[device.b5b_wideband_power_meter_fqdn] = None
-        self._proxies[device.packetizer_fqdn] = None
 
         self._power_meter_fqdns = {
             i: device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 26 + 1)
         }
         for fqdn in self._power_meter_fqdns.values():
+            self._proxies[fqdn] = None
+
+        self._vcc_stream_merge_fqdns = {
+            i: device.vcc_stream_merge_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 3)
+        }
+        for fqdn in self._vcc_stream_merge_fqdns.values():
             self._proxies[fqdn] = None
 
         # self._circuit_switch_proxy = None
@@ -418,16 +423,18 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
                         )
                         raise ChildProcessError("Configuration of low-level fhs device failed: FS Power Meter")
 
-                # Packetizer Configuration
-                self.logger.debug("Packetizer Configuring..")
-                packetizer_fs_lanes = [
-                    {"vlan_id": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]} for lane in self._fs_lanes
-                ]
-                result = self._proxies[self.device.packetizer_fqdn].Configure(json.dumps({"fs_lanes": packetizer_fs_lanes}))
-                if result[0] == ResultCode.FAILED:
-                    self.logger.error(f"Configuration of Packetizer failed: {result[1]}")
-                    self._reset_devices([self.device.packetizer_fqdn])
-                    raise ChildProcessError("Configuration of low-level fhs device failed: FS Packetizer")
+                # VCC Stream Merge Configuration
+                self.logger.debug("VCC Stream Merge Configuring..")
+                for i, lane in enumerate(self._fs_lanes):
+                    result = self._proxies[self._vcc_stream_merge_fqdns[i // 13 + 1]].Configure(json.dumps({
+                        "vid": lane["vlan_id"],
+                        "vcc_id": self._vcc_id,
+                        "fs_id": lane["fs_id"]
+                    }))
+                    if result[0] == ResultCode.FAILED:
+                        self.logger.error(f"Configuration of VCC Stream Merge failed: {result[1]}")
+                        self._reset_devices([*self._vcc_stream_merge_fqdns.values()])
+                        raise ChildProcessError("Configuration of low-level fhs device failed: VCC Stream Merge")
 
             self.logger.info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}")
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
@@ -486,7 +493,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
             self._scan_id = argin
             if not self.simulation_mode:
                 try:
-                    self._proxies[self.device.mac_200_fqdn].Start()
+                    self._proxies[self.device.ethernet_200g_fqdn].Start()
                     self._proxies[self.device.packet_validation_fqdn].Start()
                     self._proxies[self.device.wideband_input_buffer_fqdn].Start()
                 except tango.DevFailed as ex:
@@ -526,7 +533,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
 
             if not self.simulation_mode:
                 try:
-                    self._proxies[self.device.mac_200_fqdn].Stop()
+                    self._proxies[self.device.ethernet_200g_fqdn].Stop()
                     self._proxies[self.device.packet_validation_fqdn].Stop()
                     self._proxies[self.device.wideband_input_buffer_fqdn].Stop()
                 except tango.DevFailed as ex:
@@ -612,7 +619,7 @@ class VCCAllBandsComponentManager(FhsComponentManagerBase):
         result = None
         for fqdn, proxy in self._proxies.items():
             if proxy is not None and fqdn in [
-                self.device.mac_200_fqdn,
+                self.device.ethernet_200g_fqdn,
                 self.device.wideband_input_buffer_fqdn,
                 self.device.packet_validation_fqdn,
             ]:

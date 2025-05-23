@@ -56,7 +56,7 @@ def test_device_initialization(device_under_test):
 
 def test_start_command(device_under_test, event_tracer: TangoEventTracer):
     """
-    Test the Start command of the Mac200 device.
+    Test the Start command of the Packet Validation device.
     """
 
     # Invoke the command
@@ -82,7 +82,7 @@ def test_start_command(device_under_test, event_tracer: TangoEventTracer):
 
 def test_stop_command(device_under_test, event_tracer: TangoEventTracer):
     """
-    Test the Stop command of the Mac200 device.
+    Test the Stop command of the Packet Validation device.
     """
     result = device_under_test.command_inout("Stop")
 

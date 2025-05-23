@@ -1,24 +1,15 @@
-# -*- coding: utf-8 -*-
-#
-# This file is part of the SKA Mid CBF FHS VCC project With inspiration gathered from the Mid.CBF MCS project
-#
-# Distributed under the terms of the BSD 3-clause new license.
-# See LICENSE.txt for more info.
-
-
 from __future__ import annotations
 
 from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
-from tango.server import device_property
 
-from ska_mid_cbf_fhs_vcc.mac.mac_component_manager import MacComponentManager
+from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_component_manager import VCCStreamMergeComponentManager
 
 
-class Mac200(FhsLowLevelDeviceBase):
-    MacType = device_property(dtype="str")
-
-    def create_component_manager(self: Mac200) -> MacComponentManager:
-        return MacComponentManager(
+class VCCStreamMerge(FhsLowLevelDeviceBase):
+    def create_component_manager(
+        self: VCCStreamMerge,
+    ) -> VCCStreamMergeComponentManager:
+        return VCCStreamMergeComponentManager(
             device=self,
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
@@ -30,14 +21,13 @@ class Mac200(FhsLowLevelDeviceBase):
             logger=self.logger,
         )
 
-    def always_executed_hook(self: Mac200) -> None:
+    def always_executed_hook(self: VCCStreamMerge) -> None:
         """Hook to be executed before any commands."""
 
-    def delete_device(self: Mac200) -> None:
+    def delete_device(self: VCCStreamMerge) -> None:
         """Hook to delete device."""
 
-    def init_command_objects(self: Mac200) -> None:
-        # init the LRC
+    def init_command_objects(self: VCCStreamMerge) -> None:
         commandsAndMethods = [
             ("Start", "start"),
             ("Stop", "stop"),
@@ -47,9 +37,8 @@ class Mac200(FhsLowLevelDeviceBase):
 
         # init the fast commands
         commandsAndClasses = [
-            ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
             ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
-            ("Deconfigure", FhsLowLevelDeviceBase.DeconfigureCommand),
+            ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
             ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
             ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand),
         ]
@@ -58,7 +47,7 @@ class Mac200(FhsLowLevelDeviceBase):
 
 
 def main(args=None, **kwargs):
-    return Mac200.run_server(args=args or None, **kwargs)
+    return VCCStreamMerge.run_server(args=args or None, **kwargs)
 
 
 if __name__ == "__main__":

@@ -36,12 +36,12 @@ midcbf:
 
 resources:
   limits:
-    cpu: 200m
-    memory: 256Mi
+    cpu: 500m
+    memory: 100Mi
     ephemeral-storage: 512Mi
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 250m
+    memory: 50Mi
     ephemeral-storage: 256Mi
 
 nodeSelector: {}
@@ -92,21 +92,21 @@ properties:
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
   bitstreamId: "agilex-vcc"
-  bitstreamVersion: "0.0.15"
+  bitstreamVersion: "0.0.16"
   emulatorId: "vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
   firmwareIpBlockId: ""
 
 # the devices in each stack. optionally override any property defined in `properties`. to add extra properties, provide a `properties` dict
 devices:
-  - name: "Mac200"
-    path: "fhs/mac200/{{.deviceId000}}"
+  - name: "200GbEthernet"
+    path: "fhs/ethernet200g/{{.deviceId000}}"
     emulatorIpBlockId: "ethernet_200g"
     firmwareIpBlockId: "eth200g_{{.receptorId}}"
     properties:
-      - name: MacType
+      - name: EthernetMode
         values:
-          - "mac200"
+          - "200GbE"
   - name: "PacketValidation"
     path: "fhs/packetvalidation/{{.deviceId000}}"
     emulatorIpBlockId: "packet_validation"
@@ -148,10 +148,11 @@ devices:
     path: "fhs/fs{{.multiplicity}}wpm/{{.deviceId000}}"
     emulatorIpBlockId: "fs{{.multiplicity}}_wideband_power_meter"
     firmwareIpBlockId: "receptor{{.receptorId}}_fs{{.multiplicity}}_power_meter"
-  - name: "Packetizer"
-    path: "fhs/packetizer/{{.deviceId000}}"
-    emulatorIpBlockId: "packetizer"
-    firmwareIpBlockId: "fs_packetizer"
+  - name: "VCCStreamMerge"
+    multiplicity: 2
+    path: "fhs/vcc-stream-merge{{.multiplicity}}/{{.deviceId000}}"
+    emulatorIpBlockId: "vcc_stream_merge{{.multiplicity}}"
+    firmwareIpBlockId: "receptor{{.receptorId}}_vcc_stream_merge{{.multiplicity}}"
   - name: "VCCAllBandsController"
     path: "fhs/vcc-all-bands/{{.deviceId000}}"
     properties:
@@ -170,9 +171,9 @@ devices:
       - name: wideband_frequency_shifter_fqdn
         values:
           - "fhs/wfs/{{.deviceId000}}"
-      - name: mac_200_fqdn
+      - name: ethernet_200g_fqdn
         values:
-          - "fhs/mac200/{{.deviceId000}}"
+          - "fhs/ethernet200g/{{.deviceId000}}"
       - name: packet_validation_fqdn
         values:
           - "fhs/packetvalidation/{{.deviceId000}}"
@@ -188,9 +189,9 @@ devices:
       - name: fs_wideband_power_meter_fqdn
         values:
           - "fhs/fs<multiplicity>wpm/{{.deviceId000}}"
-      - name: packetizer_fqdn
+      - name: vcc_stream_merge_fqdn
         values:
-          - "fhs/packetizer/{{.deviceId000}}"
+          - "fhs/vcc-stream-merge<multiplicity>/{{.deviceId000}}"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 instances:

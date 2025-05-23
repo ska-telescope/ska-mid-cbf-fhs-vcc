@@ -21,7 +21,7 @@ class WideBandInputBufferConfig:
 
 
 ##
-# status class that will be populated by the APIs and returned to provide the status of Mac
+# status class that will be populated by the APIs and returned to provide the status of the Wideband Input Buffer
 ##
 @dataclass_json
 @dataclass

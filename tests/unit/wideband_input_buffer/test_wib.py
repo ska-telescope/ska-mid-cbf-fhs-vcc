@@ -161,7 +161,7 @@ def test_convert_dish_id(id, expected_mnemonic, exception_expectation):
 
 def test_start_command(device_under_test, event_tracer: TangoEventTracer):
     """
-    Test the Start command of the Mac200 device.
+    Test the Start command of the Wideband Input Buffer device.
     """
 
     # Invoke the command
@@ -187,7 +187,7 @@ def test_start_command(device_under_test, event_tracer: TangoEventTracer):
 
 def test_stop_command(device_under_test, event_tracer: TangoEventTracer):
     """
-    Test the Stop command of the Mac200 device.
+    Test the Stop command of the Wideband Input Buffer device.
     """
     result = device_under_test.command_inout("Stop")
 

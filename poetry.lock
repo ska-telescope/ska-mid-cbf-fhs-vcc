@@ -2185,29 +2185,26 @@ optional = false
 python-versions = ">=3.10,<3.13"
 groups = ["main"]
 markers = "python_version == \"3.10\" or python_version >= \"3.12\" or python_version == \"3.11\""
-files = [
-    {file = "ska_mid_cbf_fhs_common-0.0.1-py3-none-any.whl", hash = "sha256:ac595f15b93fc9dd2366ae36b7b307fcf91fe6b735f87b82fe06ed5a1feec2dc"},
-    {file = "ska_mid_cbf_fhs_common-0.0.1.tar.gz", hash = "sha256:04a7e3a5bd4786b2846adc1d6e7474ce880598e0ccbd83cb480e4a44e1310ef0"},
-]
+files = []
+develop = true
 
 [package.dependencies]
-dataclasses-json = ">=0.6.7,<0.7.0"
-debugpy = ">=1.8.5,<2.0.0"
-polling2 = ">=0.5.0,<0.6.0"
-pytango = ">=9.5.1,<10.0.0"
-pyyaml = ">=6.0.1,<7.0.0"
-requests = ">=2.32.3,<3.0.0"
+dataclasses-json = "^0.6.7"
+debugpy = "^1.8.5"
+polling2 = "^0.5.0"
+pytango = "^9.5.1"
+pyyaml = "^6.0.1"
+requests = "^2.32.3"
 ska-control-model = "1.1.0"
-ska-ser-log-transactions = ">=0.2.2+ae0f5c92,<0.3.0"
+ska-ser-log-transactions = "^0.2.2+ae0f5c92"
 ska-tango-base = "1.0.0"
 ska-tango-testing = "0.7.2"
 ska-telmodel = "1.15.0"
-typing-extensions = ">=4.8.0,<5.0.0"
+typing-extensions = "^4.8.0"
 
 [package.source]
-type = "legacy"
-url = "https://artefact.skao.int/repository/pypi-internal/simple"
-reference = "ska-nexus"
+type = "directory"
+url = "../ska-mid-cbf-fhs-common"
 
 [[package]]
 name = "ska-ser-log-transactions"
@@ -2829,4 +2826,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "5a85468febd4b8d7e45e634be9039dc70bedf015656da893ef2c614c2e225141"
+content-hash = "41006bf64236d7930d349fa6489bf2f19077f58b0819aa1f38577aca03348abb"

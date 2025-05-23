@@ -37,6 +37,8 @@ class PacketValidation(FhsLowLevelDeviceBase):
 
         # init the fast commands
         commandsAndClasses = [
+            ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
+            ("Deconfigure", FhsLowLevelDeviceBase.DeconfigureCommand),
             ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
             ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
             ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand),

@@ -10,7 +10,7 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VC
 
 
 class VCCAllBandsController(FhsBaseDevice):
-    mac_200_fqdn = device_property(dtype="str")
+    ethernet_200g_fqdn = device_property(dtype="str")
     packet_validation_fqdn = device_property(dtype="str")
     vcc123_channelizer_fqdn = device_property(dtype="str")
     vcc45_channelizer_fqdn = device_property(dtype="str")
@@ -22,7 +22,7 @@ class VCCAllBandsController(FhsBaseDevice):
     b45a_wideband_power_meter_fqdn = device_property(dtype="str")
     b5b_wideband_power_meter_fqdn = device_property(dtype="str")
     fs_wideband_power_meter_fqdn = device_property(dtype="str")
-    packetizer_fqdn = device_property(dtype="str")
+    vcc_stream_merge_fqdn = device_property(dtype="str")
 
     @attribute
     def expectedDishId(self):

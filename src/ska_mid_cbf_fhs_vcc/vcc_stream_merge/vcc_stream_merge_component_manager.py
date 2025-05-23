@@ -9,22 +9,22 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.packetizer.packetizer_simulator import PacketizerSimulator
+from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_simulator import VCCStreamMergeSimulator
 
 
 @dataclass_json
 @dataclass
-class PacketizerConfig:
+class VCCStreamMergeConfig:
     vid: np.uint16  # VLAN identifier, for unique VLAN identification.
     vcc_id: np.uint16  # Influences the Source MAC address.
     fs_id: np.uint16  # Frequency slice identifier.
 
 
 ##
-# status class that will be populated by the APIs and returned to provide the status of Packetizer
+# status class that will be populated by the APIs and returned to provide the status of VCC Stream Merge
 ##
 @dataclass
-class PacketizerStatus:
+class VCCStreamMergeStatus:
     mac_source_register: np.uint64  # Source MAC Address.
     vid_register: np.uint16  # VLAN identifier.
     flags_register: np.uint16  # Various flags, currently used for noise diode state.
@@ -34,19 +34,19 @@ class PacketizerStatus:
 
 @dataclass_json
 @dataclass
-class PacketizerConfigArgin:
+class VCCStreamMergeConfigArgin:
     fs_lanes: list[dict]
 
 
-class PacketizerComponentManager(FhsLowLevelComponentManagerBase):
+class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
-        self: PacketizerComponentManager,
+        self: VCCStreamMergeComponentManager,
         *args: Any,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             *args,
-            simulator_api=PacketizerSimulator,
+            simulator_api=VCCStreamMergeSimulator,
             **kwargs,
         )
 
@@ -54,29 +54,29 @@ class PacketizerComponentManager(FhsLowLevelComponentManagerBase):
     # Public Commands
     # ------------------
 
-    def configure(self: PacketizerComponentManager, argin: str) -> tuple[ResultCode, str]:
+    def configure(self: VCCStreamMergeComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
-            self.logger.info("Packetizer Configuring..")
+            self.logger.info("VCC Stream Merge Configuring..")
 
-            configJson: PacketizerConfigArgin = PacketizerConfigArgin.schema().loads(argin)
+            config_json: VCCStreamMergeConfigArgin = VCCStreamMergeConfigArgin.schema().loads(argin)
 
-            self.logger.info(f"CONFIG JSON CONFIG: {configJson.to_json()}")
+            self.logger.info(f"CONFIG JSON CONFIG: {config_json.to_json()}")
 
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
                 f"{self._device_id} configured successfully",
             )
 
-            for fs_lane in configJson.fs_lanes:
-                packetizerJsonConfig = PacketizerConfig(
+            for fs_lane in config_json.fs_lanes:
+                vcc_sm_config = VCCStreamMergeConfig(
                     vid=fs_lane.get("vlan_id"),
                     vcc_id=fs_lane.get("vcc_id"),
                     fs_id=fs_lane.get("fs_id"),
                 )
 
-                self.logger.info(f"Packetizer JSON CONFIG: {packetizerJsonConfig.to_json()}")
+                self.logger.info(f"VCC Stream Merge JSON CONFIG: {vcc_sm_config.to_json()}")
 
-                result = super().configure(packetizerJsonConfig.to_dict())
+                result = super().configure(vcc_sm_config.to_dict())
 
                 if result[0] != ResultCode.OK:
                     self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
@@ -94,7 +94,7 @@ class PacketizerComponentManager(FhsLowLevelComponentManagerBase):
         return result
 
     # TODO Determine what needs to be communicated with here
-    def start_communicating(self: PacketizerComponentManager) -> None:
+    def start_communicating(self: VCCStreamMergeComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
         if self._communication_state == CommunicationStatus.ESTABLISHED:
             self.logger.info("Already communicating.")

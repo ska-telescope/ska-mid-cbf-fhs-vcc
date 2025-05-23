@@ -121,6 +121,17 @@ lint:
 
 .PHONY: all test lint
 
+build-local-common:
+	cp Dockerfile Dockerfile.bak
+	if grep -E "^.*ska-mid-cbf-fhs-common.*develop\s*=\s*true.*$$" pyproject.toml; then \
+		cp -r ../ska-mid-cbf-fhs-common ./temp-common; \
+		sed -i "s|^COPY pyproject\.toml.*$$|&\nRUN sed -i \"s\|^ska-mid-cbf-fhs-common\\\s*=\\\s*\.*$$\|ska-mid-cbf-fhs-common = \\\\\"0.0.1\\\\\"\|g\" pyproject\.toml|g" Dockerfile; \
+		sed -i "s|^USER root.*$$|&\nRUN rm -rf /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common/\*\nCOPY \./temp-common/src/ska_mid_cbf_fhs_common /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common\nRUN chmod -R 777 /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common|g" Dockerfile; \
+	fi;
+	-make oci-build-all
+	rm Dockerfile && mv Dockerfile.bak Dockerfile
+	rm -rf ./temp-common
+
 format-python:
 	$(POETRY_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)
 	$(POETRY_PYTHON_RUNNER) black --exclude .+\.ipynb --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_BLACK) $(PYTHON_LINT_TARGET)
