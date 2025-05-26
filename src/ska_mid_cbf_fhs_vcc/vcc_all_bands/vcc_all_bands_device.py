@@ -49,7 +49,6 @@ class VCCAllBandsController(FhsObsBaseDevice):
             ("Scan", "scan"),
             ("EndScan", "end_scan"),
             ("ObsReset", "obs_reset"),
-            ("TestCmd", "test_cmd"),
         ]
 
         super().init_command_objects(commandsAndMethods)
@@ -103,16 +102,6 @@ class VCCAllBandsController(FhsObsBaseDevice):
     """
         Commands
     """
-
-    @command(
-        dtype_out="DevVarLongStringArray",
-    )
-    @tango.DebugIt()
-    def TestCmd(self: VCCAllBandsController) -> DevVarLongStringArrayType:
-        return (
-            [ResultCode.OK],
-            ["TEST CMD OKAY."],
-        )
 
     @command(
         dtype_in="DevString",

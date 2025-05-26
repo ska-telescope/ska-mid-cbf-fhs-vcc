@@ -10,7 +10,7 @@ import jsonschema
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
-from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsHealthMonitor, FhsObsStateMachine, FhsObsComponentManagerBase
+from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsHealthMonitor, FhsObsComponentManagerBase, FhsObsStateMachine
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_testing import context
 from tango import EventData, EventType
@@ -65,9 +65,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         for fqdn in self._power_meter_fqdns.values():
             self._proxies[fqdn] = None
 
-        self._vcc_stream_merge_fqdns = {
-            i: device.vcc_stream_merge_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 3)
-        }
+        self._vcc_stream_merge_fqdns = {i: device.vcc_stream_merge_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 3)}
         for fqdn in self._vcc_stream_merge_fqdns.values():
             self._proxies[fqdn] = None
 
@@ -426,11 +424,9 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 # VCC Stream Merge Configuration
                 self.logger.debug("VCC Stream Merge Configuring..")
                 for i, lane in enumerate(self._fs_lanes):
-                    result = self._proxies[self._vcc_stream_merge_fqdns[i // 13 + 1]].Configure(json.dumps({
-                        "vid": lane["vlan_id"],
-                        "vcc_id": self._vcc_id,
-                        "fs_id": lane["fs_id"]
-                    }))
+                    result = self._proxies[self._vcc_stream_merge_fqdns[i // 13 + 1]].Configure(
+                        json.dumps({"vid": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]})
+                    )
                     if result[0] == ResultCode.FAILED:
                         self.logger.error(f"Configuration of VCC Stream Merge failed: {result[1]}")
                         self._reset_devices([*self._vcc_stream_merge_fqdns.values()])

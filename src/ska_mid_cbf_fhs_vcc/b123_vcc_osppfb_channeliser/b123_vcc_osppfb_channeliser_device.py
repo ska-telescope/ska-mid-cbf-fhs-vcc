@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsLowLevelBaseDevice
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_component_manager import (
     B123VccOsppfbChanneliserComponentManager,
 )
 
 
-class B123VccOsppfbChanneliser(FhsLowLevelDeviceBase):
+class B123VccOsppfbChanneliser(FhsLowLevelBaseDevice):
     def create_component_manager(
         self: B123VccOsppfbChanneliser,
     ) -> B123VccOsppfbChanneliserComponentManager:
@@ -32,11 +32,10 @@ class B123VccOsppfbChanneliser(FhsLowLevelDeviceBase):
 
         # init the fast commands
         commandsAndClasses = [
-            ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
-            ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
-            ("Deconfigure", FhsLowLevelDeviceBase.DeconfigureCommand),
-            ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
-            ("GoToIdle", FhsBaseDevice.GoToIdleCommand),
+            ("Recover", FhsLowLevelBaseDevice.RecoverCommand),
+            ("Configure", FhsLowLevelBaseDevice.ConfigureCommand),
+            ("Deconfigure", FhsLowLevelBaseDevice.DeconfigureCommand),
+            ("GetStatus", FhsLowLevelBaseDevice.GetStatusCommand),
         ]
 
         super().init_fast_command_objects(commandsAndClasses)

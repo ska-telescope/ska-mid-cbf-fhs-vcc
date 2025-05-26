@@ -7,7 +7,7 @@ import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, TaskStatus
-from ska_mid_cbf_fhs_common import FhsHealthMonitor, FhsLowLevelComponentManagerBase, FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_common import FhsHealthMonitor, FhsLowLevelBaseDevice, FhsLowLevelComponentManagerBase
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 
@@ -49,7 +49,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: WidebandInputBufferComponentManager,
         *args: Any,
-        device: FhsLowLevelDeviceBase,
+        device: FhsLowLevelBaseDevice,
         health_state_callback: Callable[[HealthState], None] | None = None,
         **kwargs: Any,
     ) -> None:

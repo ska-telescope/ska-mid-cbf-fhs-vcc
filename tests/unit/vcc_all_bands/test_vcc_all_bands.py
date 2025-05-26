@@ -1,5 +1,4 @@
 import time
-from unittest import mock
 from assertpy import assert_that
 import pytest
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device import B123VccOsppfbChanneliser
@@ -10,23 +9,19 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device impo
 from ska_mid_cbf_fhs_common import WidebandPowerMeter, FtileEthernet
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_device import VCCStreamMerge
 from tango import DevState
-from ska_tango_testing import context
-from ska_tango_testing.integration import TangoEventTracer
-from ska_control_model import AdminMode, HealthState, ObsState, ResultCode
-from ska_tango_testing.integration import TangoEventTracer
-
-
+from ska_control_model import AdminMode, HealthState, ResultCode
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 
 EVENT_TIMEOUT = 30
 
 
 @pytest.fixture(name="test_context", scope="module")
-def pv_device():
+def init_test_context():
     """
-    Fixture to set up the packet validation device for testing with a mock Tango database.
+    Fixture to set up the VCC All Bands device for testing with a mock Tango database.
     """
-    harness = context.ThreadedTestTangoContextManager()
+    harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
 
     harness.add_device(
         device_name="test/vcc123/1",
@@ -176,7 +171,7 @@ def pv_device():
     for i in range(1, 3):
         harness.add_device(
             device_name=f"test/vcc-stream-merge{i}/1",
-            device_class=FtileEthernet,
+            device_class=VCCStreamMerge,
             device_id="1",
             device_version_num="1.0",
             device_gitlab_hash="abc123",
@@ -238,11 +233,13 @@ def pv_device():
         yield test_context
 
 
+@pytest.mark.forked
 def test_init(vcc_all_bands_device):
     state = vcc_all_bands_device.state()
     assert state == DevState.ON
 
 
+@pytest.mark.forked
 def test_adminMode_online(vcc_all_bands_device):
 
     prevAdminMode = vcc_all_bands_device.read_attribute("adminMode")
@@ -256,6 +253,7 @@ def test_adminMode_online(vcc_all_bands_device):
     assert adminMode.value == AdminMode.ONLINE.value
 
 
+@pytest.mark.forked
 def test_health_state_prop(vcc_all_bands_device, wib_device, wib_event_tracer):
 
     test_adminMode_online(vcc_all_bands_device)
@@ -297,6 +295,7 @@ def test_health_state_prop(vcc_all_bands_device, wib_device, wib_event_tracer):
     assert vccHealthState.value is HealthState.FAILED.value
 
 
+@pytest.mark.forked
 def test_adminMode_offline(vcc_all_bands_device, wib_device, wib_event_tracer):
     test_health_state_prop(vcc_all_bands_device, wib_device, wib_event_tracer)
     prevAdminMode = vcc_all_bands_device.read_attribute("adminMode")

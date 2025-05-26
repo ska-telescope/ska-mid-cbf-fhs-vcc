@@ -1,25 +1,18 @@
-# tests/test_fss.py
-
-import time
-from assertpy import assert_that
 import pytest
-from tango import DevState, DevFailed
-from ska_tango_testing import context
-from ska_tango_testing.integration import TangoEventTracer
-from unittest.mock import MagicMock, patch
-from ska_control_model import ObsState, ResultCode
-
+from tango import DevState
+from ska_control_model import ResultCode
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device import FrequencySliceSelection
 
 EVENT_TIMEOUT = 30
 
 
 @pytest.fixture(name="test_context", scope="module")
-def fss_device():
+def init_test_context():
     """
     Fixture to set up the FSS device for testing with a mock Tango database.
     """
-    harness = context.ThreadedTestTangoContextManager()
+    harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
     harness.add_device(
         device_name="test/fss/1",
         device_class=FrequencySliceSelection,
@@ -40,6 +33,7 @@ def fss_device():
         yield test_context
 
 
+@pytest.mark.forked
 def test_device_initialization(device_under_test):
     """
     Test that the fss device initializes correctly.
@@ -54,6 +48,7 @@ def test_device_initialization(device_under_test):
     assert status == "ON", f"Expected status 'ON', got '{status}'"
 
 
+@pytest.mark.forked
 def test_configure_command(device_under_test):
     """
     Test the Configure command of the fss device.
@@ -72,6 +67,7 @@ def test_configure_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_configure_command_invalid_config(device_under_test):
     """
     Test the Configure command of the fss device.
@@ -90,6 +86,7 @@ def test_configure_command_invalid_config(device_under_test):
     assert result_code == ResultCode.FAILED.value, f"Expected ResultCode.FAILED ({ResultCode.FAILED.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_deconfigure_command(device_under_test):
     """
     Test the Deconfigure command of the fss device.
@@ -107,6 +104,7 @@ def test_deconfigure_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_status_command(device_under_test):
     """
     Test the Status command of the fss device.
@@ -127,6 +125,7 @@ def test_status_command(device_under_test):
     assert message == expectedStatus
 
 
+@pytest.mark.forked
 def test_recover_command(device_under_test):
     """
     Test the Recover command of the fss device.

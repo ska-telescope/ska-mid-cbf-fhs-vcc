@@ -1,26 +1,19 @@
-# tests/test_Vcc.py
-
 import json
-import time
-from assertpy import assert_that
 import pytest
-from tango import DevState, DevFailed
-from ska_tango_testing import context
-from ska_tango_testing.integration import TangoEventTracer
-from unittest.mock import MagicMock, patch
-from ska_control_model import ObsState, ResultCode, SimulationMode
-
+from tango import DevState
+from ska_control_model import ResultCode
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device import B123VccOsppfbChanneliser
 
 EVENT_TIMEOUT = 30
 
 
 @pytest.fixture(name="test_context", scope="module")
-def vcc123_device():
+def init_test_context():
     """
     Fixture to set up the Vcc device for testing with a mock Tango database.
     """
-    harness = context.ThreadedTestTangoContextManager()
+    harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
     harness.add_device(
         device_name="test/vcc123/1",
         device_class=B123VccOsppfbChanneliser,
@@ -40,6 +33,7 @@ def vcc123_device():
         yield test_context
 
 
+@pytest.mark.forked
 def test_device_initialization(device_under_test):
     """
     Test that the Vcc device initializes correctly.
@@ -54,6 +48,7 @@ def test_device_initialization(device_under_test):
     assert status == "ON", f"Expected status 'ON', got '{status}'"
 
 
+@pytest.mark.forked
 def test_configure_command(device_under_test):
     """
     Test the Configure command of the Vcc device.
@@ -72,6 +67,7 @@ def test_configure_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_configure_command_invalid_config(device_under_test):
     """
     Test the Configure command of the Vcc device.
@@ -90,6 +86,7 @@ def test_configure_command_invalid_config(device_under_test):
     assert result_code == ResultCode.FAILED.value, f"Expected ResultCode.FAILED ({ResultCode.FAILED.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_deconfigure_command(device_under_test):
     """
     Test the Deconfigure command of the Vcc device.
@@ -107,6 +104,7 @@ def test_deconfigure_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_status_command(device_under_test):
     """
     Test the Status command of the Vcc device.
@@ -130,6 +128,7 @@ def test_status_command(device_under_test):
     assert msgDict == expectedStatus
 
 
+@pytest.mark.forked
 def test_recover_command(device_under_test):
     """
     Test the Recover command of the Vcc device.

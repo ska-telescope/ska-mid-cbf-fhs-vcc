@@ -1,11 +1,11 @@
 from __future__ import annotations  # allow forward references in type hints
 
-from dataclasses_json import dataclass_json
-from marshmallow import ValidationError
 from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
+from dataclasses_json import dataclass_json
+from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
@@ -51,7 +51,6 @@ class PacketValidationConfigArgin:
     exp_src_mac: np.uint64_t = 0
     exp_ethertype: np.uint64_t = 0
     exp_antenna_id: np.uint64_t = 0
-
 
 
 class PacketValidationComponentManager(FhsLowLevelComponentManagerBase):

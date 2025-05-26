@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_common import FhsLowLevelBaseDevice
 
 from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_component_manager import CircuitSwitchComponentManager
 
 
-class CircuitSwitch(FhsLowLevelDeviceBase):
+class CircuitSwitch(FhsLowLevelBaseDevice):
     def create_component_manager(
         self: CircuitSwitch,
     ) -> CircuitSwitchComponentManager:
@@ -30,10 +30,10 @@ class CircuitSwitch(FhsLowLevelDeviceBase):
 
         # init the fast commands
         commandsAndClasses = [
-            ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
-            ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
-            ("Deconfigure", FhsLowLevelDeviceBase.DeconfigureCommand),
-            ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
+            ("Recover", FhsLowLevelBaseDevice.RecoverCommand),
+            ("Configure", FhsLowLevelBaseDevice.ConfigureCommand),
+            ("Deconfigure", FhsLowLevelBaseDevice.DeconfigureCommand),
+            ("GetStatus", FhsLowLevelBaseDevice.GetStatusCommand),
         ]
         super().init_fast_command_objects(commandsAndClasses)
 

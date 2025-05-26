@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_common import FhsLowLevelBaseDevice
 
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_component_manager import VCCStreamMergeComponentManager
 
 
-class VCCStreamMerge(FhsLowLevelDeviceBase):
+class VCCStreamMerge(FhsLowLevelBaseDevice):
     def create_component_manager(
         self: VCCStreamMerge,
     ) -> VCCStreamMergeComponentManager:
@@ -29,16 +29,14 @@ class VCCStreamMerge(FhsLowLevelDeviceBase):
         commandsAndMethods = [
             ("Start", "start"),
             ("Stop", "stop"),
-            ("TestCmd", "test_cmd"),
         ]
         super().init_command_objects(commandsAndMethods)
 
         # init the fast commands
         commandsAndClasses = [
-            ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
-            ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
-            ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
-            ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand),
+            ("Configure", FhsLowLevelBaseDevice.ConfigureCommand),
+            ("Recover", FhsLowLevelBaseDevice.RecoverCommand),
+            ("GetStatus", FhsLowLevelBaseDevice.GetStatusCommand),
         ]
 
         super().init_fast_command_objects(commandsAndClasses)

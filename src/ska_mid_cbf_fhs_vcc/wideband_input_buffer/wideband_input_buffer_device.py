@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_common import FhsLowLevelBaseDevice
 from tango.server import attribute
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_component_manager import WidebandInputBufferComponentManager
 
 
-class WidebandInputBuffer(FhsLowLevelDeviceBase):
+class WidebandInputBuffer(FhsLowLevelBaseDevice):
     @attribute(dtype="str")
     def expectedDishId(self: WidebandInputBuffer) -> str:
         return self.component_manager.expected_dish_id
@@ -38,16 +38,14 @@ class WidebandInputBuffer(FhsLowLevelDeviceBase):
         commandsAndMethods = [
             ("Start", "start"),
             ("Stop", "stop"),
-            ("TestCmd", "test_cmd"),
         ]
         super().init_command_objects(commandsAndMethods)
 
         # init the fast commands
         commandsAndClasses = [
-            ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
-            ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
-            ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
-            ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand),
+            ("Recover", FhsLowLevelBaseDevice.RecoverCommand),
+            ("Configure", FhsLowLevelBaseDevice.ConfigureCommand),
+            ("GetStatus", FhsLowLevelBaseDevice.GetStatusCommand),
         ]
 
         super().init_fast_command_objects(commandsAndClasses)

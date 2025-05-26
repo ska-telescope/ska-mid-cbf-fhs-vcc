@@ -1,3 +1,5 @@
+"""This module contains pytest-specific test harness for FHS-VCC VCC All Bands Controller unit tests."""
+
 from __future__ import annotations
 
 from typing import Generator

@@ -1,15 +1,11 @@
-# tests/test_packet validation.py
-
 from contextlib import nullcontext as does_not_raise
 import time
-from unittest import mock
 from assertpy import assert_that
 import pytest
 from tango import DevState
-from ska_tango_testing import context
 from ska_tango_testing.integration import TangoEventTracer
-from ska_control_model import HealthState, ObsState, ResultCode
-
+from ska_control_model import HealthState, ResultCode
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_component_manager import convert_dish_id_uint16_t_to_mnemonic
 
@@ -17,11 +13,11 @@ EVENT_TIMEOUT = 30
 
 
 @pytest.fixture(name="test_context", scope="module")
-def pv_device():
+def init_test_context():
     """
-    Fixture to set up the packet validation device for testing with a mock Tango database.
+    Fixture to set up the Wideband Input Buffer device for testing with a mock Tango database.
     """
-    harness = context.ThreadedTestTangoContextManager()
+    harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
     harness.add_device(
         device_name="test/wib/1",
         device_class=WidebandInputBuffer,
@@ -43,9 +39,10 @@ def pv_device():
         yield test_context
 
 
+@pytest.mark.forked
 def test_device_initialization(device_under_test):
     """
-    Test that the packet validation device initializes correctly.
+    Test that the Wideband Input Buffer device initializes correctly.
     """
 
     # Check device state
@@ -57,9 +54,10 @@ def test_device_initialization(device_under_test):
     assert status == "ON", f"Expected status 'ON', got '{status}'"
 
 
+@pytest.mark.forked
 def test_configure_command(device_under_test):
     """
-    Test the Configure command of the wideband frequency shifter device.
+    Test the Configure command of the Wideband Input Buffer device.
     """
 
     # Define configuration input
@@ -75,9 +73,10 @@ def test_configure_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_status_command(device_under_test):
     """
-    Test the Status command of the packet validation device.
+    Test the Status command of the Wideband Input Buffer device.
     """
     # Define input for clear flag
     clear = False  # or True, depending on the test case
@@ -92,9 +91,10 @@ def test_status_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_recover_command(device_under_test):
     """
-    Test the Recover command of the packet validation device.
+    Test the Recover command of the Wideband Input Buffer device.
     """
 
     # Invoke the command
@@ -107,6 +107,7 @@ def test_recover_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 @pytest.mark.parametrize(
     ("id", "expected_mnemonic", "exception_expectation"),
     [
@@ -144,6 +145,7 @@ def test_convert_dish_id(id, expected_mnemonic, exception_expectation):
         assert convert_dish_id_uint16_t_to_mnemonic(id) == expected_mnemonic
 
 
+@pytest.mark.forked
 def test_start_command(device_under_test, event_tracer: TangoEventTracer):
     """
     Test the Start command of the Wideband Input Buffer device.
@@ -168,6 +170,7 @@ def test_start_command(device_under_test, event_tracer: TangoEventTracer):
     )
 
 
+@pytest.mark.forked
 def test_stop_command(device_under_test, event_tracer: TangoEventTracer):
     """
     Test the Stop command of the Wideband Input Buffer device.
@@ -190,6 +193,7 @@ def test_stop_command(device_under_test, event_tracer: TangoEventTracer):
     )
 
 
+@pytest.mark.forked
 def test_register_polling_healthstate_failed(device_under_test, event_tracer):
 
     config_json = '{"expected_sample_rate": 3920000000, "noise_diode_transition_holdoff_seconds": 1.0, "expected_dish_band": 1}'
@@ -221,6 +225,7 @@ def test_register_polling_healthstate_failed(device_under_test, event_tracer):
     assert healthState.value is HealthState.FAILED.value
 
 
+@pytest.mark.forked
 def test_register_polling_healthstate_ok(device_under_test, event_tracer):
 
     config_json = '{"expected_sample_rate": 3960000000, "noise_diode_transition_holdoff_seconds": 1.0, "expected_dish_band": 1}'

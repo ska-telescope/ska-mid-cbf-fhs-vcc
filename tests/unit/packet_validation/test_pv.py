@@ -1,25 +1,20 @@
-# tests/test_packet validation.py
-
-import time
 from assertpy import assert_that
 import pytest
-from tango import DevState, DevFailed
-from ska_tango_testing import context
+from tango import DevState
 from ska_tango_testing.integration import TangoEventTracer
-from unittest.mock import MagicMock, patch
-from ska_control_model import ObsState, ResultCode
-
+from ska_control_model import ResultCode
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
 
 EVENT_TIMEOUT = 30
 
 
 @pytest.fixture(name="test_context", scope="module")
-def pv_device():
+def init_test_context():
     """
     Fixture to set up the packet validation device for testing with a mock Tango database.
     """
-    harness = context.ThreadedTestTangoContextManager()
+    harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
     harness.add_device(
         device_name="test/packet_validation/1",
         device_class=PacketValidation,
@@ -40,6 +35,7 @@ def pv_device():
         yield test_context
 
 
+@pytest.mark.forked
 def test_device_initialization(device_under_test):
     """
     Test that the packet validation device initializes correctly.
@@ -54,6 +50,7 @@ def test_device_initialization(device_under_test):
     assert status == "ON", f"Expected status 'ON', got '{status}'"
 
 
+@pytest.mark.forked
 def test_start_command(device_under_test, event_tracer: TangoEventTracer):
     """
     Test the Start command of the Packet Validation device.
@@ -78,6 +75,7 @@ def test_start_command(device_under_test, event_tracer: TangoEventTracer):
     )
 
 
+@pytest.mark.forked
 def test_stop_command(device_under_test, event_tracer: TangoEventTracer):
     """
     Test the Stop command of the Packet Validation device.
@@ -100,6 +98,7 @@ def test_stop_command(device_under_test, event_tracer: TangoEventTracer):
     )
 
 
+@pytest.mark.forked
 def test_status_command(device_under_test):
     """
     Test the Status command of the packet validation device.
@@ -117,6 +116,7 @@ def test_status_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_recover_command(device_under_test):
     """
     Test the Recover command of the packet validation device.

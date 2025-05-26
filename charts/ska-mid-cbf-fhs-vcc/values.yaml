@@ -99,7 +99,7 @@ properties:
 
 # the devices in each stack. optionally override any property defined in `properties`. to add extra properties, provide a `properties` dict
 devices:
-  - name: "200GbEthernet"
+  - name: "Ethernet200Gb"
     path: "fhs/ethernet200g/{{.deviceId000}}"
     emulatorIpBlockId: "ethernet_200g"
     firmwareIpBlockId: "eth200g_{{.receptorId}}"
@@ -206,3 +206,5 @@ deviceServers:
   fhs-vcc-stack:
     enabled: true
     file: "data/fhs_vcc_stack.yaml"
+
+gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams/-/archive/cip-3569/ska-mid-cbf-bitstreams-cip-3569.tar.gz?path=raw/ska-mid-cbf-agilex-vcc"

@@ -1,25 +1,18 @@
-# tests/test_packet validation.py
-
-import time
-from assertpy import assert_that
 import pytest
-from tango import DevState, DevFailed
-from ska_tango_testing import context
-from ska_tango_testing.integration import TangoEventTracer
-from unittest.mock import MagicMock, patch
-from ska_control_model import ObsState, ResultCode
-
+from tango import DevState
+from ska_control_model import ResultCode
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device import WidebandFrequencyShifter
 
 EVENT_TIMEOUT = 30
 
 
 @pytest.fixture(name="test_context", scope="module")
-def pv_device():
+def init_test_context():
     """
-    Fixture to set up the packet validation device for testing with a mock Tango database.
+    Fixture to set up the Frequency Shifter device for testing with a mock Tango database.
     """
-    harness = context.ThreadedTestTangoContextManager()
+    harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
     harness.add_device(
         device_name="test/wfs/1",
         device_class=WidebandFrequencyShifter,
@@ -40,9 +33,10 @@ def pv_device():
         yield test_context
 
 
+@pytest.mark.forked
 def test_device_initialization(device_under_test):
     """
-    Test that the packet validation device initializes correctly.
+    Test that the Frequency Shifter device initializes correctly.
     """
 
     # Check device state
@@ -54,9 +48,10 @@ def test_device_initialization(device_under_test):
     assert status == "ON", f"Expected status 'ON', got '{status}'"
 
 
+@pytest.mark.forked
 def test_configure_command(device_under_test):
     """
-    Test the Configure command of the wideband frequency shifter device.
+    Test the Configure command of the Frequency Shifter device.
     """
 
     config_json = '{"shift_frequency": 110.0}'
@@ -71,9 +66,10 @@ def test_configure_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_deconfigure_command(device_under_test):
     """
-    Test the Deconfigure command of the wideband frequency shifter device.
+    Test the Deconfigure command of the Frequency Shifter device.
     """
 
     test_configure_command(device_under_test)
@@ -88,9 +84,10 @@ def test_deconfigure_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_status_command(device_under_test):
     """
-    Test the Status command of the packet validation device.
+    Test the Status command of the Frequency Shifter device.
     """
     # Define input for clear flag
     clear = False  # or True, depending on the test case
@@ -105,9 +102,10 @@ def test_status_command(device_under_test):
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
 
+@pytest.mark.forked
 def test_recover_command(device_under_test):
     """
-    Test the Recover command of the packet validation device.
+    Test the Recover command of the Frequency Shifter device.
     """
 
     # Invoke the command
