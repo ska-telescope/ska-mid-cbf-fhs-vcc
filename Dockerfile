@@ -53,10 +53,10 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY --from=build $VIRTUAL_ENV $VIRTUAL_ENV
 
 LABEL int.skao.image.team=cipa-halifax \
-      int.skao.image.authors=jason.turner@mda.space \
-      int.skao.image.url=gitlab \
-      description="desc" \
-      license=licence
+      int.skao.image.authors="Jason Turner <jason.turner@mda.space>, Ben Herriott <ben.herriott@mda.space>, Justin Wamback <justin.wamback@mda.space>" \
+      int.skao.image.url=https://gitlab.com/ska-telescope/ska-mid-cbf-fhs-vcc \
+      description="SKA Mid.CBF FHS VCC" \
+      license="BSD license"
 
 USER root
 
