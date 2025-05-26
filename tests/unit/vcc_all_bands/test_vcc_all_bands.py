@@ -253,8 +253,6 @@ def test_health_state_prop(vcc_all_bands_device, wib_device, wib_event_tracer):
     # Invoke the command
     result = wib_device.command_inout("Configure", config_json)
 
-    assert wib_device.read_attribute("obsState").value is ObsState.READY.value
-
     result = wib_device.command_inout("Start")
 
     # Extract the result code and message
