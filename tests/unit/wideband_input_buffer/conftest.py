@@ -42,7 +42,7 @@ def tango_event_tracer(
     """
     tracer = TangoEventTracer()
 
-    change_event_attr_list = ["longRunningCommandResult", "obsState", "adminMode", "state", "healthState"]
+    change_event_attr_list = ["longRunningCommandResult", "adminMode", "state", "healthState"]
     for attr in change_event_attr_list:
         tracer.subscribe_event(device_under_test, attr)
 

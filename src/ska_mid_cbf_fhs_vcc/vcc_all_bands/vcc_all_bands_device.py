@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import tango
 from ska_control_model import ResultCode
-from ska_mid_cbf_fhs_common import FhsBaseDevice
+from ska_mid_cbf_fhs_common.base_classes.device.obs.fhs_obs_base_device import FhsObsBaseDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command, device_property
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VCCAllBandsComponentManager
 
 
-class VCCAllBandsController(FhsBaseDevice):
+class VCCAllBandsController(FhsObsBaseDevice):
     mac_200_fqdn = device_property(dtype="str")
     packet_validation_fqdn = device_property(dtype="str")
     vcc123_channelizer_fqdn = device_property(dtype="str")
