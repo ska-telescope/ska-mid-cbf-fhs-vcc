@@ -123,7 +123,7 @@ devices:
     path: "fhs/wfs/{{.deviceId000}}"
     emulatorIpBlockId: "wideband_frequency_shifter"
     firmwareIpBlockId: "wideband_frequency_shifter_unimplemented"
-  - name: "B123VccOsppfbChanneliser"
+  - name: "B123VccOsppfbChannelizer"
     path: "fhs/vcc/{{.deviceId000}}"
     emulatorIpBlockId: "b123vcc"
     firmwareIpBlockId: "receptor{{.receptorId}}_band123_vcc"

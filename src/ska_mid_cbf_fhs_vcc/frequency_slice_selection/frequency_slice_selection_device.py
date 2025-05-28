@@ -31,13 +31,13 @@ class FrequencySliceSelection(FhsLowLevelBaseDevice):
         super().init_command_objects()
 
         # init the fast commands
-        commandsAndClasses = [
+        commands_and_classes = [
             ("Recover", FhsLowLevelBaseDevice.RecoverCommand),
             ("Configure", FhsLowLevelBaseDevice.ConfigureCommand),
             ("Deconfigure", FhsLowLevelBaseDevice.DeconfigureCommand),
             ("GetStatus", FhsLowLevelBaseDevice.GetStatusCommand),
         ]
-        super().init_fast_command_objects(commandsAndClasses)
+        super().init_fast_command_objects(commands_and_classes)
 
 
 def main(args=None, **kwargs):

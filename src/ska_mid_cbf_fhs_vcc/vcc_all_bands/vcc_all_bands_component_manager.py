@@ -143,16 +143,16 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
     def is_go_to_idle_allowed(self: VCCAllBandsComponentManager) -> bool:
         self.logger.debug("Checking if gotoidle is allowed...")
-        errorMsg = f"go_to_idle not allowed in ObsState {self.obs_state}; " "must be in ObsState.READY"
+        error_msg = f"go_to_idle not allowed in ObsState {self.obs_state}; " "must be in ObsState.READY"
 
-        return self.is_allowed(errorMsg, [ObsState.READY])
+        return self.is_allowed(error_msg, [ObsState.READY])
 
     def is_obs_reset_allowed(self: VCCAllBandsComponentManager) -> bool:
         self.logger.debug("Checking if ObsReset is allowed...")
-        errorMsg = f"ObsReset not allowed in ObsState {self.obs_state}; \
+        error_msg = f"ObsReset not allowed in ObsState {self.obs_state}; \
             must be in ObsState.FAULT or ObsState.ABORTED"
 
-        return self.is_allowed(errorMsg, [ObsState.FAULT, ObsState.ABORTED])
+        return self.is_allowed(error_msg, [ObsState.FAULT, ObsState.ABORTED])
 
     def configure_scan(
         self: VCCAllBandsComponentManager,
@@ -423,9 +423,16 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
                 # VCC Stream Merge Configuration
                 self.logger.debug("VCC Stream Merge Configuring..")
-                for i, lane in enumerate(self._fs_lanes):
-                    result = self._proxies[self._vcc_stream_merge_fqdns[i // 13 + 1]].Configure(
-                        json.dumps({"vid": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]})
+                for i in range(1, 3):
+                    result = self._proxies[self._vcc_stream_merge_fqdns[i]].Configure(
+                        json.dumps(
+                            {
+                                "fs_lanes": [
+                                    {"vid": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]}
+                                    for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
+                                ]
+                            }
+                        )
                     )
                     if result[0] == ResultCode.FAILED:
                         self.logger.error(f"Configuration of VCC Stream Merge failed: {result[1]}")

@@ -76,7 +76,7 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	${TARANTA_PARAMS}
 
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
-PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503,E731
+PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503,E731,E203
 
 # F0002, F0010: Astroid errors. Not our problem.
 # E0401: Import errors. Ignore for now until we figure out our actual project structure.
@@ -120,15 +120,10 @@ lint:
 
 .PHONY: all test lint
 
+build-local-common: COMMON_LIB_PATH = ../ska-mid-cbf-fhs-common
 build-local-common:
-	cp Dockerfile Dockerfile.bak
-	if grep -E "^.*ska-mid-cbf-fhs-common.*develop\s*=\s*true.*$$" pyproject.toml; then \
-		cp -r ../ska-mid-cbf-fhs-common ./temp-common; \
-		sed -i "s|^COPY pyproject\.toml.*$$|&\nRUN sed -i \"s\|^ska-mid-cbf-fhs-common\\\s*=\\\s*\.*$$\|ska-mid-cbf-fhs-common = \\\\\"0.0.1\\\\\"\|g\" pyproject\.toml|g" Dockerfile; \
-		sed -i "s|^USER root.*$$|&\nRUN rm -rf /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common/\*\nCOPY \./temp-common/src/ska_mid_cbf_fhs_common /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common\nRUN chmod -R 777 /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common|g" Dockerfile; \
-	fi;
-	-make oci-build-all
-	rm Dockerfile && mv Dockerfile.bak Dockerfile
+	cp -r $(COMMON_LIB_PATH) ./temp-common
+	-make oci-build-all OCI_IMAGE_FILE_PATH=./devcommon.Dockerfile
 	rm -rf ./temp-common
 
 format-python:

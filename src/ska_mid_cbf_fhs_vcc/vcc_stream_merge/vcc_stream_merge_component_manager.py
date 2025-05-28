@@ -1,6 +1,6 @@
 from __future__ import annotations  # allow forward references in type hints
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
@@ -34,8 +34,8 @@ class VCCStreamMergeStatus:
 
 @dataclass_json
 @dataclass
-class VCCStreamMergeConfigArgin:
-    fs_lanes: list[dict]
+class VCCStreamMergeConfigureArgin:
+    fs_lane_configs: list[VCCStreamMergeConfig] = field(default_factory=lambda: [])
 
 
 class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
@@ -58,23 +58,11 @@ class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
         try:
             self.logger.info("VCC Stream Merge Configuring..")
 
-            config_json: VCCStreamMergeConfigArgin = VCCStreamMergeConfigArgin.schema().loads(argin)
+            argin_parsed: VCCStreamMergeConfigureArgin = VCCStreamMergeConfigureArgin.schema().loads(argin)
+            self.logger.info(f"VCC Stream Merge JSON CONFIG: {argin_parsed.to_json()}")
 
-            self.logger.info(f"CONFIG JSON CONFIG: {config_json.to_json()}")
-
-            result: tuple[ResultCode, str] = (
-                ResultCode.OK,
-                f"{self._device_id} configured successfully",
-            )
-
-            for fs_lane in config_json.fs_lanes:
-                vcc_sm_config = VCCStreamMergeConfig(
-                    vid=fs_lane.get("vlan_id"),
-                    vcc_id=fs_lane.get("vcc_id"),
-                    fs_id=fs_lane.get("fs_id"),
-                )
-
-                self.logger.info(f"VCC Stream Merge JSON CONFIG: {vcc_sm_config.to_json()}")
+            for vcc_sm_config in argin_parsed.fs_lane_configs:
+                self.logger.info(f"VCC Stream Merge FS Lane JSON CONFIG: {vcc_sm_config.to_json()}")
 
                 result = super().configure(vcc_sm_config.to_dict())
 
@@ -83,17 +71,50 @@ class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
                     break
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema"
-            self.logger.error(f"{errorMsg}: {vex}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            result = ResultCode.FAILED, error_msg
         except Exception as ex:
-            errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(f"{errorMsg}: {ex!r}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            result = ResultCode.FAILED, error_msg
 
         return result
 
-    # TODO Determine what needs to be communicated with here
+    def deconfigure(self: VCCStreamMergeComponentManager, argin: str = None) -> tuple[ResultCode, str]:
+        try:
+            result: tuple[ResultCode, str] = (
+                ResultCode.OK,
+                f"{self._device_id} deconfigured successfully",
+            )
+
+            if argin is None:
+                result = super().recover()
+            else:
+                argin_parsed: VCCStreamMergeConfigureArgin = VCCStreamMergeConfigureArgin.schema().loads(argin)
+
+                self.logger.info(f"DECONFIG JSON CONFIG: {argin_parsed.to_json()}")
+
+                for vcc_sm_config in argin_parsed.fs_lane_configs:
+                    self.logger.info(f"VCC Stream Merge FS Lane JSON CONFIG: {vcc_sm_config.to_json()}")
+
+                    result = super().deconfigure(vcc_sm_config.to_dict())
+
+                    if result[0] != ResultCode.OK:
+                        self.logger.error(f"Deconfiguring {self._device_id} failed. {result[1]}")
+                        break
+
+        except ValidationError as vex:
+            error_msg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            result = ResultCode.FAILED, error_msg
+        except Exception as ex:
+            error_msg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            result = ResultCode.FAILED, error_msg
+
+        return result
+
     def start_communicating(self: VCCStreamMergeComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
         if self._communication_state == CommunicationStatus.ESTABLISHED:

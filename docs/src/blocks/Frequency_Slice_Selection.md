@@ -1,10 +1,10 @@
 # Frequency Slice Selection
 
-The Freqency Slice Selection module is implemented as 2:1 muxes, that connects the VCC channelisers to the outputs.
+The Freqency Slice Selection module is implemented as 2:1 muxes, that connects the VCC channelizers to the outputs.
 
-It has 10 inputs from the B123_Channeliser and 15 inputs each from the two B45 Channelisers. These 40 inputs are selected to 26 outputs with some heavy restrictions.
-1. select from either the B123_Channeliser, OR the B45 Channelisers.
-2. select the range of channels from the B45 Channelisers.
+It has 10 inputs from the B123_Channelizer and 15 inputs each from the two B45 Channelizers. These 40 inputs are selected to 26 outputs with some heavy restrictions.
+1. select from either the B123_Channelizer, OR the B45 Channelizers.
+2. select the range of channels from the B45 Channelizers.
 
 ## Data Path Interface
 The datapath transports streams of complex samples. Selecting which of two possible inputs goes to an output.

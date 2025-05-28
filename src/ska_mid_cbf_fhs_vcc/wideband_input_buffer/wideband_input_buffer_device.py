@@ -35,20 +35,20 @@ class WidebandInputBuffer(FhsLowLevelBaseDevice):
         """Hook to delete device."""
 
     def init_command_objects(self: WidebandInputBuffer) -> None:
-        commandsAndMethods = [
+        commands_and_methods = [
             ("Start", "start"),
             ("Stop", "stop"),
         ]
-        super().init_command_objects(commandsAndMethods)
+        super().init_command_objects(commands_and_methods)
 
         # init the fast commands
-        commandsAndClasses = [
+        commands_and_classes = [
             ("Recover", FhsLowLevelBaseDevice.RecoverCommand),
             ("Configure", FhsLowLevelBaseDevice.ConfigureCommand),
             ("GetStatus", FhsLowLevelBaseDevice.GetStatusCommand),
         ]
 
-        super().init_fast_command_objects(commandsAndClasses)
+        super().init_fast_command_objects(commands_and_classes)
 
 
 def main(args=None, **kwargs):

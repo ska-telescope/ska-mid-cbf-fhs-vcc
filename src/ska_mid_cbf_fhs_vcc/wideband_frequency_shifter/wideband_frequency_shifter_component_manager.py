@@ -55,34 +55,27 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManagerBase):
         try:
             self.logger.info("WFS Configuring..")
 
-            wfsJsonConfig: WidebandFrequencyShifterConfig = WidebandFrequencyShifterConfig.schema().loads(argin)
+            wfs_config: WidebandFrequencyShifterConfig = WidebandFrequencyShifterConfig.schema().loads(argin)
 
-            self.logger.info(f"CONFIG JSON CONFIG: {wfsJsonConfig.to_json()}")
+            self.logger.info(f"WFS JSON CONFIG: {wfs_config.to_json()}")
 
-            result: tuple[ResultCode, str] = (
-                ResultCode.OK,
-                f"{self._device_id} configured successfully",
-            )
-
-            self.logger.info(f"WFS JSON CONFIG: {wfsJsonConfig.to_json()}")
-
-            result = super().configure(wfsJsonConfig.to_dict())
+            result = super().configure(wfs_config.to_dict())
 
             if result[0] != ResultCode.OK:
                 self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema"
-            self.logger.error(f"{errorMsg}: {vex}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            result = ResultCode.FAILED, error_msg
         except Exception as ex:
-            errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(f"{errorMsg}: {ex!r}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            result = ResultCode.FAILED, error_msg
 
         return result
 
-    def deconfigure(self: WidebandFrequencyShifterComponentManager, argin: dict = None) -> tuple[ResultCode, str]:
+    def deconfigure(self: WidebandFrequencyShifterComponentManager, argin: str = None) -> tuple[ResultCode, str]:
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
@@ -92,9 +85,9 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManagerBase):
             if argin is None:
                 result = super().recover()
             else:
-                wfsJsonConfig: WidebandFrequencyShifterConfig = WidebandFrequencyShifterConfig.schema().loads(argin)
+                wfs_config: WidebandFrequencyShifterConfig = WidebandFrequencyShifterConfig.schema().loads(argin)
 
-                self.logger.info(f"DECONFIG JSON CONFIG: {wfsJsonConfig.to_json()}")
+                self.logger.info(f"DECONFIG JSON CONFIG: {wfs_config.to_json()}")
 
                 result = super().deconfigure(argin)
 
@@ -102,13 +95,13 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManagerBase):
                     self.logger.error(f"DeConfiguring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema"
-            self.logger.error(f"{errorMsg}: {vex}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            result = ResultCode.FAILED, error_msg
         except Exception as ex:
-            errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(f"{errorMsg}: {ex!r}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            result = ResultCode.FAILED, error_msg
 
         return result
 

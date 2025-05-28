@@ -42,7 +42,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         )
 
     def init_command_objects(self: VCCAllBandsController) -> None:
-        commandsAndMethods = [
+        commands_and_methods = [
             ("GoToIdle", "go_to_idle"),  # replacement for Deconfigure
             ("ConfigureBand", "configure_band"),
             ("ConfigureScan", "configure_scan"),
@@ -51,7 +51,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
             ("ObsReset", "obs_reset"),
         ]
 
-        super().init_command_objects(commandsAndMethods)
+        super().init_command_objects(commands_and_methods)
 
     @attribute(
         abs_change=1,

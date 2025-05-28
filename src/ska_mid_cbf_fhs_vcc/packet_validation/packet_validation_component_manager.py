@@ -12,6 +12,20 @@ from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_simulator import PacketValidationControllerSimulator
 
 
+@dataclass_json
+@dataclass
+class PacketValidationConfig:
+    drop_dst_mac: bool = True
+    drop_src_mac: bool = True
+    drop_ethertype: bool = True
+    drop_antenna_id: bool = True
+    clr_cnt: bool = True
+    exp_dst_mac: np.uint64_t = 0
+    exp_src_mac: np.uint64_t = 0
+    exp_ethertype: np.uint64_t = 0
+    exp_antenna_id: np.uint64_t = 0
+
+
 ##
 # status class that will be populated by the APIs and returned to provide the status of Packet Validation
 ##
@@ -39,20 +53,6 @@ class PacketValidationStatus:
     wrong_antenna_id_cnt: np.uint32_t = 0
 
 
-@dataclass_json
-@dataclass
-class PacketValidationConfigArgin:
-    drop_dst_mac: bool = True
-    drop_src_mac: bool = True
-    drop_ethertype: bool = True
-    drop_antenna_id: bool = True
-    clr_cnt: bool = True
-    exp_dst_mac: np.uint64_t = 0
-    exp_src_mac: np.uint64_t = 0
-    exp_ethertype: np.uint64_t = 0
-    exp_antenna_id: np.uint64_t = 0
-
-
 class PacketValidationComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: PacketValidationComponentManager,
@@ -76,36 +76,36 @@ class PacketValidationComponentManager(FhsLowLevelComponentManagerBase):
     ##
     # Public Commands
     ##
-    def configure(self: PacketValidationComponentManager, argin: dict) -> tuple[ResultCode, str]:
+    def configure(self: PacketValidationComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
             self.logger.info("Packet Validation Configuring..")
 
-            configJson: PacketValidationConfigArgin = PacketValidationConfigArgin.schema().loads(argin)
+            pv_config: PacketValidationConfig = PacketValidationConfig.schema().loads(argin)
 
-            self.logger.info(f"CONFIG JSON CONFIG: {configJson.to_json()}")
+            self.logger.info(f"CONFIG JSON CONFIG: {pv_config.to_json()}")
 
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
                 f"{self._device_id} configured successfully",
             )
 
-            result = super().configure(configJson.to_dict())
+            result = super().configure(pv_config.to_dict())
 
             if result[0] != ResultCode.OK:
                 self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema"
-            self.logger.error(f"{errorMsg}: {vex}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            result = ResultCode.FAILED, error_msg
         except Exception as ex:
-            errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(f"{errorMsg}: {ex!r}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            result = ResultCode.FAILED, error_msg
 
         return result
 
-    def deconfigure(self: PacketValidationComponentManager, argin: dict = None) -> tuple[ResultCode, str]:
+    def deconfigure(self: PacketValidationComponentManager, argin: str = None) -> tuple[ResultCode, str]:
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
@@ -115,9 +115,9 @@ class PacketValidationComponentManager(FhsLowLevelComponentManagerBase):
             if argin is None:
                 result = super().recover()
             else:
-                configJson: PacketValidationConfigArgin = PacketValidationConfigArgin.schema().loads(argin)
+                pv_config: PacketValidationConfig = PacketValidationConfig.schema().loads(argin)
 
-                self.logger.info(f"DECONFIG JSON CONFIG: {configJson.to_json()}")
+                self.logger.info(f"DECONFIG JSON CONFIG: {pv_config.to_json()}")
 
                 result = super().deconfigure(argin)
 
@@ -125,13 +125,13 @@ class PacketValidationComponentManager(FhsLowLevelComponentManagerBase):
                     self.logger.error(f"DeConfiguring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema"
-            self.logger.error(f"{errorMsg}: {vex}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            result = ResultCode.FAILED, error_msg
         except Exception as ex:
-            errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(f"{errorMsg}: {ex!r}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            result = ResultCode.FAILED, error_msg
 
         return result
 

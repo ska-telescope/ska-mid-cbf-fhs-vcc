@@ -3,7 +3,7 @@ import subprocess
 from ska_mid_cbf_fhs_common import FtileEthernet, WidebandPowerMeter
 from tango.server import run
 
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_device import B123VccOsppfbChanneliser
+from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_device import B123VccOsppfbChannelizer
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device import FrequencySliceSelection
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
@@ -40,7 +40,7 @@ def main(args=None, **kwargs):  # noqa: E302
 
     return run(
         classes=(
-            B123VccOsppfbChanneliser,
+            B123VccOsppfbChannelizer,
             FrequencySliceSelection,
             Ethernet200Gb,
             PacketValidation,

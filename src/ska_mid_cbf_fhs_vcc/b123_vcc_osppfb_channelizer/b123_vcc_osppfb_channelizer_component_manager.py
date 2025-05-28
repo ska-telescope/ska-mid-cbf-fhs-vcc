@@ -9,14 +9,14 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, PowerState, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channeliser.b123_vcc_osppfb_channeliser_simulator import (
-    B123VccOsppfbChanneliserSimulator,
+from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_simulator import (
+    B123VccOsppfbChannelizerSimulator,
 )
 
 
 @dataclass_json
 @dataclass
-class B123VccOsppfbChanneliserConfig:
+class B123VccOsppfbChannelizerConfig:
     sample_rate: np.uint64
     pol: dict
     channel: np.uint16
@@ -28,7 +28,7 @@ class B123VccOsppfbChanneliserConfig:
 ##
 @dataclass_json
 @dataclass
-class B123VccOsppfbChanneliserStatus:
+class B123VccOsppfbChannelizerStatus:
     sample_rate: np.uint32
     num_channels: int
     num_polarisations: int
@@ -37,7 +37,7 @@ class B123VccOsppfbChanneliserStatus:
 
 @dataclass_json
 @dataclass
-class VccConfigArgin:
+class B123VccOsppfbChannelizerConfigureArgin:
     sample_rate: np.uint64 = 3960000000  # default values
     gains: list[float] = field(
         default_factory=lambda: [
@@ -65,15 +65,15 @@ class VccConfigArgin:
     )  # default gain values
 
 
-class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManagerBase):
+class B123VccOsppfbChannelizerComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
-        self: B123VccOsppfbChanneliserComponentManager,
+        self: B123VccOsppfbChannelizerComponentManager,
         *args: Any,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             *args,
-            simulator_api=B123VccOsppfbChanneliserSimulator,
+            simulator_api=B123VccOsppfbChannelizerSimulator,
             **kwargs,
         )
 
@@ -82,7 +82,7 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManagerBase):
     ##
 
     # TODO Determine what needs to be communicated with here
-    def start_communicating(self: B123VccOsppfbChanneliserComponentManager) -> None:
+    def start_communicating(self: B123VccOsppfbChannelizerComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
 
         self.logger.info("Starting Communication for VCC...")
@@ -100,7 +100,7 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManagerBase):
     #####
     # Commands
     #####
-    def go_to_idle(self: B123VccOsppfbChanneliserComponentManager) -> tuple[ResultCode, str]:
+    def go_to_idle(self: B123VccOsppfbChannelizerComponentManager) -> tuple[ResultCode, str]:
         result = self.deconfigure()
 
         if result[0] is not ResultCode.FAILED:
@@ -108,51 +108,53 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManagerBase):
 
         return result
 
-    def configure(self: B123VccOsppfbChanneliserComponentManager, argin: str) -> tuple[ResultCode, str]:
+    def configure(self: B123VccOsppfbChannelizerComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
             self.logger.info("VCC Configuring..")
 
-            vccConfigArgin: VccConfigArgin = VccConfigArgin.schema().loads(argin)
+            argin_parsed: B123VccOsppfbChannelizerConfigureArgin = B123VccOsppfbChannelizerConfigureArgin.schema().loads(argin)
 
-            self.logger.info(f"CONFIGURE JSON CONFIG: {vccConfigArgin.to_json()}")
+            self.logger.info(f"CONFIGURE JSON CONFIG: {argin_parsed.to_json()}")
 
-            return self._generate_and_configure(vccConfigArgin, super().configure)
+            return self._generate_and_configure(argin_parsed, super().configure)
         except ValidationError as vex:
-            errorMsg = "Validation error: Unable to configure, argin doesn't match the required schema"
-            self.logger.error(f"{errorMsg}: {vex}")
-            return ResultCode.FAILED, errorMsg
+            error_msg = "Validation error: Unable to configure, argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            return ResultCode.FAILED, error_msg
         except Exception as ex:
-            errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(f"{errorMsg}: {ex!r}")
-            return ResultCode.FAILED, errorMsg
+            error_msg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            return ResultCode.FAILED, error_msg
             # TODO helthstate check
 
-    def deconfigure(self: B123VccOsppfbChanneliserComponentManager, argin: str = None) -> tuple[ResultCode, str]:
+    def deconfigure(self: B123VccOsppfbChannelizerComponentManager, argin: str = None) -> tuple[ResultCode, str]:
         try:
             self.logger.info("VCC Deconfiguring..")
 
             # Get the default values
-            vccConfigArgin = VccConfigArgin()
+            argin_parsed = B123VccOsppfbChannelizerConfigureArgin()
 
             # If the argin is not none then we're 'reconfiguring' using the values set otherwise we use the default values
             if argin is not None:
-                vccConfigArgin: VccConfigArgin = VccConfigArgin.schema().loads(argin)
+                argin_parsed: B123VccOsppfbChannelizerConfigureArgin = B123VccOsppfbChannelizerConfigureArgin.schema().loads(
+                    argin
+                )
 
-            self.logger.info(f"DECONFIGURE JSON CONFIG: {vccConfigArgin.to_json()}")
+            self.logger.info(f"DECONFIGURE JSON CONFIG: {argin_parsed.to_json()}")
 
-            return self._generate_and_configure(vccConfigArgin, super().deconfigure)
+            return self._generate_and_configure(argin_parsed, super().deconfigure)
         except ValidationError as vex:
-            errorMsg = "Validation error: Unable to deconfigure, argin doesn't match the required schema"
-            self.logger.error(f"{errorMsg}: {vex}")
-            return ResultCode.FAILED, errorMsg
+            error_msg = "Validation error: Unable to deconfigure, argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            return ResultCode.FAILED, error_msg
         except Exception as ex:
-            errorMsg = f"Unable to deconfigure {self._device_id}"
-            self.logger.error(f"{errorMsg}: {ex!r}")
-            return ResultCode.FAILED, errorMsg
+            error_msg = f"Unable to deconfigure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            return ResultCode.FAILED, error_msg
             # TODO helthstate check
 
     def _generate_and_configure(
-        self: B123VccOsppfbChanneliserComponentManager, vccConfigArgin: VccConfigArgin, configure
+        self: B123VccOsppfbChannelizerComponentManager, vcc_config_argin: B123VccOsppfbChannelizerConfigureArgin, configure
     ) -> dict:
         result: tuple[ResultCode, str] = (
             ResultCode.OK,
@@ -161,9 +163,9 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManagerBase):
 
         # Channels are dual-polarized i.e. 2 gain values per channel[x, y]
         chan = 0
-        for i, gain in enumerate(vccConfigArgin.gains):
-            vccConfig = B123VccOsppfbChanneliserConfig(
-                sample_rate=vccConfigArgin.sample_rate,
+        for i, gain in enumerate(vcc_config_argin.gains):
+            vcc_config = B123VccOsppfbChannelizerConfig(
+                sample_rate=vcc_config_argin.sample_rate,
                 gain=gain,
                 channel=chan,
                 pol=i % 2,
@@ -171,9 +173,9 @@ class B123VccOsppfbChanneliserComponentManager(FhsLowLevelComponentManagerBase):
             if i % 2:
                 chan += 1
 
-            self.logger.info(f"VCC JSON CONFIG {i}: {vccConfig.to_json()}")
+            self.logger.info(f"VCC JSON CONFIG {i}: {vcc_config.to_json()}")
 
-            result = configure(vccConfig.to_dict())
+            result = configure(vcc_config.to_dict())
             if result[0] != ResultCode.OK:
                 self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
                 break
