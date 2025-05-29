@@ -18,7 +18,7 @@ packages = [{ include = "ska_mid_cbf_fhs_vcc", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-ska-mid-cbf-fhs-common = "0.0.1"
+ska-mid-cbf-fhs-common = { version = "0.0.1+dev.c49e63a83", source = "gitlab-fhs-common" }
 backoff = "^2.2.1"
 typing-extensions = "^4.8.0"
 pytango = "^9.5.1"
@@ -32,7 +32,6 @@ ska-telmodel = "1.15.0"
 polling2 = "^0.5.0"
 dataclasses-json = "^0.6.7"
 debugpy = "^1.8.5"
-ska-mid-cbf-fhs-common = { version = "0.0.1+dev.c49e63a83", source = "gitlab-fhs-common" }
 
 [tool.poetry.group.dev.dependencies]
 pytest-pydocstyle = "2.3.2"
