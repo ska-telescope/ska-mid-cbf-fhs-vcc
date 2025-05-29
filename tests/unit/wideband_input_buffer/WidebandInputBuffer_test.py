@@ -4,7 +4,7 @@ import pytest
 from tango import DevState
 from ska_tango_testing.integration import TangoEventTracer
 from ska_control_model import HealthState, ResultCode
-from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, DeviceTestUtils
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
 
 EVENT_TIMEOUT = 30
@@ -144,64 +144,32 @@ class TestWidebandInputBuffer:
             ),
         )
 
-    def test_register_polling_healthstate_failed(self, device_under_test, event_tracer):
-
-        with open("tests/test_data/device_config/wideband_input_buffer_health_failure.json", "r") as f:
-            config_json = f.read()
-
-        # Invoke the command
-        result = device_under_test.command_inout("Configure", config_json)
-
-        result = device_under_test.command_inout("Start")
-
-        # Extract the result code and message
-        result_code = result[0][0]
-
-        # Assertions
-        assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
-
-        assert_that(event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
-            device_name=device_under_test,
-            attribute_name="longRunningCommandResult",
-            attribute_value=(
-                f"{result[1][0]}",
-                f'[{ResultCode.OK.value}, "Start Called Successfully"]',
-            ),
-        )
-
-        time.sleep(5)
-
-        health_state = device_under_test.read_attribute("healthState")
-
-        assert health_state.value is HealthState.FAILED.value
-
     def test_register_polling_healthstate_ok(self, device_under_test, event_tracer):
 
-        with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
-            config_json = f.read()
-
-        # Invoke the command
-        result = device_under_test.command_inout("Configure", config_json)
-
-        result = device_under_test.command_inout("Start")
-
-        # Extract the result code and message
-        result_code = result[0][0]
-
-        # Assertions
-        assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
-
-        assert_that(event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
-            device_name=device_under_test,
-            attribute_name="longRunningCommandResult",
-            attribute_value=(
-                f"{result[1][0]}",
-                f'[{ResultCode.OK.value}, "Start Called Successfully"]',
-            ),
+        DeviceTestUtils.polling_test_setup(
+            device_under_test=device_under_test,
+            event_tracer=event_tracer,
+            config_json_file="tests/test_data/device_config/wideband_input_buffer.json",
+            event_timeout=EVENT_TIMEOUT
         )
 
-        time.sleep(5)
+        time.sleep(2)
 
         health_state = device_under_test.read_attribute("healthState")
 
         assert health_state.value is HealthState.OK.value
+
+    def test_register_polling_healthstate_failed(self, device_under_test, event_tracer):
+
+        DeviceTestUtils.polling_test_setup(
+            device_under_test=device_under_test,
+            event_tracer=event_tracer,
+            config_json_file="tests/test_data/device_config/wideband_input_buffer_health_failure.json",
+            event_timeout=EVENT_TIMEOUT
+        )
+
+        time.sleep(2)
+
+        health_state = device_under_test.read_attribute("healthState")
+
+        assert health_state.value is HealthState.FAILED.value

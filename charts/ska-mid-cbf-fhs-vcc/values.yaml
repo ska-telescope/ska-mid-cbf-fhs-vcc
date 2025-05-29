@@ -107,6 +107,9 @@ devices:
       - name: EthernetMode
         values:
           - "200GbE"
+      - name: health_monitor_poll_interval
+        values:
+          - "60"
   - name: "PacketValidation"
     path: "fhs/packetvalidation/{{.deviceId000}}"
     emulatorIpBlockId: "packet_validation"

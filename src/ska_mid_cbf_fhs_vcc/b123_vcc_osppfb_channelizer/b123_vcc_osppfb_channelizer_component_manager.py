@@ -100,13 +100,6 @@ class B123VccOsppfbChannelizerComponentManager(FhsLowLevelComponentManagerBase):
     #####
     # Commands
     #####
-    def go_to_idle(self: B123VccOsppfbChannelizerComponentManager) -> tuple[ResultCode, str]:
-        result = self.deconfigure()
-
-        if result[0] is not ResultCode.FAILED:
-            result = super().go_to_idle()
-
-        return result
 
     def configure(self: B123VccOsppfbChannelizerComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:

@@ -65,14 +65,6 @@ class PacketValidationComponentManager(FhsLowLevelComponentManagerBase):
             **kwargs,
         )
 
-    def go_to_idle(self: PacketValidationComponentManager) -> tuple[ResultCode, str]:
-        result = self.deconfigure()
-
-        if result[0] is not ResultCode.FAILED:
-            result = super().go_to_idle()
-
-        return result
-
     ##
     # Public Commands
     ##

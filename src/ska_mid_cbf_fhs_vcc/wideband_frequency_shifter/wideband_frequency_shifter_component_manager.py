@@ -41,15 +41,6 @@ class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManagerBase):
     ##
     # Public Commands
     ##
-    def go_to_idle(self: WidebandFrequencyShifterComponentManager) -> tuple[ResultCode, str]:
-        result = self.deconfigure()
-
-        if result[0] is not ResultCode.FAILED:
-            result = super().go_to_idle()
-        else:
-            self.logger.error("Unable to go to idle, result from deconfiguring was FAILED")
-
-        return result
 
     def configure(self: WidebandFrequencyShifterComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:

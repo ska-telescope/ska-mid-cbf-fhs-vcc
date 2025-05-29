@@ -71,6 +71,7 @@ class TestVCCAllBandsController:
             emulation_mode="0",
             emulator_ip_block_id="ethernet_200g",
             emulator_id="vcc-emulator-1",
+            health_monitor_poll_interval="1",
         )
 
         harness.add_device(

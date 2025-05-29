@@ -18,7 +18,7 @@ packages = [{ include = "ska_mid_cbf_fhs_vcc", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-ska-mid-cbf-fhs-common = { version = "0.0.1+dev.c49e63a83", source = "gitlab-fhs-common" }
+ska-mid-cbf-fhs-common = { version = "0.0.1+dev.c4b14d48a", source = "gitlab-fhs-common" }
 backoff = "^2.2.1"
 typing-extensions = "^4.8.0"
 pytango = "^9.5.1"
@@ -65,7 +65,6 @@ url = "https://artefact.skao.int/repository/pypi-internal/simple"
 [[tool.poetry.source]]
 name="gitlab-fhs-common"
 url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
-
 
 [[tool.poetry.source]]
 name = "PyPI-public"

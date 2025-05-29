@@ -12,7 +12,6 @@ from ska_control_model import CommunicationStatus, HealthState, ObsState, Result
 from ska_control_model.faults import StateModelError
 from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsHealthMonitor, FhsObsComponentManagerBase, FhsObsStateMachine
 from ska_tango_base.base.base_component_manager import TaskCallbackType
-from ska_tango_testing import context
 from tango import EventData, EventType
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
@@ -46,7 +45,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
         self.input_sample_rate = 0
 
-        self._proxies: dict[str, context.DeviceProxy] = {}
+        self._proxies: dict[str, tango.DeviceProxy] = {}
 
         self._proxies[device.ethernet_200g_fqdn] = None
         self._proxies[device.packet_validation_fqdn] = None
@@ -116,7 +115,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 for fqdn, dp in self._proxies.items():
                     if dp is None:
                         self.logger.info(f"Establishing Communication with {fqdn}")
-                        dp = context.DeviceProxy(device_name=fqdn)
+                        dp = tango.DeviceProxy(fqdn)
                         # NOTE: this crashes when adminMode is memorized because it gets called before the devices are ready
                         self._subscribe_to_change_event(dp, "healthState", fqdn, self.proxies_health_state_change_event)
                         self._subscribe_to_change_event(dp, "longRunningCommandResult", fqdn, self._long_running_command_callback)
