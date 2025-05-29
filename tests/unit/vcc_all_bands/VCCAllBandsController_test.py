@@ -1,6 +1,8 @@
 import time
+from unittest import mock
 from assertpy import assert_that
 import pytest
+from ska_mid_cbf_fhs_common.testing.device_test_utils import DeviceTestUtils
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_device import B123VccOsppfbChannelizer
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device import FrequencySliceSelection
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
@@ -257,29 +259,14 @@ class TestVCCAllBandsController:
 
         assert all_bands_health_state.value == HealthState.OK.value
 
-        config_json = '{"expected_sample_rate": 3920000000, "noise_diode_transition_holdoff_seconds": 1.0, "expected_dish_band": 1}'
-
-        # Invoke the command
-        result = wib_device.command_inout("Configure", config_json)
-
-        result = wib_device.command_inout("Start")
-
-        # Extract the result code and message
-        result_code = result[0][0]
-
-        # Assertions
-        assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
-
-        assert_that(wib_event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
-            device_name=wib_device,
-            attribute_name="longRunningCommandResult",
-            attribute_value=(
-                f"{result[1][0]}",
-                f'[{ResultCode.OK.value}, "Start Called Successfully"]',
-            ),
+        DeviceTestUtils.polling_test_setup(
+            device_under_test=wib_device,
+            event_tracer=wib_event_tracer,
+            config_json_file="tests/test_data/device_config/wideband_input_buffer_health_failure.json",
+            event_timeout=EVENT_TIMEOUT
         )
 
-        time.sleep(10)
+        time.sleep(3)
 
         health_state = wib_device.read_attribute("healthState")
 
@@ -300,3 +287,22 @@ class TestVCCAllBandsController:
         admin_mode = vcc_all_bands_device.read_attribute("adminMode")
 
         assert admin_mode.value == AdminMode.OFFLINE.value
+
+    @pytest.mark.parametrize(
+        ('current_subarray', 'new_subarray', 'expected_result'),
+        [
+            pytest.param(0, 0, ResultCode.OK, id="unassign_from_unassigned_vcc_ok"),
+            pytest.param(0, 1, ResultCode.OK, id="assign_to_unassigned_vcc_ok"),
+            pytest.param(1, 0, ResultCode.OK, id="unassign_from_assigned_vcc_ok"),
+            pytest.param(1, 2, ResultCode.REJECTED, id="assign_to_assigned_vcc_rejected"),
+            pytest.param(0, 33, ResultCode.REJECTED, id="id_out_of_range_rejected"),
+        ]
+    )
+    def test_update_subarray_membership(self, current_subarray: int, new_subarray: int, expected_result: ResultCode, vcc_all_bands_device, vcc_all_bands_event_tracer):
+        with mock.patch("ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager.VCCAllBandsComponentManager.subarray_id", new_callable=mock.PropertyMock, return_value=current_subarray, create=True):
+            vcc_all_bands_device.command_inout("UpdateSubarrayMembership", new_subarray)
+            assert_that(vcc_all_bands_event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
+                device_name=vcc_all_bands_device,
+                attribute_name="longRunningCommandResult",
+                custom_matcher=lambda event: event.attribute_value[1].strip("[]").split(",")[0].strip() == f"{expected_result.value}"
+            )

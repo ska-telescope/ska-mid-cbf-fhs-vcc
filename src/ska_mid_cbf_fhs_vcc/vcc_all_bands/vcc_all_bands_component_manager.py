@@ -37,6 +37,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self._vcc_id = device.device_id
 
         self.frequency_band = FrequencyBandEnum._1
+        self.subarray_id = 0
+
         self._config_id = ""
         self._scan_id = 0
 
@@ -164,6 +166,30 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             task_callback=task_callback,
         )
 
+    def scan(self: VCCAllBandsComponentManager, argin: int, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="start",
+                command_thread=self._scan,
+            ),
+            args=[argin],
+            task_callback=task_callback,
+        )
+
+    def end_scan(
+        self: VCCAllBandsComponentManager,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="stop",
+                command_thread=self._end_scan,
+            ),
+            task_callback=task_callback,
+        )
+
     def go_to_idle(
         self: VCCAllBandsComponentManager,
         task_callback: Optional[Callable] = None,
@@ -195,30 +221,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             is_cmd_allowed=self.is_obs_reset_allowed,
         )
 
-    def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="start",
-                command_thread=self._scan,
-            ),
-            args=[argin],
-            task_callback=task_callback,
-        )
-
-    def end_scan(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="stop",
-                command_thread=self._end_scan,
-            ),
-            task_callback=task_callback,
-        )
-
     def abort_commands(
         self: VCCAllBandsComponentManager,
         task_callback: TaskCallbackType | None = None,
@@ -235,6 +237,17 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
         return result
+
+    def update_subarray_membership(
+        self: VCCAllBandsComponentManager,
+        argin: int,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=self._update_subarray_membership,
+            args=[argin],
+            task_callback=task_callback,
+        )
 
     def _configure_scan(
         self: VCCAllBandsComponentManager,
@@ -616,6 +629,53 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             )
         except Exception as ex:
             self.logger.error(f"Unexpected error in ObsReset command: {repr(ex)}")
+
+    def _update_subarray_membership(
+        self: VCCAllBandsComponentManager,
+        argin: int,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """
+        Update subarray membership for this VCC.
+
+        :param argin: Subarray ID to assign to this VCC. Set to 0 to unassign the currently assigned subarray.
+
+        :return: None
+        """
+        try:
+            self.logger.warning(f"############### SELF . SUBARRAY ID = {self.subarray_id}")
+            self.logger.warning(f"############### ARGIN = {argin}")
+            if argin < 0 or argin > 16:
+                self._set_task_callback(
+                    task_callback,
+                    TaskStatus.COMPLETED,
+                    ResultCode.REJECTED,
+                    f"Cannot update subarray membership as the provided ID {self.subarray_id} is not in the range 0-16.",
+                )
+            elif self.subarray_id > 0 and argin > 0:
+                self._set_task_callback(
+                    task_callback,
+                    TaskStatus.COMPLETED,
+                    ResultCode.REJECTED,
+                    f"Cannot update subarray membership as this VCC is already assigned to subarray {self.subarray_id}.",
+                )
+            else:
+                self.subarray_id = argin
+                self._set_task_callback(
+                    task_callback,
+                    TaskStatus.COMPLETED,
+                    ResultCode.OK,
+                    "UpdateSubarrayMembership completed OK",
+                )
+        except Exception as ex:
+            self.logger.error(f"An unexpected error has occurred: {repr(ex)}")
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                "An unexpected error occurred while trying to update subarray membership.",
+            )
 
     def _stop_proxies(self: VCCAllBandsComponentManager):
         result = None
