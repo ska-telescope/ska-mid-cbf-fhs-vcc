@@ -644,8 +644,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         :return: None
         """
         try:
-            self.logger.warning(f"############### SELF . SUBARRAY ID = {self.subarray_id}")
-            self.logger.warning(f"############### ARGIN = {argin}")
             if argin < 0 or argin > 16:
                 self._set_task_callback(
                     task_callback,
