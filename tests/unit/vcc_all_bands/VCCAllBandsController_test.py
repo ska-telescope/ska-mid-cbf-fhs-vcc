@@ -298,8 +298,20 @@ class TestVCCAllBandsController:
             pytest.param(0, 33, ResultCode.REJECTED, id="id_out_of_range_rejected"),
         ]
     )
-    def test_update_subarray_membership(self, current_subarray: int, new_subarray: int, expected_result: ResultCode, vcc_all_bands_device, vcc_all_bands_event_tracer):
-        with mock.patch("ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager.VCCAllBandsComponentManager.subarray_id", new_callable=mock.PropertyMock, return_value=current_subarray, create=True):
+    def test_update_subarray_membership(
+        self,
+        current_subarray: int,
+        new_subarray: int,
+        expected_result: ResultCode,
+        vcc_all_bands_device,
+        vcc_all_bands_event_tracer
+    ):
+        with mock.patch(
+            "ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager.VCCAllBandsComponentManager.subarray_id",
+            new_callable=mock.PropertyMock,
+            return_value=current_subarray,
+            create=True
+        ):
             vcc_all_bands_device.command_inout("UpdateSubarrayMembership", new_subarray)
             assert_that(vcc_all_bands_event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
                 device_name=vcc_all_bands_device,
