@@ -24,3 +24,6 @@ dependencies:
 - name: ska-mid-cbf-fhs-vcc
   version: 0.1.0
   repository: "file://../ska-mid-cbf-fhs-vcc"
+- name: ska-mid-cbf-fhs-vcc-boogie
+  version: 0.2.1
+  repository: "file://../ska-mid-cbf-fhs-vcc-boogie"

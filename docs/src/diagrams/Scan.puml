@@ -32,10 +32,8 @@ mcs -> allbands ++ $AllBandsLifeline: Scan()
 allbands -> allbands: ObsState = STARTING
 
 allbands -> eth_ds ++ $LowLevelDSLifeline: Start()
-group Start()
-eth_ds -> eth_ds: ObsState = STARTING
+group Start() (repeat for all LL devices)
 eth_ds -> eth_ds: start() the FW
-eth_ds -> eth_ds: ObsState = SCANNING
 end
 allbands <-- eth_ds --: ResultCode.OK
 

@@ -8,7 +8,7 @@ import pytest
 from tango import DevState
 from ska_tango_testing import context
 from ska_tango_testing.integration import TangoEventTracer
-from ska_control_model import HealthState, ObsState, ResultCode
+from ska_control_model import HealthState, ResultCode
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_component_manager import convert_dish_id_uint16_t_to_mnemonic
@@ -74,8 +74,6 @@ def test_configure_command(device_under_test):
     # Assertions
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
 
-    assert device_under_test.read_attribute("obsState").value is ObsState.READY.value
-
 
 def test_status_command(device_under_test):
     """
@@ -107,19 +105,6 @@ def test_recover_command(device_under_test):
 
     # Assertions
     assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
-
-
-def test_go_to_idle(device_under_test):
-    test_configure_command(device_under_test)
-
-    assert device_under_test.read_attribute("obsState").value is ObsState.READY.value
-
-    result = device_under_test.command_inout("GoToIdle")
-    result_code = result[0][0]
-
-    assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
-
-    assert device_under_test.read_attribute("obsState").value is ObsState.IDLE.value
 
 
 @pytest.mark.parametrize(
@@ -181,8 +166,6 @@ def test_start_command(device_under_test, event_tracer: TangoEventTracer):
             f'[{ResultCode.OK.value}, "Start Called Successfully"]',
         ),
     )
-    obs_state = device_under_test.read_attribute("obsState").value
-    assert obs_state is ObsState.SCANNING.value
 
 
 def test_stop_command(device_under_test, event_tracer: TangoEventTracer):
@@ -206,18 +189,12 @@ def test_stop_command(device_under_test, event_tracer: TangoEventTracer):
         ),
     )
 
-    obs_state = device_under_test.read_attribute("obsState").value
-    assert obs_state is ObsState.READY.value
-
-
 def test_register_polling_healthstate_failed(device_under_test, event_tracer):
 
     config_json = '{"expected_sample_rate": 3920000000, "noise_diode_transition_holdoff_seconds": 1.0, "expected_dish_band": 1}'
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
-
-    assert device_under_test.read_attribute("obsState").value is ObsState.READY.value
 
     result = device_under_test.command_inout("Start")
 
@@ -249,8 +226,6 @@ def test_register_polling_healthstate_ok(device_under_test, event_tracer):
 
     # Invoke the command
     result = device_under_test.command_inout("Configure", config_json)
-
-    assert device_under_test.read_attribute("obsState").value is ObsState.READY.value
 
     result = device_under_test.command_inout("Start")
 
