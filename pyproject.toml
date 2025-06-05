@@ -18,7 +18,7 @@ packages = [{ include = "ska_mid_cbf_fhs_vcc", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-ska-mid-cbf-fhs-common = { version = "0.1.0+dev.c72f9b7d7", source = "gitlab-fhs-common" }
+ska-mid-cbf-fhs-common = { version = "0.1.0+dev.cf1c3ce7b", source = "gitlab-fhs-common" }
 backoff = "^2.2.1"
 typing-extensions = "^4.8.0"
 pytango = "^9.5.1"
