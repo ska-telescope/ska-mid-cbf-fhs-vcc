@@ -1,14 +1,11 @@
 {{- define "ska-mid-cbf-fhs-vcc.fhsVccStack" -}}
-{{- $seqObj := fromJson (include "generateInstanceSequence" .fhsVccUnit.instancesRange | trim) -}}
-{{- $sequence := $seqObj.sequence -}}
+{{- $instance := .instance -}}
 name: fhsvcc
 function: fhsvcc
 domain: sensing
 command: "FhsVccStackDeviceServer"
 instances:
-{{ range $sequence }}
-  - fhs-vcc-{{ . }}
-{{- end }}
+  - fhs-vcc-{{ $instance }}
 depends_on:
   - device: sys/database/2
 readinessProbe:
@@ -26,32 +23,29 @@ livenessProbe:
 server:
   name: "FhsVccStackDeviceServer"
   instances:
-  {{ range $index, $instance := $sequence }}
-  - name: fhs-vcc-{{ $instance }}
-    classes:
-    {{- range $index, $device := $.Values.devices }}
-    {{- $deviceId := coalesce $device.deviceId $instance | int }}
-    - name: {{ $device.name }}
-      devices:
-      {{- range $multiplicity := (untilStep 1 ($device.multiplicity | int | default 1 | add1 | int ) 1) }}
-      {{- $scope := dict "deviceId" $deviceId "deviceId000" (printf "%03d" $deviceId) "receptorId" (mod (sub $deviceId 1) 3) "multiplicity" $multiplicity }}
-      - name: {{ tpl $device.path $scope }}
-        properties:
-          {{- range $name, $default := $.Values.properties }}
-          - name: {{ snakecase $name }}
-            values:
-            - "{{ tpl ((get $device $name) | default $default) $scope }}"
-          {{- end }}
-          {{- range $index, $property := $device.properties }}
-          - name: {{ $property.name }}
-            values:
-            {{- range $index, $value := $property.values }}
-            - "{{ tpl $value $scope }}"
-            {{- end }}
+    - name: fhs-vcc-{{ $instance }}
+      classes:
+      {{- range $index, $device := $.Values.devices }}
+        - name: {{ $device.name }}
+          devices:
+          {{- range $multiplicity := (untilStep 1 ($device.multiplicity | int | default 1 | add1 | int ) 1) }}
+          {{- $scope := dict "deviceId" (int $instance) "deviceId000" (printf "%03d" (int $instance)) "receptorId" (mod (sub (int $instance) 1) 3) "multiplicity" $multiplicity }}
+          - name: {{ tpl $device.path $scope }}
+            properties:
+              {{- range $name, $default := $.Values.properties }}
+              - name: {{ snakecase $name }}
+                values:
+                - "{{ tpl ((get $device $name) | default $default) $scope }}"
+              {{- end }}
+              {{- range $index, $property := $device.properties }}
+              - name: {{ $property.name }}
+                values:
+                {{- range $index, $value := $property.values }}
+                - "{{ tpl $value $scope }}"
+                {{- end }}
+              {{- end }}
           {{- end }}
       {{- end }}
-    {{- end }}
-{{- end }}
 
 image:
   registry: "{{.Values.midcbf.image.registry}}"
