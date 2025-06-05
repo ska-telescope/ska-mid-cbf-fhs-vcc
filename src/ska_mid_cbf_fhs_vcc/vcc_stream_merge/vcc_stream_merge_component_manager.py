@@ -56,6 +56,11 @@ class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
 
     def configure(self: VCCStreamMergeComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
+            result: tuple[ResultCode, str] = (
+                ResultCode.OK,
+                f"{self._device_id} configured successfully",
+            )
+
             self.logger.info("VCC Stream Merge Configuring..")
 
             argin_parsed: VCCStreamMergeConfigureArgin = VCCStreamMergeConfigureArgin.schema().loads(argin)
