@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_common import FhsLowLevelBaseDevice
 
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_component_manager import (
     FrequencySliceSelectionComponentManager,
 )
 
 
-class FrequencySliceSelection(FhsLowLevelDeviceBase):
+class FrequencySliceSelection(FhsLowLevelBaseDevice):
     def create_component_manager(
         self: FrequencySliceSelection,
     ) -> FrequencySliceSelectionComponentManager:
@@ -31,14 +31,13 @@ class FrequencySliceSelection(FhsLowLevelDeviceBase):
         super().init_command_objects()
 
         # init the fast commands
-        commandsAndClasses = [
-            ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
-            ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
-            ("Deconfigure", FhsLowLevelDeviceBase.DeconfigureCommand),
-            ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
-            ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand),
+        commands_and_classes = [
+            ("Recover", FhsLowLevelBaseDevice.RecoverCommand),
+            ("Configure", FhsLowLevelBaseDevice.ConfigureCommand),
+            ("Deconfigure", FhsLowLevelBaseDevice.DeconfigureCommand),
+            ("GetStatus", FhsLowLevelBaseDevice.GetStatusCommand),
         ]
-        super().init_fast_command_objects(commandsAndClasses)
+        super().init_fast_command_objects(commands_and_classes)
 
 
 def main(args=None, **kwargs):

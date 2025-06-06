@@ -1,0 +1,69 @@
+{
+  "fs_lane_configs": [
+    {
+      "vid": 2,
+      "vcc_id": 1,
+      "fs_id": 1
+    },
+    {
+      "vid": 3,
+      "vcc_id": 1,
+      "fs_id": 2
+    },
+    {
+      "vid": 4,
+      "vcc_id": 1,
+      "fs_id": 3
+    },
+    {
+      "vid": 5,
+      "vcc_id": 1,
+      "fs_id": 4
+    },
+    {
+      "vid": 6,
+      "vcc_id": 1,
+      "fs_id": 5
+    },
+    {
+      "vid": 7,
+      "vcc_id": 1,
+      "fs_id": 6
+    },
+    {
+      "vid": 8,
+      "vcc_id": 1,
+      "fs_id": 7
+    },
+    {
+      "vid": 9,
+      "vcc_id": 1,
+      "fs_id": 8
+    },
+    {
+      "vid": 10,
+      "vcc_id": 1,
+      "fs_id": 9
+    },
+    {
+      "vid": 11,
+      "vcc_id": 1,
+      "fs_id": 10
+    },
+    {
+      "vid": 12,
+      "vcc_id": 1,
+      "fs_id": 11
+    },
+    {
+      "vid": 13,
+      "vcc_id": 1,
+      "fs_id": 12
+    },
+    {
+      "vid": 14,
+      "vcc_id": 1,
+      "fs_id": 13
+    }
+  ]
+}

@@ -24,7 +24,7 @@ participant "WFS" as wfs_ds $LowLevelDS
 participant "VCCs" as vcc_ds $LowLevelDS
 participant "FSS" as fss_ds $LowLevelDS
 participant "Post-VCC WPMs" as wpm_post_ds $LowLevelDS
-participant "Packetizer" as packetizer_ds $LowLevelDS
+participant "VCC Stream Merge" as vccsm_ds $LowLevelDS
 end box
 end box
 
@@ -58,8 +58,8 @@ allbands <-- fss_ds --: ResultCode.OK
 allbands -> wpm_post_ds ++ $LowLevelDSLifeline: GoToIdle()
 allbands <-- wpm_post_ds --: ResultCode.OK
 
-allbands -> packetizer_ds ++ $LowLevelDSLifeline: GoToIdle()
-allbands <-- packetizer_ds --: ResultCode.OK
+allbands -> vccsm_ds ++ $LowLevelDSLifeline: GoToIdle()
+allbands <-- vccsm_ds --: ResultCode.OK
 
 allbands -> allbands: ObsState = IDLE
 mcs <-- allbands --: ResultCode.OK

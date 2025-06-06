@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_common import FhsLowLevelBaseDevice
 
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_component_manager import PacketValidationComponentManager
 
 
-class PacketValidation(FhsLowLevelDeviceBase):
+class PacketValidation(FhsLowLevelBaseDevice):
     def create_component_manager(
         self: PacketValidation,
     ) -> PacketValidationComponentManager:
@@ -26,21 +26,21 @@ class PacketValidation(FhsLowLevelDeviceBase):
         """Hook to delete device."""
 
     def init_command_objects(self: PacketValidation) -> None:
-        commandsAndMethods = [
+        commands_and_methods = [
             ("Start", "start"),
             ("Stop", "stop"),
-            ("TestCmd", "test_cmd"),
         ]
-        super().init_command_objects(commandsAndMethods)
+        super().init_command_objects(commands_and_methods)
 
         # init the fast commands
-        commandsAndClasses = [
-            ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
-            ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
-            ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand),
+        commands_and_classes = [
+            ("Configure", FhsLowLevelBaseDevice.ConfigureCommand),
+            ("Deconfigure", FhsLowLevelBaseDevice.DeconfigureCommand),
+            ("Recover", FhsLowLevelBaseDevice.RecoverCommand),
+            ("GetStatus", FhsLowLevelBaseDevice.GetStatusCommand),
         ]
 
-        super().init_fast_command_objects(commandsAndClasses)
+        super().init_fast_command_objects(commands_and_classes)
 
 
 def main(args=None, **kwargs):

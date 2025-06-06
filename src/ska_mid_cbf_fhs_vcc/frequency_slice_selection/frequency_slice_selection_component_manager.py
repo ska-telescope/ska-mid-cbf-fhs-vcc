@@ -14,8 +14,8 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_sim
 @dataclass_json
 @dataclass
 class FrequencySliceSelectionConfig:
-    band_select: int
-    band_start_channel: list[int]
+    band_select: int = 1
+    band_start_channel: list[int] = field(default_factory=lambda: [0, 1, 2])
 
 
 ##
@@ -26,13 +26,6 @@ class FrequencySliceSelectionConfig:
 class FrequencySliceSelectionStatus:
     band_select: int
     band_start_channel: list[int]
-
-
-@dataclass_json
-@dataclass
-class FssConfigArgin:
-    band_select: int = 1
-    band_start_channel: list[int] = field(default_factory=lambda: [0, 1, 2])
 
 
 class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
@@ -47,14 +40,6 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
             **kwargs,
         )
 
-    def go_to_idle(self: FrequencySliceSelectionComponentManager) -> tuple[ResultCode, str]:
-        result = self.deconfigure()
-
-        if result[0] is not ResultCode.FAILED:
-            result = super().go_to_idle()
-
-        return result
-
     ##
     # Public Commands
     ##
@@ -62,32 +47,32 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
         try:
             self.logger.info("FS Selection Configuring..")
 
-            configJson: FssConfigArgin = FssConfigArgin.schema().loads(argin)
+            fss_config: FrequencySliceSelectionConfig = FrequencySliceSelectionConfig.schema().loads(argin)
 
-            self.logger.info(f"CONFIG JSON CONFIG: {configJson.to_json()}")
+            self.logger.info(f"CONFIG JSON CONFIG: {fss_config.to_json()}")
 
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
                 f"{self._device_id} configured successfully",
             )
 
-            result = super().configure(configJson.to_dict())
+            result = super().configure(fss_config.to_dict())
 
             if result[0] != ResultCode.OK:
                 self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema"
-            self.logger.error(f"{errorMsg}: {vex}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            result = ResultCode.FAILED, error_msg
         except Exception as ex:
-            errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(f"{errorMsg}: {ex!r}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            result = ResultCode.FAILED, error_msg
 
         return result
 
-    def deconfigure(self: FrequencySliceSelectionComponentManager, argin: dict = None) -> tuple[ResultCode, str]:
+    def deconfigure(self: FrequencySliceSelectionComponentManager, argin: str = None) -> tuple[ResultCode, str]:
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
@@ -97,9 +82,9 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
             if argin is None:
                 result = super().recover()
             else:
-                wfsJsonConfig: FssConfigArgin = FssConfigArgin.schema().loads(argin)
+                fss_config: FrequencySliceSelectionConfig = FrequencySliceSelectionConfig.schema().loads(argin)
 
-                self.logger.info(f"DECONFIG JSON CONFIG: {wfsJsonConfig.to_json()}")
+                self.logger.info(f"DECONFIG JSON CONFIG: {fss_config.to_json()}")
 
                 result = super().deconfigure(argin)
 
@@ -107,13 +92,13 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
                     self.logger.error(f"DeConfiguring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema"
-            self.logger.error(f"{errorMsg}: {vex}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            result = ResultCode.FAILED, error_msg
         except Exception as ex:
-            errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(f"{errorMsg}: {ex!r}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            result = ResultCode.FAILED, error_msg
 
         return result
 

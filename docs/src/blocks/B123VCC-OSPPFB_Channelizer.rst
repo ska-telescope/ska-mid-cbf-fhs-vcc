@@ -1,10 +1,10 @@
 .. doctest-skip-all
-.. _B123VCC-OSPPFB_Channeliser:
+.. _B123VCC-OSPPFB_Channelizer:
 
 .. todo::
     - Insert todo's here
 
-B123VCC-OSPPFB Channeliser 
+B123VCC-OSPPFB Channelizer 
 ###########################
 
 
@@ -34,7 +34,7 @@ Output
 
 Behaviour
 =========
-Channeliser is always running (has no external reset). Samples input generate samples out at the output sample rate (according to the input sample rate). Since it is oversampling the aggregate output rate across all outputs is more than the input rate.
+Channelizer is always running (has no external reset). Samples input generate samples out at the output sample rate (according to the input sample rate). Since it is oversampling the aggregate output rate across all outputs is more than the input rate.
 
 If the input sample rate is not the same as the expected sample rate, then the output samples are 'flagged' as invalid.
 
@@ -45,7 +45,7 @@ If the input sample rate is not the same as the expected sample rate, then the o
 
 If an input sample is flagged then X samples at the output are flagged, X/2 before and X/2 after. Where X is TBD (on the order of 20).
 
-The last stage of the channeliser FW applies a gain value to the output samples on a per channel, and per polarisation basis (20 different gains).
+The last stage of the channelizer FW applies a gain value to the output samples on a per channel, and per polarisation basis (20 different gains).
 
 * If that gain causes the output sample's value to saturate (-1.0 \<= sample \<=  1.0) then the sample is flagged.
  

@@ -133,7 +133,7 @@ For the VCC-only stage of the bitstream, the APIs for the blocks in the top half
 * :doc:`blocks/Wideband_Input_Buffer`
 * :doc:`blocks/Wideband_Frequency_Shifter`
 * :doc:`blocks/B123VCC-OSPPFB_Channelizer`
-* B45VCC-OSPFFB Channeliser - see B123VCC-OSPPFB_Channelizer
+* B45VCC-OSPFFB Channelizer - see B123VCC-OSPPFB_Channelizer
 * :doc:`blocks/Frequency_Slice_Selection`
 * :doc:`blocks/Circuit_Switch`
 * FS RFI Detection and Flagging
