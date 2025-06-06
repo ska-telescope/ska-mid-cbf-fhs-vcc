@@ -51,7 +51,7 @@
     },
     {
       "id": "b123vcc",
-      "display_name": "B123VCC-OSPPFB Channeliser",
+      "display_name": "B123VCC-OSPPFB Channelizer",
       "type": "vcc_ch20",
       "downstream_block_ids": [
         "fs_selection_26_2_1"

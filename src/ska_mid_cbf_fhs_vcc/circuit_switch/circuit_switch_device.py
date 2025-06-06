@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_common import FhsLowLevelBaseDevice
 
 from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_component_manager import CircuitSwitchComponentManager
 
 
-class CircuitSwitch(FhsLowLevelDeviceBase):
+class CircuitSwitch(FhsLowLevelBaseDevice):
     def create_component_manager(
         self: CircuitSwitch,
     ) -> CircuitSwitchComponentManager:
@@ -15,9 +15,7 @@ class CircuitSwitch(FhsLowLevelDeviceBase):
             attr_archive_callback=self.push_archive_event,
             health_state_callback=self._update_health_state,
             communication_state_callback=self._communication_state_changed,
-            obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
-            obs_state_action_callback=self._obs_state_action,
             logger=self.logger,
         )
 
@@ -31,13 +29,13 @@ class CircuitSwitch(FhsLowLevelDeviceBase):
         super().init_command_objects()
 
         # init the fast commands
-        commandsAndClasses = [
-            ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
-            ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
-            ("Deconfigure", FhsLowLevelDeviceBase.DeconfigureCommand),
-            ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
+        commands_and_classes = [
+            ("Recover", FhsLowLevelBaseDevice.RecoverCommand),
+            ("Configure", FhsLowLevelBaseDevice.ConfigureCommand),
+            ("Deconfigure", FhsLowLevelBaseDevice.DeconfigureCommand),
+            ("GetStatus", FhsLowLevelBaseDevice.GetStatusCommand),
         ]
-        super().init_fast_command_objects(commandsAndClasses)
+        super().init_fast_command_objects(commands_and_classes)
 
 
 def main(args=None, **kwargs):

@@ -20,6 +20,7 @@ htmlcov
 coverage.xml
 .pytest_cache
 *,cover
+pytest-logs.txt
 
 docs/_build
 docs/src/_build

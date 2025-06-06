@@ -1,13 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# This file is part of the SKA Mid.CBF FHS-VCC project
-#
-# Repurposed from the ska-mid-cbf-mcs project
-#
-# Distributed under the terms of the GPL license.
-# See LICENSE.txt for more info.
-
-"""This module contains pytest-specific test harness for FHS-VCC unit tests."""
+"""This module contains pytest-specific test harness for FHS-VCC Frequency Slice Selection unit tests."""
 
 from __future__ import annotations
 

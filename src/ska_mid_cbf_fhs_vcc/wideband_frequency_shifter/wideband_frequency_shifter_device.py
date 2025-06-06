@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_common import FhsLowLevelDeviceBase
+from ska_mid_cbf_fhs_common import FhsLowLevelBaseDevice
 
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_component_manager import (
     WidebandFrequencyShifterComponentManager,
 )
 
 
-class WidebandFrequencyShifter(FhsLowLevelDeviceBase):
+class WidebandFrequencyShifter(FhsLowLevelBaseDevice):
     def create_component_manager(
         self: WidebandFrequencyShifter,
     ) -> WidebandFrequencyShifterComponentManager:
@@ -31,15 +31,14 @@ class WidebandFrequencyShifter(FhsLowLevelDeviceBase):
         super().init_command_objects()
 
         # init the fast commands
-        commandsAndClasses = [
-            ("Recover", FhsLowLevelDeviceBase.RecoverCommand),
-            ("Configure", FhsLowLevelDeviceBase.ConfigureCommand),
-            ("Deconfigure", FhsLowLevelDeviceBase.DeconfigureCommand),
-            ("GetStatus", FhsLowLevelDeviceBase.GetStatusCommand),
-            ("GoToIdle", FhsLowLevelDeviceBase.GoToIdleCommand),
+        commands_and_classes = [
+            ("Recover", FhsLowLevelBaseDevice.RecoverCommand),
+            ("Configure", FhsLowLevelBaseDevice.ConfigureCommand),
+            ("Deconfigure", FhsLowLevelBaseDevice.DeconfigureCommand),
+            ("GetStatus", FhsLowLevelBaseDevice.GetStatusCommand),
         ]
 
-        super().init_fast_command_objects(commandsAndClasses)
+        super().init_fast_command_objects(commands_and_classes)
 
 
 def main(args=None, **kwargs):
