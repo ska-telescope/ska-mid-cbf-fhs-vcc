@@ -31,7 +31,7 @@ class CircuitSwitchStatus:
 
 @dataclass_json
 @dataclass
-class CircuitSwitchConfigArgin:
+class CircuitSwitchConfigureArgin:
     band: list[dict]
 
 
@@ -54,34 +54,34 @@ class CircuitSwitchComponentManager(FhsLowLevelComponentManagerBase):
         try:
             self.logger.info("Circuit Switch Configuring..")
 
-            configJson: CircuitSwitchConfigArgin = CircuitSwitchConfigArgin.schema().loads(argin)
+            argin_parsed: CircuitSwitchConfigureArgin = CircuitSwitchConfigureArgin.schema().loads(argin)
 
-            self.logger.info(f"CONFIG JSON CONFIG: {configJson.to_json()}")
+            self.logger.info(f"CONFIG JSON CONFIG: {argin_parsed.to_json()}")
 
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
                 f"{self._device_id} configured successfully",
             )
 
-            for band in configJson.band:
-                csJsonConfig = CircuitSwitchConfig(output=band.get("output"), input=band.get("input"))
+            for band in argin_parsed.band:
+                cs_config = CircuitSwitchConfig(output=band.get("output"), input=band.get("input"))
 
-                self.logger.info(f"Circuit Switch JSON CONFIG: {csJsonConfig.to_json()}")
+                self.logger.info(f"Circuit Switch JSON CONFIG: {cs_config.to_json()}")
 
-                result = super().configure(csJsonConfig.to_dict())
+                result = super().configure(cs_config.to_dict())
 
                 if result[0] != ResultCode.OK:
                     self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
                     break
 
         except ValidationError as vex:
-            errorMsg = "Validation error: argin doesn't match the required schema"
-            self.logger.error(f"{errorMsg}: {vex}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = "Validation error: argin doesn't match the required schema"
+            self.logger.error(f"{error_msg}: {vex}")
+            result = ResultCode.FAILED, error_msg
         except Exception as ex:
-            errorMsg = f"Unable to configure {self._device_id}"
-            self.logger.error(f"{errorMsg}: {ex!r}")
-            result = ResultCode.FAILED, errorMsg
+            error_msg = f"Unable to configure {self._device_id}"
+            self.logger.error(f"{error_msg}: {ex!r}")
+            result = ResultCode.FAILED, error_msg
 
         return result
 

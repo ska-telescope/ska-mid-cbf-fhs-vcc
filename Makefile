@@ -75,7 +75,7 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	${TARANTA_PARAMS}
 
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
-PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503,E731
+PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503,E731,E203
 
 # F0002, F0010: Astroid errors. Not our problem.
 # E0401: Import errors. Ignore for now until we figure out our actual project structure.
@@ -86,7 +86,6 @@ PYTHON_LINE_LENGTH = 130
 POETRY_PYTHON_RUNNER = poetry run python3 -m
 
 PYTHON_LINT_TARGET = ./src/
-PYTHON_VARS_AFTER_PYTEST = --forked
 K8S_VARS_AFTER_PYTEST = -s
 
 PYTHON_TEST_FILE = ./tests/unit/
@@ -119,6 +118,12 @@ lint:
 
 
 .PHONY: all test lint
+
+build-local-common: COMMON_LIB_PATH = ../ska-mid-cbf-fhs-common
+build-local-common:
+	cp -r $(COMMON_LIB_PATH) ./temp-common
+	-make oci-build-all OCI_IMAGE_FILE_PATH=./devcommon.Dockerfile
+	rm -rf ./temp-common
 
 format-python:
 	$(POETRY_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)

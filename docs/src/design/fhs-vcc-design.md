@@ -30,7 +30,7 @@ This section will outline how the high / low level device servers get configured
 The FHS device servers will be configured from .yaml files that outline the device servers and their properties. This will follow the same procedure as that of MCS for deploying and configuring device servers. Each VCC stack of device servers will be spun up in their own pod, this is to minimize overhead from having too many pods. Each VCC pod will container
 
 - vcc_all_bands
-- b123_vcc_osppfb_channeliser
+- b123_vcc_osppfb_channelizer
 - frequency_slice_selection
 - mac
 - packet_validation
@@ -104,8 +104,8 @@ For more detailed information please see the ska-mid-cbf-emulators [readthedocs]
     },
     {
       "id": "b123vcc",
-      "display_name": "B123VCC-OSPPFB Channeliser",
-      "type": "b123vcc_osppfb_channeliser",
+      "display_name": "B123VCC-OSPPFB Channelizer",
+      "type": "b123vcc_osppfb_channelizer",
       "downstream_block_ids": [
         "fs_selection_26_2_1"
       ]

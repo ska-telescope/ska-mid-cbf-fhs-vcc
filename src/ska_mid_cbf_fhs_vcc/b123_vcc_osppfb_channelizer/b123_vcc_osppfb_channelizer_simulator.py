@@ -5,10 +5,10 @@ import json
 from ska_control_model import ResultCode
 from ska_mid_cbf_fhs_common import BaseSimulatorApi
 
-__all__ = ["B123VccOsppfbChanneliserSimulator"]
+__all__ = ["B123VccOsppfbChannelizerSimulator"]
 
 
-class B123VccOsppfbChanneliserSimulator(BaseSimulatorApi):
+class B123VccOsppfbChannelizerSimulator(BaseSimulatorApi):
     def status(self, clear: bool = False) -> tuple[ResultCode, dict]:
         return (
             ResultCode.OK,

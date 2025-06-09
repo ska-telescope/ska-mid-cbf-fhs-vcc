@@ -10,10 +10,8 @@ import jsonschema
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
-from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsHealthMonitor, FhsObsStateMachine
-from ska_mid_cbf_fhs_common.base_classes.device.obs.fhs_obs_component_manager_base import FhsObsComponentManagerBase
+from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsHealthMonitor, FhsObsComponentManagerBase, FhsObsStateMachine
 from ska_tango_base.base.base_component_manager import TaskCallbackType
-from ska_tango_testing import context
 from tango import EventData, EventType
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
@@ -39,6 +37,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self._vcc_id = device.device_id
 
         self.frequency_band = FrequencyBandEnum._1
+        self.subarray_id = 0
+
         self._config_id = ""
         self._scan_id = 0
 
@@ -47,9 +47,9 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
         self.input_sample_rate = 0
 
-        self._proxies: dict[str, context.DeviceProxy] = {}
+        self._proxies: dict[str, tango.DeviceProxy] = {}
 
-        self._proxies[device.mac_200_fqdn] = None
+        self._proxies[device.ethernet_200g_fqdn] = None
         self._proxies[device.packet_validation_fqdn] = None
         self._proxies[device.wideband_input_buffer_fqdn] = None
         self._proxies[device.wideband_frequency_shifter_fqdn] = None
@@ -59,12 +59,15 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self._proxies[device.b123_wideband_power_meter_fqdn] = None
         self._proxies[device.b45a_wideband_power_meter_fqdn] = None
         self._proxies[device.b5b_wideband_power_meter_fqdn] = None
-        self._proxies[device.packetizer_fqdn] = None
 
         self._power_meter_fqdns = {
             i: device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 26 + 1)
         }
         for fqdn in self._power_meter_fqdns.values():
+            self._proxies[fqdn] = None
+
+        self._vcc_stream_merge_fqdns = {i: device.vcc_stream_merge_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 3)}
+        for fqdn in self._vcc_stream_merge_fqdns.values():
             self._proxies[fqdn] = None
 
         # self._circuit_switch_proxy = None
@@ -114,7 +117,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 for fqdn, dp in self._proxies.items():
                     if dp is None:
                         self.logger.info(f"Establishing Communication with {fqdn}")
-                        dp = context.DeviceProxy(device_name=fqdn)
+                        dp = tango.DeviceProxy(fqdn)
                         # NOTE: this crashes when adminMode is memorized because it gets called before the devices are ready
                         self._subscribe_to_change_event(dp, "healthState", fqdn, self.proxies_health_state_change_event)
                         self._subscribe_to_change_event(dp, "longRunningCommandResult", fqdn, self._long_running_command_callback)
@@ -141,16 +144,16 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
     def is_go_to_idle_allowed(self: VCCAllBandsComponentManager) -> bool:
         self.logger.debug("Checking if gotoidle is allowed...")
-        errorMsg = f"go_to_idle not allowed in ObsState {self.obs_state}; " "must be in ObsState.READY"
+        error_msg = f"go_to_idle not allowed in ObsState {self.obs_state}; " "must be in ObsState.READY"
 
-        return self.is_allowed(errorMsg, [ObsState.READY])
+        return self.is_allowed(error_msg, [ObsState.READY])
 
     def is_obs_reset_allowed(self: VCCAllBandsComponentManager) -> bool:
         self.logger.debug("Checking if ObsReset is allowed...")
-        errorMsg = f"ObsReset not allowed in ObsState {self.obs_state}; \
+        error_msg = f"ObsReset not allowed in ObsState {self.obs_state}; \
             must be in ObsState.FAULT or ObsState.ABORTED"
 
-        return self.is_allowed(errorMsg, [ObsState.FAULT, ObsState.ABORTED])
+        return self.is_allowed(error_msg, [ObsState.FAULT, ObsState.ABORTED])
 
     def configure_scan(
         self: VCCAllBandsComponentManager,
@@ -160,6 +163,30 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         return self.submit_task(
             func=self._configure_scan,
             args=[argin],
+            task_callback=task_callback,
+        )
+
+    def scan(self: VCCAllBandsComponentManager, argin: int, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="start",
+                command_thread=self._scan,
+            ),
+            args=[argin],
+            task_callback=task_callback,
+        )
+
+    def end_scan(
+        self: VCCAllBandsComponentManager,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="stop",
+                command_thread=self._end_scan,
+            ),
             task_callback=task_callback,
         )
 
@@ -194,30 +221,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             is_cmd_allowed=self.is_obs_reset_allowed,
         )
 
-    def scan(self: VCCAllBandsComponentManager, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="start",
-                command_thread=self._scan,
-            ),
-            args=[argin],
-            task_callback=task_callback,
-        )
-
-    def end_scan(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="stop",
-                command_thread=self._end_scan,
-            ),
-            task_callback=task_callback,
-        )
-
     def abort_commands(
         self: VCCAllBandsComponentManager,
         task_callback: TaskCallbackType | None = None,
@@ -234,6 +237,17 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
         return result
+
+    def update_subarray_membership(
+        self: VCCAllBandsComponentManager,
+        argin: int,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=self._update_subarray_membership,
+            args=[argin],
+            task_callback=task_callback,
+        )
 
     def _configure_scan(
         self: VCCAllBandsComponentManager,
@@ -365,7 +379,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         json.dumps(
                             {
                                 "averaging_time": config["averaging_time"],
-                                "sample_rate": self._sample_rate,
                                 "flagging": config["flagging"],
                             }
                         )
@@ -399,7 +412,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         json.dumps(
                             {
                                 "averaging_time": config["averaging_time"],
-                                "sample_rate": self._sample_rate,
                                 "flagging": config["flagging"],
                             }
                         )
@@ -419,16 +431,23 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         )
                         raise ChildProcessError("Configuration of low-level fhs device failed: FS Power Meter")
 
-                # Packetizer Configuration
-                self.logger.debug("Packetizer Configuring..")
-                packetizer_fs_lanes = [
-                    {"vlan_id": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]} for lane in self._fs_lanes
-                ]
-                result = self._proxies[self.device.packetizer_fqdn].Configure(json.dumps({"fs_lanes": packetizer_fs_lanes}))
-                if result[0] == ResultCode.FAILED:
-                    self.logger.error(f"Configuration of Packetizer failed: {result[1]}")
-                    self._reset_devices([self.device.packetizer_fqdn])
-                    raise ChildProcessError("Configuration of low-level fhs device failed: FS Packetizer")
+                # VCC Stream Merge Configuration
+                self.logger.debug("VCC Stream Merge Configuring..")
+                for i in range(1, 3):
+                    result = self._proxies[self._vcc_stream_merge_fqdns[i]].Configure(
+                        json.dumps(
+                            {
+                                "fs_lane_configs": [
+                                    {"vid": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]}
+                                    for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
+                                ]
+                            }
+                        )
+                    )
+                    if result[0] == ResultCode.FAILED:
+                        self.logger.error(f"Configuration of VCC Stream Merge failed: {result[1]}")
+                        self._reset_devices([*self._vcc_stream_merge_fqdns.values()])
+                        raise ChildProcessError("Configuration of low-level fhs device failed: VCC Stream Merge")
 
             self.logger.info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}")
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
@@ -487,7 +506,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             self._scan_id = argin
             if not self.simulation_mode:
                 try:
-                    self._proxies[self.device.mac_200_fqdn].Start()
+                    self._proxies[self.device.ethernet_200g_fqdn].Start()
                     self._proxies[self.device.packet_validation_fqdn].Start()
                     self._proxies[self.device.wideband_input_buffer_fqdn].Start()
                 except tango.DevFailed as ex:
@@ -527,7 +546,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
             if not self.simulation_mode:
                 try:
-                    self._proxies[self.device.mac_200_fqdn].Stop()
+                    self._proxies[self.device.ethernet_200g_fqdn].Stop()
                     self._proxies[self.device.packet_validation_fqdn].Stop()
                     self._proxies[self.device.wideband_input_buffer_fqdn].Stop()
                 except tango.DevFailed as ex:
@@ -609,11 +628,56 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         except Exception as ex:
             self.logger.error(f"Unexpected error in ObsReset command: {repr(ex)}")
 
+    def _update_subarray_membership(
+        self: VCCAllBandsComponentManager,
+        argin: int,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """
+        Update subarray membership for this VCC.
+
+        :param argin: Subarray ID to assign to this VCC. Set to 0 to unassign the currently assigned subarray.
+
+        :return: None
+        """
+        try:
+            if argin < 0 or argin > 16:
+                self._set_task_callback(
+                    task_callback,
+                    TaskStatus.COMPLETED,
+                    ResultCode.REJECTED,
+                    f"Cannot update subarray membership as the provided ID {self.subarray_id} is not in the range 0-16.",
+                )
+            elif self.subarray_id > 0 and argin > 0:
+                self._set_task_callback(
+                    task_callback,
+                    TaskStatus.COMPLETED,
+                    ResultCode.REJECTED,
+                    f"Cannot update subarray membership as this VCC is already assigned to subarray {self.subarray_id}.",
+                )
+            else:
+                self.subarray_id = argin
+                self._set_task_callback(
+                    task_callback,
+                    TaskStatus.COMPLETED,
+                    ResultCode.OK,
+                    "UpdateSubarrayMembership completed OK",
+                )
+        except Exception as ex:
+            self.logger.error(f"An unexpected error has occurred: {repr(ex)}")
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                "An unexpected error occurred while trying to update subarray membership.",
+            )
+
     def _stop_proxies(self: VCCAllBandsComponentManager):
         result = None
         for fqdn, proxy in self._proxies.items():
             if proxy is not None and fqdn in [
-                self.device.mac_200_fqdn,
+                self.device.ethernet_200g_fqdn,
                 self.device.wideband_input_buffer_fqdn,
                 self.device.packet_validation_fqdn,
             ]:

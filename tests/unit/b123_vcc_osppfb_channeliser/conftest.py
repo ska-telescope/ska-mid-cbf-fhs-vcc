@@ -1,24 +1,12 @@
-# -*- coding: utf-8 -*-
-#
-# This file is part of the SKA Mid.CBF FHS-VCC project
-#
-# Repurposed from the ska-mid-cbf-mcs project
-#
-# Distributed under the terms of the GPL license.
-# See LICENSE.txt for more info.
-
-"""This module contains pytest-specific test harness for FHS-VCC unit tests."""
+"""This module contains pytest-specific test harness for FHS-VCC VCC-OSPPFB unit tests."""
 
 from __future__ import annotations
 
 from typing import Generator
 
 import pytest
-from ska_tango_testing import context
 from ska_tango_testing.harness import TangoTestHarnessContext
 from ska_tango_testing.integration import TangoEventTracer
-import polling2
-from tango import DevState
 
 EVENT_TIMEOUT = 30
 

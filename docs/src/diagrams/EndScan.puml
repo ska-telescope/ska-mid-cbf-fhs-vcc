@@ -24,7 +24,7 @@ participant "WFS" as wfs_ds $LowLevelDS
 participant "VCCs" as vcc_ds $LowLevelDS
 participant "FSS" as fss_ds $LowLevelDS
 participant "Post-VCC WPMs" as wpm_post_ds $LowLevelDS
-participant "Packetizer" as packetizer_ds $LowLevelDS
+participant "VCC Stream Merge" as vccsm_ds $LowLevelDS
 end box
 end box
 
