@@ -23,7 +23,7 @@
       {{- $_ := set $.Values "affinity" $fileDeviceServer.affinity }}
     {{- end }}
 
-    {{- $context := dict "name" (printf "%s-%d" $name (int $instance)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
+    {{- $context := dict "name" (printf "%s-%d" $name (int $index)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
     {{- template "ska-tango-util.multidevice-config.tpl" $context }}
     {{- template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
     {{- template "ska-tango-util.multidevice-job.tpl" $context }}
