@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.1.0"
+version = "0.1.1"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },
@@ -18,7 +18,7 @@ packages = [{ include = "ska_mid_cbf_fhs_vcc", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-ska-mid-cbf-fhs-common = { version = "0.0.1+dev.c4b14d48a", source = "gitlab-fhs-common" }
+ska-mid-cbf-fhs-common = "0.1.0"
 backoff = "^2.2.1"
 typing-extensions = "^4.8.0"
 pytango = "^9.5.1"

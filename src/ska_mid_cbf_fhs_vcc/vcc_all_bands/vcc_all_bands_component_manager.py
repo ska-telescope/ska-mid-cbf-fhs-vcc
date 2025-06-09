@@ -401,7 +401,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         json.dumps(
                             {
                                 "averaging_time": config["averaging_time"],
-                                "sample_rate": self._sample_rate,
                                 "flagging": config["flagging"],
                             }
                         )
@@ -435,7 +434,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         json.dumps(
                             {
                                 "averaging_time": config["averaging_time"],
-                                "sample_rate": self._sample_rate,
                                 "flagging": config["flagging"],
                             }
                         )
@@ -461,7 +459,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                     result = self._proxies[self._vcc_stream_merge_fqdns[i]].Configure(
                         json.dumps(
                             {
-                                "fs_lanes": [
+                                "fs_lane_configs": [
                                     {"vid": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]}
                                     for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
                                 ]
