@@ -734,8 +734,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 gain_y = -p_measured_y - headroom
 
                 # Convert to multiplier
-                new_gains[i] = (gain_x / 20) ** 10
-                new_gains[i + self._num_fs] = (gain_y / 20) ** 10
+                new_gains[i] = 10 ** (gain_x / 20)
+                new_gains[i + self._num_fs] = 10 ** (gain_y / 20)
 
             # Reconfigure VCCs
             if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
