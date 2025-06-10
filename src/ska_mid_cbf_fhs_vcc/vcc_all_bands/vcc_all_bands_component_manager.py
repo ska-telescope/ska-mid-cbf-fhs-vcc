@@ -3,6 +3,7 @@ from __future__ import annotations
 import functools
 import json
 import logging
+import time
 from threading import Event
 from typing import Any, Callable, Optional
 
@@ -540,15 +541,24 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         :return: None
         """
         try:
+            t0 = time.time()
             task_callback(status=TaskStatus.IN_PROGRESS)
             if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
                 return
 
             if not self.simulation_mode:
                 try:
+                    t_delta = time.time() - t0
+                    self.logger.info(f"VCC ALL BANDS: Pre-Stop() commands at {t_delta} seconds since EndScan called.")
                     self._proxies[self.device.ethernet_200g_fqdn].Stop()
+                    t_delta = time.time() - t0
+                    self.logger.info(f"VCC ALL BANDS: Ethernet Stop() completed at {t_delta} seconds since EndScan called.")
                     self._proxies[self.device.packet_validation_fqdn].Stop()
+                    t_delta = time.time() - t0
+                    self.logger.info(f"VCC ALL BANDS: PV Stop() completed at {t_delta} seconds since EndScan called.")
                     self._proxies[self.device.wideband_input_buffer_fqdn].Stop()
+                    t_delta = time.time() - t0
+                    self.logger.info(f"VCC ALL BANDS: WIB Stop() completed at {t_delta} seconds since EndScan called.")
                 except tango.DevFailed as ex:
                     self.logger.error(repr(ex))
                     self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
@@ -556,6 +566,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
                     )
                     return
+            t_delta = time.time() - t0
+            self.logger.info(f"VCC ALL BANDS: All functionality completed at {t_delta} seconds since EndScan called.")
 
             # Update obsState callback
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
