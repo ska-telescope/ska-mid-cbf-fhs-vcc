@@ -88,7 +88,7 @@ properties:
   deviceVersionNum: "0.0.1"
   deviceGitlabHash: "0"
   simulationMode: "0"
-  emulationMode: "1"
+  emulationMode: "{{ .unitEmulationMode }}"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
   bitstreamId: "agilex-vcc"
@@ -195,20 +195,26 @@ devices:
       - name: vcc_stream_merge_fqdn
         values:
           - "fhs/vcc-stream-merge<multiplicity>/{{.deviceId000}}"
+      - name: network_switch_id
+        values:
+          - "{{ .networkSwitchId }}"
+      - name: bmc_endpoint_id
+        values:
+          - "{{ .bmcEndpointIp }}"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 VCCUnits:
-  - id: "fhs-vcc-unit-1"
-    is_emulated: true
-    networkSwitchId: 127.0.0.1
-    bmc-endpoint: "ip"
+  - unitNum: 1
+    emulationMode: "1"
+    networkSwitchId: "127.0.0.1"
+    bmcEndpointIp: "127.0.1.1"
     instancesRange: [1, 6]
-  - id: "fhs-vcc-unit-2"
-    is_emulated: true
-    networkSwitchId: 127.0.0.1
-    bmc-endpoint: "ip"
+  - unitNum: 2
+    emulationMode: "1"
+    networkSwitchId: "127.0.0.2"
+    bmcEndpointIp: "127.0.1.2"
     instancesRange: [7, 12]
 
-deviceServerName: "fhs-vcc-stack"
+deviceServerName: "fhs-vcc-unit"
 
 gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams/-/archive/cip-3569/ska-mid-cbf-bitstreams-cip-3569.tar.gz?path=raw/ska-mid-cbf-agilex-vcc"

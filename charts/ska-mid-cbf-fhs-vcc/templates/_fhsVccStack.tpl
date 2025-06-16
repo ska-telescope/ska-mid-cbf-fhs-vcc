@@ -1,11 +1,12 @@
 {{- define "ska-mid-cbf-fhs-vcc.fhsVccStack" -}}
-{{- $instance := .instance -}}
+{{- $instances := .instances -}}
+{{- $fhsVccUnit := .fhsVccUnit }}
 name: fhsvcc
 function: fhsvcc
 domain: sensing
 command: "FhsVccStackDeviceServer"
 instances:
-  - fhs-vcc-{{ $instance }}
+{{ toYaml $instances | nindent 2 }}
 depends_on:
   - device: sys/database/2
 readinessProbe:
@@ -23,13 +24,15 @@ livenessProbe:
 server:
   name: "FhsVccStackDeviceServer"
   instances:
-    - name: fhs-vcc-{{ $instance }}
+    {{- range $index, $instance := $instances }}
+    {{- $deviceId := add (add $index 1) (mul 6 (sub (int $fhsVccUnit.unitNum) 1)) }}
+    - name: "{{ $instance }}"
       classes:
-      {{- range $index, $device := $.Values.devices }}
+      {{- range $device := $.Values.devices }}
         - name: {{ $device.name }}
           devices:
           {{- range $multiplicity := (untilStep 1 ($device.multiplicity | int | default 1 | add1 | int ) 1) }}
-          {{- $scope := dict "deviceId" (int $instance) "deviceId000" (printf "%03d" (int $instance)) "receptorId" (mod (sub (int $instance) 1) 3) "multiplicity" $multiplicity }}
+          {{- $scope := dict "deviceId" (int $deviceId) "deviceId000" (printf "%03d" (int $deviceId)) "receptorId" (mod (sub (int $deviceId) 1) 3) "unitEmulationMode" (printf "%s" $fhsVccUnit.emulationMode) "networkSwitchId" (printf "%s" $fhsVccUnit.networkSwtichId) "bmcEndpointIp" (printf "%s" $fhsVccUnit.bmcEndpointIp) "multiplicity" $multiplicity  }}
           - name: {{ tpl $device.path $scope }}
             properties:
               {{- range $name, $default := $.Values.properties }}
@@ -46,6 +49,7 @@ server:
               {{- end }}
           {{- end }}
       {{- end }}
+    {{- end }}
 
 image:
   registry: "{{.Values.midcbf.image.registry}}"

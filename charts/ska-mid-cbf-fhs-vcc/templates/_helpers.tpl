@@ -31,7 +31,7 @@ and returns a YAML-encoded list of numbers from start to end (inclusive).
   {{- $numbers := list -}}
   {{- range until $count -}}
     {{- $num := add $start . -}}
-    {{- $numbers = append $numbers $num -}}
+    {{- $numbers = append $numbers (printf "fhs-vcc-%d" (int $num)) -}}
   {{- end -}}
   {{- /* wrap the list in an object */ -}}
   {{- toJson (dict "sequence" $numbers) -}}
