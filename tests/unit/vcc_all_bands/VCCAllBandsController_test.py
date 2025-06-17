@@ -684,5 +684,7 @@ class TestVCCAllBandsController:
             requested_headrooms_after = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
             expected_headrooms = headroom if expected_result == ResultCode.OK else requested_headrooms_before.value
             assert len(requested_headrooms_after.value) == len(expected_headrooms)
-            for requested_headroom, expected_headroom in zip(requested_headrooms_after.value, expected_headrooms):
-                assert requested_headroom == expected_headroom
+            assert all(
+                requested_headroom == expected_headroom
+                for requested_headroom, expected_headroom in zip(requested_headrooms_after.value, expected_headrooms)
+            )
