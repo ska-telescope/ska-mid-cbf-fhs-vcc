@@ -477,6 +477,27 @@ url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
 reference = "gitlab-fhs-common"
 
 [[package]]
+name = "deprecation"
+version = "2.1.0"
+description = "A library to handle automated deprecations"
+optional = false
+python-versions = "*"
+groups = ["main"]
+markers = "python_version == \"3.10\" or python_version >= \"3.12\" or python_version == \"3.11\""
+files = [
+    {file = "deprecation-2.1.0-py2.py3-none-any.whl", hash = "sha256:a10811591210e1fb0e768a8c25517cabeabcba6f0bf96564f8ff45189f90b14a"},
+    {file = "deprecation-2.1.0.tar.gz", hash = "sha256:72b3bde64e5d778694b0cf68178aed03d15e15477116add3fb773e581f9518ff"},
+]
+
+[package.dependencies]
+packaging = "*"
+
+[package.source]
+type = "legacy"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
+
+[[package]]
 name = "dill"
 version = "0.3.9"
 description = "serialize all of Python"
@@ -2203,20 +2224,21 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.1.0+dev.cf1c3ce7b"
+version = "0.1.2+dev.ce6179721"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<3.13"
 groups = ["main"]
 markers = "python_version == \"3.10\" or python_version >= \"3.12\" or python_version == \"3.11\""
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.1.0+dev.cf1c3ce7b-py3-none-any.whl", hash = "sha256:2ccdbbcfa0fcbffc9806537dc1509e95126ad11d8257d342d0753a579a0d5213"},
-    {file = "ska_mid_cbf_fhs_common-0.1.0+dev.cf1c3ce7b.tar.gz", hash = "sha256:2605c971d53c7c8136f4968a2da585e8a1835fc824bd57e5bbb3f3c2b9bb4bc0"},
+    {file = "ska_mid_cbf_fhs_common-0.1.2+dev.ce6179721-py3-none-any.whl", hash = "sha256:31e00308b9a6e7d088ce9daca395e6136fecfcc89220ba132cfb7e19bae94470"},
+    {file = "ska_mid_cbf_fhs_common-0.1.2+dev.ce6179721.tar.gz", hash = "sha256:9399383f4c44315c89c296d93585d212bd980e0ba20c1ef5bdf9a4adb23dc4a4"},
 ]
 
 [package.dependencies]
 dataclasses-json = ">=0.6.7,<0.7.0"
 debugpy = ">=1.8.5,<2.0.0"
+mpmath = ">=1.3.0,<2.0.0"
 polling2 = ">=0.5.0,<0.6.0"
 pytango = ">=9.5.1,<10.0.0"
 pyyaml = ">=6.0.1,<7.0.0"
@@ -2224,7 +2246,7 @@ requests = ">=2.32.3,<3.0.0"
 ska-control-model = "1.1.0"
 ska-ser-log-transactions = ">=0.2.2+ae0f5c92,<0.3.0"
 ska-tango-base = "1.0.0"
-ska-tango-testing = "0.7.2"
+ska-tango-testing = "0.8.0"
 ska-telmodel = "1.15.0"
 typing-extensions = ">=4.8.0,<5.0.0"
 
@@ -2351,21 +2373,22 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tango-testing"
-version = "0.7.2"
+version = "0.8.0"
 description = "Test harness for testing SKA Tango devices"
 optional = false
 python-versions = ">=3.10,<4.0"
 groups = ["main"]
 markers = "python_version == \"3.10\" or python_version >= \"3.12\" or python_version == \"3.11\""
 files = [
-    {file = "ska_tango_testing-0.7.2-py3-none-any.whl", hash = "sha256:39ff0d0deea6ad18d1d71e351b4f9ea76713aaf6663c2724e8469fe7b228490c"},
-    {file = "ska_tango_testing-0.7.2.tar.gz", hash = "sha256:f8914d7e8c1defdbab1f846253855e84e663da424fc1a99cbaac6c5b6f12aef8"},
+    {file = "ska_tango_testing-0.8.0-py3-none-any.whl", hash = "sha256:9135d4126fdf85cfbfa89e439baf72e77c711446334203ee4eb6c08ece8f43aa"},
+    {file = "ska_tango_testing-0.8.0.tar.gz", hash = "sha256:7b376647496da1ec97a7e0b9c4782629dc0b773db40e1d1622fc60a21240fc29"},
 ]
 
 [package.dependencies]
 assertpy = ">=1.1,<2.0"
+deprecation = ">=2.1.0,<3.0.0"
 numpy = ">=1.23.2,<2.0.0"
-pytango = ">=9.4.2,<10.0.0"
+pytango = ">=9.4.2,<11.0.0"
 
 [package.source]
 type = "legacy"
@@ -2853,4 +2876,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "228b4b2aea665732e326fb38371fd25b15cdc7c5f97045a87bd1f38347fb3310"
+content-hash = "79a01cc1a6828bde7b9783a72c3fc53a89ea6814832d3192d18c66026683b80f"

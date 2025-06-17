@@ -3,7 +3,7 @@ import pytest
 from tango import DevState
 from ska_tango_testing.integration import TangoEventTracer
 from ska_control_model import ResultCode
-from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, DeviceTestUtils
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_device import VCCStreamMerge
 
 EVENT_TIMEOUT = 30
@@ -97,13 +97,12 @@ class TestVCCStreamMerge:
         # Assertions
         assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
 
-        assert_that(event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
+        assert_that(event_tracer).within_timeout(EVENT_TIMEOUT).with_early_stop(
+            DeviceTestUtils.lrc_early_stop_matcher([ResultCode.OK], "Start", inverted=True)
+        ).has_change_event_occurred(
             device_name=device_under_test,
             attribute_name="longRunningCommandResult",
-            attribute_value=(
-                f"{result[1][0]}",
-                f'[{ResultCode.OK.value}, "Start Called Successfully"]',
-            ),
+            custom_matcher=DeviceTestUtils.lrc_result_matcher([ResultCode.OK], "Start")
         )
 
     def test_stop_command(self, device_under_test, event_tracer: TangoEventTracer):
@@ -118,13 +117,12 @@ class TestVCCStreamMerge:
         # Assertions
         assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
 
-        assert_that(event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
+        assert_that(event_tracer).within_timeout(EVENT_TIMEOUT).with_early_stop(
+            DeviceTestUtils.lrc_early_stop_matcher([ResultCode.OK], "Stop", inverted=True)
+        ).has_change_event_occurred(
             device_name=device_under_test,
             attribute_name="longRunningCommandResult",
-            attribute_value=(
-                f"{result[1][0]}",
-                f'[{ResultCode.OK.value}, "Stop Called Successfully"]',
-            ),
+            custom_matcher=DeviceTestUtils.lrc_result_matcher([ResultCode.OK], "Stop")
         )
 
     def test_status_command(self, device_under_test):

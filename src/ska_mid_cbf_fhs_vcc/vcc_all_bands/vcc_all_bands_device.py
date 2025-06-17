@@ -85,7 +85,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         return self.component_manager.frequency_band_offset
 
     @attribute(
-        dtype=tango.DevVarDoubleArray,
+        dtype=(float,),
         max_dim_x=52,
         doc="The applied gain multipliers for VCC coarse channels.",
     )

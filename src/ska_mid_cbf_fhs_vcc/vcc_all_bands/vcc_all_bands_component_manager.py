@@ -11,9 +11,10 @@ import jsonschema
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
-from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsHealthMonitor, FhsObsComponentManagerBase, FhsObsStateMachine
+from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsHealthMonitor, FhsObsComponentManagerBase, FhsObsStateMachine, calculate_gain_multiplier, floatlike
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 from tango import EventData, EventType
+from math import isnan
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
 
@@ -76,7 +77,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         # vcc channels * number of polarizations
         self._num_fs = 0
         self._num_vcc_gains = 0
-        self._vcc_gains = []
+        self._vcc_gains: list[float] = []
 
         self._fsps = []
         self._maximum_fsps = 10
@@ -704,7 +705,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         """
         Calculate and apply optimal gain multipliers for VCC coarse channels.
 
-        :param argin: Requested RFI headroom, in decibels.
+        :param argin: Requested RFI headroom, in decibels (dB).
 
         :return: None
         """
@@ -717,25 +718,32 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                     f"Cannot auto-set gains as the input headroom {argin} is invalid.",
                 )
                 return
-            
-            headroom = argin
+
             new_gains = copy.copy(self._vcc_gains)
 
             # Read all power meters
             for i in range(self._num_fs):
                 # Read power
-                _, status_str = self._proxies[self._power_meter_fqdns.get(i + 1)].GetStatus()
+                power_meter_fqdn = self._power_meter_fqdns.get(i + 1)
+                _, status_str = self._proxies[power_meter_fqdn].GetStatus(True)
                 status: dict = json.loads(status_str)
-                p_measured_x: float = status.get("avg_power_pol_x")
-                p_measured_y: float = status.get("avg_power_pol_y")
+                measured_power_pol_x: float = status.get("avg_power_pol_x", None)
+                measured_power_pol_y: float = status.get("avg_power_pol_y", None)
 
-                # Calculate gain
-                gain_x = -p_measured_x - headroom
-                gain_y = -p_measured_y - headroom
+                for power, pol in (measured_power_pol_x, "X"), (measured_power_pol_y, "Y"):
+                    if not isinstance(power, (int, float)) or isinstance(power, bool) or isnan(power) or power <= 0 or power > 1:
+                        self._set_task_callback(
+                            task_callback,
+                            TaskStatus.COMPLETED,
+                            ResultCode.FAILED,
+                            (f"Failed to auto-set gains: The power meter with FQDN {power_meter_fqdn} "
+                             f"failed to provide a valid power measurement for polarization {pol}."),
+                        )
+                        return
 
                 # Convert to multiplier
-                new_gains[i] = 10 ** (gain_x / 20)
-                new_gains[i + self._num_fs] = 10 ** (gain_y / 20)
+                new_gains[i] = float(calculate_gain_multiplier(0.0, measured_power_pol_x, argin))
+                new_gains[i + self._num_fs] = float(calculate_gain_multiplier(0.0, measured_power_pol_y, argin))
 
             # Reconfigure VCCs
             if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
@@ -745,6 +753,9 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Failed to reconfigure VCC123 Channelizer with new gain values: {result[1]}")
+                    self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
+                        json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
+                    )
                     self._set_task_callback(
                         task_callback,
                         TaskStatus.COMPLETED,
@@ -778,7 +789,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
-                "An unexpected error occurred while trying to update subarray membership.",
+                "An unexpected error occurred while trying to auto-set gains.",
             )
 
     def _stop_proxies(self: VCCAllBandsComponentManager):
