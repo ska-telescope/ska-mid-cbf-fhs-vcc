@@ -348,7 +348,7 @@ class TestVCCAllBandsController:
                     0.4,
                     0.4
                 ],
-                3,
+                [3.0],
                 [
                     MPFloat("1.119360569284169805977475"),
                     MPFloat("1.119360569284169805977475"),
@@ -397,7 +397,7 @@ class TestVCCAllBandsController:
                     0.6,
                     0.7
                 ],
-                3,
+                [3.0],
                 [
                     MPFloat("1.119360569284169805977475"),
                     MPFloat("1.001186529700906718108588"),
@@ -446,7 +446,7 @@ class TestVCCAllBandsController:
                     0.4,
                     0.4
                 ],
-                6,
+                [6.0],
                 [
                     MPFloat("0.7924465962305567426010507"),
                     MPFloat("0.7924465962305567426010507"),
@@ -474,6 +474,118 @@ class TestVCCAllBandsController:
             ),
             pytest.param(
                 [
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4
+                ],
+                [
+                    3.0,
+                    6.0,
+                    3.0,
+                    6.0,
+                    3.0,
+                    6.0,
+                    3.0,
+                    6.0,
+                    3.0,
+                    6.0,
+                ],
+                [
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                ],
+                ResultCode.OK,
+                id="multiple_headrooms_ok"
+            ),
+            pytest.param(
+                [
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4
+                ],
+                [
+                    3.0,
+                    6.0,
+                ],
+                [
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                ],
+                ResultCode.REJECTED,
+                id="invalid_num_headrooms_rejected"
+            ),
+            pytest.param(
+                [
                     -0.4,
                     0.4,
                     0.4,
@@ -495,7 +607,7 @@ class TestVCCAllBandsController:
                     0.4,
                     0.4
                 ],
-                3,
+                [3.0],
                 [
                     MPFloat("1.0"),
                     MPFloat("1.0"),
@@ -519,14 +631,14 @@ class TestVCCAllBandsController:
                     MPFloat("1.0"),
                 ],
                 ResultCode.FAILED,
-                id="bad_power_reading_failure"
+                id="bad_power_reading_failed"
             ),
         ]
     )
     def test_auto_set_filter_gains(
         self,
         measured_power: list[float],
-        headroom: int,
+        headroom: list[float],
         expected_multipliers: list[MPFloat],
         expected_result: ResultCode,
         vcc_all_bands_device,
@@ -553,6 +665,8 @@ class TestVCCAllBandsController:
             for i in range(len(measured_power) // 2)],
             create=True,
         ):
+            requested_headrooms_before = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
+
             vcc_all_bands_device.command_inout("AutoSetFilterGains", headroom)
             assert_that(vcc_all_bands_event_tracer).within_timeout(EVENT_TIMEOUT).with_early_stop(
                 DeviceTestUtils.lrc_early_stop_matcher([expected_result], "AutoSetFilterGains", inverted=True)
@@ -562,6 +676,13 @@ class TestVCCAllBandsController:
                 custom_matcher=DeviceTestUtils.lrc_result_matcher([expected_result], "AutoSetFilterGains"),
             )
 
-            gains = vcc_all_bands_device.read_attribute("vccGains")
-            for j, gain in enumerate(gains.value):
-                MPFloat.assert_almosteq(gain, expected_multipliers[j], rel_tolerance=1e-12, abs_tolerance=1e-14)
+            multipliers = vcc_all_bands_device.read_attribute("vccGains")
+            assert len(multipliers.value) == len(expected_multipliers)
+            for multiplier, expected_multiplier in zip(multipliers.value, expected_multipliers):
+                MPFloat.assert_almosteq(multiplier, expected_multiplier, rel_tolerance=1e-12, abs_tolerance=1e-14)
+
+            requested_headrooms_after = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
+            expected_headrooms = headroom if expected_result == ResultCode.OK else requested_headrooms_before.value
+            assert len(requested_headrooms_after.value) == len(expected_headrooms)
+            for requested_headroom, expected_headroom in zip(requested_headrooms_after.value, expected_headrooms):
+                assert requested_headroom == expected_headroom

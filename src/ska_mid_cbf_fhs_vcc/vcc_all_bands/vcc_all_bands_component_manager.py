@@ -84,6 +84,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self._num_fs = 0
         self._num_vcc_gains = 0
         self._vcc_gains: list[float] = []
+        self._last_requested_headrooms: list[float] = []
 
         self._fsps = []
         self._maximum_fsps = 10
@@ -261,7 +262,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
     def auto_set_filter_gains(
         self: VCCAllBandsComponentManager,
-        argin: int,
+        argin: list[float],
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
@@ -303,9 +304,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             if "frequency_band_offset_stream_2" in configuration:
                 self.frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
 
-            # VCC number of gains is equal to = number of channels * number of polizations
-            self._vcc_gains = configuration["vcc_gain"]
-
             match self.frequency_band:
                 case FrequencyBandEnum._1 | FrequencyBandEnum._2:
                     self._num_fs = 10
@@ -320,6 +318,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
             # number of channels * number of polarizations
             self._num_vcc_gains = self._num_fs * 2
+
+            self._vcc_gains = configuration["vcc_gain"]
 
             if len(self._vcc_gains) != self._num_vcc_gains:
                 self._reset_attributes()
@@ -704,7 +704,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
     def _auto_set_filter_gains(
         self: VCCAllBandsComponentManager,
-        argin: int = 3,
+        argin: list[float] = [3.0],
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
     ) -> None:
@@ -712,11 +712,13 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         Calculate and apply optimal gain multipliers for VCC coarse channels.
 
         :param argin: Requested RFI headroom, in decibels (dB).
+            Must be a list containing either a single value to apply to all frequency slices,
+            or a value per frequency slice to be applied separately.
 
         :return: None
         """
         try:
-            if argin < 0:
+            if (num_headrooms := len(argin)) not in [1, self._num_fs]:
                 self._set_task_callback(
                     task_callback,
                     TaskStatus.COMPLETED,
@@ -749,9 +751,11 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         )
                         return
 
+                headroom = argin[i % num_headrooms]
+
                 # Convert to multiplier
-                new_gains[i] = float(calculate_gain_multiplier(0.0, measured_power_pol_x, argin))
-                new_gains[i + self._num_fs] = float(calculate_gain_multiplier(0.0, measured_power_pol_y, argin))
+                new_gains[i] = float(calculate_gain_multiplier(0.0, measured_power_pol_x, headroom))
+                new_gains[i + self._num_fs] = float(calculate_gain_multiplier(0.0, measured_power_pol_y, headroom))
 
             # Reconfigure VCCs
             if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
@@ -784,6 +788,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
             # Update vccGains and publish change
             self._vcc_gains = new_gains
+            self._last_requested_headrooms = argin
 
             self._set_task_callback(
                 task_callback,

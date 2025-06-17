@@ -86,8 +86,22 @@ class VCCAllBandsController(FhsObsBaseDevice):
 
     @attribute(
         dtype=(float,),
+        max_dim_x=26,
+        doc="The most recent requested RFI headroom values provided to AutoSetFilterGains.",
+    )
+    def requestedRFIHeadroom(self: VCCAllBandsController) -> tango.DevVarDoubleArray:
+        """
+        Read the requestedRFIHeadroom attribute.
+
+        :return: the most recent requested RFI headroom values provided to AutoSetFilterGains.
+        :rtype: tango.DevVarDoubleArray
+        """
+        return self.component_manager._last_requested_headrooms
+
+    @attribute(
+        dtype=(float,),
         max_dim_x=52,
-        doc="The applied gain multipliers for VCC coarse channels.",
+        doc="The currently applied gain multipliers for VCC coarse channels.",
     )
     def vccGains(self: VCCAllBandsController) -> tango.DevVarDoubleArray:
         """
@@ -142,11 +156,15 @@ class VCCAllBandsController(FhsObsBaseDevice):
         return [[result_code], [command_id]]
 
     @command(
-        dtype_in="DevUShort",
+        dtype_in=(float,),
         dtype_out="DevVarLongStringArray",
-        doc_in="Requested RFI Headroom, in decibels (dB).",
+        doc_in=(
+            "Requested RFI Headroom, in decibels (dB). "
+            "Must be a list containing either a single value to apply to all frequency slices, "
+            "or a value per frequency slice to be applied separately."
+        ),
     )
-    def AutoSetFilterGains(self: VCCAllBandsController, headroom: int = 3) -> DevVarLongStringArrayType:
+    def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] = [3.0]) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="AutoSetFilterGains")
         result_code, command_id = command_handler(headroom)
         return [[result_code], [command_id]]
