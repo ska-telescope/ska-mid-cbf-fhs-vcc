@@ -4,6 +4,7 @@ import copy
 import functools
 import json
 import logging
+from math import isnan
 from threading import Event
 from typing import Any, Callable, Optional
 
@@ -11,10 +12,15 @@ import jsonschema
 import tango
 from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
-from ska_mid_cbf_fhs_common import FhsBaseDevice, FhsHealthMonitor, FhsObsComponentManagerBase, FhsObsStateMachine, calculate_gain_multiplier, floatlike
+from ska_mid_cbf_fhs_common import (
+    FhsBaseDevice,
+    FhsHealthMonitor,
+    FhsObsComponentManagerBase,
+    FhsObsStateMachine,
+    calculate_gain_multiplier,
+)
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 from tango import EventData, EventType
-from math import isnan
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
 
@@ -736,8 +742,10 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                             task_callback,
                             TaskStatus.COMPLETED,
                             ResultCode.FAILED,
-                            (f"Failed to auto-set gains: The power meter with FQDN {power_meter_fqdn} "
-                             f"failed to provide a valid power measurement for polarization {pol}."),
+                            (
+                                f"Failed to auto-set gains: The power meter with FQDN {power_meter_fqdn} "
+                                f"failed to provide a valid power measurement for polarization {pol}."
+                            ),
                         )
                         return
 
