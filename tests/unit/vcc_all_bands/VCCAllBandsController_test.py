@@ -662,7 +662,7 @@ class TestVCCAllBandsController:
         with mock.patch(
             "tango.DeviceProxy.GetStatus",
             side_effect=[
-                (None, json.dumps({"avg_power_pol_x": measured_power[i], "avg_power_pol_y": measured_power[i + len(measured_power) // 2]}))
+                ((None, json.dumps({"avg_power_pol_x": measured_power[i], "avg_power_pol_y": measured_power[i + len(measured_power) // 2]})), None)
             for i in range(len(measured_power) // 2)],
             create=True,
         ):

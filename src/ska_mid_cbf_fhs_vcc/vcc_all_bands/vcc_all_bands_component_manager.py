@@ -733,7 +733,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             for i in range(self._num_fs):
                 # Read power
                 power_meter_fqdn = self._power_meter_fqdns.get(i + 1)
-                _, status_str = self._proxies[power_meter_fqdn].GetStatus(True)
+                status_str = self._proxies[power_meter_fqdn].GetStatus(True)[1][0]
                 status: dict = json.loads(status_str)
                 measured_power_pol_x: float = status.get("avg_power_pol_x", None)
                 measured_power_pol_y: float = status.get("avg_power_pol_y", None)
