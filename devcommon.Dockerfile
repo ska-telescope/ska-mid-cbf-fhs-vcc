@@ -32,7 +32,7 @@ WORKDIR /build
 # `--only main` to avoid installing dev dependencies.  This option is not
 # available for pip.
 COPY pyproject.toml poetry.lock* ./
-RUN sed -i 's|^ska-mid-cbf-fhs-common\s*=\s*.*$|ska-mid-cbf-fhs-common = "0.0.1"|g' pyproject.toml
+RUN sed -i 's|^ska-mid-cbf-fhs-common\s*=\s*.*$|ska-mid-cbf-fhs-common = "0.1.1"|g' pyproject.toml
 
 RUN poetry lock && poetry install --only main --no-root
 
