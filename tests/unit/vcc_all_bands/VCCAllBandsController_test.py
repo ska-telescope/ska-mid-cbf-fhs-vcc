@@ -314,12 +314,13 @@ class TestVCCAllBandsController:
             create=True
         ):
             vcc_all_bands_device.command_inout("UpdateSubarrayMembership", new_subarray)
-            assert_that(vcc_all_bands_event_tracer).within_timeout(EVENT_TIMEOUT).with_early_stop(
-                DeviceTestUtils.lrc_early_stop_matcher([expected_result], "UpdateSubarrayMembership", inverted=True)
-            ).has_change_event_occurred(
-                device_name=vcc_all_bands_device,
-                attribute_name="longRunningCommandResult",
-                custom_matcher=DeviceTestUtils.lrc_result_matcher([expected_result], "UpdateSubarrayMembership")
+            
+            DeviceTestUtils.assert_lrc_completed(
+                vcc_all_bands_device,
+                vcc_all_bands_event_tracer,
+                EVENT_TIMEOUT,
+                "UpdateSubarrayMembership",
+                [expected_result]
             )
 
     @pytest.mark.parametrize(
@@ -650,12 +651,12 @@ class TestVCCAllBandsController:
         vcc_all_bands_device.write_attribute("adminMode", 0)
 
         vcc_all_bands_device.command_inout("ConfigureScan", config_json)
-        assert_that(vcc_all_bands_event_tracer).within_timeout(EVENT_TIMEOUT).with_early_stop(
-            DeviceTestUtils.lrc_early_stop_matcher([ResultCode.OK], "ConfigureScan", inverted=True)
-        ).has_change_event_occurred(
-            device_name=vcc_all_bands_device,
-            attribute_name="longRunningCommandResult",
-            custom_matcher=DeviceTestUtils.lrc_result_matcher([ResultCode.OK], "ConfigureScan"),
+            
+        DeviceTestUtils.assert_lrc_completed(
+            vcc_all_bands_device,
+            vcc_all_bands_event_tracer,
+            EVENT_TIMEOUT,
+            "ConfigureScan",
         )
 
         with mock.patch(
@@ -668,12 +669,13 @@ class TestVCCAllBandsController:
             requested_headrooms_before = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
 
             vcc_all_bands_device.command_inout("AutoSetFilterGains", headroom)
-            assert_that(vcc_all_bands_event_tracer).within_timeout(EVENT_TIMEOUT).with_early_stop(
-                DeviceTestUtils.lrc_early_stop_matcher([expected_result], "AutoSetFilterGains", inverted=True)
-            ).has_change_event_occurred(
-                device_name=vcc_all_bands_device,
-                attribute_name="longRunningCommandResult",
-                custom_matcher=DeviceTestUtils.lrc_result_matcher([expected_result], "AutoSetFilterGains"),
+
+            DeviceTestUtils.assert_lrc_completed(
+                vcc_all_bands_device,
+                vcc_all_bands_event_tracer,
+                EVENT_TIMEOUT,
+                "AutoSetFilterGains",
+                [expected_result]
             )
 
             multipliers = vcc_all_bands_device.read_attribute("vccGains")

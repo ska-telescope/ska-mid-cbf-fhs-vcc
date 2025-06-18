@@ -114,13 +114,7 @@ class TestWidebandInputBuffer:
         # Assertions
         assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
 
-        assert_that(event_tracer).within_timeout(EVENT_TIMEOUT).with_early_stop(
-            DeviceTestUtils.lrc_early_stop_matcher([ResultCode.OK], "Start", inverted=True)
-        ).has_change_event_occurred(
-            device_name=device_under_test,
-            attribute_name="longRunningCommandResult",
-            custom_matcher=DeviceTestUtils.lrc_result_matcher([ResultCode.OK], "Start")
-        )
+        DeviceTestUtils.assert_lrc_completed(device_under_test, event_tracer, EVENT_TIMEOUT, "Start")
 
     def test_stop_command(self, device_under_test, event_tracer: TangoEventTracer):
         """
@@ -134,13 +128,7 @@ class TestWidebandInputBuffer:
         # Assertions
         assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
 
-        assert_that(event_tracer).within_timeout(EVENT_TIMEOUT).with_early_stop(
-            DeviceTestUtils.lrc_early_stop_matcher([ResultCode.OK], "Stop", inverted=True)
-        ).has_change_event_occurred(
-            device_name=device_under_test,
-            attribute_name="longRunningCommandResult",
-            custom_matcher=DeviceTestUtils.lrc_result_matcher([ResultCode.OK], "Stop")
-        )
+        DeviceTestUtils.assert_lrc_completed(device_under_test, event_tracer, EVENT_TIMEOUT, "Stop")
 
     def test_register_polling_healthstate_ok(self, device_under_test, event_tracer):
 
