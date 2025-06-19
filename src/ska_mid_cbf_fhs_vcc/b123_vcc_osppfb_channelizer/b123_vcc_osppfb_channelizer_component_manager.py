@@ -155,22 +155,21 @@ class B123VccOsppfbChannelizerComponentManager(FhsLowLevelComponentManagerBase):
         )
 
         # Channels are dual-polarized i.e. 2 gain values per channel[x, y]
-        chan = 0
-        for i, gain in enumerate(vcc_config_argin.gains):
-            vcc_config = B123VccOsppfbChannelizerConfig(
-                sample_rate=vcc_config_argin.sample_rate,
-                gain=gain,
-                channel=chan,
-                pol=i % 2,
-            )
-            if i % 2:
-                chan += 1
+        num_channels = len(vcc_config_argin.gains) // 2
+        for polarization in (0, 1):
+            for i in range(num_channels):
+                vcc_config = B123VccOsppfbChannelizerConfig(
+                    sample_rate=vcc_config_argin.sample_rate,
+                    gain=vcc_config_argin.gains[i + polarization * num_channels],
+                    channel=i,
+                    pol=polarization,
+                )
 
-            self.logger.info(f"VCC JSON CONFIG {i}: {vcc_config.to_json()}")
+                self.logger.info(f"VCC JSON CONFIG channel={i} pol={polarization}: {vcc_config}")
 
-            result = configure(vcc_config.to_dict())
-            if result[0] != ResultCode.OK:
-                self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
-                break
+                result = configure(vcc_config.to_dict())
+                if result[0] != ResultCode.OK:
+                    self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
+                    break
 
         return result
