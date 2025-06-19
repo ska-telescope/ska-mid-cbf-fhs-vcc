@@ -9,6 +9,8 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VC
 
 
 class VCCAllBandsController(FhsObsBaseDevice):
+    component_manager: VCCAllBandsComponentManager  # type hint only
+
     ethernet_200g_fqdn = device_property(dtype="str")
     packet_validation_fqdn = device_property(dtype="str")
     vcc123_channelizer_fqdn = device_property(dtype="str")
@@ -82,6 +84,35 @@ class VCCAllBandsController(FhsObsBaseDevice):
         """
         return self.component_manager.frequency_band_offset
 
+    @attribute(
+        dtype=(float,),
+        max_dim_x=26,
+        doc="The most recent requested RFI headroom values provided to AutoSetFilterGains.",
+    )
+    def requestedRFIHeadroom(self: VCCAllBandsController) -> tango.DevVarDoubleArray:
+        """
+        Read the requestedRFIHeadroom attribute.
+
+        :return: the most recent requested RFI headroom values provided to AutoSetFilterGains.
+        :rtype: tango.DevVarDoubleArray
+        """
+        return self.component_manager._last_requested_headrooms
+
+    @attribute(
+        dtype=(float,),
+        max_dim_x=52,
+        doc="The currently applied gain multipliers for VCC coarse channels.",
+    )
+    def vccGains(self: VCCAllBandsController) -> tango.DevVarDoubleArray:
+        """
+        Read the vccGains attribute.
+
+        :return: the VCC coarse channel gain multipliers, in the format
+            [ch0_polX, ch1_polX, ..., chN_polX, ch0_polY, ch1_polY, ..., chN_polY].
+        :rtype: tango.DevVarDoubleArray
+        """
+        return self.component_manager._vcc_gains
+
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
@@ -124,6 +155,20 @@ class VCCAllBandsController(FhsObsBaseDevice):
         result_code, command_id = command_handler(subarray_id)
         return [[result_code], [command_id]]
 
+    @command(
+        dtype_in=(float,),
+        dtype_out="DevVarLongStringArray",
+        doc_in=(
+            "Requested RFI Headroom, in decibels (dB). "
+            "Must be a list containing either a single value to apply to all frequency slices, "
+            "or a value per frequency slice to be applied separately."
+        ),
+    )
+    def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] = [3.0]) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="AutoSetFilterGains")
+        result_code, command_id = command_handler(headroom)
+        return [[result_code], [command_id]]
+
     def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager:
         return VCCAllBandsComponentManager(
             device=self,
@@ -146,6 +191,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
             ("EndScan", "end_scan"),
             ("ObsReset", "obs_reset"),
             ("UpdateSubarrayMembership", "update_subarray_membership"),
+            ("AutoSetFilterGains", "auto_set_filter_gains"),
         ]
 
         super().init_command_objects(commands_and_methods)

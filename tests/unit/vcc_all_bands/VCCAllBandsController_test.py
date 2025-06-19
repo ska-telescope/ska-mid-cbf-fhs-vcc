@@ -1,3 +1,4 @@
+import json
 import time
 from unittest import mock
 from assertpy import assert_that
@@ -8,7 +9,7 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_dev
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device import WidebandFrequencyShifter
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
-from ska_mid_cbf_fhs_common import WidebandPowerMeter, FtileEthernet
+from ska_mid_cbf_fhs_common import WidebandPowerMeter, FtileEthernet, MPFloat, DeviceTestUtils
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_device import VCCStreamMerge
 from tango import DevState
 from ska_control_model import AdminMode, HealthState, ResultCode
@@ -289,7 +290,7 @@ class TestVCCAllBandsController:
         assert admin_mode.value == AdminMode.OFFLINE.value
 
     @pytest.mark.parametrize(
-        ('current_subarray', 'new_subarray', 'expected_result'),
+        ("current_subarray", "new_subarray", "expected_result"),
         [
             pytest.param(0, 0, ResultCode.OK, id="unassign_from_unassigned_vcc_ok"),
             pytest.param(0, 1, ResultCode.OK, id="assign_to_unassigned_vcc_ok"),
@@ -313,8 +314,379 @@ class TestVCCAllBandsController:
             create=True
         ):
             vcc_all_bands_device.command_inout("UpdateSubarrayMembership", new_subarray)
-            assert_that(vcc_all_bands_event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
-                device_name=vcc_all_bands_device,
-                attribute_name="longRunningCommandResult",
-                custom_matcher=lambda event: event.attribute_value[1].strip("[]").split(",")[0].strip() == f"{expected_result.value}"
+            
+            DeviceTestUtils.assert_lrc_completed(
+                vcc_all_bands_device,
+                vcc_all_bands_event_tracer,
+                EVENT_TIMEOUT,
+                "UpdateSubarrayMembership",
+                [expected_result]
+            )
+
+    @pytest.mark.parametrize(
+        ("measured_power", "headroom", "expected_multipliers", "expected_result"),
+        [
+            pytest.param(
+                [
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4
+                ],
+                [3.0],
+                [
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.119360569284169805977475"),
+                ],
+                ResultCode.OK,
+                id="default_headroom_all_measurements_equal_ok"
+            ),
+            pytest.param(
+                [
+                    0.4,
+                    0.5,
+                    0.6,
+                    0.7,
+                    0.4,
+                    0.5,
+                    0.6,
+                    0.7,
+                    0.4,
+                    0.5,
+                    0.6,
+                    0.7,
+                    0.4,
+                    0.5,
+                    0.6,
+                    0.7,
+                    0.4,
+                    0.5,
+                    0.6,
+                    0.7
+                ],
+                [3.0],
+                [
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.001186529700906718108588"),
+                    MPFloat("0.9139540776458376348589872"),
+                    MPFloat("0.8461570553535996445330887"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.001186529700906718108588"),
+                    MPFloat("0.9139540776458376348589872"),
+                    MPFloat("0.8461570553535996445330887"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.001186529700906718108588"),
+                    MPFloat("0.9139540776458376348589872"),
+                    MPFloat("0.8461570553535996445330887"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.001186529700906718108588"),
+                    MPFloat("0.9139540776458376348589872"),
+                    MPFloat("0.8461570553535996445330887"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("1.001186529700906718108588"),
+                    MPFloat("0.9139540776458376348589872"),
+                    MPFloat("0.8461570553535996445330887"),
+                ],
+                ResultCode.OK,
+                id="default_headroom_differing_measurements_ok"
+            ),
+            pytest.param(
+                [
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4
+                ],
+                [6.0],
+                [
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("0.7924465962305567426010507"),
+                ],
+                ResultCode.OK,
+                id="custom_headroom_ok"
+            ),
+            pytest.param(
+                [
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4
+                ],
+                [
+                    3.0,
+                    6.0,
+                    3.0,
+                    6.0,
+                    3.0,
+                    6.0,
+                    3.0,
+                    6.0,
+                    3.0,
+                    6.0,
+                ],
+                [
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                    MPFloat("1.119360569284169805977475"),
+                    MPFloat("0.7924465962305567426010507"),
+                ],
+                ResultCode.OK,
+                id="multiple_headrooms_ok"
+            ),
+            pytest.param(
+                [
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4
+                ],
+                [
+                    3.0,
+                    6.0,
+                ],
+                [
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                ],
+                ResultCode.REJECTED,
+                id="invalid_num_headrooms_rejected"
+            ),
+            pytest.param(
+                [
+                    -0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4,
+                    0.4
+                ],
+                [3.0],
+                [
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                    MPFloat("1.0"),
+                ],
+                ResultCode.FAILED,
+                id="bad_power_reading_failed"
+            ),
+        ]
+    )
+    def test_auto_set_filter_gains(
+        self,
+        measured_power: list[float],
+        headroom: list[float],
+        expected_multipliers: list[MPFloat],
+        expected_result: ResultCode,
+        vcc_all_bands_device,
+        vcc_all_bands_event_tracer
+    ):
+        with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
+            config_json = f.read()
+
+        vcc_all_bands_device.write_attribute("adminMode", 0)
+
+        vcc_all_bands_device.command_inout("ConfigureScan", config_json)
+            
+        DeviceTestUtils.assert_lrc_completed(
+            vcc_all_bands_device,
+            vcc_all_bands_event_tracer,
+            EVENT_TIMEOUT,
+            "ConfigureScan",
+        )
+
+        with mock.patch(
+            "tango.DeviceProxy.GetStatus",
+            side_effect=[
+                (None, (json.dumps({"avg_power_pol_x": measured_power[i], "avg_power_pol_y": measured_power[i + len(measured_power) // 2]}), None))
+            for i in range(len(measured_power) // 2)],
+            create=True,
+        ):
+            requested_headrooms_before = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
+
+            vcc_all_bands_device.command_inout("AutoSetFilterGains", headroom)
+
+            DeviceTestUtils.assert_lrc_completed(
+                vcc_all_bands_device,
+                vcc_all_bands_event_tracer,
+                EVENT_TIMEOUT,
+                "AutoSetFilterGains",
+                [expected_result]
+            )
+
+            multipliers = vcc_all_bands_device.read_attribute("vccGains")
+            assert len(multipliers.value) == len(expected_multipliers)
+            for multiplier, expected_multiplier in zip(multipliers.value, expected_multipliers):
+                MPFloat.assert_almosteq(multiplier, expected_multiplier, rel_tolerance=1e-12, abs_tolerance=1e-14)
+
+            requested_headrooms_after = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
+            expected_headrooms = headroom if expected_result == ResultCode.OK else requested_headrooms_before.value
+            assert len(requested_headrooms_after.value) == len(expected_headrooms)
+            assert all(
+                requested_headroom == expected_headroom
+                for requested_headroom, expected_headroom in zip(requested_headrooms_after.value, expected_headrooms)
             )
