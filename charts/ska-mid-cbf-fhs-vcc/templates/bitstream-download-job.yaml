@@ -13,9 +13,9 @@ spec:
           args:
             - |
               apk add --no-cache curl tar && \
-              {{ range $index, $instance := $.Values.instances -}}
-              {{ $bitstreamId := tpl (default $instance.bitstreamId | default $.Values.properties.bitstreamId) $instance -}}
-              {{ $bitstreamVersion := tpl (default $instance.bitstreamVersion | default $.Values.properties.bitstreamVersion) $instance -}}
+              {{ range $index, $vccUnit := $.Values.VCCUnits -}}
+              {{ $bitstreamId := tpl (default $vccUnit.bitstreamId | default $.Values.properties.bitstreamId) $vccUnit -}}
+              {{ $bitstreamVersion := tpl (default $vccUnit.bitstreamVersion | default $.Values.properties.bitstreamVersion) $vccUnit -}}
               BITSTREAM_ID={{ $bitstreamId }} && \
               BITSTREAM_VER={{ $bitstreamVersion }} && \
               BITSTREAM_SUBPATH=$BITSTREAM_ID/$BITSTREAM_VER && \
