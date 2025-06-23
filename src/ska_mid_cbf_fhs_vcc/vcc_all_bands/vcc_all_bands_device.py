@@ -25,7 +25,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
     network_switch_id = device_property(dtype="str")
     bmc_endpoint_id = device_property(dtype="str")
     unit_number = device_property(dtype="str")
-    fpga_number =device_property(dtype="str")
+    fpga_number = device_property(dtype="str")
 
     @attribute
     def expectedDishId(self):
