@@ -3,7 +3,7 @@ import pytest
 from tango import DevState
 from ska_tango_testing.integration import TangoEventTracer
 from ska_control_model import ResultCode
-from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, DeviceTestUtils
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
 
 EVENT_TIMEOUT = 30
@@ -64,14 +64,7 @@ class TestPacketValidation:
         # Assertions
         assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
 
-        assert_that(event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
-            device_name=device_under_test,
-            attribute_name="longRunningCommandResult",
-            attribute_value=(
-                f"{result[1][0]}",
-                f'[{ResultCode.OK.value}, "Start Called Successfully"]',
-            ),
-        )
+        DeviceTestUtils.assert_lrc_completed(device_under_test, event_tracer, EVENT_TIMEOUT, "Start")
 
     def test_stop_command(self, device_under_test, event_tracer: TangoEventTracer):
         """
@@ -85,14 +78,7 @@ class TestPacketValidation:
         # Assertions
         assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
 
-        assert_that(event_tracer).within_timeout(EVENT_TIMEOUT).has_change_event_occurred(
-            device_name=device_under_test,
-            attribute_name="longRunningCommandResult",
-            attribute_value=(
-                f"{result[1][0]}",
-                f'[{ResultCode.OK.value}, "Stop Called Successfully"]',
-            ),
-        )
+        DeviceTestUtils.assert_lrc_completed(device_under_test, event_tracer, EVENT_TIMEOUT, "Stop")
 
     def test_status_command(self, device_under_test):
         """
