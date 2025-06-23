@@ -72,6 +72,7 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.clusterDomain=$(CLUSTER_DOMAIN) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.fhsServerId=$(FHS_SERVER_ID) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.configLocation=$(CONFIG_LOCATION) \
+	--set ska-mid-cbf-fhs-vcc.hostInfo.namespace=$(KUBE_NAMESPACE) \
 	${TARANTA_PARAMS}
 
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
