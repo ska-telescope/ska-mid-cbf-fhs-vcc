@@ -6,18 +6,19 @@
 
 {{- $vccUnits := coalesce .VCCUnits $.Values.VCCUnits }}
 
-{{- range $index, $fhsVccUnit := $vccUnits }}
+{{- range $unitIndex, $fhsVccUnit := $vccUnits }}
   {{- $seqObj := fromJson (include "generateInstanceSequence" $fhsVccUnit.instancesRange | trim) -}}
 
-  {{- range $index, $instance := $seqObj.sequence }}
-    {{- $serverInstances := include "generateServerInstances" (list $instance $fhsVccUnit $.Values.devices $.Values.properties $index) }}
+  {{- range $instanceIndex, $instance := $seqObj.sequence }}
+    {{- $vccNum := add $instanceIndex 1 }}
+    {{- $serverInstances := include "generateServerInstances" (list $instance $fhsVccUnit $.Values.devices $.Values.properties $vccNum) | nindent 2 }}
 
-    {{/*{{- $fileDeviceServerTemp := deepCopy $fileDeviceServerContextOrig }}*/}}
     {{- $fileDeviceServerContext := dict "fhsVccUnit" $fhsVccUnit "instance" $instance "serverInstances" $serverInstances }}
 
-  
     {{- $fileDeviceServer := include "ska-mid-cbf-fhs-vcc.fhsVccStack" (merge $fileDeviceServerContext $) | fromYaml }}
 
+
+    
     {{- if $fileDeviceServer.tolerations }}
       {{- $_ := set $.Values "tolerations" $fileDeviceServer.tolerations }}
     {{- end }}
@@ -26,38 +27,15 @@
       {{- $_ := set $.Values "affinity" $fileDeviceServer.affinity }}
     {{- end }}
 
-    
-    {{- $context := dict "name" (printf "%s-%d" $name (int $index)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
+
+   
+    {{- $context := dict "name" (printf "%s-%d-fhs-vcc-%d" $name (int $unitIndex) (int $vccNum)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
     {{- template "ska-tango-util.multidevice-config.tpl" $context }}
     {{- template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
     {{- template "ska-tango-util.multidevice-job.tpl" $context }}
     {{- template "ska-tango-util.multidevice-svc.tpl" $context }}
+
   {{- end }}
 
-
-  {{/*
-  {{- $serverInstances := include "generateServerInstances" (list $seqObj.sequence $fhsVccUnit $.Values.devices $.Values.properties) -}}
-
-  {{- $fileDeviceServerTemp := deepCopy $fileDeviceServerContextOrig }}
-  {{- $fileDeviceServerContext := merge $fileDeviceServerTemp (dict "fhsVccUnit" $fhsVccUnit "instances" $seqObj.sequence "serverInstances" $serverInstances) }}
-
-  {{- $fileDeviceServer := include "ska-mid-cbf-fhs-vcc.fhsVccStack" (merge $fileDeviceServerContext $) | fromYaml }}
-
-
-  {{- if $fileDeviceServer.tolerations }}
-    {{- $_ := set $.Values "tolerations" $fileDeviceServer.tolerations }}
-  {{- end }}
-
-  {{- if $fileDeviceServer.affinity }}
-    {{- $_ := set $.Values "affinity" $fileDeviceServer.affinity }}
-  {{- end }}
-
-  {{- $context := dict "name" (printf "%s-%d" $name (int $index)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
-
-  {{- template "ska-tango-util.multidevice-config.tpl" $context }}
-  {{- template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
-  {{- template "ska-tango-util.multidevice-job.tpl" $context }}
-  {{template "ska-tango-util.multidevice-svc.tpl" $context }}
-  */}}
 {{- end }} 
 {{- end -}}

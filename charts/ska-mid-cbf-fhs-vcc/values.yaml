@@ -31,7 +31,7 @@ midcbf:
   image:
     registry: docker.io/library
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.1.1
+    tag: 0.2.0
     pullPolicy: IfNotPresent
 
 resources:
@@ -201,6 +201,12 @@ devices:
       - name: bmc_endpoint_id
         values:
           - "{{ .bmcEndpointIp }}"
+      - name: unit_number
+        values:
+          - "{{ .unitNum }}"
+      - name: fpga_number
+        values:
+          - "{{ .fpgaNum }}"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 VCCUnits:
