@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.1.1"
+version = "0.2.0"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },
@@ -18,9 +18,9 @@ packages = [{ include = "ska_mid_cbf_fhs_vcc", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-# ska-mid-cbf-fhs-common = "0.1.2"
+ska-mid-cbf-fhs-common = "0.1.2"
 # Uncomment one of the below to use a gitlab hash version or local dev folder for ska-mid-cbf-fhs-common
-ska-mid-cbf-fhs-common = { version = "0.1.2+dev.c85e8e05e", source = "gitlab-fhs-common" }
+# ska-mid-cbf-fhs-common = { version = "0.1.2+dev.c85e8e05e", source = "gitlab-fhs-common" }
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 mpmath = "^1.3.0"
 backoff = "^2.2.1"
