@@ -1,7 +1,0 @@
-{{- if .Values.selectedFhsVccUnit }}
-  {{- $fhsVccDeployment := include "findByName" (list .Values.selectedFhsVccUnit .Values.VCCUnits) | fromYaml }}
-  {{- $mergedContext := merge $ (dict "VCCUnits" (list $fhsVccDeployment)) }}
-  {{- include "ska-mid-cbf-fhs-vcc.deviceservers.yaml" $mergedContext | nindent 0 }}
-{{- else }}
-  {{- include "ska-mid-cbf-fhs-vcc.deviceservers.yaml" $ | nindent 0 }}
-{{- end }}

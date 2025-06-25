@@ -31,7 +31,7 @@ midcbf:
   image:
     registry: docker.io/library
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.2.0
+    tag: 0.1.1
     pullPolicy: IfNotPresent
 
 resources:
@@ -84,11 +84,11 @@ bitstreamDownloadJob:
 
 # the default tango properties in each device. optionally provide a default, global value
 properties:
-  deviceId: "{{ .deviceId }}"
+  deviceId: ""
   deviceVersionNum: "0.0.1"
   deviceGitlabHash: "0"
-  simulationMode: "1"
-  emulationMode: "{{ .unitEmulationMode }}"
+  simulationMode: "0"
+  emulationMode: "1"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
   bitstreamId: "agilex-vcc"
@@ -195,18 +195,6 @@ devices:
       - name: vcc_stream_merge_fqdn
         values:
           - "fhs/vcc-stream-merge<multiplicity>/{{.deviceId000}}"
-      - name: network_switch_id
-        values:
-          - "{{ .networkSwitchId }}"
-      - name: bmc_endpoint_id
-        values:
-          - "{{ .bmcEndpointIp }}"
-      - name: unit_number
-        values:
-          - "{{ .unitNum }}"
-      - name: fpga_number
-        values:
-          - "{{ .fpgaNum }}"
       - name: ll_props
         values:
           WidebandInputBuffer:
@@ -216,13 +204,13 @@ devices:
             health_monitor_poll_interval: "3"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
-VCCUnits:
-  - unitNum: 1
-    emulationMode: "1"
-    networkSwitchId: "127.0.0.1"
-    bmcEndpointIp: "127.0.1.1"
-    instancesRange: [1, 1]
+instances:
+  - name: fhs-vcc-1
+    deviceId: "1"
 
-deviceServerName: "fhs-vcc-unit"
+deviceServers:
+  fhs-vcc-stack:
+    enabled: true
+    file: "data/fhs_vcc_stack.yaml"
 
 gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams/-/archive/cip-3569/ska-mid-cbf-bitstreams-cip-3569.tar.gz?path=raw/ska-mid-cbf-agilex-vcc"

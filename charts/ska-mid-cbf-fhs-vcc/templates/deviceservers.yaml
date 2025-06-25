@@ -1,41 +1,29 @@
-{{- define "ska-mid-cbf-fhs-vcc.deviceservers.yaml" -}}
 {{ $localchart := . }}
-{{- $name := $.Values.deviceServerName }}
 
-{{- $fileDeviceServerContextOrig := dict "name" $name "local" $localchart }}
+{{- range $key, $deviceserver := .Values.deviceServers }}
 
-{{- $vccUnits := coalesce .VCCUnits $.Values.VCCUnits }}
-
-{{- range $unitIndex, $fhsVccUnit := $vccUnits }}
-  {{- $seqObj := fromJson (include "generateInstanceSequence" $fhsVccUnit.instancesRange | trim) -}}
-
-  {{- range $instanceIndex, $instance := $seqObj.sequence }}
-    {{- $vccNum := add $instanceIndex 1 }}
-    {{- $serverInstances := include "generateServerInstances" (list $instance $fhsVccUnit $.Values.devices $.Values.properties $vccNum) | nindent 2 }}
-
-    {{- $fileDeviceServerContext := dict "fhsVccUnit" $fhsVccUnit "instance" $instance "serverInstances" $serverInstances }}
-
-    {{- $fileDeviceServer := include "ska-mid-cbf-fhs-vcc.fhsVccStack" (merge $fileDeviceServerContext $) | fromYaml }}
+{{- $device_server_config := $deviceserver }}
+{{- $file_device_server := dict }}
+{{- $file_device_server_context := dict "name" $key "deviceserver" $deviceserver "image" $deviceserver.image "local" $localchart }}
 
 
-    
-    {{- if $fileDeviceServer.tolerations }}
-      {{- $_ := set $.Values "tolerations" $fileDeviceServer.tolerations }}
-    {{- end }}
+{{- if hasKey $deviceserver "file"}}
+{{- $file_device_server = tpl ($.Files.Get $deviceserver.file) (merge $file_device_server_context $) | fromYaml }}
+{{- $_ := set $device_server_config "instances" (coalesce $localchart.Values.global.instances $deviceserver.instances $file_device_server.instances) }}
+{{- end }}
 
-    {{- if $fileDeviceServer.affinity }}
-      {{- $_ := set $.Values "affinity" $fileDeviceServer.affinity }}
-    {{- end }}
+{{- $device_server_config := merge $deviceserver $file_device_server }}
+{{- $_ := set $device_server_config "instances" (coalesce $localchart.Values.global.instances $deviceserver.instances) }}
+{{- $context := dict "name" $key "deviceserver" $device_server_config "image" $device_server_config.image "local" $localchart }}
+{{- $volume_context := dict "volume" $device_server_config.volume "local" $localchart }}
 
+{{ template "ska-tango-util.multidevice-config.tpl" $context }}
+{{ template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
 
-   
-    {{- $context := dict "name" (printf "%s-%d-fhs-vcc-%d" $name (int $unitIndex) (int $vccNum)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
-    {{- template "ska-tango-util.multidevice-config.tpl" $context }}
-    {{- template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
-    {{- template "ska-tango-util.multidevice-job.tpl" $context }}
-    {{- template "ska-tango-util.multidevice-svc.tpl" $context }}
+{{- if ((hasKey $device_server_config "enabled") | ternary $device_server_config.enabled true) }}
+{{ template "ska-tango-util.multidevice-job.tpl" $context }}
+# {{ template "ska-tango-util.deviceserver-pvc.tpl" $volume_context }}
+{{ template "ska-tango-util.multidevice-svc.tpl" $context }}
+{{- end }}
 
-  {{- end }}
-
-{{- end }} 
-{{- end -}}
+{{- end }}
