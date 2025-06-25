@@ -63,8 +63,13 @@ and returns a YAML-encoded list of numbers from start to end (inclusive).
           {{- range $index, $property := $device.properties }}
           - name: {{ $property.name }}
             values:
+            {{- if eq $property.name "ll_props" }}
+            {{- $tmp := $property.values | toJson | quote }}
+            - {{ tpl $tmp $scope }}
+            {{- else }}
             {{- range $index, $value := $property.values }}
             - "{{ tpl $value $scope }}"
+            {{- end }}
             {{- end }}
           {{- end }}
       {{- end }}

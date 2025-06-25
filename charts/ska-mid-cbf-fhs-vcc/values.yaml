@@ -87,7 +87,7 @@ properties:
   deviceId: "{{ .deviceId }}"
   deviceVersionNum: "0.0.1"
   deviceGitlabHash: "0"
-  simulationMode: "0"
+  simulationMode: "1"
   emulationMode: "{{ .unitEmulationMode }}"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
@@ -207,6 +207,13 @@ devices:
       - name: fpga_number
         values:
           - "{{ .fpgaNum }}"
+      - name: ll_props
+        values:
+          WidebandInputBuffer:
+            path: "fhs/wib/{{.deviceId000}}"
+            emulator_ip_block_id: "wideband_input_buffer"
+            firmware_ip_block_id: "wideband_input_buffer_unimplemented"
+            health_monitor_poll_interval: "3"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 VCCUnits:
@@ -214,12 +221,7 @@ VCCUnits:
     emulationMode: "1"
     networkSwitchId: "127.0.0.1"
     bmcEndpointIp: "127.0.1.1"
-    instancesRange: [1, 6]
-  - unitNum: 2
-    emulationMode: "1"
-    networkSwitchId: "127.0.0.2"
-    bmcEndpointIp: "127.0.1.2"
-    instancesRange: [7, 12]
+    instancesRange: [1, 1]
 
 deviceServerName: "fhs-vcc-unit"
 

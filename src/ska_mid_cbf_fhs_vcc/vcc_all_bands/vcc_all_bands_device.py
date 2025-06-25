@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Any
 
 import tango
 from ska_mid_cbf_fhs_common import FhsObsBaseDevice
@@ -10,6 +11,14 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VC
 
 class VCCAllBandsController(FhsObsBaseDevice):
     component_manager: VCCAllBandsComponentManager  # type hint only
+
+    ll_props = device_property(dtype=str)
+
+    bitstream_path = device_property(dtype="str")
+    bitstream_id = device_property(dtype="str")
+    bitstream_version = device_property(dtype="str")
+    emulator_id = device_property(dtype="str")
+    emulator_base_url = device_property(dtype="str")
 
     ethernet_200g_fqdn = device_property(dtype="str")
     packet_validation_fqdn = device_property(dtype="str")
@@ -117,6 +126,46 @@ class VCCAllBandsController(FhsObsBaseDevice):
         """
         return self.component_manager._vcc_gains
 
+    @attribute(
+        abs_change=1,
+        min_alarm=5,
+        dtype=int,
+        doc="Test top-level attribute on LL class variable",
+    )
+    def wibprotoTest(self) -> int:
+        return self.component_manager.wideband_input_buffer.test_attr_value
+    
+    @wibprotoTest.write
+    def wibprotoTest(self, value: int) -> None:
+        self.component_manager.wideband_input_buffer.test_attr_value = value
+        self.push_change_event("wibprotoTest", value)
+
+    @attribute(
+        abs_change=1,
+        min_alarm=5,
+        dtype=int,
+        doc="Expected sample rate of the WIB",
+    )
+    def wibExpectedSampleRate(self) -> int:
+        return self.component_manager.wideband_input_buffer.expected_sample_rate
+    
+    @wibExpectedSampleRate.write
+    def wibExpectedSampleRate(self, value: int) -> None:
+        self.component_manager.wideband_input_buffer.expected_sample_rate = value
+        self.push_change_event("wibExpectedSampleRate", value)
+
+    @attribute(
+        dtype=str,
+        doc="Expected dish ID of the WIB",
+    )
+    def wibExpectedDishId(self) -> str:
+        return self.component_manager.wideband_input_buffer.expected_dish_id
+    
+    @wibExpectedDishId.write
+    def wibExpectedDishId(self, value: str) -> None:
+        self.component_manager.wideband_input_buffer.expected_dish_id = value
+        self.push_change_event("wibExpectedDishId", value)
+
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
@@ -184,6 +233,8 @@ class VCCAllBandsController(FhsObsBaseDevice):
             obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
             obs_state_action_callback=self._obs_state_action,
+            simulation_mode=self.simulation_mode,
+            emulation_mode=self.emulation_mode,
         )
 
     def init_command_objects(self: VCCAllBandsController) -> None:
