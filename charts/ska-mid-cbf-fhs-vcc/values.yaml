@@ -31,7 +31,7 @@ midcbf:
   image:
     registry: docker.io/library
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.1.2
+    tag: 0.1.1
     pullPolicy: IfNotPresent
 
 resources:
@@ -207,6 +207,11 @@ devices:
 instances:
   - name: fhs-vcc-1
     deviceId: "1"
+  - name: fhs-vcc-2
+    deviceId: "2"
+  - name: fhs-vcc-3
+    deviceId: "3"
+
 
 deviceServers:
   fhs-vcc-stack:
