@@ -149,16 +149,16 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
 
             if register == "buffer_underflowed":
                 register_statuses["buffer_underflowed"] = self.check_register(
-                    False, 
-                    status.buffer_underflowed, 
-                    error_msg=f"buffer_underflowed mismatch. Expected False, Actual: {status.buffer_underflowed}"
+                    False,
+                    status.buffer_underflowed,
+                    error_msg=f"buffer_underflowed mismatch. Expected False, Actual: {status.buffer_underflowed}",
                 )
 
             if register == "buffer_overflowed":
                 register_statuses["buffer_overflowed"] = self.check_register(
-                    False, 
-                    status.buffer_overflowed, 
-                    error_msg=f"buffer_overflowed mismatch. Expected False, Actual: {status.buffer_overflowed}"
+                    False,
+                    status.buffer_overflowed,
+                    error_msg=f"buffer_overflowed mismatch. Expected False, Actual: {status.buffer_overflowed}",
                 )
 
         return register_statuses
