@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Any
 
 import tango
 from ska_mid_cbf_fhs_common import FhsObsBaseDevice
@@ -134,7 +133,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def wibprotoTest(self) -> int:
         return self.component_manager.wideband_input_buffer.test_attr_value
-    
+
     @wibprotoTest.write
     def wibprotoTest(self, value: int) -> None:
         self.component_manager.wideband_input_buffer.test_attr_value = value
@@ -148,7 +147,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def wibExpectedSampleRate(self) -> int:
         return self.component_manager.wideband_input_buffer.expected_sample_rate
-    
+
     @wibExpectedSampleRate.write
     def wibExpectedSampleRate(self, value: int) -> None:
         self.component_manager.wideband_input_buffer.expected_sample_rate = value
@@ -160,7 +159,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def wibExpectedDishId(self) -> str:
         return self.component_manager.wideband_input_buffer.expected_dish_id
-    
+
     @wibExpectedDishId.write
     def wibExpectedDishId(self, value: str) -> None:
         self.component_manager.wideband_input_buffer.expected_dish_id = value

@@ -1,16 +1,15 @@
-from logging import Logger
 import time
+from dataclasses import dataclass
+from logging import Logger
 from typing import Any, Callable
 
+import numpy as np
+from dataclasses_json import dataclass_json
 from ska_control_model import HealthState, SimulationMode
 from ska_mid_cbf_fhs_common import convert_dish_id_uint16_t_to_mnemonic
-from ska_mid_cbf_fhs_vcc.ip_block_manager.base_ip_block_manager import BaseIPBlockManager
-from ska_mid_cbf_fhs_vcc.ip_block_manager.base_monitoring_ip_block_manager import BaseMonitoringIPBlockManager
-from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import NonBlockingFunction, non_blocking
-import numpy as np
-from dataclasses import dataclass
-from dataclasses_json import dataclass_json
 
+from ska_mid_cbf_fhs_vcc.ip_block_manager.base_monitoring_ip_block_manager import BaseMonitoringIPBlockManager
+from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import non_blocking
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 
 
@@ -103,7 +102,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
         time.sleep(7)
         self.test_attr_value = scan_id * 10
         return scan_id * 2
-    
+
     @non_blocking
     def some_other_crap(self, asdf):
         """Another non-blocking function test."""

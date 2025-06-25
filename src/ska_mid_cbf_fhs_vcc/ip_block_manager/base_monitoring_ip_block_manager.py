@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-import os
+from abc import abstractmethod
+from logging import Logger
 from threading import Lock
 from typing import Callable, Type
-from logging import Logger
 
 from ska_control_model import HealthState, SimulationMode
-from ska_mid_cbf_fhs_common import FhsBaseApiInterface, BaseSimulatorApi, EmulatorApi, FirmwareApi, FhsHealthMonitor
+from ska_mid_cbf_fhs_common import BaseSimulatorApi, FhsHealthMonitor
+
 from ska_mid_cbf_fhs_vcc.ip_block_manager.base_ip_block_manager import BaseIPBlockManager
 
 
@@ -90,7 +90,7 @@ class BaseMonitoringIPBlockManager(BaseIPBlockManager):
             if self._health_state != health_state:
                 self._health_state = health_state
                 self._update_health_state_callback(health_state)
-    
+
     @abstractmethod
     def check_registers(self, status_dict: dict) -> dict[str, HealthState]:
         ...

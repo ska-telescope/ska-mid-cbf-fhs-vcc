@@ -1,11 +1,11 @@
 from __future__ import annotations
+
+from functools import wraps
 from threading import Thread
 from typing import Any, Callable, Generic, ParamSpec, TypeVar
-from functools import wraps
 
-
-P = ParamSpec('P')
-R = TypeVar('R')
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class NonBlockingFunction(Generic[P, R]):
@@ -13,13 +13,21 @@ class NonBlockingFunction(Generic[P, R]):
 
     def __init__(self, fn: Callable[P, R], *args, **kwargs):
         self._result_storage = [None]
-        self._thread = Thread(target=self._wrap_fn(fn), args=(self._result_storage, *args,), kwargs=kwargs)
+        self._thread = Thread(
+            target=self._wrap_fn(fn),
+            args=(
+                self._result_storage,
+                *args,
+            ),
+            kwargs=kwargs,
+        )
 
     def _wrap_fn(self, fn: Callable[P, R]) -> Callable[[list[R], Any], None]:
         def wrapped_fn(result_storage: list[R], *args, **kwargs):
             result_storage[0] = fn(*args, **kwargs)
+
         return wrapped_fn
-    
+
     def start(self) -> None:
         """Start the function thread."""
         self._thread.start()
@@ -36,7 +44,7 @@ class NonBlockingFunction(Generic[P, R]):
         """Wait for the function to complete and return the stored result."""
         self.join()
         return self.get_result()
-    
+
     @staticmethod
     def await_all(*fns: NonBlockingFunction) -> list[Any]:
         """Wait for all of the specified non-blocking functions to complete and return a list of all of their results."""
@@ -47,9 +55,11 @@ class NonBlockingFunction(Generic[P, R]):
 
 def non_blocking(fn: Callable[P, R]):
     """Decorator which turns a function into a non-blocking function."""
+
     @wraps(fn)
     def inner(*args, **kwargs) -> NonBlockingFunction[P, R]:
         nb_fn = NonBlockingFunction[P, R](fn, *args, **kwargs)
         nb_fn.start()
         return nb_fn
+
     return inner

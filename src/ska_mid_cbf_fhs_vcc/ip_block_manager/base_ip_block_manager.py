@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 import os
-from threading import Lock
-from typing import Any, Callable, Type
+from abc import ABC
 from logging import Logger
+from typing import Type
 
 from ska_control_model import HealthState, SimulationMode
-from ska_mid_cbf_fhs_common import FhsBaseApiInterface, BaseSimulatorApi, EmulatorApi, FirmwareApi, FhsHealthMonitor
-from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import NonBlockingFunction, non_blocking
+from ska_mid_cbf_fhs_common import BaseSimulatorApi, EmulatorApi, FhsBaseApiInterface, FirmwareApi
 
 
 class BaseIPBlockManager(ABC):
@@ -33,9 +31,7 @@ class BaseIPBlockManager(ABC):
         self._emulation_mode = emulation_mode
 
         self.logger = logger if logger is not None else Logger(ip_block_id)
-        self.logger.info(
-            f"Api starting for simulation_mode: {simulation_mode}, emulation_mode: {emulation_mode}"
-        )
+        self.logger.info(f"Api starting for simulation_mode: {simulation_mode}, emulation_mode: {emulation_mode}")
         _bitstream_path = os.path.join(bitstream_path, bitstream_id, bitstream_version)
 
         self.ip_block_id = ip_block_id
@@ -44,9 +40,7 @@ class BaseIPBlockManager(ABC):
         if self._simulation_mode == SimulationMode.TRUE and simulator_api is not None:
             self._api = simulator_api(self.ip_block_id, self.logger)
         elif self._simulation_mode == SimulationMode.FALSE and self._emulation_mode and emulator_ip_block_id is not None:
-            self._api = EmulatorApi(
-                _bitstream_path, emulator_ip_block_id, emulator_id, emulator_base_url, self.logger
-            )
+            self._api = EmulatorApi(_bitstream_path, emulator_ip_block_id, emulator_id, emulator_base_url, self.logger)
         else:
             self._api = FirmwareApi(_bitstream_path, firmware_ip_block_id, self.logger)
 

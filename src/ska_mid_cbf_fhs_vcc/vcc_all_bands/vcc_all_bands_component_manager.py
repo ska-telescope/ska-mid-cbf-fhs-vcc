@@ -23,7 +23,10 @@ from ska_tango_base.base.base_component_manager import TaskCallbackType
 from tango import EventData, EventType
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
-from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferManager, WidebandInputBufferConfig
+from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import (
+    WidebandInputBufferConfig,
+    WidebandInputBufferManager,
+)
 
 from .vcc_all_bands_config import schema
 
@@ -355,14 +358,16 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
             # WIB Configuration
             self.logger.debug("Wideband Input Buffer Configuring..")
-            result = self.wideband_input_buffer.configure(WidebandInputBufferConfig(
-                expected_sample_rate=self._sample_rate,
-                noise_diode_transition_holdoff_seconds=configuration["noise_diode_transition_holdoff_seconds"],
-                expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
-            ))
+            result = self.wideband_input_buffer.configure(
+                WidebandInputBufferConfig(
+                    expected_sample_rate=self._sample_rate,
+                    noise_diode_transition_holdoff_seconds=configuration["noise_diode_transition_holdoff_seconds"],
+                    expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
+                )
+            )
 
             if result == 1:
-                self.logger.error(f"Configuration of WIB failed.")
+                self.logger.error("Configuration of WIB failed.")
                 self._reset_devices(
                     [
                         self.device.vcc123_channelizer_fqdn,
@@ -612,12 +617,10 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
                     )
                     return
-            
+
             wib_start_result = self.wideband_input_buffer.start().await_result()
             if wib_start_result == 1:
-                self._set_task_callback(
-                    task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to start WIB"
-                )
+                self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to start WIB")
                 return
 
             # Update obsState callback
@@ -659,12 +662,10 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
                     )
                     return
-            
+
             wib_stop_result = self.wideband_input_buffer.stop().await_result()
             if wib_stop_result == 1:
-                self._set_task_callback(
-                    task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to stop WIB"
-                )
+                self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to stop WIB")
                 return
 
             # Update obsState callback
@@ -896,7 +897,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             ]:
                 self.logger.info(f"Stopping proxy {fqdn}")
                 result = proxy.Stop()
-        
+
         wib_stop_result = self.wideband_input_buffer.stop().await_result()
         if wib_stop_result == 1:
             self.logger.error("WIB STOP FAILURE (TODO)")
