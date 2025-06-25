@@ -140,6 +140,27 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
                     error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
                 )
 
+            if register == "error":
+                if status.error:
+                    register_statuses["error"] = HealthState.DEGRADED
+                    self.logger.warning(f"error mismatch. Expected False, Actual {status.error}")
+                else:
+                    register_statuses["error"] = HealthState.OK
+
+            if register == "buffer_underflowed":
+                register_statuses["buffer_underflowed"] = self.check_register(
+                    False, 
+                    status.buffer_underflowed, 
+                    error_msg=f"buffer_underflowed mismatch. Expected False, Actual: {status.buffer_underflowed}"
+                )
+
+            if register == "buffer_overflowed":
+                register_statuses["buffer_overflowed"] = self.check_register(
+                    False, 
+                    status.buffer_overflowed, 
+                    error_msg=f"buffer_overflowed mismatch. Expected False, Actual: {status.buffer_overflowed}"
+                )
+
         return register_statuses
 
     def check_meta_dish_id(self: WidebandInputBufferComponentManager, meta_dish_id: int) -> HealthState:
