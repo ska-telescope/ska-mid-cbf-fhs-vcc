@@ -6,12 +6,12 @@ version: 0.2.1
 icon: https://www.skatelescope.org/wp-content/uploads/2016/07/09545_NEW_LOGO_2014.png
 dependencies:
 - name: ska-tango-util
-  version: 0.4.20
+  version: 0.4.21
   repository: https://artefact.skao.int/repository/helm-internal
   #repository: "file:///home/ja004983_p/projects/ska-tango-charts/charts/ska-tango-util"
   #repository: "file://../../../ska-tango-charts/charts/ska-tango-util"
 - name: ska-tango-base
-  version: 0.4.20
+  version: 0.4.21
   repository: https://artefact.skao.int/repository/helm-internal
 - name: ska-taranta
   version: 1.0.29
