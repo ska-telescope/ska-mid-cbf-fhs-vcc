@@ -2,8 +2,6 @@ ARG BUILD_IMAGE=artefact.skao.int/ska-build-python:0.1.1
 ARG BASE_IMAGE=artefact.skao.int/ska-tango-images-tango-python:0.2.1
 FROM $BUILD_IMAGE AS build
 
-RUN pipx uninstall poetry; pipx install poetry==2.1.3
-
 ENV VIRTUAL_ENV=/app \
     POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=1
