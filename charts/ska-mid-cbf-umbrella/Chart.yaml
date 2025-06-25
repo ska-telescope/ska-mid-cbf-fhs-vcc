@@ -22,7 +22,7 @@ dependencies:
   repository: https://artefact.skao.int/repository/helm-internal
   condition: ska-taranta-auth.enabled
 - name: ska-mid-cbf-fhs-vcc
-  version: 0.2.0
+  version: 0.1.2
   repository: "file://../ska-mid-cbf-fhs-vcc"
 - name: ska-mid-cbf-fhs-vcc-boogie
   version: 0.2.1
