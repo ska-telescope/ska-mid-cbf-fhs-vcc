@@ -1,5 +1,5 @@
-ARG BUILD_IMAGE=artefact.skao.int/ska-build-python:0.3.1
-ARG BASE_IMAGE=artefact.skao.int/ska-tango-images-tango-python:0.3.0
+ARG BUILD_IMAGE=harbor.skao.int/ska-build-python:0.3.1
+ARG BASE_IMAGE=harbor.skao.int/ska-tango-images-tango-python:0.3.0
 FROM $BUILD_IMAGE AS build
 
 ENV VIRTUAL_ENV=/app \
