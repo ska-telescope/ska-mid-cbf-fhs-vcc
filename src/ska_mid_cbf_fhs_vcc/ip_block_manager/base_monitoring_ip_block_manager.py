@@ -35,18 +35,18 @@ class BaseMonitoringIPBlockManager(BaseIPBlockManager):
             raise ValueError("health_monitor_poll_interval must be at least 0.1 seconds.")
 
         super().__init__(
-            ip_block_id,
-            bitstream_path,
-            bitstream_id,
-            bitstream_version,
-            firmware_ip_block_id,
-            simulator_api,
-            simulation_mode,
-            emulation_mode,
-            emulator_ip_block_id,
-            emulator_id,
-            emulator_base_url,
-            logger,
+            ip_block_id=ip_block_id,
+            bitstream_path=bitstream_path,
+            bitstream_id=bitstream_id,
+            bitstream_version=bitstream_version,
+            firmware_ip_block_id=firmware_ip_block_id,
+            simulator_api=simulator_api,
+            simulation_mode=simulation_mode,
+            emulation_mode=emulation_mode,
+            emulator_ip_block_id=emulator_ip_block_id,
+            emulator_id=emulator_id,
+            emulator_base_url=emulator_base_url,
+            logger=logger,
         )
 
         self._health_state_lock = Lock()

@@ -136,7 +136,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             "ip_block_id": ip_block_name,
             "firmware_ip_block_id": loaded_props.get("firmware_ip_block_id", None),
             "emulator_ip_block_id": loaded_props.get("emulator_ip_block_id", None),
-            **{prop_name: loaded_props.get("emulator_ip_block_id", None) for prop_name in additional_props},
+            **{prop_name: loaded_props.get(prop_name, None) for prop_name in additional_props},
         }
         if loaded_props.get("health_monitor_poll_interval") is not None:
             ip_block_props.update(
