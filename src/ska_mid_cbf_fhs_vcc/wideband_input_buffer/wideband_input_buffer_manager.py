@@ -78,11 +78,6 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
             update_health_state_callback,
         )
 
-    def synch_fn(self):
-        """Standard blocking/synchronous function test."""
-        time.sleep(2)
-        return f"Synch! {time.time()}"
-
     def configure(self, config: WidebandInputBufferConfig):
         """Configure the Wideband Input Buffer."""
         self.expected_sample_rate = config.expected_sample_rate
@@ -95,19 +90,6 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
     @non_blocking
     def stop(self) -> int:
         return super().stop()
-
-    @non_blocking
-    def scan(self, scan_id):
-        """Non-blocking function test."""
-        time.sleep(7)
-        self.test_attr_value = scan_id * 10
-        return scan_id * 2
-
-    @non_blocking
-    def some_other_crap(self, asdf):
-        """Another non-blocking function test."""
-        time.sleep(7)
-        return asdf + 2
 
     def check_registers(self, status_dict: dict) -> dict[str, HealthState]:
         status: WidebandInputBufferStatus = WidebandInputBufferStatus.schema().load(status_dict)

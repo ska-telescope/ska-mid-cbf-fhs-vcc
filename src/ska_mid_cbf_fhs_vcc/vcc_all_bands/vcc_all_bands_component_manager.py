@@ -90,7 +90,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
         self._proxies[device.ethernet_200g_fqdn] = None
         self._proxies[device.packet_validation_fqdn] = None
-        # self._proxies[device.wideband_input_buffer_fqdn] = None
         self._proxies[device.wideband_frequency_shifter_fqdn] = None
         self._proxies[device.vcc123_channelizer_fqdn] = None
         # self._proxies[device.vcc45_channelizer_fqdn] = None
@@ -357,29 +356,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 self._reset_attributes()
                 raise ValueError(f"Incorrect number of gain values supplied: {self._vcc_gains} != {self._num_vcc_gains}")
 
-            # WIB Configuration
-            self.logger.debug("Wideband Input Buffer Configuring..")
-            result = self.wideband_input_buffer.configure(
-                WidebandInputBufferConfig(
-                    expected_sample_rate=self._sample_rate,
-                    noise_diode_transition_holdoff_seconds=configuration["noise_diode_transition_holdoff_seconds"],
-                    expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
-                )
-            )
-
-            if result == 1:
-                self.logger.error("Configuration of WIB failed.")
-                self._reset_devices(
-                    [
-                        self.device.vcc123_channelizer_fqdn,
-                        self.device.wideband_frequency_shifter_fqdn,
-                        self.device.fs_selection_fqdn,
-                    ]
-                )
-                raise ChildProcessError("Configuration of low-level fhs device failed: WIB")
-
-            self.wideband_input_buffer.expected_dish_id = self._expected_dish_id
-
             if not self.simulation_mode:
                 # VCC123 Channelizer Configuration
                 self.logger.debug("VCC123 Channelizer Configuring..")
@@ -418,49 +394,28 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                     self._reset_devices([self.device.vcc123_channelizer_fqdn, self.device.wideband_frequency_shifter_fqdn])
                     raise ChildProcessError("Configuration of low-level fhs device failed: FS Selection")
 
-                # # WIB Configuration
-                # self.logger.debug("Wideband Input Buffer Configuring..")
-                # result = self.wideband_input_buffer.configure(WidebandInputBufferConfig(
-                #     expected_sample_rate=self._sample_rate,
-                #     noise_diode_transition_holdoff_seconds=configuration["noise_diode_transition_holdoff_seconds"],
-                #     expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
-                # ))
-                # # result = self._proxies[self.device.wideband_input_buffer_fqdn].Configure(
-                # #     json.dumps(
-                # #         {
-                # #             "expected_sample_rate": self._sample_rate,
-                # #             "noise_diode_transition_holdoff_seconds": configuration["noise_diode_transition_holdoff_seconds"],
-                # #             "expected_dish_band": self.frequency_band.value
-                # #             + 1,  # FW Drivers rely on integer indexes, that are 1-based
-                # #         }
-                # #     )
-                # # )
+                # WIB Configuration
+                self.logger.debug("Wideband Input Buffer Configuring..")
+                result = self.wideband_input_buffer.configure(
+                    WidebandInputBufferConfig(
+                        expected_sample_rate=self._sample_rate,
+                        noise_diode_transition_holdoff_seconds=configuration["noise_diode_transition_holdoff_seconds"],
+                        expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
+                    )
+                )
 
-                # if result == 1:
-                #     self.logger.error(f"Configuration of WIB failed.")
-                #     self._reset_devices(
-                #         [
-                #             self.device.vcc123_channelizer_fqdn,
-                #             self.device.wideband_frequency_shifter_fqdn,
-                #             self.device.fs_selection_fqdn,
-                #         ]
-                #     )
-                #     raise ChildProcessError("Configuration of low-level fhs device failed: WIB")
+                if result == 1:
+                    self.logger.error("Configuration of WIB failed.")
+                    self._reset_devices(
+                        [
+                            self.device.vcc123_channelizer_fqdn,
+                            self.device.wideband_frequency_shifter_fqdn,
+                            self.device.fs_selection_fqdn,
+                        ]
+                    )
+                    raise ChildProcessError("Configuration of low-level fhs device failed: WIB")
 
-                # self.wideband_input_buffer.expected_dish_id = self._expected_dish_id
-
-                # if result[0] == ResultCode.FAILED:
-                #     self.logger.error(f"Configuration of WIB failed: {result[1]}")
-                #     self._reset_devices(
-                #         [
-                #             self.device.vcc123_channelizer_fqdn,
-                #             self.device.wideband_frequency_shifter_fqdn,
-                #             self.device.fs_selection_fqdn,
-                #         ]
-                #     )
-                #     raise ChildProcessError("Configuration of low-level fhs device failed: WIB")
-
-                # self._proxies[self.device.wideband_input_buffer_fqdn].expectedDishId = self._expected_dish_id
+                self.wideband_input_buffer.expected_dish_id = self._expected_dish_id
 
                 # Pre-channelizer WPM Configuration
                 self.logger.debug("Pre-channelizer Wideband Power Meters Configuring..")
@@ -492,7 +447,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                                 self.device.vcc123_channelizer_fqdn,
                                 self.device.wideband_frequency_shifter_fqdn,
                                 self.device.fs_selection_fqdn,
-                                # self.device.wideband_input_buffer_fqdn,
                             ]
                         )
                         raise ChildProcessError("Configuration of low-level fhs device failed: Wideband Power Meter")
@@ -525,7 +479,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                                 self.device.vcc123_channelizer_fqdn,
                                 self.device.wideband_frequency_shifter_fqdn,
                                 self.device.fs_selection_fqdn,
-                                # self.device.wideband_input_buffer_fqdn,
                                 self.device.b123_wideband_power_meter_fqdn,
                                 self.device.b45a_wideband_power_meter_fqdn,
                                 self.device.b5b_wideband_power_meter_fqdn,
@@ -610,7 +563,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 try:
                     self._proxies[self.device.ethernet_200g_fqdn].Start()
                     self._proxies[self.device.packet_validation_fqdn].Start()
-                    # self._proxies[self.device.wideband_input_buffer_fqdn].Start()
                 except tango.DevFailed as ex:
                     self.logger.error(repr(ex))
                     self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
@@ -655,7 +607,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 try:
                     self._proxies[self.device.ethernet_200g_fqdn].Stop()
                     self._proxies[self.device.packet_validation_fqdn].Stop()
-                    # self._proxies[self.device.wideband_input_buffer_fqdn].Stop()
                 except tango.DevFailed as ex:
                     self.logger.error(repr(ex))
                     self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
@@ -893,7 +844,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         for fqdn, proxy in self._proxies.items():
             if proxy is not None and fqdn in [
                 self.device.ethernet_200g_fqdn,
-                # self.device.wideband_input_buffer_fqdn,
                 self.device.packet_validation_fqdn,
             ]:
                 self.logger.info(f"Stopping proxy {fqdn}")
@@ -902,7 +852,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         wib_stop_result = self.wideband_input_buffer.stop().await_result()
         if wib_stop_result == 1:
             self.logger.error("WIB STOP FAILURE (TODO)")
-        # self._proxies[self.device.wideband_input_buffer_fqdn].Start()
         return result
 
     def _reset_attributes(self: VCCAllBandsComponentManager):

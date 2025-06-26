@@ -23,7 +23,6 @@ class VCCAllBandsController(FhsObsBaseDevice):
     packet_validation_fqdn = device_property(dtype="str")
     vcc123_channelizer_fqdn = device_property(dtype="str")
     vcc45_channelizer_fqdn = device_property(dtype="str")
-    wideband_input_buffer_fqdn = device_property(dtype="str")
     wideband_frequency_shifter_fqdn = device_property(dtype="str")
     circuit_switch_fqdn = device_property(dtype="str")
     fs_selection_fqdn = device_property(dtype="str")

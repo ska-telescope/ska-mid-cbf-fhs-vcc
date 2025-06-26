@@ -114,14 +114,6 @@ devices:
     path: "fhs/packetvalidation/{{.deviceId000}}"
     emulatorIpBlockId: "packet_validation"
     firmwareIpBlockId: "packet_validation_unimplemented"
-  - name: "WidebandInputBuffer"
-    path: "fhs/wib/{{.deviceId000}}"
-    emulatorIpBlockId: "wideband_input_buffer"
-    firmwareIpBlockId: "wideband_input_buffer_unimplemented"
-    properties:
-      - name: health_monitor_poll_interval
-        values:
-          - "3"
   - name: "WidebandFrequencyShifter"
     path: "fhs/wfs/{{.deviceId000}}"
     emulatorIpBlockId: "wideband_frequency_shifter"
@@ -159,9 +151,6 @@ devices:
   - name: "VCCAllBandsController"
     path: "fhs/vcc-all-bands/{{.deviceId000}}"
     properties:
-      - name: wideband_input_buffer_fqdn
-        values:
-          - "fhs/wib/{{.deviceId000}}"
       - name: vcc123_channelizer_fqdn
         values:
           - "fhs/vcc/{{.deviceId000}}"
@@ -198,7 +187,6 @@ devices:
       - name: ll_props
         values:
           WidebandInputBuffer:
-            path: "fhs/wib/{{.deviceId000}}"
             emulator_ip_block_id: "wideband_input_buffer"
             firmware_ip_block_id: "wideband_input_buffer_unimplemented"
             health_monitor_poll_interval: "3"

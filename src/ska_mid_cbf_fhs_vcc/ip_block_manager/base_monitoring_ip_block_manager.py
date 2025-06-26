@@ -83,7 +83,7 @@ class BaseMonitoringIPBlockManager(BaseIPBlockManager):
         super()._start()
 
     def _stop(self) -> None:
-        super()._start()
+        super()._stop()
 
     def _update_health_state(self, health_state: HealthState) -> None:
         with self._health_state_lock:

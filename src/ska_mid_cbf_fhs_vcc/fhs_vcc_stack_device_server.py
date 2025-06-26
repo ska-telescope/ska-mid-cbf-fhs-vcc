@@ -9,7 +9,6 @@ from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import Packe
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_device import VCCStreamMerge
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device import WidebandFrequencyShifter
-from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
 
 __all__ = ["main"]
 
@@ -44,7 +43,6 @@ def main(args=None, **kwargs):  # noqa: E302
             FrequencySliceSelection,
             Ethernet200Gb,
             PacketValidation,
-            WidebandInputBuffer,
             WidebandFrequencyShifter,
             B123WidebandPowerMeter,
             B45AWidebandPowerMeter,
