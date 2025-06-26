@@ -546,7 +546,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 f"Arg provided does not meet ConfigureScan criteria: {ex}",
             )
         except Exception as ex:
-            self.logger.error(repr(ex))
+            self.logger.exception(ex)
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(

@@ -69,6 +69,7 @@ class VCCStreamMergeManager(BaseIPBlockManager):
 
     def configure(self, config: VCCStreamMergeConfigureArgin) -> int:
         """Configure the VCC Stream Merge."""
+        result = 0
         for lane_config in config.fs_lane_configs:
             result = super().configure(lane_config.to_dict())
             if result == 1:
@@ -79,6 +80,7 @@ class VCCStreamMergeManager(BaseIPBlockManager):
         """Deconfigure the VCC Stream Merge."""
         if config is None:
             return super().recover()
+        result = 0
         for lane_config in config.fs_lane_configs:
             result = super().deconfigure(lane_config.to_dict())
             if result == 1:
