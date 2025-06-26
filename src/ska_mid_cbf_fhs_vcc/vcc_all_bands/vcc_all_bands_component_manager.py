@@ -21,19 +21,20 @@ from ska_mid_cbf_fhs_common import (
     calculate_gain_multiplier,
 )
 from ska_tango_base.base.base_component_manager import TaskCallbackType
-from tango import EventData, EventType
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
     B123VccOsppfbChannelizerConfigureArgin,
     B123VccOsppfbChannelizerManager,
 )
+from ska_mid_cbf_fhs_vcc.common.ftile_ethernet_manager import FtileEthernetManager
+from ska_mid_cbf_fhs_vcc.common.wideband_power_meter_manager import WidebandPowerMeterConfig, WidebandPowerMeterManager
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_manager import (
     FrequencySliceSelectionConfig,
     FrequencySliceSelectionManager,
 )
 from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import NonBlockingFunction
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import (
     VCCStreamMergeConfig,
     VCCStreamMergeConfigureArgin,
@@ -96,20 +97,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
         self._init_ip_block_managers()
 
-        self._proxies: dict[str, tango.DeviceProxy] = {}
-
-        self._proxies[device.ethernet_200g_fqdn] = None
-        # self._proxies[device.vcc45_channelizer_fqdn] = None
-        self._proxies[device.b123_wideband_power_meter_fqdn] = None
-        self._proxies[device.b45a_wideband_power_meter_fqdn] = None
-        self._proxies[device.b5b_wideband_power_meter_fqdn] = None
-
-        self._power_meter_fqdns = {
-            i: device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 26 + 1)
-        }
-        for fqdn in self._power_meter_fqdns.values():
-            self._proxies[fqdn] = None
-
         # vcc channels * number of polarizations
         self._num_fs = 0
         self._num_vcc_gains = 0
@@ -122,9 +109,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self.frequency_band_offset = [0, 0]
 
         self._expected_dish_id = None
-
-        # store the subscription event_ids here with a key (fqdn for deviceproxies)
-        self.subscription_event_ids: dict[str, set[int]] = {}
 
         self.fhs_health_monitor = FhsHealthMonitor(
             logger=logger,
@@ -145,13 +129,14 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             **kwargs,
         )
 
-    def _ip_block_props(self, ip_block_name: str) -> dict[str, Any]:
+    def _ip_block_props(self, ip_block_name: str, additional_props: list[str] = []) -> dict[str, Any]:
         loaded_props = self._ll_props.get(ip_block_name, {})
         ip_block_props = {
             **self._default_props,
             "ip_block_id": ip_block_name,
             "firmware_ip_block_id": loaded_props.get("firmware_ip_block_id", None),
             "emulator_ip_block_id": loaded_props.get("emulator_ip_block_id", None),
+            **{prop_name: loaded_props.get("emulator_ip_block_id", None) for prop_name in additional_props},
         }
         if loaded_props.get("health_monitor_poll_interval") is not None:
             ip_block_props.update(
@@ -163,12 +148,20 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         return ip_block_props
 
     def _init_ip_block_managers(self):
+        self.ethernet_200g = FtileEthernetManager(**self._ip_block_props("FtileEthernet", additional_props=["ethernet_mode"]))
         self.b123_vcc = B123VccOsppfbChannelizerManager(**self._ip_block_props("B123VccOsppfbChannelizer"))
         self.frequency_slice_selection = FrequencySliceSelectionManager(**self._ip_block_props("FrequencySliceSelection"))
         self.packet_validation = PacketValidationManager(**self._ip_block_props("PacketValidation"))
         self.wideband_frequency_shifter = WidebandFrequencyShifterManager(**self._ip_block_props("WidebandFrequencyShifter"))
         self.wideband_input_buffer = WidebandInputBufferManager(**self._ip_block_props("WidebandInputBuffer"))
         self.vcc_stream_merges = {i: VCCStreamMergeManager(**self._ip_block_props(f"VCCStreamMerge{i}")) for i in range(1, 3)}
+        self.wideband_power_meters = {
+            **{
+                band_group: WidebandPowerMeterManager(**self._ip_block_props(f"{band_group.upper()}WidebandPowerMeter"))
+                for band_group in VCCBandGroup
+            },
+            **{i: WidebandPowerMeterManager(**self._ip_block_props(f"FS{i}WidebandPowerMeter")) for i in range(1, 27)},
+        }
 
     def start_communicating(self: VCCAllBandsComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
@@ -178,36 +171,19 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 if self._communication_state == CommunicationStatus.ESTABLISHED:
                     self.logger.info("Already communicating.")
                     return
-
-                self.logger.info("Establishing Communication with low-level proxies")
-
-                for fqdn, dp in self._proxies.items():
-                    if dp is None:
-                        self.logger.info(f"Establishing Communication with {fqdn}")
-                        dp = tango.DeviceProxy(fqdn)
-                        # NOTE: this crashes when adminMode is memorized because it gets called before the devices are ready
-                        self._subscribe_to_change_event(dp, "healthState", fqdn, self.proxies_health_state_change_event)
-                        self._subscribe_to_change_event(dp, "longRunningCommandResult", fqdn, self._long_running_command_callback)
-                        self._proxies[fqdn] = dp
-                print(f"HEALTH_STATE REGISTERED EVENTS: {self.subscription_event_ids}")
                 super().start_communicating()
         except tango.DevFailed as ex:
-            self.logger.error(f"Failed connecting to FHS Low-level devices; {ex}")
+            self.logger.error(f"Failed to start communicating; {ex}")
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
             return
 
     def stop_communicating(self: VCCAllBandsComponentManager) -> None:
         """Close communication with the component, then stop monitoring."""
         try:
-            for fqdn in self._proxies:
-                # unsubscribe from any attribute change events
-                self._unsubscribe_from_events(fqdn)
-                self._proxies[fqdn] = None
-
             # Event unsubscription will also be placed here
             super().stop_communicating()
         except tango.DevFailed as ex:
-            self.logger.error(f"Failed close device proxies to FHS Low-level devices; {ex}")
+            self.logger.error(f"Failed to stop communicating; {ex}")
 
     def is_go_to_idle_allowed(self: VCCAllBandsComponentManager) -> bool:
         self.logger.debug("Checking if gotoidle is allowed...")
@@ -300,7 +276,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
         result = super().abort_commands(task_callback)
 
-        result = self._stop_proxies()
+        result = self._stop_low_level()
 
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
         return result
@@ -442,26 +418,18 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 self._b45a_pwrm = configuration["b45a_pwrm"]
                 self._b5b_pwrm = configuration["b5b_pwrm"]
 
-                for (
-                    fqdn,
-                    config,
-                ) in [
-                    (self.device.b123_wideband_power_meter_fqdn, self._b123_pwrm),
-                    (self.device.b45a_wideband_power_meter_fqdn, self._b45a_pwrm),
-                    (self.device.b5b_wideband_power_meter_fqdn, self._b5b_pwrm),
-                ]:
-                    self.logger.debug(f"Configuring {fqdn} with {config}")
-                    result = self._proxies[fqdn].Configure(
-                        json.dumps(
-                            {
-                                "averaging_time": config["averaging_time"],
-                                "flagging": config["flagging"],
-                            }
+                for band_group in VCCBandGroup:
+                    config = configuration[f"{band_group}_pwrm"]
+                    self.logger.debug(f"Configuring {band_group} power meter with {config}")
+                    result = self.wideband_power_meters[band_group].configure(
+                        WidebandPowerMeterConfig(
+                            averaging_time=config["averaging_time"],
+                            flagging=config["flagging"],
                         )
                     )
-                    if result[0] == ResultCode.FAILED:
-                        self.logger.error(f"Configuration of Wideband Power Meter failed: {result[1]}")
-                        raise ChildProcessError("Configuration of low-level fhs device failed: Wideband Power Meter")
+                    if result == 1:
+                        self.logger.error(f"Configuration of {band_group} Wideband Power Meter failed.")
+                        raise ChildProcessError(f"Configuration of {band_group} Wideband Power Meter failed.")
 
                 # Post-channelizer WPM Configuration
                 self.logger.debug("Post-channelizer Wideband Power Meters Configuring..")
@@ -474,26 +442,17 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         raise ValueError(f"VLAN ID {config['vlan_id']} is not within range")
 
                 for config in self._fs_lanes:
-                    fqdn = self._power_meter_fqdns[int(config["fs_id"])]
-                    self.logger.debug(f"Configuring {fqdn} with {config}")
-                    result = self._proxies[fqdn].Configure(
-                        json.dumps(
-                            {
-                                "averaging_time": config["averaging_time"],
-                                "flagging": config["flagging"],
-                            }
+                    fs_id = int(config["fs_id"])
+                    self.logger.debug(f"Configuring FS {fs_id} power meter with {config}")
+                    result = self.wideband_power_meters[fs_id].configure(
+                        WidebandPowerMeterConfig(
+                            averaging_time=config["averaging_time"],
+                            flagging=config["flagging"],
                         )
                     )
-                    if result[0] == ResultCode.FAILED:
-                        self.logger.error(f"Configuration of Wideband Power Meter failed: {result[1]}")
-                        self._reset_devices(
-                            [
-                                self.device.b123_wideband_power_meter_fqdn,
-                                self.device.b45a_wideband_power_meter_fqdn,
-                                self.device.b5b_wideband_power_meter_fqdn,
-                            ]
-                        )
-                        raise ChildProcessError("Configuration of low-level fhs device failed: FS Power Meter")
+                    if result == 1:
+                        self.logger.error(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
+                        raise ChildProcessError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
 
                 # VCC Stream Merge Configuration
                 self.logger.debug("VCC Stream Merge Configuring..")
@@ -571,15 +530,14 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             self._scan_id = argin
             if not self.simulation_mode:
                 try:
-                    self._proxies[self.device.ethernet_200g_fqdn].Start()
-
-                    pv_start_result, wib_start_result = NonBlockingFunction.await_all(
+                    eth_start_result, pv_start_result, wib_start_result = NonBlockingFunction.await_all(
+                        self.ethernet_200g.start(),
                         self.packet_validation.start(),
                         self.wideband_input_buffer.start(),
                     )
-                    if pv_start_result == 1 or wib_start_result == 1:
+                    if eth_start_result == 1 or pv_start_result == 1 or wib_start_result == 1:
                         self._set_task_callback(
-                            task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to start PV and/or WIB"
+                            task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to start Ethernet, PV and/or WIB"
                         )
                         return
                 except tango.DevFailed as ex:
@@ -619,15 +577,14 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
             if not self.simulation_mode:
                 try:
-                    self._proxies[self.device.ethernet_200g_fqdn].Stop()
-
-                    pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
+                    eth_stop_result, pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
+                        self.ethernet_200g.stop(),
                         self.packet_validation.stop(),
                         self.wideband_input_buffer.stop(),
                     )
-                    if pv_stop_result == 1 or wib_stop_result == 1:
+                    if eth_stop_result == 1 or pv_stop_result == 1 or wib_stop_result == 1:
                         self._set_task_callback(
-                            task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to stop PV and/or WIB"
+                            task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to stop Ethernet, PV and/or WIB"
                         )
                         return
                 except tango.DevFailed as ex:
@@ -662,8 +619,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
                 return
 
-            # Reset all device proxies
-            self._reset_devices(self._proxies.keys())
+            self._reset_attributes()
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
             return
@@ -691,10 +647,9 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
             # If in FAULT state, devices may still be running, so make sure they are stopped
             if from_state is ObsState.FAULT:
-                self._stop_proxies()
+                self._stop_low_level()
 
-            # Reset all device proxies
-            self._reset_devices(self._proxies.keys())
+            self._reset_attributes()
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ObsReset completed OK")
             return
@@ -784,9 +739,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             # Read all power meters
             for i in range(self._num_fs):
                 # Read power
-                power_meter_fqdn = self._power_meter_fqdns.get(i + 1)
-                status_str = self._proxies[power_meter_fqdn].GetStatus(True)[1][0]
-                status: dict = json.loads(status_str)
+                status = self.wideband_power_meters[i + 1].status()
                 measured_power_pol_x: float = status.get("avg_power_pol_x", None)
                 measured_power_pol_y: float = status.get("avg_power_pol_y", None)
 
@@ -797,7 +750,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                             TaskStatus.COMPLETED,
                             ResultCode.FAILED,
                             (
-                                f"Failed to auto-set gains: The power meter with FQDN {power_meter_fqdn} "
+                                f"Failed to auto-set gains: The FS {i + 1} power meter "
                                 f"failed to provide a valid power measurement for polarization {pol}."
                             ),
                         )
@@ -863,22 +816,14 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 "An unexpected error occurred while trying to auto-set gains.",
             )
 
-    def _stop_proxies(self: VCCAllBandsComponentManager):
-        result = None
-        for fqdn, proxy in self._proxies.items():
-            if proxy is not None and fqdn in [
-                self.device.ethernet_200g_fqdn,
-            ]:
-                self.logger.info(f"Stopping proxy {fqdn}")
-                result = proxy.Stop()
-
-        pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
+    def _stop_low_level(self: VCCAllBandsComponentManager):
+        eth_stop_result, pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
+            self.ethernet_200g.stop(),
             self.packet_validation.stop(),
             self.wideband_input_buffer.stop(),
         )
-        if pv_stop_result == 1 or wib_stop_result == 1:
-            self.logger.error("PV/WIB STOP FAILURE (TODO)")
-        if result[0] != ResultCode.OK or pv_stop_result == 1 or wib_stop_result == 1:
+        if eth_stop_result == 1 or pv_stop_result == 1 or wib_stop_result == 1:
+            self.logger.error("Ethernet/PV/WIB STOP FAILURE (TODO)")
             return ResultCode.FAILED, "Failed to stop proxies."
         return ResultCode.OK, "Stopped proxies successfully."
 
@@ -890,15 +835,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self._sample_rate = 0
         self._samples_per_frame = 0
         self._fsps = []
-
-    def _reset_devices(self: VCCAllBandsComponentManager, devices_name: list[str]):
-        try:
-            self._reset_attributes()
-            for fqdn in devices_name:
-                if self._proxies[fqdn] is not None:
-                    self._log_go_to_idle_status(fqdn, self._proxies[fqdn].GoToIdle())
-        except Exception as ex:
-            self.logger.error(f"Error resetting specific devices : {repr(ex)}")
 
     def task_abort_event_is_set(
         self: VCCAllBandsComponentManager,
@@ -926,51 +862,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             return True
         return False
 
-    def _log_go_to_idle_status(self: VCCAllBandsComponentManager, ip_block_name: str, result: tuple[ResultCode, str]):
-        if result[0] != ResultCode.OK:
-            self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
-        else:
-            self.logger.info(f"VCC {self._vcc_id}: {ip_block_name} set to IDLE")
-
-    def _subscribe_to_change_event(
-        self: VCCAllBandsComponentManager,
-        device_proxy,
-        attribute: str,
-        key: str,
-        change_event_callback: Callable[[EventData], None],
-    ):
-        event_id = device_proxy.subscribe_event(attribute, EventType.CHANGE_EVENT, change_event_callback)
-        if key in self.subscription_event_ids:
-            self.subscription_event_ids[key].add(event_id)
-        else:
-            self.subscription_event_ids[key] = {event_id}
-
-    def _unsubscribe_from_events(self: VCCAllBandsComponentManager, fqdn: str):
-        if fqdn in self.subscription_event_ids and fqdn in self._proxies and self._proxies[fqdn] is not None:
-            for event_id in self.subscription_event_ids[fqdn]:
-                try:
-                    self._proxies[fqdn].unsubscribe_event(event_id)
-                except Exception as ex:
-                    self.logger.error(f"Unable to unsubcribe from event {event_id} for device server {fqdn}: {repr(ex)}")
-
-    def proxies_health_state_change_event(self: VCCAllBandsComponentManager, event_data: EventData):
-        if event_data.err:
-            self.logger.error(
-                f"Problem occured when recieving healthState event for {event_data.device.dev_name()}. Unable to determine health state"
-            )
-            self.fhs_health_monitor.add_health_state(event_data.device.dev_name(), HealthState.UNKNOWN)
-        else:
-            self.fhs_health_monitor.add_health_state(event_data.device.dev_name(), event_data.attr_value.value)
-
     def ll_health_state_callback(self: VCCAllBandsComponentManager, health_state: HealthState, ll_name: str = "DEFAULT"):
         self.logger.info(f"VCC ALLBANDS LL HEALTH CALLBACK: name={ll_name}, new health_state={health_state}")
         self.fhs_health_monitor.add_health_state(ll_name, health_state)
-
-    def _long_running_command_callback(self: VCCAllBandsComponentManager, event: EventData):
-        id, result = event.attr_value.value
-
-        self.logger.info(
-            f"VCC {self._vcc_id}: Long running command '{id}' on '{event.device.name()}' completed with result '{result}'"
-        )
-        if event.err:
-            self.logger.error(f"VCC {self._vcc_id}: Long running command failed {event.errors}")

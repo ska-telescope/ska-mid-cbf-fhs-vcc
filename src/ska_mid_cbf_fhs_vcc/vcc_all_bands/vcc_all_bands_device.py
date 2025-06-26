@@ -19,13 +19,6 @@ class VCCAllBandsController(FhsObsBaseDevice):
     emulator_id = device_property(dtype="str")
     emulator_base_url = device_property(dtype="str")
 
-    ethernet_200g_fqdn = device_property(dtype="str")
-    vcc45_channelizer_fqdn = device_property(dtype="str")
-    b123_wideband_power_meter_fqdn = device_property(dtype="str")
-    b45a_wideband_power_meter_fqdn = device_property(dtype="str")
-    b5b_wideband_power_meter_fqdn = device_property(dtype="str")
-    fs_wideband_power_meter_fqdn = device_property(dtype="str")
-
     @attribute
     def expectedDishId(self):
         return self.component_manager.expected_dish_id

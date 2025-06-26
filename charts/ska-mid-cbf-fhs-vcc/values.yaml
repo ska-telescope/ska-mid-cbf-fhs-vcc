@@ -99,57 +99,16 @@ properties:
 
 # the devices in each stack. optionally override any property defined in `properties`. to add extra properties, provide a `properties` dict
 devices:
-  - name: "Ethernet200Gb"
-    path: "fhs/ethernet200g/{{.deviceId000}}"
-    emulatorIpBlockId: "ethernet_200g"
-    firmwareIpBlockId: "eth200g_{{.receptorId}}"
-    properties:
-      - name: EthernetMode
-        values:
-          - "200GbE"
-      - name: health_monitor_poll_interval
-        values:
-          - "60"
-  - name: "B123WidebandPowerMeter"
-    path: "fhs/b123wpm/{{.deviceId000}}"
-    emulatorIpBlockId: "b123_wideband_power_meter"
-    firmwareIpBlockId: "receptor{{.receptorId}}_band123_wideband_power_meter"
-  - name: "B45AWidebandPowerMeter"
-    path: "fhs/b45awpm/{{.deviceId000}}"
-    emulatorIpBlockId: "b45a_wideband_power_meter"
-    firmwareIpBlockId: "receptor{{.receptorId}}_band45a_wideband_power_meter"
-  - name: "B5BWidebandPowerMeter"
-    path: "fhs/b5bwpm/{{.deviceId000}}"
-    emulatorIpBlockId: "b5b_wideband_power_meter"
-    firmwareIpBlockId: "receptor{{.receptorId}}_band5b_wideband_power_meter"
-  - name: "FSWidebandPowerMeter"
-    multiplicity: 26
-    path: "fhs/fs{{.multiplicity}}wpm/{{.deviceId000}}"
-    emulatorIpBlockId: "fs{{.multiplicity}}_wideband_power_meter"
-    firmwareIpBlockId: "receptor{{.receptorId}}_fs{{.multiplicity}}_power_meter"
   - name: "VCCAllBandsController"
     path: "fhs/vcc-all-bands/{{.deviceId000}}"
     properties:
-      - name: vcc45_channelizer_fqdn # yet to be implemented
-        values:
-          - "placeholder"
-      - name: ethernet_200g_fqdn
-        values:
-          - "fhs/ethernet200g/{{.deviceId000}}"
-      - name: b123_wideband_power_meter_fqdn
-        values:
-          - "fhs/b123wpm/{{.deviceId000}}"
-      - name: b45a_wideband_power_meter_fqdn
-        values:
-          - "fhs/b45awpm/{{.deviceId000}}"
-      - name: b5b_wideband_power_meter_fqdn
-        values:
-          - "fhs/b5bwpm/{{.deviceId000}}"
-      - name: fs_wideband_power_meter_fqdn
-        values:
-          - "fhs/fs<multiplicity>wpm/{{.deviceId000}}"
       - name: ll_props
         values:
+          Ethernet200Gb:
+            emulator_ip_block_id: "ethernet_200g"
+            firmware_ip_block_id: "eth200g_{{.receptorId}}"
+            ethernet_mode: "200GbE"
+            health_monitor_poll_interval: "60"
           B123VccOsppfbChannelizer:
             emulator_ip_block_id: "b123vcc"
             firmware_ip_block_id: "receptor{{.receptorId}}_band123_vcc"
@@ -172,6 +131,93 @@ devices:
           VCCStreamMerge2:
             emulator_ip_block_id: "vcc_stream_merge2"
             firmware_ip_block_id: "receptor{{.receptorId}}_vcc_stream_merge2"
+          B123WidebandPowerMeter:
+            emulator_ip_block_id: "b123_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_band123_wideband_power_meter"
+          B45AWidebandPowerMeter:
+            emulator_ip_block_id: "b45a_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_band45a_wideband_power_meter"
+          B5BWidebandPowerMeter:
+            emulator_ip_block_id: "b5b_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_band5b_wideband_power_meter"
+          FS1WidebandPowerMeter:
+            emulator_ip_block_id: "fs1_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs1_power_meter"
+          FS2WidebandPowerMeter:
+            emulator_ip_block_id: "fs2_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs2_power_meter"
+          FS3WidebandPowerMeter:
+            emulator_ip_block_id: "fs3_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs3_power_meter"
+          FS4WidebandPowerMeter:
+            emulator_ip_block_id: "fs4_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs4_power_meter"
+          FS5WidebandPowerMeter:
+            emulator_ip_block_id: "fs5_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs5_power_meter"
+          FS6WidebandPowerMeter:
+            emulator_ip_block_id: "fs6_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs6_power_meter"
+          FS7WidebandPowerMeter:
+            emulator_ip_block_id: "fs7_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs7_power_meter"
+          FS8WidebandPowerMeter:
+            emulator_ip_block_id: "fs8_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs8_power_meter"
+          FS9WidebandPowerMeter:
+            emulator_ip_block_id: "fs9_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs9_power_meter"
+          FS10WidebandPowerMeter:
+            emulator_ip_block_id: "fs10_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs10_power_meter"
+          FS11WidebandPowerMeter:
+            emulator_ip_block_id: "fs11_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs11_power_meter"
+          FS12WidebandPowerMeter:
+            emulator_ip_block_id: "fs12_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs12_power_meter"
+          FS13WidebandPowerMeter:
+            emulator_ip_block_id: "fs13_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs13_power_meter"
+          FS14WidebandPowerMeter:
+            emulator_ip_block_id: "fs14_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs14_power_meter"
+          FS15WidebandPowerMeter:
+            emulator_ip_block_id: "fs15_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs15_power_meter"
+          FS16WidebandPowerMeter:
+            emulator_ip_block_id: "fs16_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs16_power_meter"
+          FS17WidebandPowerMeter:
+            emulator_ip_block_id: "fs17_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs17_power_meter"
+          FS18WidebandPowerMeter:
+            emulator_ip_block_id: "fs18_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs18_power_meter"
+          FS19WidebandPowerMeter:
+            emulator_ip_block_id: "fs19_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs19_power_meter"
+          FS20WidebandPowerMeter:
+            emulator_ip_block_id: "fs20_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs20_power_meter"
+          FS21WidebandPowerMeter:
+            emulator_ip_block_id: "fs21_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs21_power_meter"
+          FS22WidebandPowerMeter:
+            emulator_ip_block_id: "fs22_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs22_power_meter"
+          FS23WidebandPowerMeter:
+            emulator_ip_block_id: "fs23_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs23_power_meter"
+          FS24WidebandPowerMeter:
+            emulator_ip_block_id: "fs24_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs24_power_meter"
+          FS25WidebandPowerMeter:
+            emulator_ip_block_id: "fs25_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs25_power_meter"
+          FS26WidebandPowerMeter:
+            emulator_ip_block_id: "fs26_wideband_power_meter"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs26_power_meter"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 instances:

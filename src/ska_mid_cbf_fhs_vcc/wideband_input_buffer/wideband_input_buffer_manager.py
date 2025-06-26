@@ -90,31 +90,31 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
     def stop(self) -> int:
         return super().stop()
 
-    def check_registers(self, status_dict: dict) -> dict[str, HealthState]:
+    def get_status_healthstates(self, status_dict: dict) -> dict[str, HealthState]:
         status: WidebandInputBufferStatus = WidebandInputBufferStatus.schema().load(status_dict)
 
-        register_statuses = {}
+        status_healthstates = {}
 
         meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(status.meta_dish_id)
-        register_statuses["meta_dish_id"] = self.health_check_assert_values_equal(
+        status_healthstates["meta_dish_id"] = self.health_check_assert_values_equal(
             self.expected_dish_id,
             meta_dish_id_mnemonic,
             error_msg=f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_mnemonic} ({status.meta_dish_id})",
         )
-        register_statuses["rx_sample_rate"] = self.health_check_assert_values_equal(
+        status_healthstates["rx_sample_rate"] = self.health_check_assert_values_equal(
             self.expected_sample_rate,
             status.rx_sample_rate,
             error_msg=f"rx_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.rx_sample_rate}",
         )
-        register_statuses["meta_transport_sample_rate"] = self.health_check_assert_values_equal(
+        status_healthstates["meta_transport_sample_rate"] = self.health_check_assert_values_equal(
             self.expected_sample_rate,
             status.meta_transport_sample_rate,
             error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
         )
 
-        self.logger.info(f"REGISTER_STATUSES={register_statuses}")
+        self.logger.info(f"REGISTER_STATUSES={status_healthstates}")
 
-        return register_statuses
+        return status_healthstates
 
     def health_check_assert_values_equal(
         self,

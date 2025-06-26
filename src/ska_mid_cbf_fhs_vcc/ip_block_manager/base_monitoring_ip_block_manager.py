@@ -56,7 +56,7 @@ class BaseMonitoringIPBlockManager(BaseIPBlockManager):
             logger=self.logger,
             get_device_health_state=self.get_health_state,
             update_health_state_callback=self._update_health_state,
-            check_registers_callback=self.check_registers,
+            check_registers_callback=self.get_status_healthstates,
             api=self._api,
             poll_interval=health_monitor_poll_interval,
         )
@@ -92,5 +92,5 @@ class BaseMonitoringIPBlockManager(BaseIPBlockManager):
                 self._update_health_state_callback(health_state)
 
     @abstractmethod
-    def check_registers(self, status_dict: dict) -> dict[str, HealthState]:
+    def get_status_healthstates(self, status_dict: dict) -> dict[str, HealthState]:
         ...
