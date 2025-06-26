@@ -34,7 +34,7 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_man
 from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import NonBlockingFunction
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
-from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfigureArgin, VCCStreamMergeManager
+from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import (
     WidebandFrequencyShifterConfig,
     WidebandFrequencyShifterManager,
@@ -497,7 +497,11 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                     result = self.vcc_stream_merges[i].configure(
                         VCCStreamMergeConfigureArgin(
                             fs_lane_configs=[
-                                {"vid": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]}
+                                VCCStreamMergeConfig(
+                                    vid=lane["vlan_id"],
+                                    vcc_id=self._vcc_id,
+                                    fs_id=lane["fs_id"]
+                                )
                                 for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
                             ]
                         )
