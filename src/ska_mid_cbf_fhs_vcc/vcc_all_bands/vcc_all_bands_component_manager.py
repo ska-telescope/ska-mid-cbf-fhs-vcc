@@ -157,7 +157,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self.vcc_stream_merges = {i: VCCStreamMergeManager(**self._ip_block_props(f"VCCStreamMerge{i}")) for i in range(1, 3)}
         self.wideband_power_meters = {
             **{
-                band_group: WidebandPowerMeterManager(**self._ip_block_props(f"{band_group.upper()}WidebandPowerMeter"))
+                band_group: WidebandPowerMeterManager(**self._ip_block_props(f"{band_group.value.upper()}WidebandPowerMeter"))
                 for band_group in VCCBandGroup
             },
             **{i: WidebandPowerMeterManager(**self._ip_block_props(f"FS{i}WidebandPowerMeter")) for i in range(1, 27)},
@@ -419,8 +419,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 self._b5b_pwrm = configuration["b5b_pwrm"]
 
                 for band_group in VCCBandGroup:
-                    config = configuration[f"{band_group}_pwrm"]
-                    self.logger.debug(f"Configuring {band_group} power meter with {config}")
+                    config = configuration[f"{band_group.value}_pwrm"]
+                    self.logger.debug(f"Configuring {band_group.value} power meter with {config}")
                     result = self.wideband_power_meters[band_group].configure(
                         WidebandPowerMeterConfig(
                             averaging_time=config["averaging_time"],
@@ -428,8 +428,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         )
                     )
                     if result == 1:
-                        self.logger.error(f"Configuration of {band_group} Wideband Power Meter failed.")
-                        raise ChildProcessError(f"Configuration of {band_group} Wideband Power Meter failed.")
+                        self.logger.error(f"Configuration of {band_group.value} Wideband Power Meter failed.")
+                        raise ChildProcessError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
 
                 # Post-channelizer WPM Configuration
                 self.logger.debug("Post-channelizer Wideband Power Meters Configuring..")

@@ -1,7 +1,7 @@
-from enum import Enum, StrEnum
+from enum import Enum
 
 
-class VCCBandGroup(StrEnum):
+class VCCBandGroup(Enum):
     B123 = "b123"
     B45A = "b45a"
     B5B = "b5b"
