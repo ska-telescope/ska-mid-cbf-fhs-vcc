@@ -101,9 +101,11 @@ class FtileEthernetManager(BaseMonitoringIPBlockManager):
         emulator_id: str | None = None,
         emulator_base_url: str | None = None,
         logger: Logger | None = None,
+        ethernet_mode: str = "200GbE",
         health_monitor_poll_interval: float = 30.0,
         update_health_state_callback: Callable = lambda _: None,
     ):
+        self.ethernet_mode = ethernet_mode
         self.status_value_memo = {
             "rx_ready": False,
             "tx_ready": False,
