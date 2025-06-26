@@ -746,7 +746,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                     "UpdateSubarrayMembership completed OK",
                 )
         except Exception as ex:
-            self.logger.error(f"An unexpected error has occurred: {repr(ex)}")
+            self.logger.exception(ex)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
@@ -855,7 +855,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 "AutoSetFilterGains completed OK",
             )
         except Exception as ex:
-            self.logger.error(f"An unexpected error has occurred: {repr(ex)}")
+            self.logger.exception(ex)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
