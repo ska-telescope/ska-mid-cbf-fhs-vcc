@@ -43,8 +43,8 @@ server:
           - name: {{ $property.name }}
             values:
             {{- if eq $property.name "ll_props" }}
-            {{- $tmp := $property.values | toJson | quote }}
-            - {{ tpl $tmp $scope }}
+            {{- $tmp := $property.values | toJson }}
+            - '{{ tpl $tmp $scope }}'
             {{- else }}
             {{- range $index, $value := $property.values }}
             - "{{ tpl $value $scope }}"
