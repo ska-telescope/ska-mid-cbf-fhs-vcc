@@ -23,7 +23,22 @@ from ska_mid_cbf_fhs_common import (
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 from tango import EventData, EventType
 
+from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
+    B123VccOsppfbChannelizerConfigureArgin,
+    B123VccOsppfbChannelizerManager,
+)
+from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_manager import (
+    FrequencySliceSelectionConfig,
+    FrequencySliceSelectionManager,
+)
+from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import NonBlockingFunction
+from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, freq_band_dict
+from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfigureArgin, VCCStreamMergeManager
+from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import (
+    WidebandFrequencyShifterConfig,
+    WidebandFrequencyShifterManager,
+)
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import (
     WidebandInputBufferConfig,
     WidebandInputBufferManager,
@@ -48,6 +63,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
     ) -> None:
         self.device = device
         self._ll_props = json.loads(b64decode(device.ll_props))
+        logger.warning(f"LL_PROPS={self._ll_props}")
         self._vcc_id = device.device_id
 
         self.frequency_band = FrequencyBandEnum._1
@@ -61,7 +77,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
         self.input_sample_rate = 0
 
-        default_props = {
+        self._default_props = {
             "bitstream_path": device.bitstream_path,
             "bitstream_id": device.bitstream_id,
             "bitstream_version": device.bitstream_version,
@@ -72,28 +88,14 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             "logger": logger,
         }
 
-        logger.warning(f"DEFAULT_PROPS={default_props}")
+        logger.warning(f"DEFAULT_PROPS={self._default_props}")
 
-        wib_props = self._ll_props.get("WidebandInputBuffer")
-        logger.warning(f"WIB_PROPS={wib_props}")
-
-        self.wideband_input_buffer = WidebandInputBufferManager(
-            **default_props,
-            ip_block_id="WidebandInputBuffer",
-            firmware_ip_block_id=wib_props.get("firmware_ip_block_id"),
-            emulator_ip_block_id=wib_props.get("emulator_ip_block_id"),
-            health_monitor_poll_interval=float(wib_props.get("health_monitor_poll_interval")),
-            update_health_state_callback=functools.partial(self.ll_health_state_callback, ll_name="WidebandInputBuffer"),
-        )
+        self._init_ip_block_managers()
 
         self._proxies: dict[str, tango.DeviceProxy] = {}
 
         self._proxies[device.ethernet_200g_fqdn] = None
-        self._proxies[device.packet_validation_fqdn] = None
-        self._proxies[device.wideband_frequency_shifter_fqdn] = None
-        self._proxies[device.vcc123_channelizer_fqdn] = None
         # self._proxies[device.vcc45_channelizer_fqdn] = None
-        self._proxies[device.fs_selection_fqdn] = None
         self._proxies[device.b123_wideband_power_meter_fqdn] = None
         self._proxies[device.b45a_wideband_power_meter_fqdn] = None
         self._proxies[device.b5b_wideband_power_meter_fqdn] = None
@@ -103,12 +105,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         }
         for fqdn in self._power_meter_fqdns.values():
             self._proxies[fqdn] = None
-
-        self._vcc_stream_merge_fqdns = {i: device.vcc_stream_merge_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 3)}
-        for fqdn in self._vcc_stream_merge_fqdns.values():
-            self._proxies[fqdn] = None
-
-        # self._circuit_switch_proxy = None
 
         # vcc channels * number of polarizations
         self._num_fs = 0
@@ -144,6 +140,31 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             emulation_mode=emulation_mode,
             **kwargs,
         )
+
+    def _ip_block_props(self, ip_block_name: str) -> dict[str, Any]:
+        loaded_props = self._ll_props.get(ip_block_name, {})
+        ip_block_props = {
+            **self._default_props,
+            "ip_block_id": ip_block_name,
+            "firmware_ip_block_id": loaded_props.get("firmware_ip_block_id", None),
+            "emulator_ip_block_id": loaded_props.get("emulator_ip_block_id", None),
+        }
+        if loaded_props.get("health_monitor_poll_interval") is not None:
+            ip_block_props.update(
+                {
+                    "health_monitor_poll_interval": float(loaded_props.get("health_monitor_poll_interval")),
+                    "update_health_state_callback": functools.partial(self.ll_health_state_callback, ll_name=ip_block_name),
+                }
+            )
+        return ip_block_props
+
+    def _init_ip_block_managers(self):
+        self.b123_vcc = B123VccOsppfbChannelizerManager(**self._ip_block_props("B123VccOsppfbChannelizer"))
+        self.frequency_slice_selection = FrequencySliceSelectionManager(**self._ip_block_props("FrequencySliceSelection"))
+        self.packet_validation = PacketValidationManager(**self._ip_block_props("PacketValidation"))
+        self.wideband_frequency_shifter = WidebandFrequencyShifterManager(**self._ip_block_props("WidebandFrequencyShifter"))
+        self.wideband_input_buffer = WidebandInputBufferManager(**self._ip_block_props("WidebandInputBuffer"))
+        self.vcc_stream_merges = {i: VCCStreamMergeManager(**self._ip_block_props(f"VCCStreamMerge{i}")) for i in range(1, 3)}
 
     def start_communicating(self: VCCAllBandsComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
@@ -360,14 +381,14 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 # VCC123 Channelizer Configuration
                 self.logger.debug("VCC123 Channelizer Configuring..")
                 if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                    result = self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
-                        json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
+                    result = self.b123_vcc.configure(
+                        B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self._vcc_gains)
                     )
 
-                    if result[0] == ResultCode.FAILED:
-                        self.logger.error(f"Configuration of VCC123 Channelizer failed: {result[1]}")
+                    if result == 1:
+                        self.logger.error("Configuration of VCC123 Channelizer failed.")
                         self._reset_attributes()
-                        raise ChildProcessError("Configuration of low-level fhs device failed: VCC123")
+                        raise ChildProcessError("Configuration of VCC123 failed.")
 
                 else:
                     # TODO: Implement routing to the 5 Channelizer once outlined
@@ -376,23 +397,24 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
                 # WFS Configuration
                 self.logger.debug("Wideband Frequency Shifter Configuring..")
-                result = self._proxies[self.device.wideband_frequency_shifter_fqdn].Configure(
-                    json.dumps({"shift_frequency": self.frequency_band_offset[0]})
+                result = self.wideband_frequency_shifter.configure(
+                    WidebandFrequencyShifterConfig(shift_frequency=self.frequency_band_offset[0])
                 )
-                if result[0] == ResultCode.FAILED:
-                    self.logger.error(f"Configuration of Wideband Frequency Shifter failed: {result[1]}")
-                    self._reset_devices([self.device.vcc123_channelizer_fqdn])
-                    raise ChildProcessError("Configuration of low-level fhs device failed: Wideband Frequency Shifter")
+                if result == 1:
+                    self.logger.error("Configuration of Wideband Frequency Shifter failed.")
+                    raise ChildProcessError("Configuration of Wideband Frequency Shifter failed.")
 
                 # FSS Configuration
-                result = self._proxies[self.device.fs_selection_fqdn].Configure(
-                    json.dumps({"band_select": self.frequency_band.value + 1, "band_start_channel": [0, 1]})
+                result = self.frequency_slice_selection.configure(
+                    FrequencySliceSelectionConfig(
+                        band_select=self.frequency_band.value + 1,
+                        band_start_channel=[0, 1],
+                    )
                 )
 
-                if result[0] == ResultCode.FAILED:
-                    self.logger.error(f"Configuration of FS Selection failed: {result[1]}")
-                    self._reset_devices([self.device.vcc123_channelizer_fqdn, self.device.wideband_frequency_shifter_fqdn])
-                    raise ChildProcessError("Configuration of low-level fhs device failed: FS Selection")
+                if result == 1:
+                    self.logger.error("Configuration of FS Selection failed.")
+                    raise ChildProcessError("Configuration of FS Selection failed.")
 
                 # WIB Configuration
                 self.logger.debug("Wideband Input Buffer Configuring..")
@@ -406,14 +428,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
                 if result == 1:
                     self.logger.error("Configuration of WIB failed.")
-                    self._reset_devices(
-                        [
-                            self.device.vcc123_channelizer_fqdn,
-                            self.device.wideband_frequency_shifter_fqdn,
-                            self.device.fs_selection_fqdn,
-                        ]
-                    )
-                    raise ChildProcessError("Configuration of low-level fhs device failed: WIB")
+                    raise ChildProcessError("Configuration of WIB failed.")
 
                 self.wideband_input_buffer.expected_dish_id = self._expected_dish_id
 
@@ -442,13 +457,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                     )
                     if result[0] == ResultCode.FAILED:
                         self.logger.error(f"Configuration of Wideband Power Meter failed: {result[1]}")
-                        self._reset_devices(
-                            [
-                                self.device.vcc123_channelizer_fqdn,
-                                self.device.wideband_frequency_shifter_fqdn,
-                                self.device.fs_selection_fqdn,
-                            ]
-                        )
                         raise ChildProcessError("Configuration of low-level fhs device failed: Wideband Power Meter")
 
                 # Post-channelizer WPM Configuration
@@ -476,9 +484,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         self.logger.error(f"Configuration of Wideband Power Meter failed: {result[1]}")
                         self._reset_devices(
                             [
-                                self.device.vcc123_channelizer_fqdn,
-                                self.device.wideband_frequency_shifter_fqdn,
-                                self.device.fs_selection_fqdn,
                                 self.device.b123_wideband_power_meter_fqdn,
                                 self.device.b45a_wideband_power_meter_fqdn,
                                 self.device.b5b_wideband_power_meter_fqdn,
@@ -489,20 +494,17 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 # VCC Stream Merge Configuration
                 self.logger.debug("VCC Stream Merge Configuring..")
                 for i in range(1, 3):
-                    result = self._proxies[self._vcc_stream_merge_fqdns[i]].Configure(
-                        json.dumps(
-                            {
-                                "fs_lane_configs": [
-                                    {"vid": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]}
-                                    for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
-                                ]
-                            }
+                    result = self.vcc_stream_merges[i].configure(
+                        VCCStreamMergeConfigureArgin(
+                            fs_lane_configs=[
+                                {"vid": lane["vlan_id"], "vcc_id": self._vcc_id, "fs_id": lane["fs_id"]}
+                                for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
+                            ]
                         )
                     )
-                    if result[0] == ResultCode.FAILED:
-                        self.logger.error(f"Configuration of VCC Stream Merge failed: {result[1]}")
-                        self._reset_devices([*self._vcc_stream_merge_fqdns.values()])
-                        raise ChildProcessError("Configuration of low-level fhs device failed: VCC Stream Merge")
+                    if result == 1:
+                        self.logger.error("Configuration of VCC Stream Merge failed.")
+                        raise ChildProcessError("Configuration of VCC Stream Merge failed.")
 
             self.logger.info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}")
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
@@ -562,7 +564,16 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             if not self.simulation_mode:
                 try:
                     self._proxies[self.device.ethernet_200g_fqdn].Start()
-                    self._proxies[self.device.packet_validation_fqdn].Start()
+
+                    pv_start_result, wib_start_result = NonBlockingFunction.await_all(
+                        self.packet_validation.start(),
+                        self.wideband_input_buffer.start(),
+                    )
+                    if pv_start_result == 1 or wib_start_result == 1:
+                        self._set_task_callback(
+                            task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to start PV and/or WIB"
+                        )
+                        return
                 except tango.DevFailed as ex:
                     self.logger.error(repr(ex))
                     self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
@@ -570,11 +581,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
                     )
                     return
-
-            wib_start_result = self.wideband_input_buffer.start().await_result()
-            if wib_start_result == 1:
-                self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to start WIB")
-                return
 
             # Update obsState callback
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Scan completed OK")
@@ -606,7 +612,16 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             if not self.simulation_mode:
                 try:
                     self._proxies[self.device.ethernet_200g_fqdn].Stop()
-                    self._proxies[self.device.packet_validation_fqdn].Stop()
+
+                    pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
+                        self.packet_validation.stop(),
+                        self.wideband_input_buffer.stop(),
+                    )
+                    if pv_stop_result == 1 or wib_stop_result == 1:
+                        self._set_task_callback(
+                            task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to stop PV and/or WIB"
+                        )
+                        return
                 except tango.DevFailed as ex:
                     self.logger.error(repr(ex))
                     self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
@@ -614,11 +629,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                         task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
                     )
                     return
-
-            wib_stop_result = self.wideband_input_buffer.stop().await_result()
-            if wib_stop_result == 1:
-                self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to stop WIB")
-                return
 
             # Update obsState callback
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
@@ -793,14 +803,20 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
             # Reconfigure VCCs
             if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                result = self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
-                    json.dumps({"sample_rate": self._sample_rate, "gains": new_gains})
+                result = self.b123_vcc.configure(
+                    B123VccOsppfbChannelizerConfigureArgin(
+                        sample_rate=self._sample_rate,
+                        gains=new_gains,
+                    )
                 )
 
-                if result[0] == ResultCode.FAILED:
-                    self.logger.error(f"Failed to reconfigure VCC123 Channelizer with new gain values: {result[1]}")
-                    self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
-                        json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
+                if result == 1:
+                    self.logger.error("Failed to reconfigure VCC123 Channelizer with new gain values.")
+                    self.b123_vcc.configure(
+                        B123VccOsppfbChannelizerConfigureArgin(
+                            sample_rate=self._sample_rate,
+                            gains=self._vcc_gains,
+                        )
                     )
                     self._set_task_callback(
                         task_callback,
@@ -844,15 +860,19 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         for fqdn, proxy in self._proxies.items():
             if proxy is not None and fqdn in [
                 self.device.ethernet_200g_fqdn,
-                self.device.packet_validation_fqdn,
             ]:
                 self.logger.info(f"Stopping proxy {fqdn}")
                 result = proxy.Stop()
 
-        wib_stop_result = self.wideband_input_buffer.stop().await_result()
-        if wib_stop_result == 1:
-            self.logger.error("WIB STOP FAILURE (TODO)")
-        return result
+        pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
+            self.packet_validation.stop(),
+            self.wideband_input_buffer.stop(),
+        )
+        if pv_stop_result == 1 or wib_stop_result == 1:
+            self.logger.error("PV/WIB STOP FAILURE (TODO)")
+        if result[0] != ResultCode.OK or pv_stop_result == 1 or wib_stop_result == 1:
+            return ResultCode.FAILED, "Failed to stop proxies."
+        return ResultCode.OK, "Stopped proxies successfully."
 
     def _reset_attributes(self: VCCAllBandsComponentManager):
         self._config_id = ""

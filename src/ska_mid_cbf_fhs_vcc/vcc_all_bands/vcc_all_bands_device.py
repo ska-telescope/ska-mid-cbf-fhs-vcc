@@ -20,17 +20,11 @@ class VCCAllBandsController(FhsObsBaseDevice):
     emulator_base_url = device_property(dtype="str")
 
     ethernet_200g_fqdn = device_property(dtype="str")
-    packet_validation_fqdn = device_property(dtype="str")
-    vcc123_channelizer_fqdn = device_property(dtype="str")
     vcc45_channelizer_fqdn = device_property(dtype="str")
-    wideband_frequency_shifter_fqdn = device_property(dtype="str")
-    circuit_switch_fqdn = device_property(dtype="str")
-    fs_selection_fqdn = device_property(dtype="str")
     b123_wideband_power_meter_fqdn = device_property(dtype="str")
     b45a_wideband_power_meter_fqdn = device_property(dtype="str")
     b5b_wideband_power_meter_fqdn = device_property(dtype="str")
     fs_wideband_power_meter_fqdn = device_property(dtype="str")
-    vcc_stream_merge_fqdn = device_property(dtype="str")
 
     @attribute
     def expectedDishId(self):

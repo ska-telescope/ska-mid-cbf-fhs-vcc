@@ -110,22 +110,6 @@ devices:
       - name: health_monitor_poll_interval
         values:
           - "60"
-  - name: "PacketValidation"
-    path: "fhs/packetvalidation/{{.deviceId000}}"
-    emulatorIpBlockId: "packet_validation"
-    firmwareIpBlockId: "packet_validation_unimplemented"
-  - name: "WidebandFrequencyShifter"
-    path: "fhs/wfs/{{.deviceId000}}"
-    emulatorIpBlockId: "wideband_frequency_shifter"
-    firmwareIpBlockId: "wideband_frequency_shifter_unimplemented"
-  - name: "B123VccOsppfbChannelizer"
-    path: "fhs/vcc/{{.deviceId000}}"
-    emulatorIpBlockId: "b123vcc"
-    firmwareIpBlockId: "receptor{{.receptorId}}_band123_vcc"
-  - name: "FrequencySliceSelection"
-    path: "fhs/fss/{{.deviceId000}}"
-    emulatorIpBlockId: "fs_selection_26_2_1"
-    firmwareIpBlockId: "receptor{{.receptorId}}_fs_selector"
   - name: "B123WidebandPowerMeter"
     path: "fhs/b123wpm/{{.deviceId000}}"
     emulatorIpBlockId: "b123_wideband_power_meter"
@@ -143,32 +127,15 @@ devices:
     path: "fhs/fs{{.multiplicity}}wpm/{{.deviceId000}}"
     emulatorIpBlockId: "fs{{.multiplicity}}_wideband_power_meter"
     firmwareIpBlockId: "receptor{{.receptorId}}_fs{{.multiplicity}}_power_meter"
-  - name: "VCCStreamMerge"
-    multiplicity: 2
-    path: "fhs/vcc-stream-merge{{.multiplicity}}/{{.deviceId000}}"
-    emulatorIpBlockId: "vcc_stream_merge{{.multiplicity}}"
-    firmwareIpBlockId: "receptor{{.receptorId}}_vcc_stream_merge{{.multiplicity}}"
   - name: "VCCAllBandsController"
     path: "fhs/vcc-all-bands/{{.deviceId000}}"
     properties:
-      - name: vcc123_channelizer_fqdn
-        values:
-          - "fhs/vcc/{{.deviceId000}}"
       - name: vcc45_channelizer_fqdn # yet to be implemented
         values:
           - "placeholder"
-      - name: fs_selection_fqdn
-        values:
-          - "fhs/fss/{{.deviceId000}}"
-      - name: wideband_frequency_shifter_fqdn
-        values:
-          - "fhs/wfs/{{.deviceId000}}"
       - name: ethernet_200g_fqdn
         values:
           - "fhs/ethernet200g/{{.deviceId000}}"
-      - name: packet_validation_fqdn
-        values:
-          - "fhs/packetvalidation/{{.deviceId000}}"
       - name: b123_wideband_power_meter_fqdn
         values:
           - "fhs/b123wpm/{{.deviceId000}}"
@@ -181,15 +148,30 @@ devices:
       - name: fs_wideband_power_meter_fqdn
         values:
           - "fhs/fs<multiplicity>wpm/{{.deviceId000}}"
-      - name: vcc_stream_merge_fqdn
-        values:
-          - "fhs/vcc-stream-merge<multiplicity>/{{.deviceId000}}"
       - name: ll_props
         values:
+          B123VccOsppfbChannelizer:
+            emulator_ip_block_id: "b123vcc"
+            firmware_ip_block_id: "receptor{{.receptorId}}_band123_vcc"
+          FrequencySliceSelection:
+            emulator_ip_block_id: "fs_selection_26_2_1"
+            firmware_ip_block_id: "receptor{{.receptorId}}_fs_selector"
+          PacketValidation:
+            emulator_ip_block_id: "packet_validation"
+            firmware_ip_block_id: "packet_validation_unimplemented"
+          WidebandFrequencyShifter:
+            emulator_ip_block_id: "wideband_frequency_shifter"
+            firmware_ip_block_id: "wideband_frequency_shifter_unimplemented"
           WidebandInputBuffer:
             emulator_ip_block_id: "wideband_input_buffer"
             firmware_ip_block_id: "wideband_input_buffer_unimplemented"
             health_monitor_poll_interval: "3"
+          VCCStreamMerge1:
+            emulator_ip_block_id: "vcc_stream_merge1"
+            firmware_ip_block_id: "receptor{{.receptorId}}_vcc_stream_merge1"
+          VCCStreamMerge2:
+            emulator_ip_block_id: "vcc_stream_merge2"
+            firmware_ip_block_id: "receptor{{.receptorId}}_vcc_stream_merge2"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 instances:
@@ -197,8 +179,6 @@ instances:
     deviceId: "1"
   - name: fhs-vcc-2
     deviceId: "2"
-  - name: fhs-vcc-3
-    deviceId: "3"
 
 
 deviceServers:

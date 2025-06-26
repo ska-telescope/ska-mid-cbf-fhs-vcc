@@ -77,7 +77,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
             update_health_state_callback,
         )
 
-    def configure(self, config: WidebandInputBufferConfig):
+    def configure(self, config: WidebandInputBufferConfig) -> int:
         """Configure the Wideband Input Buffer."""
         self.expected_sample_rate = config.expected_sample_rate
         return super().configure(config.to_dict())
