@@ -57,8 +57,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
             **kwargs,
         )
 
-        self.registers_to_check = {"meta_dish_id", "rx_sample_rate", "meta_transport_sample_rate"}
-
         self.expected_sample_rate = None
         self.expected_dish_id = None
 
@@ -120,46 +118,39 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
     def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
         status: WidebandInputBufferStatus = WidebandInputBufferStatus.schema().load(status_dict)
 
-        register_statuses = {key: HealthState.UNKNOWN for key in self.registers_to_check}
+        register_statuses = {}
 
-        for register in self.registers_to_check:
-            if register == "meta_dish_id":
-                register_statuses["meta_dish_id"] = self.check_meta_dish_id(status.meta_dish_id)
+        register_statuses["meta_dish_id"] = self.check_meta_dish_id(status.meta_dish_id)
 
-            if register == "rx_sample_rate":
-                register_statuses["rx_sample_rate"] = self.check_register(
-                    self.expected_sample_rate,
-                    status.rx_sample_rate,
-                    error_msg=f"rx_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.rx_sample_rate}",
-                )
+        register_statuses["rx_sample_rate"] = self.check_register(
+            self.expected_sample_rate,
+            status.rx_sample_rate,
+            error_msg=f"rx_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.rx_sample_rate}",
+        )
 
-            if register == "meta_transport_sample_rate":
-                register_statuses["meta_transport_sample_rate"] = self.check_register(
-                    self.expected_sample_rate,
-                    status.meta_transport_sample_rate,
-                    error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
-                )
+        register_statuses["meta_transport_sample_rate"] = self.check_register(
+            self.expected_sample_rate,
+            status.meta_transport_sample_rate,
+            error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
+        )
 
-            if register == "error":
-                if status.error:
-                    register_statuses["error"] = HealthState.DEGRADED
-                    self.logger.warning(f"error mismatch. Expected False, Actual {status.error}")
-                else:
-                    register_statuses["error"] = HealthState.OK
+        if status.error:
+            register_statuses["error"] = HealthState.DEGRADED
+            self.logger.warning(f"error mismatch. Expected False, Actual {status.error}")
+        else:
+            register_statuses["error"] = HealthState.OK
 
-            if register == "buffer_underflowed":
-                register_statuses["buffer_underflowed"] = self.check_register(
-                    False,
-                    status.buffer_underflowed,
-                    error_msg=f"buffer_underflowed mismatch. Expected False, Actual: {status.buffer_underflowed}",
-                )
+        register_statuses["buffer_underflowed"] = self.check_register(
+            False,
+            status.buffer_underflowed,
+            error_msg=f"buffer_underflowed mismatch. Expected False, Actual: {status.buffer_underflowed}",
+        )
 
-            if register == "buffer_overflowed":
-                register_statuses["buffer_overflowed"] = self.check_register(
-                    False,
-                    status.buffer_overflowed,
-                    error_msg=f"buffer_overflowed mismatch. Expected False, Actual: {status.buffer_overflowed}",
-                )
+        register_statuses["buffer_overflowed"] = self.check_register(
+            False,
+            status.buffer_overflowed,
+            error_msg=f"buffer_overflowed mismatch. Expected False, Actual: {status.buffer_overflowed}",
+        )
 
         return register_statuses
 
