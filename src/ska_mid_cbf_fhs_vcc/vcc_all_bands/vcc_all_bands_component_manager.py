@@ -4,6 +4,7 @@ import copy
 import functools
 import json
 import logging
+from base64 import b64decode
 from math import isnan
 from threading import Event
 from typing import Any, Callable, Optional
@@ -46,7 +47,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         **kwargs: Any,
     ) -> None:
         self.device = device
-        self._ll_props = json.loads(device.ll_props)
+        self._ll_props = json.loads(b64decode(device.ll_props))
         self._vcc_id = device.device_id
 
         self.frequency_band = FrequencyBandEnum._1
