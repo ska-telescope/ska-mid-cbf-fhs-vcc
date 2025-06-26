@@ -148,7 +148,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         return ip_block_props
 
     def _init_ip_block_managers(self):
-        self.ethernet_200g = FtileEthernetManager(**self._ip_block_props("FtileEthernet", additional_props=["ethernet_mode"]))
+        self.ethernet_200g = FtileEthernetManager(**self._ip_block_props("Ethernet200Gb", additional_props=["ethernet_mode"]))
         self.b123_vcc = B123VccOsppfbChannelizerManager(**self._ip_block_props("B123VccOsppfbChannelizer"))
         self.frequency_slice_selection = FrequencySliceSelectionManager(**self._ip_block_props("FrequencySliceSelection"))
         self.packet_validation = PacketValidationManager(**self._ip_block_props("PacketValidation"))
