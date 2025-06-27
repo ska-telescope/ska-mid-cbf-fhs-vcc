@@ -115,12 +115,12 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
 
         super().start_communicating()
 
-# add self.logger warnings to check for variables to see whats being missed
-# check check_register function been called, log whole status object at start, log dictionary right before return at end, check that they look correct (don't need to match, but bufferunder should associate with healthstate and output as expected)
+    # add self.logger warnings to check for variables to see whats being missed
+    # check check_register function been called, log whole status object at start, log dictionary right before return at end, check that they look correct (don't need to match, but bufferunder should associate with healthstate and output as expected)
 
     def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
         status: WidebandInputBufferStatus = WidebandInputBufferStatus.schema().load(status_dict)
-        
+
         self.logger.warning(f"Status object log: {status}")
 
         register_statuses = {}
@@ -143,12 +143,14 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
             error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
         )
         self.logger.warning(f"reg status meta_transport_sample_rate = {register_statuses}")
-        self.logger.warning(f"Actual meta_transport_sample_rate: {status.meta_transport_sample_rate}, Expected: {self.expected_sample_rate}")
+        self.logger.warning(
+            f"Actual meta_transport_sample_rate: {status.meta_transport_sample_rate}, Expected: {self.expected_sample_rate}"
+        )
 
         if status.error:
             register_statuses["error"] = HealthState.DEGRADED
             self.logger.warning(f"error mismatch. Expected False, Actual {status.error}")
-            #logger line here to indicate if it did if
+            # logger line here to indicate if it did if
             self.logger.warning(f" Healthstate Degraded if executed")
         else:
             register_statuses["error"] = HealthState.OK
