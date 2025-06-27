@@ -115,42 +115,63 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
 
         super().start_communicating()
 
+# add self.logger warnings to check for variables to see whats being missed
+# check check_register function been called, log whole status object at start, log dictionary right before return at end, check that they look correct (don't need to match, but bufferunder should associate with healthstate and output as expected)
+
     def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
         status: WidebandInputBufferStatus = WidebandInputBufferStatus.schema().load(status_dict)
+        
+        self.logger.warning(f"Status object log: {status}")
 
         register_statuses = {}
+        self.logger.warning(f"Status = {status}")
 
         register_statuses["meta_dish_id"] = self.check_meta_dish_id(status.meta_dish_id)
+        self.logger.warning(f"reg status meta_dish_id = {register_statuses}")
 
         register_statuses["rx_sample_rate"] = self.check_register(
             self.expected_sample_rate,
             status.rx_sample_rate,
             error_msg=f"rx_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.rx_sample_rate}",
         )
+        self.logger.warning(f"reg status rx_sample_rate = {register_statuses}")
+        self.logger.warning(f"Actual rx_sample_rate: {status.rx_sample_rate}, Expected: {self.expected_sample_rate}")
 
         register_statuses["meta_transport_sample_rate"] = self.check_register(
             self.expected_sample_rate,
             status.meta_transport_sample_rate,
             error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
         )
+        self.logger.warning(f"reg status meta_transport_sample_rate = {register_statuses}")
+        self.logger.warning(f"Actual meta_transport_sample_rate: {status.meta_transport_sample_rate}, Expected: {self.expected_sample_rate}")
 
         if status.error:
             register_statuses["error"] = HealthState.DEGRADED
             self.logger.warning(f"error mismatch. Expected False, Actual {status.error}")
+            #logger line here to indicate if it did if
+            self.logger.warning(f" Healthstate Degraded if executed")
         else:
             register_statuses["error"] = HealthState.OK
+            # logger line here to indicate if it did else
+            self.logger.warning(f"Healthstate Okay else executed")
 
         register_statuses["buffer_underflowed"] = self.check_register(
             False,
             status.buffer_underflowed,
             error_msg=f"buffer_underflowed mismatch. Expected False, Actual: {status.buffer_underflowed}",
         )
+        self.logger.warning(f"reg status buffer_underflowed = {register_statuses}")
+        self.logger.warning(f"Actual buffer_underflowed: {status.buffer_underflowed}, Expected False")
 
         register_statuses["buffer_overflowed"] = self.check_register(
             False,
             status.buffer_overflowed,
             error_msg=f"buffer_overflowed mismatch. Expected False, Actual: {status.buffer_overflowed}",
         )
+        self.logger.warning(f"reg status buffer_overflowed = {register_statuses}")
+        self.logger.warning(f"Actual buffer_overflowed: {status.buffer_overflowed}, Expected False")
+
+        self.logger.warning(f"Dictionary log: {dict}")
 
         return register_statuses
 
