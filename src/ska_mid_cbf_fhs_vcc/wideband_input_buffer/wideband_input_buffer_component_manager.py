@@ -151,11 +151,11 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
             register_statuses["error"] = HealthState.DEGRADED
             self.logger.warning(f"error mismatch. Expected False, Actual {status.error}")
             # logger line here to indicate if it did if
-            self.logger.warning(f" Healthstate Degraded if executed")
+            self.logger.warning(" Healthstate Degraded if executed")
         else:
             register_statuses["error"] = HealthState.OK
             # logger line here to indicate if it did else
-            self.logger.warning(f"Healthstate Okay else executed")
+            self.logger.warning("Healthstate Okay else executed")
 
         register_statuses["buffer_underflowed"] = self.check_register(
             False,
