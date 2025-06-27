@@ -203,7 +203,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
     ) -> HealthState:
         result = HealthState.OK
 
-        if expected_value:
+        if expected_value is not None:
             result = self.check_register_expected_value(expected_value, register_value)
 
             if result != HealthState.OK:
