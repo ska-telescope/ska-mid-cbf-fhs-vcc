@@ -24,15 +24,14 @@ Expects a two-element list, e.g. [1, 6],
 and returns a YAML-encoded list of instance names from start to end (inclusive).
 */}}
 {{- define "generateInstanceSequence" -}}
-  {{- $range := index . 0 -}}
-  {{- $unitNum := index . 1 -}}
+  {{- $range := . -}}
   {{- $start := index $range 0 -}}
   {{- $end := index $range 1 -}}
   {{- $count := int (add (sub $end $start) 1) -}}
   {{- $instances := list -}}
   {{- range until $count -}}
     {{- $num := add $start . -}}
-    {{- $instances = append $instances (printf "fhs-vcc-unit-%d-fhs-vcc-%d" (int $unitNum) (int $num)) -}}
+    {{- $instances = append $instances (printf "fhs-vcc-%d" (int $num)) -}}
   {{- end -}}
   {{- /* wrap the list in an object */ -}}
   {{- toJson (dict "sequence" $instances) -}}

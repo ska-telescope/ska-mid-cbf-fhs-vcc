@@ -4,7 +4,7 @@
 {{- $vccUnits := coalesce .VCCUnits $.Values.VCCUnits }}
 
 {{- range $unitIndex, $fhsVccUnit := $vccUnits }}
-  {{- $seqObj := fromJson (include "generateInstanceSequence" (list $fhsVccUnit.instancesRange $fhsVccUnit.unitNum) | trim) -}}
+  {{- $seqObj := fromJson (include "generateInstanceSequence" $fhsVccUnit.instancesRange | trim) -}}
 
   {{- range $instanceIndex, $instance := $seqObj.sequence }}
     {{- $vccNum := add $instanceIndex 1 }}
@@ -26,7 +26,7 @@
 
 
    
-    {{- $context := dict "name" $instance "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
+    {{- $context := dict "name" (printf "%s-%d-fhs-vcc-%d" $name (int $fhsVccUnit.unitNum) (int $vccNum)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
     {{- template "ska-tango-util.multidevice-config.tpl" $context }}
     {{- template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
     {{- template "ska-tango-util.multidevice-job.tpl" $context }}
