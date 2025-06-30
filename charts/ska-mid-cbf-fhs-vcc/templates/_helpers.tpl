@@ -31,7 +31,7 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
   {{- $instances := list -}}
   {{- range until $count -}}
     {{- $num := add $start . -}}
-    {{- $instances = append $instances (printf "fhs-vcc-%d" (int $num)) -}}
+    {{- $instances = append $instances (printf "vcc-%d" (int $num)) -}}
   {{- end -}}
   {{- /* wrap the list in an object */ -}}
   {{- toJson (dict "sequence" $instances) -}}
