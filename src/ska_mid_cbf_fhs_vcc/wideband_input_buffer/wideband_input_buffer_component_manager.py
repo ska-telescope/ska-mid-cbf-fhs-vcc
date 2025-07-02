@@ -202,8 +202,13 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
         error_msg: str = None,
     ) -> HealthState:
         result = HealthState.OK
+        self.logger.warning("######################### IN CHECK REGISTER")
 
         if expected_value is not None:
+            self.logger.warning(
+                f"######################### IN CHECK REGISTER 2 Expected Value: {expected_value} Register Value {register_value}"
+            )
+
             result = self.check_register_expected_value(expected_value, register_value)
 
             if result != HealthState.OK:
@@ -217,8 +222,12 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
 
     def check_register_expected_value(self, expected_value: Any, register_value: Any) -> HealthState:
         result = HealthState.FAILED
+        self.logger.warning(
+            f"######################### IN CHECK REGISTER EXPECTED VALUE Expected Value: {expected_value} Register Value {register_value}"
+        )
 
         if expected_value is not None and register_value is not None:
+            self.logger.warning(f"######################### Expected Value: {expected_value} Register Value {register_value}")
             if expected_value == register_value:
                 result = HealthState.OK
         else:
