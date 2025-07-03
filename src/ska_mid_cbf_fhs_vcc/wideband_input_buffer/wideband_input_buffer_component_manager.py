@@ -143,14 +143,20 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
             error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
         )
         self.logger.warning(f"reg status meta_transport_sample_rate = {register_statuses}")
-        self.logger.warning(f"Actual meta_transport_sample_rate: {status.meta_transport_sample_rate}, Expected: {self.expected_sample_rate}")
+        self.logger.warning(
+            f"Actual meta_transport_sample_rate: {status.meta_transport_sample_rate}, Expected: {self.expected_sample_rate}"
+        )
 
         if status.error:
             if status.buffer_overflowed is True or status.buffer_underflowed is True:
                 register_statuses["error"] = HealthState.FAILED
             else:
-                register_statuses["error"] = HealthState.DEGRADED   # if not overflow or underflow, goes to degraded because one of packet_drop and packet_error set
-    
+                register_statuses[
+                    "error"
+                ] = (
+                    HealthState.DEGRADED
+                )  # if not overflow or underflow, goes to degraded because one of packet_drop and packet_error set
+
         register_statuses["buffer_underflowed"] = self.check_register(
             False,
             status.buffer_underflowed,
