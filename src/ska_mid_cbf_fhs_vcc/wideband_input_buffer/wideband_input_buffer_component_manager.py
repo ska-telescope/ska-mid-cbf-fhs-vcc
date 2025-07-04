@@ -143,6 +143,8 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
                 ] = (
                     HealthState.DEGRADED
                 )  # if not overflow or underflow, goes to degraded because one of packet_drop and packet_error set
+        else:
+            register_statuses["error"] = HealthState.OK
 
         register_statuses["buffer_underflowed"] = self.check_register(
             False,
