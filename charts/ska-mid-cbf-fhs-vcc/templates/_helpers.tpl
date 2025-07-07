@@ -21,20 +21,20 @@ Common template helpers for the ska-mid-cbf-fhs-vcc chart.
 {{/*
 Generate a sequence from a given range.
 Expects a two-element list, e.g. [1, 6],
-and returns a YAML-encoded list of numbers from start to end (inclusive).
+and returns a YAML-encoded list of instance names from start to end (inclusive).
 */}}
 {{- define "generateInstanceSequence" -}}
   {{- $range := . -}}
   {{- $start := index $range 0 -}}
   {{- $end := index $range 1 -}}
   {{- $count := int (add (sub $end $start) 1) -}}
-  {{- $numbers := list -}}
+  {{- $instances := list -}}
   {{- range until $count -}}
     {{- $num := add $start . -}}
-    {{- $numbers = append $numbers (printf "fhs-vcc-%d" (int $num)) -}}
+    {{- $instances = append $instances (printf "vcc-%d" (int $num)) -}}
   {{- end -}}
   {{- /* wrap the list in an object */ -}}
-  {{- toJson (dict "sequence" $numbers) -}}
+  {{- toJson (dict "sequence" $instances) -}}
 {{- end -}}
 
 {{- define "generateServerInstances" -}}

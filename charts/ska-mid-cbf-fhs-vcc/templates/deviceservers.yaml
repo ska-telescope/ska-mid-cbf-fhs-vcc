@@ -1,8 +1,5 @@
 {{- define "ska-mid-cbf-fhs-vcc.deviceservers.yaml" -}}
 {{ $localchart := . }}
-{{- $name := $.Values.deviceServerName }}
-
-{{- $fileDeviceServerContextOrig := dict "name" $name "local" $localchart }}
 
 {{- $vccUnits := coalesce .VCCUnits $.Values.VCCUnits }}
 
@@ -29,7 +26,7 @@
 
 
    
-    {{- $context := dict "name" (printf "%s-%d-fhs-vcc-%d" $name (int $unitIndex) (int $vccNum)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
+    {{- $context := dict "name" (printf "fhs-vcc-unit-%d-%d" (int $fhsVccUnit.unitNum) (int $vccNum)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
     {{- template "ska-tango-util.multidevice-config.tpl" $context }}
     {{- template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
     {{- template "ska-tango-util.multidevice-job.tpl" $context }}
