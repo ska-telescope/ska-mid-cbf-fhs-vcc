@@ -31,7 +31,7 @@ midcbf:
   image:
     registry: docker.io/library
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.2.0
+    tag: 0.2.1
     pullPolicy: IfNotPresent
 
 resources:
@@ -220,7 +220,5 @@ VCCUnits:
     networkSwitchId: "127.0.0.2"
     bmcEndpointIp: "127.0.1.2"
     instancesRange: [7, 12]
-
-deviceServerName: "fhs-vcc-unit"
 
 gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams/-/archive/cip-3569/ska-mid-cbf-bitstreams-cip-3569.tar.gz?path=raw/ska-mid-cbf-agilex-vcc"
