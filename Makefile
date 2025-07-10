@@ -53,8 +53,6 @@ TARANTA_PARAMS = --set ska-taranta.enabled=$(TARANTA) \
 				 --set ska-taranta-auth.enabled=$(TARANTA) \
 				 --set ska-dashboard-repo.enabled=$(TARANTA)
 
-PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=nfss1
-
 ifneq ($(MINIKUBE),)
 ifneq ($(MINIKUBE),true)
 TARANTA_PARAMS = --set ska-taranta.enabled=$(TARANTA) \
