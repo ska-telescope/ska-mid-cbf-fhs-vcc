@@ -14,13 +14,7 @@ metadata:
 {{ toYaml $annotations | indent 4 }}
 {{- end }}
 spec:
-{{- if (coalesce .Values.global.minikube .Values.minikube false)  }}
-  storageClassName: standard
-{{- else if .Values.global.k3d }}
-  storageClassName: local-path
-{{- else }}
-  storageClassName: nfss1
-{{- end }}
+  storageClassName: {{ .Values.pvStorageClass }}
   accessModes:
     - ReadWriteMany
   resources:
