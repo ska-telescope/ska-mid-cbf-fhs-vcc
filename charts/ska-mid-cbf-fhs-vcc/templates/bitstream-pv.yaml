@@ -14,6 +14,7 @@ metadata:
 {{ toYaml $annotations | indent 4 }}
 {{- end }}
 spec:
+  storageClassName: {{ .Values.pvStorageClass }}
   accessModes:
     - ReadWriteMany
   resources:
