@@ -192,11 +192,13 @@ devices:
         values:
           - "fhs/b5bwpm/{{.deviceId000}}"
       - name: fs_wideband_power_meter_fqdn
+        multiplicity: 26
         values:
-          - "fhs/fs<multiplicity>wpm/{{.deviceId000}}"
+          - "fhs/fs{{ .devicePropMultiplicity }}wpm/{{.deviceId000}}"
       - name: vcc_stream_merge_fqdn
+        multiplicity: 2
         values:
-          - "fhs/vcc-stream-merge<multiplicity>/{{.deviceId000}}"
+          - "fhs/vcc-stream-merge{{ .devicePropMultiplicity }}/{{.deviceId000}}"
       - name: network_switch_id
         values:
           - "{{ .networkSwitchId }}"

@@ -63,8 +63,11 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
           {{- range $index, $property := $device.properties }}
           - name: {{ $property.name }}
             values:
+            {{- range $devicePropMultiplicity := (untilStep 1 ($property.multiplicity | int | default 1 | add1 | int ) 1) }}
+            {{- $propScope := merge (dict "devicePropMultiplicity" $devicePropMultiplicity) $scope }}
             {{- range $index, $value := $property.values }}
-            - "{{ tpl $value $scope }}"
+            - "{{ tpl $value $propScope }}"
+            {{- end }}
             {{- end }}
           {{- end }}
       {{- end }}
