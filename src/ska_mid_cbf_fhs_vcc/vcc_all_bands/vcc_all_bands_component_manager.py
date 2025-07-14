@@ -68,15 +68,16 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self._proxies[device.b45a_wideband_power_meter_fqdn] = None
         self._proxies[device.b5b_wideband_power_meter_fqdn] = None
 
-        self._power_meter_fqdns = {
-            i: device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 26 + 1)
-        }
-        for fqdn in self._power_meter_fqdns.values():
+        # self._power_meter_fqdns = {
+        #     i: device.fs_wideband_power_meter_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 26 + 1)
+        # }
+        for fqdn in device.fs_wideband_power_meter_fqdns:
             self._proxies[fqdn] = None
 
-        self._vcc_stream_merge_fqdns = {i: device.vcc_stream_merge_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 3)}
-        for fqdn in self._vcc_stream_merge_fqdns.values():
+        #self._vcc_stream_merge_fqdns = {i: device.vcc_stream_merge_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 3)}
+        for fqdn in device.vcc_stream_merge_fqdns:
             self._proxies[fqdn] = None
+
 
         # self._circuit_switch_proxy = None
 
@@ -117,6 +118,9 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
     def start_communicating(self: VCCAllBandsComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
+
+        
+
         try:
             if not self.simulation_mode:
                 if self._communication_state == CommunicationStatus.ESTABLISHED:

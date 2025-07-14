@@ -26,6 +26,7 @@ global:
       image: ska-tango-images-tango-dsconfig
       tag: 1.5.13
       pullPolicy: IfNotPresent
+    timeout: 600s
 
 midcbf:
   image:
@@ -191,11 +192,11 @@ devices:
       - name: b5b_wideband_power_meter_fqdn
         values:
           - "fhs/b5bwpm/{{.deviceId000}}"
-      - name: fs_wideband_power_meter_fqdn
+      - name: fs_wideband_power_meter_fqdns
         multiplicity: 26
         values:
           - "fhs/fs{{ .devicePropMultiplicity }}wpm/{{.deviceId000}}"
-      - name: vcc_stream_merge_fqdn
+      - name: vcc_stream_merge_fqdns
         multiplicity: 2
         values:
           - "fhs/vcc-stream-merge{{ .devicePropMultiplicity }}/{{.deviceId000}}"

@@ -2,6 +2,9 @@
 {{ $localchart := . }}
 
 {{- $vccUnits := coalesce .VCCUnits $.Values.VCCUnits }}
+{{- $allServerInstances := list }}
+{{- $allServerInstanceNames := list }}
+
 
 {{- range $unitIndex, $fhsVccUnit := $vccUnits }}
   {{- $seqObj := fromJson (include "generateInstanceSequence" $fhsVccUnit.instancesRange | trim) -}}
@@ -24,15 +27,39 @@
       {{- $_ := set $.Values "affinity" $fileDeviceServer.affinity }}
     {{- end }}
 
+    {{- range $i, $si := $fileDeviceServer.server.instances }}
+      {{- $allServerInstances = append $allServerInstances ((toJson $si) | fromJson) }}
+    {{- end }}
+
+    
+    {{- $allServerInstanceNames = append $allServerInstanceNames $instance }}
 
    
     {{- $context := dict "name" (printf "fhs-vcc-unit-%d-%d" (int $fhsVccUnit.unitNum) (int $vccNum)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
-    {{- template "ska-tango-util.multidevice-config.tpl" $context }}
+    {{- template "ska-tango-util.multidevice-config.tpl" $context }} 
     {{- template "ska-tango-util.multidevice-sacc-role.tpl" $context }}
-    {{- template "ska-tango-util.multidevice-job.tpl" $context }}
     {{- template "ska-tango-util.multidevice-svc.tpl" $context }}
+    {{- template "ska-tango-util.multidevice-job.tpl" $context }}
+
 
   {{- end }}
-
 {{- end }} 
+
+{{/*
+{{- $configMapCtx := dict
+  "name" (printf "%s-all-units" $localchart.Release.Name)
+  "deviceserver" (dict 
+    "name" "FhsVccStackDeviceServer"
+    "instances" $allServerInstanceNames
+    "server" (dict 
+      "name" "FhsVccStackDeviceServer"
+      "instances" $allServerInstances
+    )
+  )
+  "local" $localchart
+  "configMapName" "fhs-vcc-all-servers"
+}}
+{{- template "ska-mid-cbf-fhs-vcc.ska-tango-util.multidevice-config.tpl" $configMapCtx }} 
+
+*/}}
 {{- end -}}
