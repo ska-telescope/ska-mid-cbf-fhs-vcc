@@ -74,10 +74,9 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         for fqdn in device.fs_wideband_power_meter_fqdns:
             self._proxies[fqdn] = None
 
-        #self._vcc_stream_merge_fqdns = {i: device.vcc_stream_merge_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 3)}
+        # self._vcc_stream_merge_fqdns = {i: device.vcc_stream_merge_fqdn.replace("<multiplicity>", str(i)) for i in range(1, 3)}
         for fqdn in device.vcc_stream_merge_fqdns:
             self._proxies[fqdn] = None
-
 
         # self._circuit_switch_proxy = None
 
@@ -118,8 +117,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
     def start_communicating(self: VCCAllBandsComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
-
-        
 
         try:
             if not self.simulation_mode:
