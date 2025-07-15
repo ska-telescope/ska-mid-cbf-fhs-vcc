@@ -98,6 +98,7 @@ class PacketValidationComponentManager(FhsLowLevelComponentManagerBase):
         return result
 
     def deconfigure(self: PacketValidationComponentManager, argin: str = None) -> tuple[ResultCode, str]:
+        self.logger.error(f"############################# Deconfigure called")
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
