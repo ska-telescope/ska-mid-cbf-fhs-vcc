@@ -61,6 +61,12 @@ TARANTA_PARAMS = --set ska-taranta.enabled=$(TARANTA) \
 endif
 endif
 
+ifneq ($(MINIKUBE),)
+ifeq ($(MINIKUBE),true)
+PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=standard
+endif
+endif
+
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set global.k3d=$(K3D) \
@@ -73,7 +79,8 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.fhsServerId=$(FHS_SERVER_ID) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.configLocation=$(CONFIG_LOCATION) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.namespace=$(KUBE_NAMESPACE) \
-	${TARANTA_PARAMS}
+	${TARANTA_PARAMS} \
+	${PV_STORAGE_PARAM}
 
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
 PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503,E731,E203

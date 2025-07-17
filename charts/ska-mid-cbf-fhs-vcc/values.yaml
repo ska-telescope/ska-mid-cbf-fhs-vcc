@@ -31,7 +31,7 @@ midcbf:
   image:
     registry: docker.io/library
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.2.1
+    tag: 0.2.2
     pullPolicy: IfNotPresent
 
 resources:
@@ -62,6 +62,8 @@ bitstreamMountPath: "/app/mnt/bitstream"
 
 bitstreamDownloadJob:
   enabled: True
+
+pvStorageClass: nfss1
 
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
 
