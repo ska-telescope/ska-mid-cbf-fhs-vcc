@@ -41,7 +41,6 @@ schema = {
         "samples_per_frame",
         "frequency_band",
         "frequency_band_offset_stream_1",
-        "frequency_band_offset_stream_2",
         "vcc_gain",
         "noise_diode_transition_holdoff_seconds",
         "b123_pwrm",
