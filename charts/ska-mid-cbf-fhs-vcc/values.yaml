@@ -223,4 +223,4 @@ VCCUnits:
     bmcEndpointIp: "127.0.1.2"
     instancesRange: [7, 12]
 
-gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams/-/archive/cip-3569/ska-mid-cbf-bitstreams-cip-3569.tar.gz?path=raw/ska-mid-cbf-agilex-vcc"
+gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams/-/archive/main/ska-mid-cbf-bitstreams-main.tar.gz?path=raw/ska-mid-cbf-agilex-vcc"
