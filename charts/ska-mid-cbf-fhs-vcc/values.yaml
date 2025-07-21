@@ -156,7 +156,7 @@ devices:
   - name: "VCCStreamMerge"
     multiplicity: 2
     path: "fhs/vcc-stream-merge{{.multiplicity}}/{{.deviceId000}}"
-    emulatorIpBlockId: "vcc_stream_merge{{.multiplicity}}"
+    emulatorIpBlockId: "fs{{.multiplicity}}_vcc_stream_merge"
     firmwareIpBlockId: "receptor{{.receptorId}}_vcc_stream_merge{{.multiplicity}}"
   - name: "VCCAllBandsController"
     path: "fhs/vcc-all-bands/{{.deviceId000}}"
