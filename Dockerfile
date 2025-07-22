@@ -31,7 +31,7 @@ WORKDIR /build
 # available for pip.
 COPY pyproject.toml poetry.lock* ./
 
-RUN poetry lock && poetry install --only main --no-root
+RUN poetry install --only main --no-root
 
 # The README.md here must match the `tool.poetry.readme` key in the
 # pyproject.toml otherwise the `pip install` step below will fail.
