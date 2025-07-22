@@ -1,5 +1,5 @@
 boogie:
-  tango_host: tango-databaseds-test-0.tango-databaseds-test.ska-mid-cbf.svc.cluster.local:10000
+  tango_host: tango-databaseds-test:10000
 
 image:
   pullPolicy: Always
