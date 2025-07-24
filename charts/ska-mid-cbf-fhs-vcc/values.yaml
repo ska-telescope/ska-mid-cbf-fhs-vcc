@@ -114,7 +114,7 @@ devices:
           - "60"
   - name: "PacketValidation"
     path: "fhs/packetvalidation/{{.deviceId000}}"
-    emulatorIpBlockId: "packet_validation"
+    emulatorIpBlockId: "vcc_pkt_filter"
     firmwareIpBlockId: "packet_validation_unimplemented"
   - name: "WidebandInputBuffer"
     path: "fhs/wib/{{.deviceId000}}"
