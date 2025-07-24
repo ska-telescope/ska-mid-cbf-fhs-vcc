@@ -124,6 +124,10 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
     def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
         status: WidebandInputBufferStatus = WidebandInputBufferStatus.schema().load(status_dict)
 
+
+        self.logger.info(":::::::::::::: WIB STATUES FROM EMULATOR :::::::::::::::::")
+        self.logger.info(status)
+
         register_statuses = {}
 
         register_statuses["meta_dish_id"] = self.check_meta_dish_id(status.meta_dish_id)
@@ -151,6 +155,9 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
                 )  # if not overflow or underflow, goes to degraded because one of packet_drop and packet_error set
         else:
             register_statuses["error"] = HealthState.OK
+
+
+        self.logger.info(f":::::::: TEST_LINK_FAILURE:::::: {status.link_failure}")
 
         register_statuses["link_failure"] = self.check_register(
             False,
