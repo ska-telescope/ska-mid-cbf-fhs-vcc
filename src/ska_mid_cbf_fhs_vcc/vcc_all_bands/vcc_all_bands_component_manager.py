@@ -483,6 +483,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
             return
         except StateModelError as ex:
+            self.logger.info(":::::::::::: VCC ALL BANDS STATE MODEL EXCEPTION :::::::::")
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
             self._set_task_callback(
                 task_callback,
@@ -491,6 +492,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 "Attempted to call ConfigureScan command from an incorrect state",
             )
         except ValueError as ex:
+            self.logger.info(":::::::::::: VCC ALL BANDS VALUE ERROR EXCEPTION :::::::::")
             self.logger.error(f"Error due to config not meeting scan requirements: {repr(ex)}")
             self._set_task_callback(
                 task_callback,
@@ -499,8 +501,10 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 f"Arg provided does not meet ConfigureScan criteria: {ex}",
             )
         except ChildProcessError as ex:
+            self.logger.info(":::::::::::: VCC ALL BANDS CHILD PROCESS EXCEPTION :::::::::")
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, ex)
         except jsonschema.ValidationError as ex:
+            self.logger.info(":::::::::::: VCC ALL BANDS VALIDATION ERROR EXCEPTION :::::::::")
             self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
@@ -510,6 +514,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 f"Arg provided does not meet ConfigureScan criteria: {ex}",
             )
         except Exception as ex:
+            self.logger.info(":::::::::::: VCC ALL BANDS GENERAL EXCEPTION :::::::::")
             self.logger.error(repr(ex))
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
