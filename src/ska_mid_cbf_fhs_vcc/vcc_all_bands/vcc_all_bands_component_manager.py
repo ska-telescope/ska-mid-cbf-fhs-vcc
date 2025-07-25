@@ -494,6 +494,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         except ValueError as ex:
             self.logger.info(":::::::::::: VCC ALL BANDS VALUE ERROR EXCEPTION :::::::::")
             self.logger.error(f"Error due to config not meeting scan requirements: {repr(ex)}")
+            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
