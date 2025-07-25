@@ -8,7 +8,7 @@ schema = {
         "expected_dish_id": {"type": "string"},
         "dish_sample_rate": {
             "type": "integer",
-            "minimum": 3900000000,
+            "minimum": 3960000000,
             "maximum": 11891998800,
         },
         "samples_per_frame": {"type": "integer"},
@@ -53,7 +53,7 @@ schema = {
 example_config = {
     "config_id": "1",
     "expected_dish_id": "MKT001",
-    "dish_sample_rate": 3900000000,
+    "dish_sample_rate": 3960000000,
     "samples_per_frame": 18,
     "vcc_gain": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     "frequency_band": "2",

@@ -38,7 +38,7 @@ class B123VccOsppfbChannelizerStatus:
 @dataclass_json
 @dataclass
 class B123VccOsppfbChannelizerConfigureArgin:
-    sample_rate: np.uint64 = 3900000000  # default values
+    sample_rate: np.uint64 = 3960000000  # default values
     gains: list[float] = field(
         default_factory=lambda: [
             1.0,

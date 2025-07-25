@@ -30,14 +30,14 @@ class WidebandInputBufferSimulator(BaseSimulatorApi):
                 "loss_of_signal_seconds": 0,
                 "meta_band_id": 1,
                 "meta_dish_id": 1,
-                "rx_sample_rate": 3900000000,
-                "meta_transport_sample_rate": 3900000000,
+                "rx_sample_rate": 3960000000,
+                "meta_transport_sample_rate": 3960000000,
                 "packet_error": false,
                 "packet_error_count": 0,
                 "packet_drop": false,
                 "packet_drop_count": 0,
                 "rx_packet_rate": 1500000,
-                "expected_sample_rate": 3900000000
+                "expected_sample_rate": 3960000000
             }"""
 
         super().__init__(device_id, logger)
