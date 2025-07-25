@@ -501,7 +501,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 f"Arg provided does not meet ConfigureScan criteria: {ex}",
             )
         except ChildProcessError as ex:
-            self.logger.info(":::::::::::: VCC ALL BANDS CHILD PROCESS EXCEPTION :::::::::")
+            self.logger.info(f":::::::::::: VCC ALL BANDS CHILD PROCESS EXCEPTION ::::::::: {repr(ex)}")
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, ex)
         except jsonschema.ValidationError as ex:
             self.logger.info(":::::::::::: VCC ALL BANDS VALIDATION ERROR EXCEPTION :::::::::")
