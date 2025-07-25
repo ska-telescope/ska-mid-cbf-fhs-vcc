@@ -502,6 +502,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             )
         except ChildProcessError as ex:
             self.logger.info(f":::::::::::: VCC ALL BANDS CHILD PROCESS EXCEPTION ::::::::: {repr(ex)}")
+            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, ex)
         except jsonschema.ValidationError as ex:
             self.logger.info(":::::::::::: VCC ALL BANDS VALIDATION ERROR EXCEPTION :::::::::")
