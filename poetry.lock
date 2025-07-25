@@ -2126,38 +2126,6 @@ url = "https://artefact.skao.int/repository/pypi-internal/simple"
 reference = "ska-nexus"
 
 [[package]]
-name = "ska-mid-cbf-fhs-common"
-version = "0.1.3+dev.cce2b819a"
-description = "SKA Mid.CBF FHS Common Library"
-optional = false
-python-versions = ">=3.10,<4.0"
-groups = ["main"]
-files = [
-    {file = "ska_mid_cbf_fhs_common-0.1.3+dev.cce2b819a-py3-none-any.whl", hash = "sha256:30f8b9cc10c5a310ced6d8b3025b73ebc07c4ca8530dcc0a3c9957ff4b042e34"},
-    {file = "ska_mid_cbf_fhs_common-0.1.3+dev.cce2b819a.tar.gz", hash = "sha256:2fdef0e4b337c2b5cf2baff66c7e0c27eaa56aabd4d2f42bc09af682aa9d5b5b"},
-]
-
-[package.dependencies]
-dataclasses-json = ">=0.6.7,<0.7.0"
-debugpy = ">=1.8.5,<2.0.0"
-mpmath = ">=1.3.0,<2.0.0"
-polling2 = ">=0.5.0,<0.6.0"
-pytango = ">=9.5.1,<10.0.0"
-pyyaml = ">=6.0.1,<7.0.0"
-requests = ">=2.32.3,<3.0.0"
-ska-control-model = "1.1.0"
-ska-ser-log-transactions = ">=0.2.2+ae0f5c92,<0.3.0"
-ska-tango-base = "1.0.0"
-ska-tango-testing = "0.8.0"
-ska-telmodel = "1.21.0"
-typing-extensions = ">=4.8.0,<5.0.0"
-
-[package.source]
-type = "legacy"
-url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
-reference = "gitlab-fhs-common"
-
-[[package]]
 name = "ska-ser-log-transactions"
 version = "0.2.2+ae0f5c92"
 description = "Square Kilometre Array transaction logging utility"
@@ -2790,4 +2758,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "ff05f8de067930b2c69fc9acfea66af961edae33c9eefc25098f387fc101c488"
+content-hash = "e4569c391b97747b9689088555d3360781de34f763e85c250912000aa81e2f51"
