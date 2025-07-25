@@ -109,6 +109,8 @@ class B123VccOsppfbChannelizerComponentManager(FhsLowLevelComponentManagerBase):
 
             self.logger.info(f"CONFIGURE JSON CONFIG: {argin_parsed.to_json()}")
 
+            self.logger.info(f"::::::::::::::: VCC CONFIGURING BASE URL: {self._api._api_base_url}")
+
             return self._generate_and_configure(argin_parsed, super().configure)
         except ValidationError as vex:
             error_msg = "Validation error: Unable to configure, argin doesn't match the required schema"
