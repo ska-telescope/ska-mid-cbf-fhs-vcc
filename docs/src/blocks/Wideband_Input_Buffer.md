@@ -21,8 +21,8 @@ Purpose is to replace missing packets (dropped, or otherwise) with packets conta
 - noise_diode_transition_holdoff_seconds : float
 
 #### `struct status`
-- buffer_underflowed : boolean
-- buffer_overflowed : boolean
+- link_failure : boolean
+- buffer_overflow : boolean
 - loss_of_signal_seconds : uint32_t
 - band_id : unit8_t
 
