@@ -155,8 +155,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
         else:
             register_statuses["error"] = HealthState.OK
 
-        self.logger.info(f":::::::: TEST_LINK_FAILURE:::::: {status.link_failure}")
-
         register_statuses["link_failure"] = self.check_register(
             False,
             status.link_failure,
