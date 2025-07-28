@@ -124,9 +124,6 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
     def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
         status: WidebandInputBufferStatus = WidebandInputBufferStatus.schema().load(status_dict)
 
-        self.logger.info(":::::::::::::: WIB STATUES FROM EMULATOR :::::::::::::::::")
-        self.logger.info(status)
-
         register_statuses = {}
 
         register_statuses["meta_dish_id"] = self.check_meta_dish_id(status.meta_dish_id)
