@@ -73,7 +73,7 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
         return result
 
     def deconfigure(self: FrequencySliceSelectionComponentManager, argin: str = None) -> tuple[ResultCode, str]:
-        self.logger.error(f"############################# Deconfigure called")
+        self.logger.error("############################# Deconfigure called")
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
