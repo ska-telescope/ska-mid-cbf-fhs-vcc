@@ -31,15 +31,21 @@ class WidebandInputBufferConfig:
 @dataclass_json
 @dataclass
 class WidebandInputBufferStatus:
-    buffer_underflowed: bool
-    buffer_overflowed: bool
+    buffer_overflow: bool
     loss_of_signal: np.uint32
     error: bool
+    packet_error: bool
+    packet_error_count: np.uint32
+    packet_drop: bool
+    packet_drop_count: np.uint32
     loss_of_signal_seconds: np.uint32
     meta_band_id: np.uint8
     meta_dish_id: np.uint16
     rx_sample_rate: np.uint32
+    rx_packet_rate: np.uint32
     meta_transport_sample_rate: np.uint32
+    link_failure: bool
+    expected_sample_rate: np.uint32
 
 
 class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
@@ -135,7 +141,7 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
         )
 
         if status.error:
-            if status.buffer_overflowed is True or status.buffer_underflowed is True:
+            if status.buffer_overflow is True or status.link_failure is True:
                 register_statuses["error"] = HealthState.FAILED
             else:
                 register_statuses[
@@ -146,16 +152,16 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
         else:
             register_statuses["error"] = HealthState.OK
 
-        register_statuses["buffer_underflowed"] = self.check_register(
+        register_statuses["link_failure"] = self.check_register(
             False,
-            status.buffer_underflowed,
-            error_msg=f"buffer_underflowed mismatch. Expected False, Actual: {status.buffer_underflowed}",
+            status.link_failure,
+            error_msg=f"link_failure mismatch. Expected False, Actual: {status.link_failure}",
         )
 
-        register_statuses["buffer_overflowed"] = self.check_register(
+        register_statuses["buffer_overflow"] = self.check_register(
             False,
-            status.buffer_overflowed,
-            error_msg=f"buffer_overflowed mismatch. Expected False, Actual: {status.buffer_overflowed}",
+            status.buffer_overflow,
+            error_msg=f"buffer_overflow mismatch. Expected False, Actual: {status.buffer_overflow}",
         )
 
         return register_statuses

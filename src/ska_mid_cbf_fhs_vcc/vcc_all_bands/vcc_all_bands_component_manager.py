@@ -484,6 +484,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             return
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self.logger.exception(ex)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
@@ -492,6 +493,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             )
         except ValueError as ex:
             self.logger.error(f"Error due to config not meeting scan requirements: {repr(ex)}")
+            self.logger.exception(ex)
+            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
@@ -499,9 +502,13 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 f"Arg provided does not meet ConfigureScan criteria: {ex}",
             )
         except ChildProcessError as ex:
+            self.logger.error(f"Uncaught error in child process: {repr(ex)}")
+            self.logger.exception(ex)
+            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, ex)
         except jsonschema.ValidationError as ex:
             self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
+            self.logger.exception(ex)
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
                 task_callback,
@@ -511,6 +518,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             )
         except Exception as ex:
             self.logger.error(repr(ex))
+            self.logger.exception(ex)
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
