@@ -94,7 +94,7 @@ properties:
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
   bitstreamId: "agilex-vcc"
-  bitstreamVersion: "0.0.16"
+  bitstreamVersion: "0.0.17"
   emulatorId: "vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
   firmwareIpBlockId: ""
@@ -222,5 +222,3 @@ VCCUnits:
     networkSwitchId: "127.0.0.2"
     bmcEndpointIp: "127.0.1.2"
     instancesRange: [7, 12]
-
-gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams/-/archive/main/ska-mid-cbf-bitstreams-main.tar.gz?path=raw/ska-mid-cbf-agilex-vcc"
