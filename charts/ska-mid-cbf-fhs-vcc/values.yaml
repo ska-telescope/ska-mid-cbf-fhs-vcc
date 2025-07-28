@@ -222,5 +222,3 @@ VCCUnits:
     networkSwitchId: "127.0.0.2"
     bmcEndpointIp: "127.0.1.2"
     instancesRange: [7, 12]
-
-gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams/-/archive/cip-3707-bitstream-config-fix/ska-mid-cbf-bitstreams-cip-3707-bitstream-config-fix.tar.gz?path=raw/ska-mid-cbf-agilex-vcc"
