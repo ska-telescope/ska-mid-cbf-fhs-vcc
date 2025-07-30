@@ -124,6 +124,8 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
     def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
         status: WidebandInputBufferStatus = WidebandInputBufferStatus.schema().load(status_dict)
 
+        self.logger.info(f"Determining HealthStates for received WIB status: {status.to_json()}")
+
         register_statuses = {}
 
         register_statuses["meta_dish_id"] = self.check_meta_dish_id(status.meta_dish_id)
@@ -141,15 +143,19 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
         )
 
         if status.error:
+            self.logger.warning(f"===================== WIB STATUS.ERROR SUCCESSFUL IF CONDITION: error={status.error}")
             if status.buffer_overflow is True or status.link_failure is True:
+                self.logger.warning("===================== WIB STATUS.ERROR SUCCESSFUL NESTED IF CONDITION - FAILED")
                 register_statuses["error"] = HealthState.FAILED
             else:
+                self.logger.warning("===================== WIB STATUS.ERROR SUCCESSFUL NESTED IF CONDITION - DEGRADED")
                 register_statuses[
                     "error"
                 ] = (
                     HealthState.DEGRADED
                 )  # if not overflow or underflow, goes to degraded because one of packet_drop and packet_error set
         else:
+            self.logger.warning(f"===================== WIB STATUS.ERROR ELSE CONDITION: error={status.error}")
             register_statuses["error"] = HealthState.OK
 
         register_statuses["link_failure"] = self.check_register(
@@ -163,6 +169,8 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
             status.buffer_overflow,
             error_msg=f"buffer_overflow mismatch. Expected False, Actual: {status.buffer_overflow}",
         )
+
+        self.logger.info(f"Determined HealthStates for WIB: {register_statuses}")
 
         return register_statuses
 
