@@ -13,21 +13,21 @@ from __future__ import annotations
 from functools import partial
 from typing import Any
 
-from ska_mid_cbf_fhs_common.testing.simulation import ObsCMSim
+from ska_mid_cbf_fhs_common.testing.simulation import SimModeObsCMBase
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum
 
-__all__ = ["VccCMSim"]
+__all__ = ["SimVCCAllBandsCM"]
 
 
-class VccCMSim(ObsCMSim):
+class SimVCCAllBandsCM(SimModeObsCMBase):
     def __init__(
-        self: VccCMSim,
+        self: SimVCCAllBandsCM,
         *args: Any,
         **kwargs: Any,
     ) -> None:
         """
-        Initialize a new VccCMSim instance.
+        Initialize a new SimVCCAllBandsCM instance.
 
         Links VCCAllBandsComponentManager attributes to attribute overrides and
         commands to simulated command task submit method.
@@ -51,6 +51,46 @@ class VccCMSim(ObsCMSim):
         # Setup LRC method simulation
         self.command_overrides.update(
             {
+                "Abort": {
+                    "invoked_action": "ABORT_INVOKED",
+                    "completed_action": "ABORT_COMPLETED",
+                },
+                "ConfigureScan": {
+                    "allowed": True,
+                    "allowed_states": ["ON"],
+                    "allowed_obs_states": ["IDLE", "READY"],
+                    "result_code": "OK",
+                    "message": "ConfigureScan completed OK",
+                    "invoked_action": "CONFIGURE_INVOKED",
+                    "completed_action": "CONFIGURE_COMPLETED",
+                },
+                "Scan": {
+                    "allowed": True,
+                    "allowed_states": ["ON"],
+                    "allowed_obs_states": ["READY"],
+                    "result_code": "OK",
+                    "message": "Scan completed OK",
+                    "invoked_action": "START_INVOKED",
+                    "completed_action": "START_COMPLETED",
+                },
+                "EndScan": {
+                    "allowed": True,
+                    "allowed_states": ["ON"],
+                    "allowed_obs_states": ["SCANNING"],
+                    "result_code": "OK",
+                    "message": "EndScan completed OK",
+                    "invoked_action": "STOP_INVOKED",
+                    "completed_action": "STOP_COMPLETED",
+                },
+                "ObsReset": {
+                    "allowed": True,
+                    "allowed_states": ["ON"],
+                    "allowed_obs_states": ["FAULT", "ABORTED"],
+                    "result_code": "OK",
+                    "message": "ObsReset completed OK",
+                    "invoked_action": "OBSRESET_INVOKED",
+                    "completed_action": "OBSRESET_COMPLETED",
+                },
                 "UpdateSubarrayMembership": {
                     "allowed": True,
                     "allowed_states": ["ON"],
@@ -76,29 +116,29 @@ class VccCMSim(ObsCMSim):
         self.auto_set_filter_gains = partial(self.sim_command, command_name="AutoSetFilterGains")
 
     @property
-    def expected_dish_id(self: VccCMSim) -> str:
+    def expected_dish_id(self: SimVCCAllBandsCM) -> str:
         return self.attribute_overrides["expectedDishId"]
 
     @property
-    def subarray_id(self: VccCMSim) -> int:
+    def subarray_id(self: SimVCCAllBandsCM) -> int:
         return self.attribute_overrides["subarrayID"]
 
     @property
-    def frequency_band(self: VccCMSim) -> FrequencyBandEnum:
+    def frequency_band(self: SimVCCAllBandsCM) -> FrequencyBandEnum:
         return self.attribute_overrides["frequencyBand"]
 
     @property
-    def input_sample_rate(self: VccCMSim) -> int:
+    def input_sample_rate(self: SimVCCAllBandsCM) -> int:
         return self.attribute_overrides["inputSampleRate"]
 
     @property
-    def frequency_band_offset(self: VccCMSim) -> list[int]:
+    def frequency_band_offset(self: SimVCCAllBandsCM) -> list[int]:
         return self.attribute_overrides["frequencyBandOffset"]
 
     @property
-    def last_requested_headrooms(self: VccCMSim) -> list[int]:
+    def last_requested_headrooms(self: SimVCCAllBandsCM) -> list[int]:
         return self.attribute_overrides["requestedRFIHeadroom"]
 
     @property
-    def vcc_gains(self: VccCMSim) -> list[int]:
+    def vcc_gains(self: SimVCCAllBandsCM) -> list[int]:
         return self.attribute_overrides["vccGains"]
