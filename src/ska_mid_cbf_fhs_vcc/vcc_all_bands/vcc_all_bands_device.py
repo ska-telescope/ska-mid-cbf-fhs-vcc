@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+from functools import partial
+
 import tango
 from ska_mid_cbf_fhs_common import FhsObsBaseDevice
+from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMixin
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command, device_property
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VCCAllBandsComponentManager
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim import VccCMSim
 
 
-class VCCAllBandsController(FhsObsBaseDevice):
-    component_manager: VCCAllBandsComponentManager  # type hint only
+class VCCAllBandsController(FhsObsBaseDevice, FhsObsSimMixin):
+    component_manager: VCCAllBandsComponentManager | VccCMSim  # type hint only
 
     ethernet_200g_fqdn = device_property(dtype="str")
     packet_validation_fqdn = device_property(dtype="str")
@@ -70,7 +74,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
             ["1", "2", "3", "4", "5a", "5b"]).
         :rtype: tango.DevEnum
         """
-        return self.component_manager._input_sample_rate
+        return self.component_manager.input_sample_rate
 
     @attribute(
         dtype=tango.DevLong,
@@ -100,7 +104,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         :return: the most recent requested RFI headroom values provided to AutoSetFilterGains.
         :rtype: tango.DevVarDoubleArray
         """
-        return self.component_manager._last_requested_headrooms
+        return self.component_manager.last_requested_headrooms
 
     @attribute(
         dtype=(float,),
@@ -115,7 +119,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
             [ch0_polX, ch1_polX, ..., chN_polX, ch0_polY, ch1_polY, ..., chN_polY].
         :rtype: tango.DevVarDoubleArray
         """
-        return self.component_manager._vcc_gains
+        return self.component_manager.vcc_gains
 
     @command(
         dtype_in="DevString",
@@ -124,7 +128,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def ConfigureScan(self: VCCAllBandsController, config: str) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="ConfigureScan")
-        result_code, command_id = command_handler(config)
+        # Use keyword for component manager argument so that "task_callback"
+        # which is set by SubmittedSlowCommand.do() is the only positional argument.
+        result_code, command_id = command_handler(argin=config)
         return [[result_code], [command_id]]
 
     @command(
@@ -134,7 +140,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def Scan(self: VCCAllBandsController, scan_id: int) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="Scan")
-        result_code, command_id = command_handler(scan_id)
+        # Use keyword for component manager argument so that "task_callback"
+        # which is set by SubmittedSlowCommand.do() is the only positional argument.
+        result_code, command_id = command_handler(argin=scan_id)
         return [[result_code], [command_id]]
 
     @command(dtype_out="DevVarLongStringArray")
@@ -156,7 +164,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def UpdateSubarrayMembership(self: VCCAllBandsController, subarray_id: int) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="UpdateSubarrayMembership")
-        result_code, command_id = command_handler(subarray_id)
+        # Use keyword for component manager argument so that "task_callback"
+        # which is set by SubmittedSlowCommand.do() is the only positional argument.
+        result_code, command_id = command_handler(argin=subarray_id)
         return [[result_code], [command_id]]
 
     @command(
@@ -170,10 +180,19 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] = [3.0]) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="AutoSetFilterGains")
-        result_code, command_id = command_handler(headroom)
+        # Use keyword for component manager argument so that "task_callback"
+        # which is set by SubmittedSlowCommand.do() is the only positional argument.
+        result_code, command_id = command_handler(argin=headroom)
         return [[result_code], [command_id]]
 
-    def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager:
+    def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager | VccCMSim:
+        if self.simulation_mode:
+            return VccCMSim(
+                logger=self.logger,
+                communication_state_callback=self._communication_state_changed,
+                component_state_callback=partial(FhsObsSimMixin._component_state_changed, self),
+            )
+
         return VCCAllBandsComponentManager(
             device=self,
             logger=self.logger,

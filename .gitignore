@@ -48,3 +48,6 @@ src/api/test/**/*_test
 # logging
 images/ska-mid-cbf-emulators-efk/data/*
 *.log
+
+venv*
+PrivateRules.mk

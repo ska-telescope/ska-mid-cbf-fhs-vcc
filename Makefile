@@ -5,7 +5,6 @@
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
 
--include PrivateRules.mak
 export DEBUG_DIRTY=true
 
 #
@@ -159,3 +158,6 @@ lint-python-local:
 	if [ $$ISORT_ERROR -eq 0 ] && [ $$BLACK_ERROR -eq 0 ] && [ $$FLAKE_ERROR -eq 0 ] && [ $$PYLINT_ERROR -eq 0 ]; then echo "Lint was successful. Check build/lint-output for any additional details."; fi;
 
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
+
+# define private overrides for above variables in here
+-include PrivateRules.mk
