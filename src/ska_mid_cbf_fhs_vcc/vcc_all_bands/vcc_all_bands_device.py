@@ -33,7 +33,7 @@ class VCCAllBandsController(FhsObsBaseDevice, FhsObsSimMixin):
     unit_number = device_property(dtype="str")
     fpga_number = device_property(dtype="str")
 
-    @attribute
+    @attribute(dtype=str)
     def expectedDishId(self):
         return self.component_manager.expected_dish_id
 
@@ -128,8 +128,8 @@ class VCCAllBandsController(FhsObsBaseDevice, FhsObsSimMixin):
     )
     def ConfigureScan(self: VCCAllBandsController, config: str) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="ConfigureScan")
-        # Use keyword for component manager argument so that "task_callback"
-        # which is set by SubmittedSlowCommand.do() is the only positional argument.
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=config)
         return [[result_code], [command_id]]
 
@@ -140,8 +140,8 @@ class VCCAllBandsController(FhsObsBaseDevice, FhsObsSimMixin):
     )
     def Scan(self: VCCAllBandsController, scan_id: int) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="Scan")
-        # Use keyword for component manager argument so that "task_callback"
-        # which is set by SubmittedSlowCommand.do() is the only positional argument.
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=scan_id)
         return [[result_code], [command_id]]
 
@@ -164,8 +164,8 @@ class VCCAllBandsController(FhsObsBaseDevice, FhsObsSimMixin):
     )
     def UpdateSubarrayMembership(self: VCCAllBandsController, subarray_id: int) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="UpdateSubarrayMembership")
-        # Use keyword for component manager argument so that "task_callback"
-        # which is set by SubmittedSlowCommand.do() is the only positional argument.
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=subarray_id)
         return [[result_code], [command_id]]
 
@@ -180,8 +180,8 @@ class VCCAllBandsController(FhsObsBaseDevice, FhsObsSimMixin):
     )
     def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] = [3.0]) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="AutoSetFilterGains")
-        # Use keyword for component manager argument so that "task_callback"
-        # which is set by SubmittedSlowCommand.do() is the only positional argument.
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=headroom)
         return [[result_code], [command_id]]
 

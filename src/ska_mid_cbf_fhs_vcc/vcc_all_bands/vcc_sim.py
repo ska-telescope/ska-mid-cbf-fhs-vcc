@@ -41,19 +41,12 @@ class VccCMSim(ObsCMSim):
                 "expectedDishId": "",
                 "requestedRFIHeadroom": [0],
                 "vccGains": [0],
-                "frequencyBand": 0,
+                "frequencyBand": FrequencyBandEnum._1,
                 "inputSampleRate": 0,
                 "frequencyBandOffset": [0],
                 "subarrayID": 0,
             }
         )
-        self.expected_dish_id = self.attribute_overrides["expectedDishId"]
-        self.subarray_id = self.attribute_overrides["subarrayID"]
-        self.frequency_band = self.attribute_overrides["frequencyBand"]
-        self.input_sample_rate = self.attribute_overrides["inputSampleRate"]
-        self.frequency_band_offset = self.attribute_overrides["frequencyBandOffset"]
-        self.last_requested_headrooms = self.attribute_overrides["requestedRFIHeadroom"]
-        self.vcc_gains = self.attribute_overrides["vccGains"]
 
         # Setup LRC method simulation
         self.command_overrides.update(
@@ -81,3 +74,31 @@ class VccCMSim(ObsCMSim):
         self.obs_reset = partial(self.sim_command, command_name="ObsReset")
         self.update_subarray_membership = partial(self.sim_command, command_name="UpdateSubarrayMembership")
         self.auto_set_filter_gains = partial(self.sim_command, command_name="AutoSetFilterGains")
+
+    @property
+    def expected_dish_id(self: VccCMSim) -> str:
+        return self.attribute_overrides["expectedDishId"]
+
+    @property
+    def subarray_id(self: VccCMSim) -> int:
+        return self.attribute_overrides["subarrayID"]
+
+    @property
+    def frequency_band(self: VccCMSim) -> FrequencyBandEnum:
+        return self.attribute_overrides["frequencyBand"]
+
+    @property
+    def input_sample_rate(self: VccCMSim) -> int:
+        return self.attribute_overrides["inputSampleRate"]
+
+    @property
+    def frequency_band_offset(self: VccCMSim) -> list[int]:
+        return self.attribute_overrides["frequencyBandOffset"]
+
+    @property
+    def last_requested_headrooms(self: VccCMSim) -> list[int]:
+        return self.attribute_overrides["requestedRFIHeadroom"]
+
+    @property
+    def vcc_gains(self: VccCMSim) -> list[int]:
+        return self.attribute_overrides["vccGains"]
