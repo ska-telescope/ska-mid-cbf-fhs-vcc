@@ -2899,4 +2899,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "d2516d0bd723e776df86ef04753a477cf2420ea55b441bdf3a0125f5082c9adb"
+content-hash = "d2e59b7a9996a6bce1615c253f3f5b36accad6c77640960c866665c97a8a82e9"
