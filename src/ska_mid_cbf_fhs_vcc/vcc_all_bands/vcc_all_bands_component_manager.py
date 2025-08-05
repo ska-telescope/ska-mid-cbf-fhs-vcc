@@ -875,7 +875,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
     def _log_deconfigure_status(self: VCCAllBandsComponentManager, ip_block_name: str, result: tuple[ResultCode, str]):
         if result[0] != ResultCode.OK:
-            self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
+            self.logger.error(f"VCC {self._vcc_id}: Unable to deconfigure ipblock {ip_block_name}")
         else:
             self.logger.info(f"VCC {self._vcc_id}: {ip_block_name} set to IDLE")
 
