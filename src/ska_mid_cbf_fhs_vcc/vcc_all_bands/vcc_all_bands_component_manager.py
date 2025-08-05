@@ -837,8 +837,12 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
     def _reset_devices(self: VCCAllBandsComponentManager, devices_name: list[str]):
         try:
             self._reset_attributes()
-            for fqdn in devices_name:    
-                if self._proxies[fqdn] is not None and fqdn is not self.device.wideband_input_buffer_fqdn and "wpm" not in fqdn.split("/")[1]: 
+            for fqdn in devices_name:
+                if (
+                    self._proxies[fqdn] is not None
+                    and fqdn is not self.device.wideband_input_buffer_fqdn
+                    and "wpm" not in fqdn.split("/")[1]
+                ):
                     self._log_deconfigure_status(fqdn, self._proxies[fqdn].Deconfigure())
         except Exception as ex:
             self.logger.error(f"Error resetting specific devices : {repr(ex)}")
