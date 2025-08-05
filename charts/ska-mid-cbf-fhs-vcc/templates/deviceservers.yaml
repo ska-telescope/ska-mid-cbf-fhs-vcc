@@ -8,14 +8,19 @@
 
   {{- range $instanceIndex, $instance := $seqObj.sequence }}
     {{- $vccNum := add $instanceIndex 1 }}
-    {{- $serverInstances := include "generateServerInstances" (list $instance $fhsVccUnit $.Values.devices $.Values.properties $vccNum) | nindent 2 }}
 
-    {{- $fileDeviceServerContext := dict "fhsVccUnit" $fhsVccUnit "instance" $instance "serverInstances" $serverInstances }}
+    {{- $deviceValues := $.Values.devices }}
+    {{- $deviceCommand := $.Values.deviceCommand }}
 
+    {{- if $.Values.simulated }}
+      {{- $deviceValues = $.Values.simDevices }}
+      {{- $deviceCommand = $.Values.simDeviceCommand }}
+    {{- end }}
+
+    {{- $serverInstances := include "generateServerInstances" (list $instance $fhsVccUnit $deviceValues $.Values.properties $vccNum) | nindent 2 }}
+    {{- $fileDeviceServerContext := dict "fhsVccUnit" $fhsVccUnit "instance" $instance "serverInstances" $serverInstances "deviceCommand" $deviceCommand }}
     {{- $fileDeviceServer := include "ska-mid-cbf-fhs-vcc.fhsVccStack" (merge $fileDeviceServerContext $) | fromYaml }}
 
-
-    
     {{- if $fileDeviceServer.tolerations }}
       {{- $_ := set $.Values "tolerations" $fileDeviceServer.tolerations }}
     {{- end }}
@@ -24,8 +29,6 @@
       {{- $_ := set $.Values "affinity" $fileDeviceServer.affinity }}
     {{- end }}
 
-
-   
     {{- $context := dict "name" (printf "fhs-vcc-unit-%d-%d" (int $fhsVccUnit.unitNum) (int $vccNum)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
     {{- template "ska-tango-util.multidevice-config.tpl" $context }}
     {{- template "ska-tango-util.multidevice-sacc-role.tpl" $context }}

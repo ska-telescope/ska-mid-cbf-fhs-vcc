@@ -1,19 +1,15 @@
 from __future__ import annotations
 
-from functools import partial
-
 import tango
 from ska_mid_cbf_fhs_common import FhsObsBaseDevice
-from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command, device_property
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VCCAllBandsComponentManager
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim import SimVCCAllBandsCM
 
 
-class VCCAllBandsController(FhsObsBaseDevice, FhsObsSimMode):
-    component_manager: VCCAllBandsComponentManager | SimVCCAllBandsCM  # type hint only
+class VCCAllBandsController(FhsObsBaseDevice):
+    component_manager: VCCAllBandsComponentManager  # type hint only
 
     ethernet_200g_fqdn = device_property(dtype="str")
     packet_validation_fqdn = device_property(dtype="str")
@@ -185,14 +181,7 @@ class VCCAllBandsController(FhsObsBaseDevice, FhsObsSimMode):
         result_code, command_id = command_handler(argin=headroom)
         return [[result_code], [command_id]]
 
-    def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager | SimVCCAllBandsCM:
-        if self.simulation_mode:
-            return SimVCCAllBandsCM(
-                logger=self.logger,
-                communication_state_callback=self._communication_state_changed,
-                component_state_callback=partial(FhsObsSimMode._component_state_changed, self),
-            )
-
+    def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager:
         return VCCAllBandsComponentManager(
             device=self,
             logger=self.logger,

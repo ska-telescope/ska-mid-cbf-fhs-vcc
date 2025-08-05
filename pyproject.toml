@@ -12,6 +12,7 @@ readme = "README.md"
 
 [project.scripts]
 FhsVccStackDeviceServer = 'ska_mid_cbf_fhs_vcc.fhs_vcc_stack_device_server:main'
+SimVCCAllBandsController = 'ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim:main'
 
 [tool.poetry]
 packages = [{ include = "ska_mid_cbf_fhs_vcc", from = "src" }]

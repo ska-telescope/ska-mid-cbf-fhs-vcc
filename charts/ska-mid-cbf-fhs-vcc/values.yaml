@@ -100,6 +100,7 @@ properties:
   firmwareIpBlockId: ""
 
 # the devices in each stack. optionally override any property defined in `properties`. to add extra properties, provide a `properties` dict
+deviceCommand: "FhsVccStackDeviceServer"
 devices:
   - name: "Ethernet200Gb"
     path: "fhs/ethernet200g/{{.deviceId000}}"
@@ -222,3 +223,59 @@ VCCUnits:
     networkSwitchId: "127.0.0.2"
     bmcEndpointIp: "127.0.1.2"
     instancesRange: [7, 12]
+
+# deploy VCCAllBandsController simulation
+simulated: false
+simDeviceCommand: "SimVCCAllBandsController"
+simDevices:
+  - name: "SimVCCAllBandsController"
+    path: "fhs/vcc-all-bands/{{.deviceId000}}"
+    properties:
+      - name: wideband_input_buffer_fqdn
+        values:
+          - "fhs/wib/{{.deviceId000}}"
+      - name: vcc123_channelizer_fqdn
+        values:
+          - "fhs/vcc/{{.deviceId000}}"
+      - name: vcc45_channelizer_fqdn # yet to be implemented
+        values:
+          - "placeholder"
+      - name: fs_selection_fqdn
+        values:
+          - "fhs/fss/{{.deviceId000}}"
+      - name: wideband_frequency_shifter_fqdn
+        values:
+          - "fhs/wfs/{{.deviceId000}}"
+      - name: ethernet_200g_fqdn
+        values:
+          - "fhs/ethernet200g/{{.deviceId000}}"
+      - name: packet_validation_fqdn
+        values:
+          - "fhs/packetvalidation/{{.deviceId000}}"
+      - name: b123_wideband_power_meter_fqdn
+        values:
+          - "fhs/b123wpm/{{.deviceId000}}"
+      - name: b45a_wideband_power_meter_fqdn
+        values:
+          - "fhs/b45awpm/{{.deviceId000}}"
+      - name: b5b_wideband_power_meter_fqdn
+        values:
+          - "fhs/b5bwpm/{{.deviceId000}}"
+      - name: fs_wideband_power_meter_fqdn
+        values:
+          - "fhs/fs<multiplicity>wpm/{{.deviceId000}}"
+      - name: vcc_stream_merge_fqdn
+        values:
+          - "fhs/vcc-stream-merge<multiplicity>/{{.deviceId000}}"
+      - name: network_switch_id
+        values:
+          - "{{ .networkSwitchId }}"
+      - name: bmc_endpoint_id
+        values:
+          - "{{ .bmcEndpointIp }}"
+      - name: unit_number
+        values:
+          - "{{ .unitNum }}"
+      - name: fpga_number
+        values:
+          - "{{ .fpgaNum }}"

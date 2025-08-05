@@ -13,11 +13,13 @@ from __future__ import annotations
 from functools import partial
 from typing import Any
 
-from ska_mid_cbf_fhs_common.testing.simulation import SimModeObsCMBase
+from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, SimModeObsCMBase
+from tango.server import run
 
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum
 
-__all__ = ["SimVCCAllBandsCM"]
+__all__ = ["SimVCCAllBandsCM", "SimVCCAllBandsController"]
 
 
 class SimVCCAllBandsCM(SimModeObsCMBase):
@@ -107,7 +109,6 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
                 },
             }
         )
-        self.configure_band = partial(self.sim_command, command_name="ConfigureBand")
         self.configure_scan = partial(self.sim_command, command_name="ConfigureScan")
         self.scan = partial(self.sim_command, command_name="Scan")
         self.end_scan = partial(self.sim_command, command_name="EndScan")
@@ -142,3 +143,25 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
     @property
     def vcc_gains(self: SimVCCAllBandsCM) -> list[int]:
         return self.attribute_overrides["vccGains"]
+
+
+class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
+    def create_component_manager(self: SimVCCAllBandsController) -> SimVCCAllBandsCM:
+        return SimVCCAllBandsCM(
+            logger=self.logger,
+            communication_state_callback=self._communication_state_changed,
+            component_state_callback=partial(FhsObsSimMode._component_state_changed, self),
+        )
+
+
+def main(args=None, **kwargs):  # noqa: E302
+    """Start VCCAllBandsController simulator."""
+    return run(
+        classes=(SimVCCAllBandsController,),
+        args=args,
+        **kwargs,
+    )
+
+
+if __name__ == "__main__":  # noqa: #E305
+    main()
