@@ -87,7 +87,6 @@ class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
         return result
 
     def deconfigure(self: VCCStreamMergeComponentManager, argin: str = None) -> tuple[ResultCode, str]:
-        self.logger.error("############################# Deconfigure called")
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
