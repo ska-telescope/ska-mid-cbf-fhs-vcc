@@ -9,12 +9,14 @@
   {{- range $instanceIndex, $instance := $seqObj.sequence }}
     {{- $vccNum := add $instanceIndex 1 }}
 
-    {{- $deviceValues := $.Values.devices }}
     {{- $deviceCommand := $.Values.deviceCommand }}
+    {{- $vccAllBandsDeviceValues := $.Values.vccAllBandsDevice }}
+    {{- $deviceValues := append $.Values.devices $vccAllBandsDeviceValues }}
 
     {{- if $.Values.simulated }}
-      {{- $deviceValues = $.Values.simDevices }}
       {{- $deviceCommand = $.Values.simDeviceCommand }}
+      {{- $simVccDeviceValues := set $vccAllBandsDeviceValues "name" $deviceCommand }}
+      {{- $deviceValues = list $simVccDeviceValues }}
     {{- end }}
 
     {{- $serverInstances := include "generateServerInstances" (list $instance $fhsVccUnit $deviceValues $.Values.properties $vccNum) | nindent 2 }}
