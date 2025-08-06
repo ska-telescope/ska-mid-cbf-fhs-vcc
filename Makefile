@@ -126,11 +126,43 @@ lint:
 
 .PHONY: all test lint
 
+check-minikube-eval:
+	@minikube status | grep -iE '^.*(docker-env: in-use).*$$'; \
+	if [ $$? -ne 0 ]; then \
+		echo "Minikube docker-env not active. Please run: 'eval \$$(minikube docker-env)'."; \
+		exit 1; \
+	else echo "Minikube docker-env is active."; \
+	fi
+
+k8s-pre-install-chart:
+	@if [ "$(MINIKUBE)" = "true" ]; then make check-minikube-eval; fi;
+	rm -f charts/ska-mid-cbf-fhs-vcc/Chart.lock
+
+k8s-deploy:
+	make k8s-install-chart MINIKUBE=$(MINIKUBE) DEV=$(DEV) BOOGIE=$(BOOGIE)
+	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to be ready..."
+	@time kubectl wait pod --selector=app=ska-mid-cbf-fhs-vcc --for=condition=ready --timeout=15m0s --namespace $(KUBE_NAMESPACE)
+
+k8s-deploy-dev: MINIKUBE=true
+k8s-deploy-dev:
+	make k8s-deploy MINIKUBE=$(MINIKUBE) DEV=true BOOGIE=true
+
+k8s-destroy:
+	make k8s-uninstall-chart
+	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to terminate..."
+	@time kubectl wait pod --all --for=delete --timeout=5m0s --namespace $(KUBE_NAMESPACE)
+
+build-and-deploy:
+	make oci-build-all && make k8s-deploy-dev
+
 build-local-common: COMMON_LIB_PATH = ../ska-mid-cbf-fhs-common
 build-local-common:
 	cp -r $(COMMON_LIB_PATH) ./temp-common
 	-make oci-build-all OCI_IMAGE_FILE_PATH=./devcommon.Dockerfile
 	rm -rf ./temp-common
+
+lc-build-and-deploy:
+	make build-local-common && make k8s-deploy-dev
 
 format-python:
 	$(POETRY_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)
