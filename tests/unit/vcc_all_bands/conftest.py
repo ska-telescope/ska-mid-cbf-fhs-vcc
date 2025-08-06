@@ -5,9 +5,14 @@ from __future__ import annotations
 from typing import Generator
 
 import pytest
+from ska_control_model import AdminMode, HealthState, ObsState
 from ska_tango_testing.harness import TangoTestHarnessContext
 from ska_tango_testing.integration import TangoEventTracer
 
+@pytest.fixture(scope="session")  # Use "session" scope for true constants
+def event_timeout() -> int:
+    """Event tracer timeout."""
+    return 10
 
 @pytest.fixture(name="vcc_all_bands_device")
 def vcc_all_bands_device_fixture(
@@ -32,18 +37,28 @@ def vcc_all_bands_tango_event_tracer(
     :param device_under_test: the DeviceProxy to device under test
     :return: TangoEventTracer
     """
-    tracer = TangoEventTracer()
+    tracer = TangoEventTracer(
+        event_enum_mapping={
+            "adminMode": AdminMode,
+            "obsState": ObsState,
+            "healthState": HealthState,
+        }
+    )
 
     change_event_attr_list = [
         "longRunningCommandResult",
         "adminMode",
         "state",
+        "obsState",
         "healthState"
     ]
     for attr in change_event_attr_list:
         tracer.subscribe_event(vcc_all_bands_device, attr)
 
-    return tracer
+    yield tracer
+
+    tracer.unsubscribe_all()
+    tracer.clear_events()
 
 @pytest.fixture(name="wib_device")
 def wib_device_fixture(
@@ -68,7 +83,12 @@ def wib_tango_event_tracer(
     :param device_under_test: the DeviceProxy to device under test
     :return: TangoEventTracer
     """
-    tracer = TangoEventTracer()
+    tracer = TangoEventTracer(
+        event_enum_mapping={
+            "adminMode": AdminMode,
+            "healthState": HealthState,
+        }
+    )
 
     change_event_attr_list = [
         "longRunningCommandResult",
@@ -79,4 +99,8 @@ def wib_tango_event_tracer(
     for attr in change_event_attr_list:
         tracer.subscribe_event(wib_device, attr)
 
-    return tracer
+    yield tracer
+
+    tracer.unsubscribe_all()
+    tracer.clear_events()
+

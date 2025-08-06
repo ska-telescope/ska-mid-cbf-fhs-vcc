@@ -2,10 +2,11 @@
 {{- $instance := .instance -}}
 {{- $fhsVccUnit := .fhsVccUnit -}}
 {{- $serverInstances := .serverInstances -}}
+{{- $deviceCommand := .deviceCommand -}}
 name: fhsvcc
 function: fhsvcc
 domain: sensing
-command: "FhsVccStackDeviceServer"
+command: {{ $deviceCommand }}
 instances:
   {{ list $instance }}
 depends_on:
@@ -23,7 +24,7 @@ livenessProbe:
   successThreshold: 1
   failureThreshold: 10
 server:
-  name: "FhsVccStackDeviceServer"
+  name: {{ $deviceCommand }}
   instances:
     {{ $serverInstances }}
 image:

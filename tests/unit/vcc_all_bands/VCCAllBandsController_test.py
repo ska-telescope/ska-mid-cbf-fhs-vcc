@@ -18,6 +18,7 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsCo
 
 EVENT_TIMEOUT = 30
 
+
 @pytest.mark.forked
 class TestVCCAllBandsController:
 

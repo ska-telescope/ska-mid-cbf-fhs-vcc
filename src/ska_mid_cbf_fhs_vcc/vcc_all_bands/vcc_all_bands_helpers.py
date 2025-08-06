@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import IntEnum
 
 
-class FrequencyBandEnum(Enum):
+class FrequencyBandEnum(IntEnum):
     _1 = 0
     _2 = 1
     _3 = 2
