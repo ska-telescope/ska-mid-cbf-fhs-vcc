@@ -838,8 +838,12 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         try:
             self._reset_attributes()
             for fqdn in devices_name:
-                if self._proxies[fqdn] is not None:
-                    self._log_go_to_idle_status(fqdn, self._proxies[fqdn].GoToIdle())
+                if (
+                    self._proxies[fqdn] is not None
+                    and fqdn is not self.device.wideband_input_buffer_fqdn
+                    and "wpm" not in fqdn.split("/")[1]
+                ):
+                    self._log_deconfigure_status(fqdn, self._proxies[fqdn].Deconfigure())
         except Exception as ex:
             self.logger.error(f"Error resetting specific devices : {repr(ex)}")
 
@@ -869,9 +873,9 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             return True
         return False
 
-    def _log_go_to_idle_status(self: VCCAllBandsComponentManager, ip_block_name: str, result: tuple[ResultCode, str]):
+    def _log_deconfigure_status(self: VCCAllBandsComponentManager, ip_block_name: str, result: tuple[ResultCode, str]):
         if result[0] != ResultCode.OK:
-            self.logger.error(f"VCC {self._vcc_id}: Unable to set to IDLE state for ipblock {ip_block_name}")
+            self.logger.error(f"VCC {self._vcc_id}: Unable to deconfigure ipblock {ip_block_name}")
         else:
             self.logger.info(f"VCC {self._vcc_id}: {ip_block_name} set to IDLE")
 
