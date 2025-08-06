@@ -83,8 +83,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         # vcc channels * number of polarizations
         self._num_fs = 0
         self._num_vcc_gains = 0
-        self._vcc_gains: list[float] = []
-        self._last_requested_headrooms: list[float] = []
+        self.vcc_gains: list[float] = []
+        self.last_requested_headrooms: list[float] = []
 
         self._fsps = []
         self._maximum_fsps = 10
@@ -319,18 +319,18 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             # number of channels * number of polarizations
             self._num_vcc_gains = self._num_fs * 2
 
-            self._vcc_gains = configuration["vcc_gain"]
+            self.vcc_gains = configuration["vcc_gain"]
 
-            if len(self._vcc_gains) != self._num_vcc_gains:
+            if len(self.vcc_gains) != self._num_vcc_gains:
                 self._reset_attributes()
-                raise ValueError(f"Incorrect number of gain values supplied: {self._vcc_gains} != {self._num_vcc_gains}")
+                raise ValueError(f"Incorrect number of gain values supplied: {self.vcc_gains} != {self._num_vcc_gains}")
 
             if not self.simulation_mode:
                 # VCC123 Channelizer Configuration
                 self.logger.debug("VCC123 Channelizer Configuring..")
                 if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
                     result = self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
-                        json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
+                        json.dumps({"sample_rate": self._sample_rate, "gains": self.vcc_gains})
                     )
 
                     if result[0] == ResultCode.FAILED:
@@ -735,7 +735,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 )
                 return
 
-            new_gains = copy.copy(self._vcc_gains)
+            new_gains = copy.copy(self.vcc_gains)
 
             # Read all power meters
             for i in range(self._num_fs):
@@ -774,7 +774,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 if result[0] == ResultCode.FAILED:
                     self.logger.error(f"Failed to reconfigure VCC123 Channelizer with new gain values: {result[1]}")
                     self._proxies[self.device.vcc123_channelizer_fqdn].Configure(
-                        json.dumps({"sample_rate": self._sample_rate, "gains": self._vcc_gains})
+                        json.dumps({"sample_rate": self._sample_rate, "gains": self.vcc_gains})
                     )
                     self._set_task_callback(
                         task_callback,
@@ -795,8 +795,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 return
 
             # Update vccGains and publish change
-            self._vcc_gains = new_gains
-            self._last_requested_headrooms = argin
+            self.vcc_gains = new_gains
+            self.last_requested_headrooms = argin
 
             self._set_task_callback(
                 task_callback,

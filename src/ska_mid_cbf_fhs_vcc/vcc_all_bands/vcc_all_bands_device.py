@@ -29,7 +29,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
     unit_number = device_property(dtype="str")
     fpga_number = device_property(dtype="str")
 
-    @attribute
+    @attribute(dtype=str)
     def expectedDishId(self):
         return self.component_manager.expected_dish_id
 
@@ -70,7 +70,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
             ["1", "2", "3", "4", "5a", "5b"]).
         :rtype: tango.DevEnum
         """
-        return self.component_manager._input_sample_rate
+        return self.component_manager.input_sample_rate
 
     @attribute(
         dtype=tango.DevLong,
@@ -100,7 +100,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         :return: the most recent requested RFI headroom values provided to AutoSetFilterGains.
         :rtype: tango.DevVarDoubleArray
         """
-        return self.component_manager._last_requested_headrooms
+        return self.component_manager.last_requested_headrooms
 
     @attribute(
         dtype=(float,),
@@ -115,7 +115,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
             [ch0_polX, ch1_polX, ..., chN_polX, ch0_polY, ch1_polY, ..., chN_polY].
         :rtype: tango.DevVarDoubleArray
         """
-        return self.component_manager._vcc_gains
+        return self.component_manager.vcc_gains
 
     @command(
         dtype_in="DevString",
@@ -124,7 +124,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def ConfigureScan(self: VCCAllBandsController, config: str) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="ConfigureScan")
-        result_code, command_id = command_handler(config)
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
+        result_code, command_id = command_handler(argin=config)
         return [[result_code], [command_id]]
 
     @command(
@@ -134,7 +136,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def Scan(self: VCCAllBandsController, scan_id: int) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="Scan")
-        result_code, command_id = command_handler(scan_id)
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
+        result_code, command_id = command_handler(argin=scan_id)
         return [[result_code], [command_id]]
 
     @command(dtype_out="DevVarLongStringArray")
@@ -156,7 +160,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def UpdateSubarrayMembership(self: VCCAllBandsController, subarray_id: int) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="UpdateSubarrayMembership")
-        result_code, command_id = command_handler(subarray_id)
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
+        result_code, command_id = command_handler(argin=subarray_id)
         return [[result_code], [command_id]]
 
     @command(
@@ -170,7 +176,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] = [3.0]) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="AutoSetFilterGains")
-        result_code, command_id = command_handler(headroom)
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
+        result_code, command_id = command_handler(argin=headroom)
         return [[result_code], [command_id]]
 
     def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager:
