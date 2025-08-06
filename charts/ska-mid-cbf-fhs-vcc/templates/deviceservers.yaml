@@ -13,7 +13,7 @@
     {{- $vccAllBandsDeviceValues := $.Values.vccAllBandsDevice }}
     {{- $deviceValues := append $.Values.devices $vccAllBandsDeviceValues }}
 
-    {{- if $.Values.simulated }}
+    {{- if $.Values.standaloneSimulator }}
       {{- $deviceCommand = $.Values.simDeviceCommand }}
       {{- $simVccDeviceValues := set $vccAllBandsDeviceValues "name" $deviceCommand }}
       {{- $deviceValues = list $simVccDeviceValues }}

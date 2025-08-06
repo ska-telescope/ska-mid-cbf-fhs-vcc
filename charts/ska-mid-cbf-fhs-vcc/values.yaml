@@ -232,5 +232,5 @@ VCCUnits:
 
 # Simulators
 # set simulated to true to deploy VCCAllBandsController simulators
-simulated: false
+standaloneSimulator: false
 simDeviceCommand: "SimVCCAllBandsController"

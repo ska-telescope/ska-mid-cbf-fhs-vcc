@@ -21,6 +21,16 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBan
 
 __all__ = ["SimVCCAllBandsCM", "SimVCCAllBandsController"]
 
+VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
+    "expectedDishId": "",
+    "requestedRFIHeadroom": [0],
+    "vccGains": [0],
+    "frequencyBand": FrequencyBandEnum._1,
+    "inputSampleRate": 0,
+    "frequencyBandOffset": [0],
+    "subarrayID": 0,
+}
+
 
 class SimVCCAllBandsCM(SimModeObsCMBase):
     def __init__(
@@ -38,17 +48,7 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
 
         # Setup attribute read overrides
         self.enum_attrs.update({"frequencyBand": FrequencyBandEnum})
-        self.attribute_overrides.update(
-            {
-                "expectedDishId": "",
-                "requestedRFIHeadroom": [0],
-                "vccGains": [0],
-                "frequencyBand": FrequencyBandEnum._1,
-                "inputSampleRate": 0,
-                "frequencyBandOffset": [0],
-                "subarrayID": 0,
-            }
-        )
+        self.attribute_overrides.update(VCC_SIM_DEFAULT_ATTRIBUTE_VALUES)
 
         # Setup LRC method simulation
         self.command_overrides.update(
