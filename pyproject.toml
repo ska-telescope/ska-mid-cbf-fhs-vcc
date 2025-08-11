@@ -35,7 +35,7 @@ dataclasses-json = "^0.6.7"
 debugpy = "^1.8.5"
 # Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = "0.1.6"
+ska-mid-cbf-fhs-common = "0.1.7"
 # Commit hash version from Gitlab
 # ska-mid-cbf-fhs-common = { version = "0.1.5+dev.cb1c3483c", source = "gitlab-fhs-common" }
 # Local repository
