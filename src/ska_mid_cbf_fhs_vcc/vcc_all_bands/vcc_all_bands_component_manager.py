@@ -91,7 +91,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
         self.frequency_band_offset = [0, 0]
 
-        self._expected_dish_id = None
+        self.expected_dish_id = None
 
         # store the subscription event_ids here with a key (fqdn for deviceproxies)
         self.subscription_event_ids: dict[str, set[int]] = {}
@@ -292,7 +292,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             self._sample_rate = configuration["dish_sample_rate"]
             self._samples_per_frame = configuration["samples_per_frame"]
             self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
-            self._expected_dish_id = configuration["expected_dish_id"]
+            self.expected_dish_id = configuration["expected_dish_id"]
             self._config_id = configuration["config_id"]
             self.logger.info(
                 f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}"
@@ -387,7 +387,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                     )
                     raise ChildProcessError("Configuration of low-level fhs device failed: WIB")
 
-                self._proxies[self.device.wideband_input_buffer_fqdn].expectedDishId = self._expected_dish_id
+                self._proxies[self.device.wideband_input_buffer_fqdn].expectedDishId = self.expected_dish_id
 
                 # Pre-channelizer WPM Configuration
                 self.logger.debug("Pre-channelizer Wideband Power Meters Configuring..")
