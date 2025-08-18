@@ -4,6 +4,11 @@
 {{- $vccUnits := coalesce .VCCUnits $.Values.VCCUnits }}
 
 {{- range $unitIndex, $fhsVccUnit := $vccUnits }}
+
+  {{- if ge (int $unitIndex) (int $.Values.numVccUnits) }}
+    {{- break }}
+  {{- end }}
+
   {{- $seqObj := fromJson (include "generateInstanceSequence" $fhsVccUnit.instancesRange | trim) -}}
 
   {{- range $instanceIndex, $instance := $seqObj.sequence }}
