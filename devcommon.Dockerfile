@@ -1,8 +1,6 @@
-ARG BUILD_IMAGE=artefact.skao.int/ska-build-python:0.1.1
-ARG BASE_IMAGE=artefact.skao.int/ska-tango-images-tango-python:0.2.1
+ARG BUILD_IMAGE=harbor.skao.int/production/ska-build-python:0.3.1
+ARG BASE_IMAGE=harbor.skao.int/production/ska-tango-images-tango-python:0.3.0
 FROM $BUILD_IMAGE AS build
-
-RUN pipx uninstall poetry; pipx install poetry==2.1.3
 
 ENV VIRTUAL_ENV=/app \
     POETRY_NO_INTERACTION=1 \
@@ -32,7 +30,7 @@ WORKDIR /build
 # `--only main` to avoid installing dev dependencies.  This option is not
 # available for pip.
 COPY pyproject.toml poetry.lock* ./
-RUN sed -i 's|^ska-mid-cbf-fhs-common\s*=\s*.*$|ska-mid-cbf-fhs-common = "0.1.2"|g' pyproject.toml
+RUN sed -i 's|^ska-mid-cbf-fhs-common\s*=\s*.*$|ska-mid-cbf-fhs-common = "0.1.8"|g' pyproject.toml
 
 RUN poetry lock && poetry install --only main --no-root
 

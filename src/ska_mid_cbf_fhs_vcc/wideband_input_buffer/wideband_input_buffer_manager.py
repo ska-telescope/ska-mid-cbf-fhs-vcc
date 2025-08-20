@@ -26,15 +26,21 @@ class WidebandInputBufferConfig:
 @dataclass_json
 @dataclass
 class WidebandInputBufferStatus:
-    buffer_underflowed: bool
-    buffer_overflowed: bool
+    buffer_overflow: bool
     loss_of_signal: np.uint32
     error: bool
+    packet_error: bool
+    packet_error_count: np.uint32
+    packet_drop: bool
+    packet_drop_count: np.uint32
     loss_of_signal_seconds: np.uint32
     meta_band_id: np.uint8
     meta_dish_id: np.uint16
     rx_sample_rate: np.uint32
+    rx_packet_rate: np.uint32
     meta_transport_sample_rate: np.uint32
+    link_failure: bool
+    expected_sample_rate: np.uint32
 
 
 class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
@@ -101,15 +107,38 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
             meta_dish_id_mnemonic,
             error_msg=f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_mnemonic} ({status.meta_dish_id})",
         )
+
         status_healthstates["rx_sample_rate"] = self.health_check_assert_values_equal(
             self.expected_sample_rate,
             status.rx_sample_rate,
             error_msg=f"rx_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.rx_sample_rate}",
         )
+
         status_healthstates["meta_transport_sample_rate"] = self.health_check_assert_values_equal(
             self.expected_sample_rate,
             status.meta_transport_sample_rate,
             error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
+        )
+
+        if status.error:
+            if status.buffer_overflow is True or status.link_failure is True:
+                status_healthstates["error"] = HealthState.FAILED
+            else:
+                # if not overflow or underflow, goes to degraded because one of packet_drop and packet_error set
+                status_healthstates["error"] = HealthState.DEGRADED
+        else:
+            status_healthstates["error"] = HealthState.OK
+
+        status_healthstates["link_failure"] = self.health_check_assert_values_equal(
+            False,
+            status.link_failure,
+            error_msg=f"link_failure mismatch. Expected False, Actual: {status.link_failure}",
+        )
+
+        status_healthstates["buffer_overflow"] = self.health_check_assert_values_equal(
+            False,
+            status.buffer_overflow,
+            error_msg=f"buffer_overflow mismatch. Expected False, Actual: {status.buffer_overflow}",
         )
 
         self.logger.info(f"REGISTER_STATUSES={status_healthstates}")

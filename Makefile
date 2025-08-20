@@ -5,7 +5,6 @@
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
 
--include PrivateRules.mak
 export DEBUG_DIRTY=true
 
 #
@@ -61,6 +60,12 @@ TARANTA_PARAMS = --set ska-taranta.enabled=$(TARANTA) \
 endif
 endif
 
+ifneq ($(MINIKUBE),)
+ifeq ($(MINIKUBE),true)
+PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=standard
+endif
+endif
+
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set global.k3d=$(K3D) \
@@ -73,7 +78,8 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.fhsServerId=$(FHS_SERVER_ID) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.configLocation=$(CONFIG_LOCATION) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.namespace=$(KUBE_NAMESPACE) \
-	${TARANTA_PARAMS}
+	${TARANTA_PARAMS} \
+	${PV_STORAGE_PARAM}
 
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
 PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503,E731,E203
@@ -120,11 +126,43 @@ lint:
 
 .PHONY: all test lint
 
+check-minikube-eval:
+	@minikube status | grep -iE '^.*(docker-env: in-use).*$$'; \
+	if [ $$? -ne 0 ]; then \
+		echo "Minikube docker-env not active. Please run: 'eval \$$(minikube docker-env)'."; \
+		exit 1; \
+	else echo "Minikube docker-env is active."; \
+	fi
+
+k8s-pre-install-chart:
+	@if [ "$(MINIKUBE)" = "true" ]; then make check-minikube-eval; fi;
+	rm -f charts/ska-mid-cbf-fhs-vcc/Chart.lock
+
+k8s-deploy:
+	make k8s-install-chart MINIKUBE=$(MINIKUBE) DEV=$(DEV) BOOGIE=$(BOOGIE)
+	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to be ready..."
+	@time kubectl wait pod --selector=app=ska-mid-cbf-fhs-vcc --for=condition=ready --timeout=15m0s --namespace $(KUBE_NAMESPACE)
+
+k8s-deploy-dev: MINIKUBE=true
+k8s-deploy-dev:
+	make k8s-deploy MINIKUBE=$(MINIKUBE) DEV=true BOOGIE=true
+
+k8s-destroy:
+	make k8s-uninstall-chart
+	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to terminate..."
+	@time kubectl wait pod --all --for=delete --timeout=5m0s --namespace $(KUBE_NAMESPACE)
+
+build-and-deploy:
+	make oci-build-all && make k8s-deploy-dev
+
 build-local-common: COMMON_LIB_PATH = ../ska-mid-cbf-fhs-common
 build-local-common:
 	cp -r $(COMMON_LIB_PATH) ./temp-common
 	-make oci-build-all OCI_IMAGE_FILE_PATH=./devcommon.Dockerfile
 	rm -rf ./temp-common
+
+lc-build-and-deploy:
+	make build-local-common && make k8s-deploy-dev
 
 format-python:
 	$(POETRY_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)
@@ -152,3 +190,6 @@ lint-python-local:
 	if [ $$ISORT_ERROR -eq 0 ] && [ $$BLACK_ERROR -eq 0 ] && [ $$FLAKE_ERROR -eq 0 ] && [ $$PYLINT_ERROR -eq 0 ]; then echo "Lint was successful. Check build/lint-output for any additional details."; fi;
 
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
+
+# define private overrides for above variables in here
+-include PrivateRules.mk

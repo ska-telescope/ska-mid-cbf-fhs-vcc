@@ -100,8 +100,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         # vcc channels * number of polarizations
         self._num_fs = 0
         self._num_vcc_gains = 0
-        self._vcc_gains: list[float] = []
-        self._last_requested_headrooms: list[float] = []
+        self.vcc_gains: list[float] = []
+        self.last_requested_headrooms: list[float] = []
 
         self._fsps = []
         self._maximum_fsps = 10
@@ -351,11 +351,11 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             # number of channels * number of polarizations
             self._num_vcc_gains = self._num_fs * 2
 
-            self._vcc_gains = configuration["vcc_gain"]
+            self.vcc_gains = configuration["vcc_gain"]
 
-            if len(self._vcc_gains) != self._num_vcc_gains:
+            if len(self.vcc_gains) != self._num_vcc_gains:
                 self._reset_attributes()
-                raise ValueError(f"Incorrect number of gain values supplied: {self._vcc_gains} != {self._num_vcc_gains}")
+                raise ValueError(f"Incorrect number of gain values supplied: {self.vcc_gains} != {self._num_vcc_gains}")
 
             if not self.simulation_mode:
                 # VCC123 Channelizer Configuration
@@ -479,6 +479,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             return
         except StateModelError as ex:
             self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
+            self.logger.exception(ex)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
@@ -487,6 +488,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             )
         except ValueError as ex:
             self.logger.error(f"Error due to config not meeting scan requirements: {repr(ex)}")
+            self.logger.exception(ex)
+            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
@@ -494,9 +497,13 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 f"Arg provided does not meet ConfigureScan criteria: {ex}",
             )
         except ChildProcessError as ex:
+            self.logger.error(f"Uncaught error in child process: {repr(ex)}")
+            self.logger.exception(ex)
+            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, ex)
         except jsonschema.ValidationError as ex:
             self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
+            self.logger.exception(ex)
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(
                 task_callback,
@@ -734,7 +741,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 )
                 return
 
-            new_gains = copy.copy(self._vcc_gains)
+            new_gains = copy.copy(self.vcc_gains)
 
             # Read all power meters
             for i in range(self._num_fs):
@@ -798,8 +805,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 return
 
             # Update vccGains and publish change
-            self._vcc_gains = new_gains
-            self._last_requested_headrooms = argin
+            self.vcc_gains = new_gains
+            self.last_requested_headrooms = argin
 
             self._set_task_callback(
                 task_callback,
