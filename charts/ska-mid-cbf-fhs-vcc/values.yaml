@@ -86,11 +86,11 @@ pvStorageClass: nfss1
 
 # the default tango properties in each device. optionally provide a default, global value
 properties:
-  deviceId: ""
+  deviceId: "{{ .deviceId }}"
   deviceVersionNum: "0.0.1"
   deviceGitlabHash: "0"
   simulationMode: "0"
-  emulationMode: "1"
+  emulationMode: "{{ .unitEmulationMode }}"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
   bitstreamId: "agilex-vcc"
@@ -101,7 +101,7 @@ properties:
 
 # the devices in each stack. optionally override any property defined in `properties`. to add extra properties, provide a `properties` dict
 deviceCommand: "FhsVccStackDeviceServer"
-devices: {}
+devices: []
 
 # the VCCAllBandsController device
 vccAllBandsDevice:
@@ -238,11 +238,17 @@ vccAllBandsDevice:
         - "{{ .fpgaNum }}"
 
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
-instances:
-  - name: fhs-vcc-1
-    deviceId: "1"
-  - name: fhs-vcc-2
-    deviceId: "2"
+VCCUnits:
+  - unitNum: 1
+    emulationMode: "1"
+    networkSwitchId: "127.0.0.1"
+    bmcEndpointIp: "127.0.1.1"
+    instancesRange: [1, 6]
+  # - unitNum: 2
+  #   emulationMode: "1"
+  #   networkSwitchId: "127.0.0.2"
+  #   bmcEndpointIp: "127.0.1.2"
+  #   instancesRange: [7, 12]
 
 
 # --- DEVICE SERVER SIMULATION --- #

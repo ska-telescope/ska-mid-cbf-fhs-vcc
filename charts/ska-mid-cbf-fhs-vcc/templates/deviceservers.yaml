@@ -1,3 +1,4 @@
+{{- define "ska-mid-cbf-fhs-vcc.deviceservers.yaml" -}}
 {{ $localchart := . }}
 
 {{- $vccUnits := coalesce .VCCUnits $.Values.VCCUnits }}
@@ -26,10 +27,9 @@
       {{- $_ := set $.Values "tolerations" $fileDeviceServer.tolerations }}
     {{- end }}
 
-{{- $device_server_config := merge $deviceserver $file_device_server }}
-{{- $_ := set $device_server_config "instances" (coalesce $localchart.Values.global.instances $deviceserver.instances) }}
-{{- $context := dict "name" $key "deviceserver" $device_server_config "image" $device_server_config.image "local" $localchart }}
-{{- $volume_context := dict "volume" $device_server_config.volume "local" $localchart }}
+    {{- if $fileDeviceServer.affinity }}
+      {{- $_ := set $.Values "affinity" $fileDeviceServer.affinity }}
+    {{- end }}
 
     {{- $context := dict "name" (printf "fhs-vcc-unit-%d-%d" (int $fhsVccUnit.unitNum) (int $vccNum)) "deviceserver" $fileDeviceServer "image" $fileDeviceServer.image "local" $localchart }}
     {{- template "ska-tango-util.multidevice-config.tpl" $context }}
@@ -37,4 +37,7 @@
     {{- template "ska-tango-util.multidevice-job.tpl" $context }}
     {{- template "ska-tango-util.multidevice-svc.tpl" $context }}
 
-{{- end }}
+  {{- end }}
+
+{{- end }} 
+{{- end -}}
