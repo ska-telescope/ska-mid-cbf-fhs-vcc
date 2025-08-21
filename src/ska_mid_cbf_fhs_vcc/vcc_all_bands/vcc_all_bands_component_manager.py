@@ -36,6 +36,7 @@ from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, 
 from ska_mid_cbf_fhs_vcc.ip_block_manager.base_ip_block_manager import BaseIPBlockManager
 from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import NonBlockingFunction
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import (
     VCCStreamMergeConfig,
     VCCStreamMergeConfigureArgin,
@@ -49,8 +50,6 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager imp
     WidebandInputBufferConfig,
     WidebandInputBufferManager,
 )
-
-from .schemas.configure_scan import vcc_all_bands_configure_scan_schema
 
 
 class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
