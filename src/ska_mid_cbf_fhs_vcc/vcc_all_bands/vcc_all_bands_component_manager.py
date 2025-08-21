@@ -32,9 +32,10 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_man
     FrequencySliceSelectionConfig,
     FrequencySliceSelectionManager,
 )
+from ska_mid_cbf_fhs_vcc.ip_block_manager.base_ip_block_manager import BaseIPBlockManager
 from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import NonBlockingFunction
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum, VCCBandGroup, freq_band_dict
+from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import (
     VCCStreamMergeConfig,
     VCCStreamMergeConfigureArgin,
@@ -49,7 +50,7 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager imp
     WidebandInputBufferManager,
 )
 
-from .vcc_all_bands_config import schema
+from .schemas.configure_scan import vcc_all_bands_configure_scan_schema
 
 
 class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
@@ -67,7 +68,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         **kwargs: Any,
     ) -> None:
         self.device = device
-        self._ll_props = json.loads(b64decode(device.ll_props))
+        self._ll_props: dict[str, dict[str, Any]] = json.loads(b64decode(device.ll_props))
         logger.warning(f"LL_PROPS={self._ll_props}")
         self._vcc_id = device.device_id
 
@@ -94,6 +95,10 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         }
 
         logger.warning(f"DEFAULT_PROPS={self._default_props}")
+
+        self.ip_block_list: list[str] = []
+        self.ip_block_aliases: dict[str, list[str]] = {}
+        self.ip_block_equivalence_map: dict[str, BaseIPBlockManager] = {}
 
         self._init_ip_block_managers()
 
@@ -147,6 +152,28 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             )
         return ip_block_props
 
+    def _init_ip_block_maps(self, *managers: BaseIPBlockManager):
+        temp_eq_map = {}
+        temp_alias_map = {}
+        temp_id_list = []
+        for manager in managers:
+            temp_eq_map.update({
+                manager.ip_block_id: manager,
+                manager.emulator_ip_block_id: manager,
+                manager.firmware_ip_block_id: manager,
+            })
+            temp_alias_map.update({
+                manager.ip_block_id: [
+                    manager.ip_block_id,
+                    manager.emulator_ip_block_id,
+                    manager.firmware_ip_block_id,
+                ]
+            })
+            temp_id_list.append(manager.ip_block_id)
+        self.ip_block_equivalence_map = temp_eq_map
+        self.ip_block_aliases = temp_alias_map
+        self.ip_block_list = temp_id_list
+
     def _init_ip_block_managers(self):
         self.ethernet_200g = FtileEthernetManager(**self._ip_block_props("Ethernet200Gb", additional_props=["ethernet_mode"]))
         self.b123_vcc = B123VccOsppfbChannelizerManager(**self._ip_block_props("B123VccOsppfbChannelizer"))
@@ -162,6 +189,17 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             },
             **{i: WidebandPowerMeterManager(**self._ip_block_props(f"FS{i}WidebandPowerMeter")) for i in range(1, 27)},
         }
+
+        self._init_ip_block_maps(
+            self.ethernet_200g,
+            self.b123_vcc,
+            self.frequency_slice_selection,
+            self.packet_validation,
+            self.wideband_frequency_shifter,
+            self.wideband_input_buffer,
+            *self.vcc_stream_merges.values(),
+            *self.wideband_power_meters.values(),
+        )
 
     def start_communicating(self: VCCAllBandsComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
@@ -281,6 +319,15 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
         return result
 
+    def get_status(self, ip_blocks: list[str]):
+        combined_status = {}
+        for ip_block in ip_blocks:
+            if (manager := self.ip_block_equivalence_map.get(ip_block, None)) is not None:
+                combined_status[manager.ip_block_id] = manager.status()
+            else:
+                self.logger.warning(f"Could not get status for nonexistent IP block: {ip_block}")
+        return ResultCode.OK, combined_status
+
     def update_subarray_membership(
         self: VCCAllBandsComponentManager,
         argin: int,
@@ -317,7 +364,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_INVOKED)
             task_callback(status=TaskStatus.IN_PROGRESS)
             configuration = json.loads(argin)
-            jsonschema.validate(configuration, schema)
+            jsonschema.validate(configuration, vcc_all_bands_configure_scan_schema)
             if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
                 return
 

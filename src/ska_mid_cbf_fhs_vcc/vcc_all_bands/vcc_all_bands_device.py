@@ -1,7 +1,10 @@
 from __future__ import annotations
+import json
+import time
 
+from ska_control_model import ResultCode
 import tango
-from ska_mid_cbf_fhs_common import FhsObsBaseDevice
+from ska_mid_cbf_fhs_common import FhsFastCommand, FhsObsBaseDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command, device_property
 
@@ -33,12 +36,39 @@ class VCCAllBandsController(FhsObsBaseDevice):
         return self.component_manager.subarray_id
 
     @attribute(
+        dtype=(str,),
+        max_dim_x=1000,
+        doc="The list of IP block IDs the VCC can interact with.",
+    )
+    def ipBlockIDs(self) -> tango.DevVarStringArray:
+        """
+        Read the ipBlockIDs attribute.
+
+        :return: The list of IP block IDs the VCC can interact with.
+        :rtype: tango.DevVarLongStringArray
+        """
+        return self.component_manager.ip_block_list
+
+    @attribute(
+        dtype=str,
+        doc="List of aliases for all IP blocks.",
+    )
+    def ipBlockAliases(self) -> tango.DevString:
+        """
+        Read the ipBlockAliases attribute.
+
+        :return: The list of IP block IDs the VCC can interact with.
+        :rtype: tango.DevVarLongStringArray
+        """
+        return json.dumps(self.component_manager.ip_block_aliases)
+
+    @attribute(
         abs_change=1,
         dtype=tango.DevEnum,
         enum_labels=["1", "2", "3", "4", "5a", "5b"],
         doc="Frequency band; an int in the range [0, 5]",
     )
-    def frequencyBand(self: VCCAllBandsController) -> tango.DevEnum:
+    def frequencyBand(self) -> tango.DevEnum:
         """
         Read the frequencyBand attribute.
 
@@ -52,7 +82,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         dtype=tango.DevULong64,
         doc="The given input sample rate",
     )
-    def inputSampleRate(self: VCCAllBandsController) -> tango.DevULong64:
+    def inputSampleRate(self) -> tango.DevULong64:
         """
         Read the frequencyBand attribute.
 
@@ -68,7 +98,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         max_dim_x=2,
         doc="The given input sample rate",
     )
-    def frequencyBandOffset(self: VCCAllBandsController) -> tango.DevVarLongArray:
+    def frequencyBandOffset(self) -> tango.DevVarLongArray:
         """
         Read the frequency band offset k, a spectrum max(len) = 2
 
@@ -83,7 +113,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         max_dim_x=26,
         doc="The most recent requested RFI headroom values provided to AutoSetFilterGains.",
     )
-    def requestedRFIHeadroom(self: VCCAllBandsController) -> tango.DevVarDoubleArray:
+    def requestedRFIHeadroom(self) -> tango.DevVarDoubleArray:
         """
         Read the requestedRFIHeadroom attribute.
 
@@ -97,7 +127,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         max_dim_x=52,
         doc="The currently applied gain multipliers for VCC coarse channels.",
     )
-    def vccGains(self: VCCAllBandsController) -> tango.DevVarDoubleArray:
+    def vccGains(self) -> tango.DevVarDoubleArray:
         """
         Read the vccGains attribute.
 
@@ -152,7 +182,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         dtype_out="DevVarLongStringArray",
         doc_in="Configuration json.",
     )
-    def ConfigureScan(self: VCCAllBandsController, config: str) -> DevVarLongStringArrayType:
+    def ConfigureScan(self, config: str) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="ConfigureScan")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
@@ -164,7 +194,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         dtype_out="DevVarLongStringArray",
         doc_in="Configuration json.",
     )
-    def Scan(self: VCCAllBandsController, scan_id: int) -> DevVarLongStringArrayType:
+    def Scan(self, scan_id: int) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="Scan")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
@@ -172,13 +202,13 @@ class VCCAllBandsController(FhsObsBaseDevice):
         return [[result_code], [command_id]]
 
     @command(dtype_out="DevVarLongStringArray")
-    def EndScan(self: VCCAllBandsController) -> DevVarLongStringArrayType:
+    def EndScan(self) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="EndScan")
         result_code, command_id = command_handler()
         return [[result_code], [command_id]]
 
     @command(dtype_out="DevVarLongStringArray")
-    def ObsReset(self: VCCAllBandsController) -> DevVarLongStringArrayType:
+    def ObsReset(self) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="ObsReset")
         result_code, command_id = command_handler()
         return [[result_code], [command_id]]
@@ -188,7 +218,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
         dtype_out="DevVarLongStringArray",
         doc_in="Subarray ID to assign to the VCC.",
     )
-    def UpdateSubarrayMembership(self: VCCAllBandsController, subarray_id: int) -> DevVarLongStringArrayType:
+    def UpdateSubarrayMembership(self, subarray_id: int) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="UpdateSubarrayMembership")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
@@ -204,14 +234,31 @@ class VCCAllBandsController(FhsObsBaseDevice):
             "or a value per frequency slice to be applied separately."
         ),
     )
-    def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] = [3.0]) -> DevVarLongStringArrayType:
+    def AutoSetFilterGains(self, headroom: list[float] = [3.0]) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="AutoSetFilterGains")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=headroom)
         return [[result_code], [command_id]]
 
-    def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager:
+    @command(
+        dtype_in=(str,),
+        dtype_out="DevVarLongStringArray",
+    )
+    @tango.DebugIt()
+    def GetStatus(self, ip_blocks: list[str] = []) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="GetStatus")
+        result_code_message, command_id = command_handler(ip_blocks=ip_blocks)
+        return [[result_code_message], [command_id]]
+
+    class GetStatusCommand(FhsFastCommand):
+        def do(self, ip_blocks: list[str] = []) -> tuple[ResultCode, str]:
+            t = time.time()
+            response, result = self._component_manager.get_status(ip_blocks=ip_blocks)
+            self.logger.warning(f"GetStatus took: {time.time() - t} seconds")
+            return response, json.dumps(result)
+
+    def create_component_manager(self) -> VCCAllBandsComponentManager:
         return VCCAllBandsComponentManager(
             device=self,
             logger=self.logger,
@@ -226,7 +273,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
             emulation_mode=self.emulation_mode,
         )
 
-    def init_command_objects(self: VCCAllBandsController) -> None:
+    def init_command_objects(self) -> None:
         commands_and_methods = [
             ("GoToIdle", "go_to_idle"),  # replacement for Deconfigure
             ("ConfigureBand", "configure_band"),
@@ -239,6 +286,13 @@ class VCCAllBandsController(FhsObsBaseDevice):
         ]
 
         super().init_command_objects(commands_and_methods)
+
+        # init the fast commands
+        commands_and_classes = [
+            ("GetStatus", self.GetStatusCommand),
+        ]
+
+        super().init_fast_command_objects(commands_and_classes)
 
 
 def main(args=None, **kwargs):

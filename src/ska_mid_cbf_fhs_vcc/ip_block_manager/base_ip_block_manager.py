@@ -35,6 +35,8 @@ class BaseIPBlockManager(ABC):
         _bitstream_path = os.path.join(bitstream_path, bitstream_id, bitstream_version)
 
         self.ip_block_id = ip_block_id
+        self.emulator_ip_block_id = emulator_ip_block_id
+        self.firmware_ip_block_id = firmware_ip_block_id
 
         self._api: FhsBaseApiInterface
         if self._simulation_mode == SimulationMode.TRUE and simulator_api is not None:
