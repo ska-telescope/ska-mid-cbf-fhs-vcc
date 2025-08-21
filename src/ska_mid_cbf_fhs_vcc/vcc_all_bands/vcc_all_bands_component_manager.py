@@ -32,10 +32,10 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_man
     FrequencySliceSelectionConfig,
     FrequencySliceSelectionManager,
 )
+from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.ip_block_manager.base_ip_block_manager import BaseIPBlockManager
 from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import NonBlockingFunction
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
-from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import (
     VCCStreamMergeConfig,
     VCCStreamMergeConfigureArgin,
@@ -157,18 +157,22 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         temp_alias_map = {}
         temp_id_list = []
         for manager in managers:
-            temp_eq_map.update({
-                manager.ip_block_id: manager,
-                manager.emulator_ip_block_id: manager,
-                manager.firmware_ip_block_id: manager,
-            })
-            temp_alias_map.update({
-                manager.ip_block_id: [
-                    manager.ip_block_id,
-                    manager.emulator_ip_block_id,
-                    manager.firmware_ip_block_id,
-                ]
-            })
+            temp_eq_map.update(
+                {
+                    manager.ip_block_id: manager,
+                    manager.emulator_ip_block_id: manager,
+                    manager.firmware_ip_block_id: manager,
+                }
+            )
+            temp_alias_map.update(
+                {
+                    manager.ip_block_id: [
+                        manager.ip_block_id,
+                        manager.emulator_ip_block_id,
+                        manager.firmware_ip_block_id,
+                    ]
+                }
+            )
             temp_id_list.append(manager.ip_block_id)
         self.ip_block_equivalence_map = temp_eq_map
         self.ip_block_aliases = temp_alias_map

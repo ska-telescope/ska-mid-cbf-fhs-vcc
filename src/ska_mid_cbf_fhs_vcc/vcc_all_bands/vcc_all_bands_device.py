@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 import json
 import time
 
-from ska_control_model import ResultCode
 import tango
+from ska_control_model import ResultCode
 from ska_mid_cbf_fhs_common import FhsFastCommand, FhsObsBaseDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command, device_property
