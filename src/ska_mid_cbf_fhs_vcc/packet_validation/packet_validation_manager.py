@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from logging import Logger
 
 import numpy as np
 from dataclasses_json import dataclass_json
@@ -57,6 +56,7 @@ class PacketValidationManager(BaseIPBlockManager):
     def __init__(
         self,
         ip_block_id: str,
+        controlling_device_name: str,
         bitstream_path: str,
         bitstream_id: str,
         bitstream_version: str,
@@ -66,10 +66,11 @@ class PacketValidationManager(BaseIPBlockManager):
         emulator_ip_block_id: str | None = None,
         emulator_id: str | None = None,
         emulator_base_url: str | None = None,
-        logger: Logger | None = None,
+        logging_level: str = "INFO",
     ):
         super().__init__(
             ip_block_id,
+            controlling_device_name,
             bitstream_path,
             bitstream_id,
             bitstream_version,
@@ -80,7 +81,7 @@ class PacketValidationManager(BaseIPBlockManager):
             emulator_ip_block_id,
             emulator_id,
             emulator_base_url,
-            logger,
+            logging_level,
         )
 
     def configure(self, config: PacketValidationConfig):

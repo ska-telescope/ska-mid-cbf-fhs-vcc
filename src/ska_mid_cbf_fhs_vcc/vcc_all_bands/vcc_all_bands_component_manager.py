@@ -11,7 +11,7 @@ from typing import Any, Callable, Optional
 
 import jsonschema
 import tango
-from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
+from ska_control_model import CommunicationStatus, HealthState, LoggingLevel, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
 from ska_mid_cbf_fhs_common import (
     FhsBaseDevice,
@@ -67,6 +67,9 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         **kwargs: Any,
     ) -> None:
         self.device = device
+        if hasattr(self.device, "logging_level"):
+            self.device.set_logging_level(LoggingLevel[self.device.logging_level])
+
         self._ll_props: dict[str, dict[str, Any]] = json.loads(b64decode(device.ll_props))
         logger.warning(f"LL_PROPS={self._ll_props}")
         self._vcc_id = device.device_id
@@ -83,6 +86,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self.input_sample_rate = 0
 
         self._default_props = {
+            "controlling_device_name": device.get_name(),
             "bitstream_path": device.bitstream_path,
             "bitstream_id": device.bitstream_id,
             "bitstream_version": device.bitstream_version,
@@ -90,7 +94,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             "emulation_mode": emulation_mode,
             "emulator_id": device.emulator_id,
             "emulator_base_url": device.emulator_base_url,
-            "logger": logger,
         }
 
         logger.warning(f"DEFAULT_PROPS={self._default_props}")
@@ -98,6 +101,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self.ip_block_list: list[str] = []
         self.ip_block_aliases: dict[str, list[str]] = {}
         self.ip_block_equivalence_map: dict[str, BaseIPBlockManager] = {}
+        self.ip_block_logging_levels: dict[str, str] = {"default": self.device.logging_level}
 
         self._init_ip_block_managers()
 
@@ -142,13 +146,19 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             "emulator_ip_block_id": loaded_props.get("emulator_ip_block_id", None),
             **{prop_name: loaded_props.get(prop_name, None) for prop_name in additional_props},
         }
-        if loaded_props.get("health_monitor_poll_interval") is not None:
+
+        if loaded_props.get("health_monitor_poll_interval", None) is not None:
             ip_block_props.update(
                 {
                     "health_monitor_poll_interval": float(loaded_props.get("health_monitor_poll_interval")),
                     "update_health_state_callback": functools.partial(self.ll_health_state_callback, ll_name=ip_block_name),
                 }
             )
+
+        logging_level = loaded_props.get("logging_level", self.device.logging_level)
+        ip_block_props.update({"logging_level": logging_level})
+        self.ip_block_logging_levels[ip_block_name] = logging_level
+
         return ip_block_props
 
     def _init_ip_block_maps(self, *managers: BaseIPBlockManager):

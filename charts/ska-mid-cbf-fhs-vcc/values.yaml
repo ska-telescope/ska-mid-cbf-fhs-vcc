@@ -89,7 +89,7 @@ properties:
   deviceId: "{{ .deviceId }}"
   deviceVersionNum: "0.0.1"
   deviceGitlabHash: "0"
-  simulationMode: "0"
+  simulationMode: "1"
   emulationMode: "{{ .unitEmulationMode }}"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
@@ -108,6 +108,9 @@ vccAllBandsDevice:
   name: "VCCAllBandsController"
   path: "fhs/vcc-all-bands/{{.deviceId000}}"
   properties:
+    - name: logging_level
+      values:
+        - "INFO"
     - name: ll_props
       values:
         Ethernet200Gb:
@@ -143,6 +146,7 @@ vccAllBandsDevice:
         B45AWidebandPowerMeter:
           emulator_ip_block_id: "b45a_wideband_power_meter"
           firmware_ip_block_id: "receptor{{.receptorId}}_band45a_wideband_power_meter"
+          logging_level: "DEBUG"
         B5BWidebandPowerMeter:
           emulator_ip_block_id: "b5b_wideband_power_meter"
           firmware_ip_block_id: "receptor{{.receptorId}}_band5b_wideband_power_meter"
@@ -197,6 +201,7 @@ vccAllBandsDevice:
         FS17WidebandPowerMeter:
           emulator_ip_block_id: "fs17_wideband_power_meter"
           firmware_ip_block_id: "receptor{{.receptorId}}_fs17_power_meter"
+          logging_level: "DEBUG"
         FS18WidebandPowerMeter:
           emulator_ip_block_id: "fs18_wideband_power_meter"
           firmware_ip_block_id: "receptor{{.receptorId}}_fs18_power_meter"
@@ -240,10 +245,10 @@ vccAllBandsDevice:
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 VCCUnits:
   - unitNum: 1
-    emulationMode: "1"
+    emulationMode: "0"
     networkSwitchId: "127.0.0.1"
     bmcEndpointIp: "127.0.1.1"
-    instancesRange: [1, 6]
+    instancesRange: [1, 2]
   # - unitNum: 2
   #   emulationMode: "1"
   #   networkSwitchId: "127.0.0.2"

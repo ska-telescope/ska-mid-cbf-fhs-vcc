@@ -16,6 +16,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
     component_manager: VCCAllBandsComponentManager  # type hint only
 
     ll_props = device_property(dtype=str)
+    logging_level = device_property(dtype=str)
 
     bitstream_path = device_property(dtype="str")
     bitstream_id = device_property(dtype="str")
@@ -23,7 +24,10 @@ class VCCAllBandsController(FhsObsBaseDevice):
     emulator_id = device_property(dtype="str")
     emulator_base_url = device_property(dtype="str")
 
-    @attribute(dtype=str)
+    @attribute(
+        dtype=str,
+        doc="The expected dish ID.",
+    )
     def expectedDishId(self):
         return self.component_manager.expected_dish_id
 
@@ -62,6 +66,19 @@ class VCCAllBandsController(FhsObsBaseDevice):
         :rtype: tango.DevVarLongStringArray
         """
         return json.dumps(self.component_manager.ip_block_aliases)
+
+    @attribute(
+        dtype=str,
+        doc="JSON object containing the logging levels of all IP blocks.",
+    )
+    def ipBlockLoggingLevels(self) -> tango.DevString:
+        """
+        Read the ipBlockLoggingLevels attribute.
+
+        :return: The current logging levels for each IP block.
+        :rtype: tango.DevVarLongStringArray
+        """
+        return json.dumps(self.component_manager.ip_block_logging_levels)
 
     @attribute(
         abs_change=1,
@@ -181,7 +198,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
-        doc_in="Configuration json.",
+        doc_in="Configuration JSON.",
     )
     def ConfigureScan(self, config: str) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="ConfigureScan")
@@ -193,7 +210,7 @@ class VCCAllBandsController(FhsObsBaseDevice):
     @command(
         dtype_in="DevULong",
         dtype_out="DevVarLongStringArray",
-        doc_in="Configuration json.",
+        doc_in="The scan ID.",
     )
     def Scan(self, scan_id: int) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="Scan")
@@ -245,6 +262,8 @@ class VCCAllBandsController(FhsObsBaseDevice):
     @command(
         dtype_in=(str,),
         dtype_out="DevVarLongStringArray",
+        doc_in="Array of IP block names to get the status of.",
+        doc_out="JSON object containing the requested IP block statuses.",
     )
     @tango.DebugIt()
     def GetStatus(self, ip_blocks: list[str] = []) -> DevVarLongStringArrayType:
