@@ -27,10 +27,13 @@ class BaseIPBlockManager(ABC):
             dev_tag = f"tango-device:{self._controlling_device_name}"
             if not getattr(record, "tags", None):
                 record.tags = f"{dev_tag},{ip_tag}"
-            elif "tango-device" not in record.tags:
-                record.tags = f"{record.tags},{dev_tag},{ip_tag}"
-            else:
-                record.tags = f"{record.tags},{ip_tag}"
+            elif "ip-block:" not in record.tags:
+                if "tango-device:" not in record.tags:
+                    record.tags = f"{record.tags},{dev_tag},{ip_tag}"
+                else:
+                    record.tags = f"{record.tags},{ip_tag}"
+            elif "tango-device:" not in record.tags:
+                record.tags = f"{record.tags},{dev_tag}"
             return True
 
     def __init__(
