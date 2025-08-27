@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import time
 
 import tango
 from ska_control_model import ResultCode
@@ -69,16 +68,16 @@ class VCCAllBandsController(FhsObsBaseDevice):
 
     @attribute(
         dtype=str,
-        doc="JSON object containing the logging levels of all IP blocks.",
+        doc="JSON object containing any overridden IP block logging levels.",
     )
-    def ipBlockLoggingLevels(self) -> tango.DevString:
+    def loggingLevelOverrides(self) -> tango.DevString:
         """
-        Read the ipBlockLoggingLevels attribute.
+        Read the loggingLevelOverrides attribute.
 
         :return: The current logging levels for each IP block.
         :rtype: tango.DevVarLongStringArray
         """
-        return json.dumps(self.component_manager.ip_block_logging_levels)
+        return self.component_manager.ip_block_logging_level_overrides.to_json()
 
     @attribute(
         abs_change=1,
@@ -268,15 +267,70 @@ class VCCAllBandsController(FhsObsBaseDevice):
     @tango.DebugIt()
     def GetStatus(self, ip_blocks: list[str] = []) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="GetStatus")
-        result_code_message, command_id = command_handler(ip_blocks=ip_blocks)
-        return [[result_code_message], [command_id]]
+        result_code, result = command_handler(ip_blocks=ip_blocks)
+        return [[result_code], [result]]
+
+    @command(
+        dtype_in=str,
+        dtype_out="DevVarLongStringArray",
+        doc_in="Logging level to set as the new global/default.",
+    )
+    @tango.DebugIt()
+    def UpdateGlobalLoggingLevel(self, logging_level: str) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="UpdateGlobalLoggingLevel")
+        result_code, message = command_handler(logging_level=logging_level)
+        return [[result_code], [message]]
+
+    @command(
+        dtype_in=str,
+        dtype_out="DevVarLongStringArray",
+        doc_in="JSON object describing a set of IP blocks to update with a certain logging level override.",
+    )
+    @tango.DebugIt()
+    def UpdateIPBlockLoggingLevels(self, input_json: str) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="UpdateIPBlockLoggingLevels")
+        result_code, message = command_handler(input_json=input_json)
+        return [[result_code], [message]]
+
+    @command(dtype_out="DevVarLongStringArray")
+    @tango.DebugIt()
+    def ClearLoggingLevelOverrides(self) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="ClearLoggingLevelOverrides")
+        result_code, message = command_handler()
+        return [[result_code], [message]]
+
+    # TODO: REMOVE THIS
+    @command(dtype_out="DevVarLongStringArray")
+    @tango.DebugIt()
+    def TestCmd(self) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="TestCmd")
+        result_code, message = command_handler()
+        return [[result_code], [message]]
 
     class GetStatusCommand(FhsFastCommand):
         def do(self, ip_blocks: list[str] = []) -> tuple[ResultCode, str]:
-            t = time.time()
-            response, result = self._component_manager.get_status(ip_blocks=ip_blocks)
-            self.logger.warning(f"GetStatus took: {time.time() - t} seconds")
-            return response, json.dumps(result)
+            result_code, result = self._component_manager.get_status(ip_blocks=ip_blocks)
+            return result_code, json.dumps(result)
+
+    class UpdateGlobalLoggingLevelCommand(FhsFastCommand):
+        def do(self, logging_level: str) -> tuple[ResultCode, str]:
+            result_code, message = self._component_manager.update_global_logging_level(logging_level=logging_level)
+            return result_code, message
+
+    class UpdateIPBlockLoggingLevelsCommand(FhsFastCommand):
+        def do(self, input_json: str) -> tuple[ResultCode, str]:
+            result_code, message = self._component_manager.update_ip_block_logging_levels(input_json=input_json)
+            return result_code, message
+
+    class ClearLoggingLevelOverridesCommand(FhsFastCommand):
+        def do(self) -> tuple[ResultCode, str]:
+            result_code, message = self._component_manager.clear_logging_level_overrides()
+            return result_code, message
+
+    class TestCmdCommand(FhsFastCommand):
+        def do(self) -> tuple[ResultCode, str]:
+            result_code, message = self._component_manager.test_cmd()
+            return result_code, message
 
     def create_component_manager(self) -> VCCAllBandsComponentManager:
         return VCCAllBandsComponentManager(
@@ -310,6 +364,10 @@ class VCCAllBandsController(FhsObsBaseDevice):
         # init the fast commands
         commands_and_classes = [
             ("GetStatus", self.GetStatusCommand),
+            ("UpdateGlobalLoggingLevel", self.UpdateGlobalLoggingLevelCommand),
+            ("UpdateIPBlockLoggingLevels", self.UpdateIPBlockLoggingLevelsCommand),
+            ("ClearLoggingLevelOverrides", self.ClearLoggingLevelOverridesCommand),
+            ("TestCmd", self.TestCmdCommand),
         ]
 
         super().init_fast_command_objects(commands_and_classes)

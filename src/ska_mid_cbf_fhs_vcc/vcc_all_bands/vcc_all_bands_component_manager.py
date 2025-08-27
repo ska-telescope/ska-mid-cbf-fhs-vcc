@@ -37,6 +37,9 @@ from ska_mid_cbf_fhs_vcc.ip_block_manager.base_ip_block_manager import BaseIPBlo
 from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import NonBlockingFunction
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.update_ip_block_logging_levels import (
+    vcc_all_bands_update_ip_block_logging_levels_schema,
+)
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import (
     VCCStreamMergeConfig,
     VCCStreamMergeConfigureArgin,
@@ -50,6 +53,63 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager imp
     WidebandInputBufferConfig,
     WidebandInputBufferManager,
 )
+
+# move into common
+STR_TO_TANGO_LOGGING_LEVEL = {
+    "OFF": LoggingLevel.OFF,
+    "CRITICAL": LoggingLevel.FATAL,
+    "FATAL": LoggingLevel.FATAL,
+    "ERROR": LoggingLevel.ERROR,
+    "WARN": LoggingLevel.WARNING,
+    "WARNING": LoggingLevel.WARNING,
+    "INFO": LoggingLevel.INFO,
+    "DEBUG": LoggingLevel.DEBUG,
+}
+
+STR_TO_PYTHON_LOGGING_LEVEL = {
+    "OFF": "CRITICAL",
+    "CRITICAL": "CRITICAL",
+    "FATAL": "CRITICAL",
+    "ERROR": "ERROR",
+    "WARN": "WARNING",
+    "WARNING": "WARNING",
+    "INFO": "INFO",
+    "DEBUG": "DEBUG",
+}
+
+TANGO_TO_PYTHON_LOGGING_LEVEL = {
+    LoggingLevel.OFF: "CRITICAL",
+    LoggingLevel.FATAL: "CRITICAL",
+    LoggingLevel.ERROR: "ERROR",
+    LoggingLevel.WARNING: "WARNING",
+    LoggingLevel.INFO: "INFO",
+    LoggingLevel.DEBUG: "DEBUG",
+}
+
+class IPBlockLoggingLevelOverrides():
+    def __init__(self, global_logging_level: LoggingLevel = LoggingLevel.INFO) -> None:
+        self.global_logging_level: LoggingLevel = global_logging_level
+        self.overrides: dict[str, LoggingLevel] = {}
+
+    def update_global(self, level: LoggingLevel) -> None:
+        self.global_logging_level = level
+
+    def update_override(self, ip_block: str, level: LoggingLevel) -> None:
+        self.overrides[ip_block] = level
+
+    def update_overrides(self, *ip_blocks: str, level: LoggingLevel) -> None:
+        self.overrides.update({ip_block: level for ip_block in ip_blocks})
+
+    def clear_overrides(self) -> None:
+        self.overrides = {}
+
+    def to_json(self) -> str:
+        return json.dumps({
+            "global": self.global_logging_level.name,
+            "overrides": {
+                ip_block: level.name for ip_block, level in self.overrides.items()
+            }
+        })
 
 
 class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
@@ -67,23 +127,19 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         **kwargs: Any,
     ) -> None:
         self.device = device
-        if hasattr(self.device, "logging_level"):
-            self.device.set_logging_level(LoggingLevel[self.device.logging_level])
+        self._global_logging_level = LoggingLevel.INFO
+        if device.logging_level not in STR_TO_TANGO_LOGGING_LEVEL:
+            device.set_logging_level(LoggingLevel.INFO)
+            logger.warning("Unrecognized value for logging_level provided; defaulting to INFO.")
+        else:
+            tango_logging_level = STR_TO_TANGO_LOGGING_LEVEL[device.logging_level]
+            device.set_logging_level(tango_logging_level)
+            logger.info(f"Tango logging level set to {tango_logging_level.name}.")
+            self._global_logging_level = tango_logging_level
+        self.ip_block_logging_level_overrides = IPBlockLoggingLevelOverrides(self._global_logging_level)
 
         self._ll_props: dict[str, dict[str, Any]] = json.loads(b64decode(device.ll_props))
         logger.warning(f"LL_PROPS={self._ll_props}")
-        self._vcc_id = device.device_id
-
-        self.frequency_band = FrequencyBandEnum._1
-        self.subarray_id = 0
-
-        self._config_id = ""
-        self._scan_id = 0
-
-        self.simulation_mode = simulation_mode
-        self.emulation_mode = emulation_mode
-
-        self.input_sample_rate = 0
 
         self._default_props = {
             "controlling_device_name": device.get_name(),
@@ -100,10 +156,22 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
         self.ip_block_list: list[str] = []
         self.ip_block_aliases: dict[str, list[str]] = {}
-        self.ip_block_equivalence_map: dict[str, BaseIPBlockManager] = {}
-        self.ip_block_logging_levels: dict[str, str] = {"default": self.device.logging_level}
+        self.ip_block_manager_map: dict[str, BaseIPBlockManager] = {}
 
         self._init_ip_block_managers()
+
+        self._vcc_id = device.device_id
+
+        self.frequency_band = FrequencyBandEnum._1
+        self.subarray_id = 0
+
+        self._config_id = ""
+        self._scan_id = 0
+
+        self.simulation_mode = simulation_mode
+        self.emulation_mode = emulation_mode
+
+        self.input_sample_rate = 0
 
         # vcc channels * number of polarizations
         self._num_fs = 0
@@ -155,18 +223,27 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 }
             )
 
-        logging_level = loaded_props.get("logging_level", self.device.logging_level)
-        ip_block_props.update({"logging_level": logging_level})
-        self.ip_block_logging_levels[ip_block_name] = logging_level
+        default_py_logging_level = TANGO_TO_PYTHON_LOGGING_LEVEL[self._global_logging_level]
+        if (logging_level := loaded_props.get("logging_level", None)) is not None:
+            if logging_level not in STR_TO_TANGO_LOGGING_LEVEL:
+                self.logger.warning(
+                    f"Unrecognized value provided for logging_level in {ip_block_name}. ", "Using global default instead."
+                )
+                ip_block_props.update({"logging_level": default_py_logging_level})
+            else:
+                ip_block_props.update({"logging_level": STR_TO_PYTHON_LOGGING_LEVEL[logging_level]})
+                self.ip_block_logging_level_overrides.update_override(ip_block_name, STR_TO_TANGO_LOGGING_LEVEL[logging_level])
+        else:
+            ip_block_props.update({"logging_level": default_py_logging_level})
 
         return ip_block_props
 
     def _init_ip_block_maps(self, *managers: BaseIPBlockManager):
-        temp_eq_map = {}
+        temp_manager_map = {}
         temp_alias_map = {}
         temp_id_list = []
         for manager in managers:
-            temp_eq_map.update(
+            temp_manager_map.update(
                 {
                     manager.ip_block_id: manager,
                     manager.emulator_ip_block_id: manager,
@@ -183,7 +260,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 }
             )
             temp_id_list.append(manager.ip_block_id)
-        self.ip_block_equivalence_map = temp_eq_map
+        self.ip_block_manager_map = temp_manager_map
         self.ip_block_aliases = temp_alias_map
         self.ip_block_list = temp_id_list
 
@@ -194,8 +271,10 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self.packet_validation = PacketValidationManager(**self._ip_block_props("PacketValidation"))
         self.wideband_frequency_shifter = WidebandFrequencyShifterManager(**self._ip_block_props("WidebandFrequencyShifter"))
         self.wideband_input_buffer = WidebandInputBufferManager(**self._ip_block_props("WidebandInputBuffer"))
-        self.vcc_stream_merges = {i: VCCStreamMergeManager(**self._ip_block_props(f"VCCStreamMerge{i}")) for i in range(1, 3)}
-        self.wideband_power_meters = {
+        self.vcc_stream_merges: dict[int, VCCStreamMergeManager] = {
+            i: VCCStreamMergeManager(**self._ip_block_props(f"VCCStreamMerge{i}")) for i in range(1, 3)
+        }
+        self.wideband_power_meters: dict[VCCBandGroup | int, WidebandPowerMeterManager] = {
             **{
                 band_group: WidebandPowerMeterManager(**self._ip_block_props(f"{band_group.value.upper()}WidebandPowerMeter"))
                 for band_group in VCCBandGroup
@@ -335,11 +414,72 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
     def get_status(self, ip_blocks: list[str]):
         combined_status = {}
         for ip_block in ip_blocks:
-            if (manager := self.ip_block_equivalence_map.get(ip_block, None)) is not None:
+            if (manager := self.ip_block_manager_map.get(ip_block, None)) is not None:
                 combined_status[manager.ip_block_id] = manager.status()
             else:
                 self.logger.warning(f"Could not get status for nonexistent IP block: {ip_block}")
         return ResultCode.OK, combined_status
+
+    def update_global_logging_level(self, logging_level: str):
+        if logging_level not in STR_TO_TANGO_LOGGING_LEVEL:
+            error_msg = f"Unrecognized logging level `{logging_level}` provided to UpdateGlobalLoggingLevel."
+            self.logger.error(error_msg)
+            return ResultCode.FAILED, error_msg
+        tango_logging_level = STR_TO_TANGO_LOGGING_LEVEL[logging_level]
+        self.device.set_logging_level(tango_logging_level)
+        self.logger.info(f"Tango logging level set to {tango_logging_level.name}.")
+        self._global_logging_level = tango_logging_level
+        self.ip_block_logging_level_overrides.update_global(self._global_logging_level)
+        for ip_block in self.ip_block_list:
+            if ip_block not in self.ip_block_logging_level_overrides.overrides:
+                self.ip_block_manager_map.get(ip_block).update_logging_level(
+                    TANGO_TO_PYTHON_LOGGING_LEVEL[self._global_logging_level]
+                )
+        return ResultCode.OK, "UpdateGlobalLoggingLevel completed successfully."
+
+    def update_ip_block_logging_levels(self, input_json: str):
+        input_parsed = json.loads(input_json)
+        try:
+            jsonschema.validate(input_parsed, vcc_all_bands_update_ip_block_logging_levels_schema)
+        except jsonschema.ValidationError as e:
+            self.logger.exception(e)
+            return ResultCode.FAILED, "JSON validation error on input argument to UpdateIPBlockLoggingLevels"
+
+        logging_level = input_parsed["level"]
+        if logging_level not in STR_TO_TANGO_LOGGING_LEVEL:
+            error_msg = f"Unrecognized logging level `{logging_level}` provided to UpdateIPBlockLoggingLevels."
+            self.logger.error(error_msg)
+            return ResultCode.FAILED, error_msg
+
+        for ip_block in input_parsed["ip_blocks"]:
+            if (manager := self.ip_block_manager_map.get(ip_block, None)) is not None:
+                manager.update_logging_level(STR_TO_PYTHON_LOGGING_LEVEL[logging_level])
+                self.ip_block_logging_level_overrides.update_override(
+                    manager.ip_block_id,
+                    STR_TO_TANGO_LOGGING_LEVEL[logging_level],
+                )
+            else:
+                self.logger.warning(f"Could not update logging level for nonexistent IP block: {ip_block}")
+        return ResultCode.OK, "UpdateIPBlockLoggingLevels completed successfully."
+
+    def clear_logging_level_overrides(self):
+        for ip_block in self.ip_block_logging_level_overrides.overrides:
+            self.ip_block_manager_map.get(ip_block).update_logging_level(
+                TANGO_TO_PYTHON_LOGGING_LEVEL[self._global_logging_level]
+            )
+        self.ip_block_logging_level_overrides.clear_overrides()
+        return ResultCode.OK, "ClearLoggingLevelOverrides completed successfully."
+
+    def test_cmd(self):
+        self.logger.critical("!!!!!!!!!!!!!!!!!!!!!!!!! VCC ALL BANDS CRITICAL MESSAGE !!!!!!!!!!!!!!!!!!!!!!!!!")
+        self.logger.error("&&&&&&&&&&&&&&&&&&&&&&&&& VCC ALL BANDS ERROR MESSAGE &&&&&&&&&&&&&&&&&&&&&&&&&")
+        self.logger.warning("@@@@@@@@@@@@@@@@@@@@@@@@@ VCC ALL BANDS WARNING MESSAGE @@@@@@@@@@@@@@@@@@@@@@@@@")
+        self.logger.info("######################### VCC ALL BANDS INFO MESSAGE #########################")
+        self.logger.debug("????????????????????????? VCC ALL BANDS DEBUG MESSAGE ?????????????????????????")
+        self.wideband_power_meters[VCCBandGroup.B123].test()
+        self.wideband_power_meters[VCCBandGroup.B45A].test()
+        self.wideband_power_meters[17].test()
+        return ResultCode.OK, "TEST CMD OK"
 
     def update_subarray_membership(
         self: VCCAllBandsComponentManager,

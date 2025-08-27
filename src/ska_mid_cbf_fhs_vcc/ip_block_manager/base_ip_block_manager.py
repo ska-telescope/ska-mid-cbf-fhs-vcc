@@ -79,6 +79,9 @@ class BaseIPBlockManager(ABC):
 
         self._health_state = HealthState.OK
 
+    def update_logging_level(self, logging_level: str) -> None:
+        self.logger.setLevel(logging_level)
+
     def get_health_state(self) -> HealthState:
         return self._health_state
 

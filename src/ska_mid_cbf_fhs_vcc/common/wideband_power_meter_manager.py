@@ -67,10 +67,15 @@ class WidebandPowerMeterManager(BaseIPBlockManager):
             emulator_base_url,
             logging_level,
         )
-        self.logger.debug("##################### WIDEBAND POWER METER DEBUG MESSAGE 1 #########################")
-        self.logger.debug("##################### WIDEBAND POWER METER DEBUG MESSAGE 2 #########################")
-        self.logger.debug("##################### WIDEBAND POWER METER DEBUG MESSAGE 3 #########################")
+        self.logger.debug("##################### WIDEBAND POWER METER DEBUG MESSAGE #########################")
 
     def configure(self, config: WidebandPowerMeterConfig):
         """Configure the Wideband Power Meter."""
         return super().configure(config.to_dict())
+
+    def test(self):
+        self.logger.critical("!!!!!!!!!!!!!!!!!!!!!!!!! WIDEBAND POWER METER CRITICAL MESSAGE !!!!!!!!!!!!!!!!!!!!!!!!!")
+        self.logger.error("&&&&&&&&&&&&&&&&&&&&&&&&& WIDEBAND POWER METER ERROR MESSAGE &&&&&&&&&&&&&&&&&&&&&&&&&")
+        self.logger.warning("@@@@@@@@@@@@@@@@@@@@@@@@@ WIDEBAND POWER METER WARNING MESSAGE @@@@@@@@@@@@@@@@@@@@@@@@@")
+        self.logger.info("######################### WIDEBAND POWER METER INFO MESSAGE #########################")
+        self.logger.debug("????????????????????????? WIDEBAND POWER METER DEBUG MESSAGE ?????????????????????????")
