@@ -125,7 +125,7 @@ vccAllBandsDevice:
           emulator_ip_block_id: "fs_selection_26_2_1"
           firmware_ip_block_id: "receptor{{.receptorId}}_fs_selector"
         PacketValidation:
-          emulator_ip_block_id: "packet_validation"
+          emulator_ip_block_id: "vcc_pkt_filter"
           firmware_ip_block_id: "packet_validation_unimplemented"
         WidebandFrequencyShifter:
           emulator_ip_block_id: "wideband_frequency_shifter"
@@ -135,10 +135,10 @@ vccAllBandsDevice:
           firmware_ip_block_id: "wideband_input_buffer_unimplemented"
           health_monitor_poll_interval: "3"
         VCCStreamMerge1:
-          emulator_ip_block_id: "vcc_stream_merge1"
+          emulator_ip_block_id: "fs1_vcc_stream_merge"
           firmware_ip_block_id: "receptor{{.receptorId}}_vcc_stream_merge1"
         VCCStreamMerge2:
-          emulator_ip_block_id: "vcc_stream_merge2"
+          emulator_ip_block_id: "fs2_vcc_stream_merge"
           firmware_ip_block_id: "receptor{{.receptorId}}_vcc_stream_merge2"
         B123WidebandPowerMeter:
           emulator_ip_block_id: "b123_wideband_power_meter"
