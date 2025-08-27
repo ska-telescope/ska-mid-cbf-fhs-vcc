@@ -86,7 +86,8 @@ TANGO_TO_PYTHON_LOGGING_LEVEL = {
     LoggingLevel.DEBUG: "DEBUG",
 }
 
-class IPBlockLoggingLevelOverrides():
+
+class IPBlockLoggingLevelOverrides:
     def __init__(self, global_logging_level: LoggingLevel = LoggingLevel.INFO) -> None:
         self.global_logging_level: LoggingLevel = global_logging_level
         self.overrides: dict[str, LoggingLevel] = {}
@@ -104,12 +105,12 @@ class IPBlockLoggingLevelOverrides():
         self.overrides = {}
 
     def to_json(self) -> str:
-        return json.dumps({
-            "global": self.global_logging_level.name,
-            "overrides": {
-                ip_block: level.name for ip_block, level in self.overrides.items()
+        return json.dumps(
+            {
+                "global": self.global_logging_level.name,
+                "overrides": {ip_block: level.name for ip_block, level in self.overrides.items()},
             }
-        })
+        )
 
 
 class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
