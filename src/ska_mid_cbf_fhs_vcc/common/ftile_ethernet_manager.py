@@ -138,31 +138,41 @@ class FtileEthernetManager(BaseMonitoringIPBlockManager):
         return super().stop()
 
     def get_status_healthstates(self, status_dict: dict) -> dict[str, HealthState]:
-        eth_status: FtileEthernetStatus = FtileEthernetStatus.schema().load(status_dict)
+        try:
+            eth_status: FtileEthernetStatus = FtileEthernetStatus.schema().load(status_dict)
 
-        self.logger.info(f"Determining HealthStates for received F-tile Ethernet status: {eth_status.to_json()}")
+            self.logger.info(f"Determining HealthStates for received F-tile Ethernet status: {eth_status.to_json()}")
 
-        status_value_healthstates = {}
+            status_value_healthstates = {}
 
-        for readiness_attr_key in ["rx_ready", "tx_ready"]:
-            readiness_attr = bool(getattr(eth_status, readiness_attr_key))
-            if readiness_attr is True:
-                status_value_healthstates[readiness_attr_key] = HealthState.OK
-            else:
-                if self.status_value_memo.get(readiness_attr_key) is True:
-                    status_value_healthstates[readiness_attr_key] = HealthState.FAILED
-                elif readiness_attr_key not in self.health_monitor.component_statuses:
+            for readiness_attr_key in ["rx_ready", "tx_ready"]:
+                self.logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ETHERNET HS LOG #1 $$$$$$$$$$$$$$$$$$$$$$$$$$$")
+                readiness_attr = bool(getattr(eth_status, readiness_attr_key))
+                if readiness_attr is True:
                     status_value_healthstates[readiness_attr_key] = HealthState.OK
-            self.status_value_memo[readiness_attr_key] = readiness_attr
+                else:
+                    if self.status_value_memo.get(readiness_attr_key) is True:
+                        status_value_healthstates[readiness_attr_key] = HealthState.FAILED
+                    elif readiness_attr_key not in self.health_monitor.component_statuses:
+                        status_value_healthstates[readiness_attr_key] = HealthState.OK
+                self.logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ETHERNET HS LOG #2 $$$$$$$$$$$$$$$$$$$$$$$$$$$")
+                self.status_value_memo[readiness_attr_key] = readiness_attr
 
-        for mac_stats_attr_key in ["rx_mac", "tx_mac"]:
-            mac_stats_attr: FtileEthernetMacStats = getattr(eth_status, mac_stats_attr_key)
-            for cast_stats_attr_key in ["multicast", "broadcast", "unicast"]:
-                cast_stats_attr: FtileEthernetCastStats = getattr(mac_stats_attr, cast_stats_attr_key)
-                status_value_healthstates["_".join([mac_stats_attr_key, cast_stats_attr_key, "data_err"])] = (
-                    HealthState.FAILED if cast_stats_attr.data_err > 1 else HealthState.OK
-                )
+            self.logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ETHERNET HS LOG #3 $$$$$$$$$$$$$$$$$$$$$$$$$$$")
+            for mac_stats_attr_key in ["rx_mac", "tx_mac"]:
+                mac_stats_attr: FtileEthernetMacStats = getattr(eth_status, mac_stats_attr_key)
+                self.logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ETHERNET HS LOG #4 $$$$$$$$$$$$$$$$$$$$$$$$$$$")
+                for cast_stats_attr_key in ["multicast", "broadcast", "unicast"]:
+                    cast_stats_attr: FtileEthernetCastStats = getattr(mac_stats_attr, cast_stats_attr_key)
+                    status_value_healthstates["_".join([mac_stats_attr_key, cast_stats_attr_key, "data_err"])] = (
+                        HealthState.FAILED if cast_stats_attr.data_err > 1 else HealthState.OK
+                    )
+                self.logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ETHERNET HS LOG #5 $$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
-        self.logger.info(f"Determined HealthStates for F-tile Ethernet: {status_value_healthstates}")
+            self.logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ETHERNET HS LOG #6 $$$$$$$$$$$$$$$$$$$$$$$$$$$")
+            self.logger.info(f"Determined HealthStates for F-tile Ethernet: {status_value_healthstates}")
 
-        return status_value_healthstates
+            return status_value_healthstates
+        except Exception as e:
+            self.logger.exception(e)
+            raise e

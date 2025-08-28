@@ -110,7 +110,7 @@ vccAllBandsDevice:
   properties:
     - name: logging_level
       values:
-        - "INFO"
+        - "DEBUG"
     - name: ll_props
       values:
         Ethernet200Gb:
@@ -146,7 +146,6 @@ vccAllBandsDevice:
         B45AWidebandPowerMeter:
           emulator_ip_block_id: "b45a_wideband_power_meter"
           firmware_ip_block_id: "receptor{{.receptorId}}_band45a_wideband_power_meter"
-          logging_level: "DEBUG"
         B5BWidebandPowerMeter:
           emulator_ip_block_id: "b5b_wideband_power_meter"
           firmware_ip_block_id: "receptor{{.receptorId}}_band5b_wideband_power_meter"
@@ -201,7 +200,6 @@ vccAllBandsDevice:
         FS17WidebandPowerMeter:
           emulator_ip_block_id: "fs17_wideband_power_meter"
           firmware_ip_block_id: "receptor{{.receptorId}}_fs17_power_meter"
-          logging_level: "DEBUG"
         FS18WidebandPowerMeter:
           emulator_ip_block_id: "fs18_wideband_power_meter"
           firmware_ip_block_id: "receptor{{.receptorId}}_fs18_power_meter"
