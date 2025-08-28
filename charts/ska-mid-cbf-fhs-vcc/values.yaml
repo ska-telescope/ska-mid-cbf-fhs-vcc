@@ -214,6 +214,9 @@ vccAllBandsDevice:
       values:
         - "{{ .fpgaNum }}"
 
+# the number of VCCUnit stacks to deploy
+numVccUnits: 2
+
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 VCCUnits:
   - unitNum: 1
@@ -226,7 +229,6 @@ VCCUnits:
     networkSwitchId: "127.0.0.2"
     bmcEndpointIp: "127.0.1.2"
     instancesRange: [7, 12]
-
 
 # --- DEVICE SERVER SIMULATION --- #
 
