@@ -52,15 +52,14 @@ class BaseIPBlockManager(ABC):
         emulator_base_url: str | None = None,
         logging_level: str = "INFO",
     ):
-        self.logger: Logger = getLogger(ip_block_id)
+        self.logger: Logger = getLogger(f"{controlling_device_name}_{ip_block_id}")
         self.logger.setLevel(logging_level)
-        self.logger.addFilter(self._IPBlockLogFilter(ip_block_id, controlling_device_name))
-        logpath = os.path.join(os.getenv("LOGS_DIR", "/app"), f"{ip_block_id}.log")
-        file_handler = RotatingFileHandler(logpath, mode="a+", maxBytes=10_485_760, backupCount=2)
-        file_handler.setFormatter(get_default_formatter(tags=True))
-        self.logger.addHandler(file_handler)
-
-        self.logger.warning(self.logger.filters)
+        if not self.logger.hasHandlers():
+            self.logger.addFilter(self._IPBlockLogFilter(ip_block_id, controlling_device_name))
+            logpath = os.path.join(os.getenv("LOGS_DIR", "/app"), f"{ip_block_id}.log")
+            file_handler = RotatingFileHandler(logpath, mode="a+", maxBytes=10_485_760, backupCount=2)
+            file_handler.setFormatter(get_default_formatter(tags=True))
+            self.logger.addHandler(file_handler)
 
         self._simulation_mode = simulation_mode
         self._emulation_mode = emulation_mode
