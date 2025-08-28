@@ -94,7 +94,7 @@ properties:
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
   bitstreamId: "agilex-vcc"
-  bitstreamVersion: "0.0.17"
+  bitstreamVersion: "0.1.1"
   emulatorId: "vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
   firmwareIpBlockId: ""

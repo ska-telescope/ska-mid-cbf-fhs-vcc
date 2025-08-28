@@ -5,11 +5,14 @@ import functools
 import json
 import logging
 from base64 import b64decode
+from logging.handlers import RotatingFileHandler
 from math import isnan
+import os
 from threading import Event
 from typing import Any, Callable, Optional
 
 import jsonschema
+from ska_ser_logging import get_default_formatter
 import tango
 from ska_control_model import CommunicationStatus, HealthState, LoggingLevel, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
@@ -205,6 +208,11 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             emulation_mode=emulation_mode,
             **kwargs,
         )
+
+        logpath = os.path.join(os.getenv("LOGS_DIR", "/app"), "VCCAllBandsController.log")
+        file_handler = RotatingFileHandler(logpath, mode="a+", maxBytes=10_485_760, backupCount=2)
+        file_handler.setFormatter(get_default_formatter(tags=True))
+        self.logger.addHandler(file_handler)
 
     def _ip_block_props(self, ip_block_name: str, additional_props: list[str] = []) -> dict[str, Any]:
         loaded_props = self._ll_props.get(ip_block_name, {})
