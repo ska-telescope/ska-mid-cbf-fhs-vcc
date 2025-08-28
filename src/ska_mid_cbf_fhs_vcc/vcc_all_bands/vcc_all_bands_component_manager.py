@@ -209,13 +209,12 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             **kwargs,
         )
 
-        logpath = os.path.join(os.getenv("LOGS_DIR", "/app"), "VCCAllBandsController.log")
-        file_handler = RotatingFileHandler(logpath, mode="a+", maxBytes=10_485_760, backupCount=2)
-        file_handler.setFormatter(get_default_formatter(tags=True))
-        self.logger.warning(self.logger.handlers)
-        self.logger.warning(file_handler)
-        self.logger.warning(file_handler in self.logger.handlers)
-        if file_handler not in self.logger.handlers:
+        _handler_id = "vcc_controller_file_handler"
+        if not any([_handler.get_name() == _handler_id for _handler in self.logger.handlers]):
+            logpath = os.path.join(os.getenv("LOGS_DIR", "/app"), "VCCAllBandsController.log")
+            file_handler = RotatingFileHandler(logpath, mode="a+", maxBytes=10_485_760, backupCount=2)
+            file_handler.setFormatter(get_default_formatter(tags=True))
+            file_handler.set_name(_handler_id)
             self.logger.addHandler(file_handler)
 
     def _ip_block_props(self, ip_block_name: str, additional_props: list[str] = []) -> dict[str, Any]:

@@ -17,10 +17,10 @@ class BaseIPBlockManager(ABC):
     class _IPBlockLogFilter(Filter):
         """Filter that adds the IP block name to the emitted record."""
 
-        def __init__(self, ip_block_name: str, controlling_device_name: str):
+        def __init__(self, name: str, ip_block_name: str, controlling_device_name: str):
             self._ip_block_name = ip_block_name
             self._controlling_device_name = controlling_device_name
-            super().__init__()
+            super().__init__(name=name)
 
         def filter(self, record: LogRecord) -> bool:
             ip_tag = f"ip-block:{self._ip_block_name}"
@@ -52,13 +52,20 @@ class BaseIPBlockManager(ABC):
         emulator_base_url: str | None = None,
         logging_level: str = "INFO",
     ):
-        self.logger: Logger = getLogger(f"{controlling_device_name}_{ip_block_id}")
+        _logger_id = f"{controlling_device_name}_{ip_block_id}"
+        self.logger: Logger = getLogger(_logger_id)
         self.logger.setLevel(logging_level)
-        if not self.logger.hasHandlers():
-            self.logger.addFilter(self._IPBlockLogFilter(ip_block_id, controlling_device_name))
+
+        _filter_id = f"{_logger_id}_tag_filter"
+        if not any([_filter.name == _filter_id for _filter in self.logger.filters]):
+            self.logger.addFilter(self._IPBlockLogFilter(_filter_id, ip_block_id, controlling_device_name))
+
+        _handler_id = f"{_logger_id}_file_handler"
+        if not any([_handler.get_name() == _handler_id for _handler in self.logger.handlers]):
             logpath = os.path.join(os.getenv("LOGS_DIR", "/app"), f"{ip_block_id}.log")
             file_handler = RotatingFileHandler(logpath, mode="a+", maxBytes=10_485_760, backupCount=2)
             file_handler.setFormatter(get_default_formatter(tags=True))
+            file_handler.set_name(_handler_id)
             self.logger.addHandler(file_handler)
 
         self._simulation_mode = simulation_mode
