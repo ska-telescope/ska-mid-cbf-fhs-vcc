@@ -4,15 +4,14 @@ import copy
 import functools
 import json
 import logging
+import os
 from base64 import b64decode
 from logging.handlers import RotatingFileHandler
 from math import isnan
-import os
 from threading import Event
 from typing import Any, Callable, Optional
 
 import jsonschema
-from ska_ser_logging import get_default_formatter
 import tango
 from ska_control_model import CommunicationStatus, HealthState, LoggingLevel, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
@@ -23,6 +22,7 @@ from ska_mid_cbf_fhs_common import (
     FhsObsStateMachine,
     calculate_gain_multiplier,
 )
+from ska_ser_logging import get_default_formatter
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
