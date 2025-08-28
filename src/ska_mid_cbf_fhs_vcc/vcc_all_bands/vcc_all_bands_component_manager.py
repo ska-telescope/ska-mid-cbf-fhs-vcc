@@ -563,7 +563,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 self.logger.debug("VCC123 Channelizer Configuring..")
                 if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
                     result = self.b123_vcc.configure(
-                        B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self._vcc_gains)
+                        B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains)
                     )
 
                     if result == 1:
@@ -984,7 +984,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                     self.b123_vcc.configure(
                         B123VccOsppfbChannelizerConfigureArgin(
                             sample_rate=self._sample_rate,
-                            gains=self._vcc_gains,
+                            gains=self.vcc_gains,
                         )
                     )
                     self._set_task_callback(
