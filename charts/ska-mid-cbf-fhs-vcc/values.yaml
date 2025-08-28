@@ -107,7 +107,7 @@ devices:
     emulatorIpBlockId: "ethernet_200g"
     firmwareIpBlockId: "eth200g_{{.receptorId}}"
     properties:
-      - name: EthernetMode
+      - name: ethernet_mode
         values:
           - "200GbE"
       - name: health_monitor_poll_interval
