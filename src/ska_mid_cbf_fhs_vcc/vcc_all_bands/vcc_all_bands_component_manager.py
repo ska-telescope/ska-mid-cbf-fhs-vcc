@@ -143,7 +143,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self.ip_block_logging_level_overrides = IPBlockLoggingLevelOverrides(self._global_logging_level)
 
         self._ll_props: dict[str, dict[str, Any]] = json.loads(b64decode(device.ll_props))
-        logger.warning(f"LL_PROPS={self._ll_props}")
 
         self._default_props = {
             "controlling_device_name": device.get_name(),
@@ -155,8 +154,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             "emulator_id": device.emulator_id,
             "emulator_base_url": device.emulator_base_url,
         }
-
-        logger.warning(f"DEFAULT_PROPS={self._default_props}")
 
         self.ip_block_list: list[str] = []
         self.ip_block_aliases: dict[str, list[str]] = {}
@@ -308,7 +305,6 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
     def start_communicating(self: VCCAllBandsComponentManager) -> None:
         """Establish communication with the component, then start monitoring."""
         try:
-            self.logger.info(f"LL PROPS: {self._ll_props}")
             if not self.simulation_mode:
                 if self._communication_state == CommunicationStatus.ESTABLISHED:
                     self.logger.info("Already communicating.")
@@ -1082,5 +1078,10 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         return False
 
     def ll_health_state_callback(self: VCCAllBandsComponentManager, health_state: HealthState, ll_name: str = "DEFAULT"):
-        self.logger.info(f"VCC ALLBANDS LL HEALTH CALLBACK: name={ll_name}, new health_state={health_state}")
+        self.logger.info(
+            f"VCC ALLBANDS LL HEALTH CALLBACK: name={ll_name}, curr vcc health_state={self.get_device_health_state()}, new ip health_state={health_state}"
+        )
         self.fhs_health_monitor.add_health_state(ll_name, health_state)
+        self.logger.info(
+            f"VCC ALLBANDS LL HEALTH CALLBACK AFTER UPDATING: name={ll_name}, new vcc health_state={self.get_device_health_state()}, new ip health_state={health_state}"
+        )
