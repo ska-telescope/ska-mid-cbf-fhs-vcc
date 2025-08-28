@@ -229,3 +229,10 @@ VCCUnits:
     networkSwitchId: "127.0.0.2"
     bmcEndpointIp: "127.0.1.2"
     instancesRange: [7, 12]
+
+# --- DEVICE SERVER SIMULATION --- #
+
+# Simulators
+# set simulated to true to deploy VCCAllBandsController simulators
+standaloneSimulator: false
+simDeviceCommand: "SimVCCAllBandsController"
