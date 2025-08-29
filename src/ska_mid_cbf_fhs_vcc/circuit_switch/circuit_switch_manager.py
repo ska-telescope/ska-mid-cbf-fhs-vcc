@@ -4,7 +4,7 @@ from dataclasses_json import dataclass_json
 from ska_control_model import SimulationMode
 
 from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_simulator import CircuitSwitchSimulator
-from ska_mid_cbf_fhs_vcc.ip_block_manager.base_ip_block_manager import BaseIPBlockManager
+from ska_mid_cbf_fhs_common import BaseIPBlockManager
 
 
 @dataclass_json

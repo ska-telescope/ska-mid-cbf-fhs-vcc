@@ -21,6 +21,11 @@ from ska_mid_cbf_fhs_common import (
     FhsObsComponentManagerBase,
     FhsObsStateMachine,
     calculate_gain_multiplier,
+    FtileEthernetManager,
+    WidebandPowerMeterConfig,
+    WidebandPowerMeterManager,
+    BaseIPBlockManager,
+    NonBlockingFunction,
 )
 from ska_ser_logging import get_default_formatter
 from ska_tango_base.base.base_component_manager import TaskCallbackType
@@ -29,15 +34,11 @@ from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer
     B123VccOsppfbChannelizerConfigureArgin,
     B123VccOsppfbChannelizerManager,
 )
-from ska_mid_cbf_fhs_vcc.common.ftile_ethernet_manager import FtileEthernetManager
-from ska_mid_cbf_fhs_vcc.common.wideband_power_meter_manager import WidebandPowerMeterConfig, WidebandPowerMeterManager
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_manager import (
     FrequencySliceSelectionConfig,
     FrequencySliceSelectionManager,
 )
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
-from ska_mid_cbf_fhs_vcc.ip_block_manager.base_ip_block_manager import BaseIPBlockManager
-from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import NonBlockingFunction
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.update_ip_block_logging_levels import (

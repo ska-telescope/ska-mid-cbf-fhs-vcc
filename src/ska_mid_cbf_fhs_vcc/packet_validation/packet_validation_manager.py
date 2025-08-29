@@ -4,8 +4,7 @@ import numpy as np
 from dataclasses_json import dataclass_json
 from ska_control_model import SimulationMode
 
-from ska_mid_cbf_fhs_vcc.ip_block_manager.base_ip_block_manager import BaseIPBlockManager
-from ska_mid_cbf_fhs_vcc.ip_block_manager.non_blocking_function import non_blocking
+from ska_mid_cbf_fhs_common import BaseIPBlockManager, non_blocking
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_simulator import PacketValidationSimulator
 
 
