@@ -153,7 +153,7 @@ class FtileEthernetManager(BaseMonitoringIPBlockManager):
                 else:
                     if self.status_value_memo.get(readiness_attr_key) is True:
                         status_value_healthstates[readiness_attr_key] = HealthState.FAILED
-                    elif readiness_attr_key not in self.health_monitor.component_statuses:
+                    elif readiness_attr_key not in self.fhs_health_monitor.component_statuses:
                         status_value_healthstates[readiness_attr_key] = HealthState.OK
                 self.logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ETHERNET HS LOG #2 $$$$$$$$$$$$$$$$$$$$$$$$$$$")
                 self.status_value_memo[readiness_attr_key] = readiness_attr
