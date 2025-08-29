@@ -4,9 +4,8 @@ from typing import Any, Callable
 import numpy as np
 from dataclasses_json import dataclass_json
 from ska_control_model import HealthState, SimulationMode
-from ska_mid_cbf_fhs_common import convert_dish_id_uint16_t_to_mnemonic
+from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, convert_dish_id_uint16_t_to_mnemonic, non_blocking
 
-from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, non_blocking
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 
 

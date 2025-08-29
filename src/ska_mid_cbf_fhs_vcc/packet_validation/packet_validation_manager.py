@@ -3,8 +3,8 @@ from dataclasses import dataclass
 import numpy as np
 from dataclasses_json import dataclass_json
 from ska_control_model import SimulationMode
-
 from ska_mid_cbf_fhs_common import BaseIPBlockManager, non_blocking
+
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_simulator import PacketValidationSimulator
 
 

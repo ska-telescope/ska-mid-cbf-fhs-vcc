@@ -2,9 +2,9 @@ from dataclasses import dataclass, field
 
 from dataclasses_json import dataclass_json
 from ska_control_model import SimulationMode
+from ska_mid_cbf_fhs_common import BaseIPBlockManager
 
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_simulator import FrequencySliceSelectionSimulator
-from ska_mid_cbf_fhs_common import BaseIPBlockManager
 
 
 @dataclass_json

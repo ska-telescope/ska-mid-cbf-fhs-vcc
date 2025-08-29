@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 import numpy as np
 from dataclasses_json import dataclass_json
 from ska_control_model import SimulationMode
-
 from ska_mid_cbf_fhs_common import BaseIPBlockManager
+
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_simulator import VCCStreamMergeSimulator
 
 

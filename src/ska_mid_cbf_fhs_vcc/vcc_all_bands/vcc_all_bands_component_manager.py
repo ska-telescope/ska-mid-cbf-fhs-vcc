@@ -16,16 +16,16 @@ import tango
 from ska_control_model import CommunicationStatus, HealthState, LoggingLevel, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
 from ska_mid_cbf_fhs_common import (
+    BaseIPBlockManager,
     FhsBaseDevice,
     FhsHealthMonitor,
     FhsObsComponentManagerBase,
     FhsObsStateMachine,
-    calculate_gain_multiplier,
     FtileEthernetManager,
+    NonBlockingFunction,
     WidebandPowerMeterConfig,
     WidebandPowerMeterManager,
-    BaseIPBlockManager,
-    NonBlockingFunction,
+    calculate_gain_multiplier,
 )
 from ska_ser_logging import get_default_formatter
 from ska_tango_base.base.base_component_manager import TaskCallbackType
