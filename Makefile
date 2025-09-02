@@ -89,7 +89,6 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 # --ignore=E731:				allow assigning lambdas
 PYTHON_SWITCHES_FOR_FLAKE8 = \
 	--ignore=DAR201,W503,E731,E203 \
-	--extend-ignore=E203,W503 \
 
 # Style Guide Mapping PyLlnt
 # F0002, F0010: Astroid errors. Not our problem.
@@ -116,13 +115,20 @@ PYTHON_SWITCHES_FOR_PYLINT = \
 	--method-naming-style=snake-case \
 	--variable-naming-style=snake_case \
 	--class-naming-style=snake_case \
-	--const-rgx='[A-Z_][A-Z0-9_]*$' \
-	--disable=C0301
+	--const-rgx='[A-Z_][A-Z0-9_]*$'
 
 
 PYTHON_SWITCHES_FOR_PYLINT_LOCAL = \ 
 	--disable=E0401,F0002,F0010,E1101 \
-	--disable=C0301
+	--load-plugins=pylint.extensions.docparams \
+	--enable=C0114,C0115,C0116,C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801 \
+	--module-naming-style=snake_case \
+	--function-naming-style=snake_case \
+	--method-naming-style=snake-case \
+	--variable-naming-style=snake_case \
+	--class-naming-style=snake_case \
+	--const-rgx='[A-Z_][A-Z0-9_]*$'
+
 PYTHON_LINE_LENGTH = 180
 POETRY_PYTHON_RUNNER = poetry run python3 -m
 
