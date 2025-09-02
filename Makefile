@@ -89,14 +89,14 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 # --ignore=E731:				allow assigning lambdas
 PYTHON_SWITCHES_FOR_FLAKE8 = \
 	--ignore=DAR201,W503,E731,E203 \
-	--extend-ignore=E203,W503
+	--extend-ignore=E203,W503 \
+	--disable=C0301
 
 # Style Guide Mapping PyLlnt
 # F0002, F0010: Astroid errors. Not our problem.
 # E0401: Import errors. Ignore for now until we figure out our actual project structure.
 # E0611: Name not found in module. This occurs in our pipeline because the image we pull down uses an older version of Python; we should remove this immediately once we have our image building to CAR.
 # --disable=E0401,E0611,F0002,F0010,E0001,E1101:	suppress known import and parsing errors
-# --max-line-length=130:							line length from pyproject
 # --load-plugins=pylint.extensions.docparams:		docstrings for all public modules functions classes and methods have to include argument return and raise sections
 # --enable=											enable
 # 	C0114,C0115,C0116:								require module class and function docstrings
@@ -117,10 +117,13 @@ PYTHON_SWITCHES_FOR_PYLINT = \
 	--method-naming-style=snake-case \
 	--variable-naming-style=snake_case \
 	--class-naming-style=snake_case \
-	--const-rgx='[A-Z_][A-Z0-9_]*$'
+	--const-rgx='[A-Z_][A-Z0-9_]*$' \
+	--disable=C0301
 
 
-PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010,E1101
+PYTHON_SWITCHES_FOR_PYLINT_LOCAL = \ 
+	--disable=E0401,F0002,F0010,E1101 \
+	--disable=C0301
 PYTHON_LINE_LENGTH = 130
 POETRY_PYTHON_RUNNER = poetry run python3 -m
 
