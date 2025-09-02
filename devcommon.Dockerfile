@@ -62,6 +62,10 @@ LABEL int.skao.image.team=cipa-halifax \
 
 USER root
 
+ENV LOGS_DIR=/app/logs
+RUN mkdir -p $LOGS_DIR
+RUN chmod -R 777 $LOGS_DIR
+
 RUN rm -rf /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common/*
 COPY ./temp-common/src/ska_mid_cbf_fhs_common /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common
 RUN chmod -R 777 /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common

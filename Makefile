@@ -144,8 +144,9 @@ k8s-deploy:
 	@time kubectl wait pod --selector=app=ska-mid-cbf-fhs-vcc --for=condition=ready --timeout=15m0s --namespace $(KUBE_NAMESPACE)
 
 k8s-deploy-dev: MINIKUBE=true
+k8s-deploy-dev: CLUSTER_DOMAIN=cluster.local
 k8s-deploy-dev:
-	make k8s-deploy MINIKUBE=$(MINIKUBE) DEV=true BOOGIE=true
+	make k8s-deploy MINIKUBE=$(MINIKUBE) CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) DEV=true BOOGIE=true
 
 k8s-destroy:
 	make k8s-uninstall-chart

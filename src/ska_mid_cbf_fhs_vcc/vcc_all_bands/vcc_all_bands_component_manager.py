@@ -1,34 +1,23 @@
 from __future__ import annotations
 
 import copy
-import functools
-import json
-import logging
-import os
-from base64 import b64decode
-from logging.handlers import RotatingFileHandler
 from math import isnan
 from threading import Event
 from typing import Any, Callable, Optional
 
-import jsonschema
-import tango
-from ska_control_model import CommunicationStatus, HealthState, LoggingLevel, ObsState, ResultCode, SimulationMode, TaskStatus
-from ska_control_model.faults import StateModelError
+from overrides import override
+from ska_control_model import ResultCode, TaskStatus
 from ska_mid_cbf_fhs_common import (
-    BaseIPBlockManager,
-    FhsBaseDevice,
-    FhsHealthMonitor,
-    FhsObsComponentManagerBase,
-    FhsObsStateMachine,
     FtileEthernetManager,
     NonBlockingFunction,
     WidebandPowerMeterConfig,
     WidebandPowerMeterManager,
     calculate_gain_multiplier,
 )
-from ska_ser_logging import get_default_formatter
-from ska_tango_base.base.base_component_manager import TaskCallbackType
+from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import (
+    FhsControllerComponentManagerBase,
+)
+from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
     B123VccOsppfbChannelizerConfigureArgin,
@@ -41,9 +30,6 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_man
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.update_ip_block_logging_levels import (
-    vcc_all_bands_update_ip_block_logging_levels_schema,
-)
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import (
     VCCStreamMergeConfig,
     VCCStreamMergeConfigureArgin,
@@ -58,122 +44,30 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager imp
     WidebandInputBufferManager,
 )
 
-# move into common
-STR_TO_TANGO_LOGGING_LEVEL = {
-    "OFF": LoggingLevel.OFF,
-    "CRITICAL": LoggingLevel.FATAL,
-    "FATAL": LoggingLevel.FATAL,
-    "ERROR": LoggingLevel.ERROR,
-    "WARN": LoggingLevel.WARNING,
-    "WARNING": LoggingLevel.WARNING,
-    "INFO": LoggingLevel.INFO,
-    "DEBUG": LoggingLevel.DEBUG,
-}
 
-STR_TO_PYTHON_LOGGING_LEVEL = {
-    "OFF": "CRITICAL",
-    "CRITICAL": "CRITICAL",
-    "FATAL": "CRITICAL",
-    "ERROR": "ERROR",
-    "WARN": "WARNING",
-    "WARNING": "WARNING",
-    "INFO": "INFO",
-    "DEBUG": "DEBUG",
-}
+class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
+    @property
+    @override
+    def config_schema(self) -> dict[str, Any]:
+        """The ConfigureScan input JSON schema for this controller."""
+        return vcc_all_bands_configure_scan_schema
 
-TANGO_TO_PYTHON_LOGGING_LEVEL = {
-    LoggingLevel.OFF: "CRITICAL",
-    LoggingLevel.FATAL: "CRITICAL",
-    LoggingLevel.ERROR: "ERROR",
-    LoggingLevel.WARNING: "WARNING",
-    LoggingLevel.INFO: "INFO",
-    LoggingLevel.DEBUG: "DEBUG",
-}
-
-
-class IPBlockLoggingLevelOverrides:
-    def __init__(self, global_logging_level: LoggingLevel = LoggingLevel.INFO) -> None:
-        self.global_logging_level: LoggingLevel = global_logging_level
-        self.overrides: dict[str, LoggingLevel] = {}
-
-    def update_global(self, level: LoggingLevel) -> None:
-        self.global_logging_level = level
-
-    def update_override(self, ip_block: str, level: LoggingLevel) -> None:
-        self.overrides[ip_block] = level
-
-    def update_overrides(self, *ip_blocks: str, level: LoggingLevel) -> None:
-        self.overrides.update({ip_block: level for ip_block in ip_blocks})
-
-    def clear_overrides(self) -> None:
-        self.overrides = {}
-
-    def to_json(self) -> str:
-        return json.dumps(
-            {
-                "global": self.global_logging_level.name,
-                "overrides": {ip_block: level.name for ip_block, level in self.overrides.items()},
-            }
-        )
-
-
-class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
-    def __init__(
-        self: VCCAllBandsComponentManager,
-        *args: Any,
-        device: FhsBaseDevice,
-        logger: logging.Logger,
-        simulation_mode: SimulationMode = SimulationMode.FALSE,
-        attr_change_callback: Callable[[str, Any], None] | None = None,
-        attr_archive_callback: Callable[[str, Any], None] | None = None,
-        health_state_callback: Callable[[HealthState], None] | None = None,
-        obs_command_running_callback: Callable[[str, bool], None],
-        emulation_mode: bool = False,
-        **kwargs: Any,
-    ) -> None:
-        self.device = device
-        self._global_logging_level = LoggingLevel.INFO
-        if device.logging_level not in STR_TO_TANGO_LOGGING_LEVEL:
-            device.set_logging_level(LoggingLevel.INFO)
-            logger.warning("Unrecognized value for logging_level provided; defaulting to INFO.")
-        else:
-            tango_logging_level = STR_TO_TANGO_LOGGING_LEVEL[device.logging_level]
-            device.set_logging_level(tango_logging_level)
-            logger.info(f"Tango logging level set to {tango_logging_level.name}.")
-            self._global_logging_level = tango_logging_level
-        self.ip_block_logging_level_overrides = IPBlockLoggingLevelOverrides(self._global_logging_level)
-
-        self._ll_props: dict[str, dict[str, Any]] = json.loads(b64decode(device.ll_props))
-
-        self._default_props = {
-            "controlling_device_name": device.get_name(),
-            "bitstream_path": device.bitstream_path,
-            "bitstream_id": device.bitstream_id,
-            "bitstream_version": device.bitstream_version,
-            "simulation_mode": simulation_mode,
-            "emulation_mode": emulation_mode,
-            "emulator_id": device.emulator_id,
-            "emulator_base_url": device.emulator_base_url,
-        }
-
-        self.ip_block_list: list[str] = []
-        self.ip_block_aliases: dict[str, list[str]] = {}
-        self.ip_block_manager_map: dict[str, BaseIPBlockManager] = {}
-
-        self._init_ip_block_managers()
-
-        self._vcc_id = device.device_id
-
-        self.frequency_band = FrequencyBandEnum._1
-        self.subarray_id = 0
-
+    @override
+    def _controller_specific_setup(self) -> None:
+        """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
+        self._vcc_id = self.device.device_id
         self._config_id = ""
         self._scan_id = 0
+        self._expected_dish_id = None
 
-        self.simulation_mode = simulation_mode
-        self.emulation_mode = emulation_mode
+        self.subarray_id = 0
 
+        self.frequency_band = FrequencyBandEnum._1
+        self.frequency_band_offset = [0, 0]
         self.input_sample_rate = 0
+
+        self._fsps = []
+        self._maximum_fsps = 10
 
         # vcc channels * number of polarizations
         self._num_fs = 0
@@ -181,100 +75,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self.vcc_gains: list[float] = []
         self.last_requested_headrooms: list[float] = []
 
-        self._fsps = []
-        self._maximum_fsps = 10
-
-        self.frequency_band_offset = [0, 0]
-
-        self._expected_dish_id = None
-
-        self.fhs_health_monitor = FhsHealthMonitor(
-            logger=logger,
-            get_device_health_state=self.get_device_health_state,
-            update_health_state_callback=health_state_callback,
-        )
-
-        super().__init__(
-            *args,
-            logger=logger,
-            attr_change_callback=attr_change_callback,
-            attr_archive_callback=attr_archive_callback,
-            health_state_callback=health_state_callback,
-            obs_command_running_callback=obs_command_running_callback,
-            max_queue_size=32,
-            simulation_mode=simulation_mode,
-            emulation_mode=emulation_mode,
-            **kwargs,
-        )
-
-        _handler_id = "vcc_controller_file_handler"
-        if not any([_handler.get_name() == _handler_id for _handler in self.logger.handlers]):
-            logpath = os.path.join(os.getenv("LOGS_DIR", "/app"), "VCCAllBandsController.log")
-            file_handler = RotatingFileHandler(logpath, mode="a+", maxBytes=10_485_760, backupCount=2)
-            file_handler.setFormatter(get_default_formatter(tags=True))
-            file_handler.set_name(_handler_id)
-            self.logger.addHandler(file_handler)
-
-    def _ip_block_props(self, ip_block_name: str, additional_props: list[str] = []) -> dict[str, Any]:
-        loaded_props = self._ll_props.get(ip_block_name, {})
-        ip_block_props = {
-            **self._default_props,
-            "ip_block_id": ip_block_name,
-            "firmware_ip_block_id": loaded_props.get("firmware_ip_block_id", None),
-            "emulator_ip_block_id": loaded_props.get("emulator_ip_block_id", None),
-            **{prop_name: loaded_props.get(prop_name, None) for prop_name in additional_props},
-        }
-
-        if loaded_props.get("health_monitor_poll_interval", None) is not None:
-            ip_block_props.update(
-                {
-                    "health_monitor_poll_interval": float(loaded_props.get("health_monitor_poll_interval")),
-                    "update_health_state_callback": functools.partial(self.ll_health_state_callback, ll_name=ip_block_name),
-                }
-            )
-
-        default_py_logging_level = TANGO_TO_PYTHON_LOGGING_LEVEL[self._global_logging_level]
-        if (logging_level := loaded_props.get("logging_level", None)) is not None:
-            if logging_level not in STR_TO_TANGO_LOGGING_LEVEL:
-                self.logger.warning(
-                    f"Unrecognized value provided for logging_level in {ip_block_name}. ", "Using global default instead."
-                )
-                ip_block_props.update({"logging_level": default_py_logging_level})
-            else:
-                ip_block_props.update({"logging_level": STR_TO_PYTHON_LOGGING_LEVEL[logging_level]})
-                self.ip_block_logging_level_overrides.update_override(ip_block_name, STR_TO_TANGO_LOGGING_LEVEL[logging_level])
-        else:
-            ip_block_props.update({"logging_level": default_py_logging_level})
-
-        return ip_block_props
-
-    def _init_ip_block_maps(self, *managers: BaseIPBlockManager):
-        temp_manager_map = {}
-        temp_alias_map = {}
-        temp_id_list = []
-        for manager in managers:
-            temp_manager_map.update(
-                {
-                    manager.ip_block_id: manager,
-                    manager.emulator_ip_block_id: manager,
-                    manager.firmware_ip_block_id: manager,
-                }
-            )
-            temp_alias_map.update(
-                {
-                    manager.ip_block_id: [
-                        manager.ip_block_id,
-                        manager.emulator_ip_block_id,
-                        manager.firmware_ip_block_id,
-                    ]
-                }
-            )
-            temp_id_list.append(manager.ip_block_id)
-        self.ip_block_manager_map = temp_manager_map
-        self.ip_block_aliases = temp_alias_map
-        self.ip_block_list = temp_id_list
-
-    def _init_ip_block_managers(self):
+    @override
+    def _init_ip_block_managers(self) -> list[BaseIPBlockManager]:
         self.ethernet_200g = FtileEthernetManager(**self._ip_block_props("Ethernet200Gb", additional_props=["ethernet_mode"]))
         self.b123_vcc = B123VccOsppfbChannelizerManager(**self._ip_block_props("B123VccOsppfbChannelizer"))
         self.frequency_slice_selection = FrequencySliceSelectionManager(**self._ip_block_props("FrequencySliceSelection"))
@@ -292,7 +94,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             **{i: WidebandPowerMeterManager(**self._ip_block_props(f"FS{i}WidebandPowerMeter")) for i in range(1, 27)},
         }
 
-        self._init_ip_block_maps(
+        return [
             self.ethernet_200g,
             self.b123_vcc,
             self.frequency_slice_selection,
@@ -301,194 +103,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             self.wideband_input_buffer,
             *self.vcc_stream_merges.values(),
             *self.wideband_power_meters.values(),
-        )
-
-    def start_communicating(self: VCCAllBandsComponentManager) -> None:
-        """Establish communication with the component, then start monitoring."""
-        try:
-            if not self.simulation_mode:
-                if self._communication_state == CommunicationStatus.ESTABLISHED:
-                    self.logger.info("Already communicating.")
-                    return
-                super().start_communicating()
-        except tango.DevFailed as ex:
-            self.logger.error(f"Failed to start communicating; {ex}")
-            self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-            return
-
-    def stop_communicating(self: VCCAllBandsComponentManager) -> None:
-        """Close communication with the component, then stop monitoring."""
-        try:
-            # Event unsubscription will also be placed here
-            super().stop_communicating()
-        except tango.DevFailed as ex:
-            self.logger.error(f"Failed to stop communicating; {ex}")
-
-    def is_go_to_idle_allowed(self: VCCAllBandsComponentManager) -> bool:
-        self.logger.debug("Checking if gotoidle is allowed...")
-        error_msg = f"go_to_idle not allowed in ObsState {self.obs_state}; " "must be in ObsState.READY"
-
-        return self.is_allowed(error_msg, [ObsState.READY])
-
-    def is_obs_reset_allowed(self: VCCAllBandsComponentManager) -> bool:
-        self.logger.debug("Checking if ObsReset is allowed...")
-        error_msg = f"ObsReset not allowed in ObsState {self.obs_state}; \
-            must be in ObsState.FAULT or ObsState.ABORTED"
-
-        return self.is_allowed(error_msg, [ObsState.FAULT, ObsState.ABORTED])
-
-    def configure_scan(
-        self: VCCAllBandsComponentManager,
-        argin: str,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=self._configure_scan,
-            args=[argin],
-            task_callback=task_callback,
-        )
-
-    def scan(self: VCCAllBandsComponentManager, argin: int, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="start",
-                command_thread=self._scan,
-            ),
-            args=[argin],
-            task_callback=task_callback,
-        )
-
-    def end_scan(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="stop",
-                command_thread=self._end_scan,
-            ),
-            task_callback=task_callback,
-        )
-
-    def go_to_idle(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="deconfigure",
-                command_thread=self._go_to_idle,
-            ),
-            task_callback=task_callback,
-            is_cmd_allowed=self.is_go_to_idle_allowed,
-        )
-
-    def obs_reset(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="obsreset",
-                command_thread=functools.partial(
-                    self._obs_reset,
-                    from_state=self.obs_state,
-                ),
-            ),
-            task_callback=task_callback,
-            is_cmd_allowed=self.is_obs_reset_allowed,
-        )
-
-    def abort_commands(
-        self: VCCAllBandsComponentManager,
-        task_callback: TaskCallbackType | None = None,
-    ) -> tuple[TaskStatus, str]:
-        """
-        Stop all devices.
-
-        :return: None
-        """
-        self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
-        result = super().abort_commands(task_callback)
-
-        result = self._stop_low_level()
-
-        self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
-        return result
-
-    def get_status(self, ip_blocks: list[str]):
-        combined_status = {}
-        for ip_block in ip_blocks:
-            if (manager := self.ip_block_manager_map.get(ip_block, None)) is not None:
-                combined_status[manager.ip_block_id] = manager.status()
-            else:
-                self.logger.warning(f"Could not get status for nonexistent IP block: {ip_block}")
-        return ResultCode.OK, combined_status
-
-    def update_global_logging_level(self, logging_level: str):
-        if logging_level not in STR_TO_TANGO_LOGGING_LEVEL:
-            error_msg = f"Unrecognized logging level `{logging_level}` provided to UpdateGlobalLoggingLevel."
-            self.logger.error(error_msg)
-            return ResultCode.FAILED, error_msg
-        tango_logging_level = STR_TO_TANGO_LOGGING_LEVEL[logging_level]
-        self.device.set_logging_level(tango_logging_level)
-        self.logger.info(f"Tango logging level set to {tango_logging_level.name}.")
-        self._global_logging_level = tango_logging_level
-        self.ip_block_logging_level_overrides.update_global(self._global_logging_level)
-        for ip_block in self.ip_block_list:
-            if ip_block not in self.ip_block_logging_level_overrides.overrides:
-                self.ip_block_manager_map.get(ip_block).update_logging_level(
-                    TANGO_TO_PYTHON_LOGGING_LEVEL[self._global_logging_level]
-                )
-        return ResultCode.OK, "UpdateGlobalLoggingLevel completed successfully."
-
-    def update_ip_block_logging_levels(self, input_json: str):
-        input_parsed = json.loads(input_json)
-        try:
-            jsonschema.validate(input_parsed, vcc_all_bands_update_ip_block_logging_levels_schema)
-        except jsonschema.ValidationError as e:
-            self.logger.exception(e)
-            return ResultCode.FAILED, "JSON validation error on input argument to UpdateIPBlockLoggingLevels"
-
-        logging_level = input_parsed["level"]
-        if logging_level not in STR_TO_TANGO_LOGGING_LEVEL:
-            error_msg = f"Unrecognized logging level `{logging_level}` provided to UpdateIPBlockLoggingLevels."
-            self.logger.error(error_msg)
-            return ResultCode.FAILED, error_msg
-
-        for ip_block in input_parsed["ip_blocks"]:
-            if (manager := self.ip_block_manager_map.get(ip_block, None)) is not None:
-                manager.update_logging_level(STR_TO_PYTHON_LOGGING_LEVEL[logging_level])
-                self.ip_block_logging_level_overrides.update_override(
-                    manager.ip_block_id,
-                    STR_TO_TANGO_LOGGING_LEVEL[logging_level],
-                )
-            else:
-                self.logger.warning(f"Could not update logging level for nonexistent IP block: {ip_block}")
-        return ResultCode.OK, "UpdateIPBlockLoggingLevels completed successfully."
-
-    def clear_logging_level_overrides(self):
-        for ip_block in self.ip_block_logging_level_overrides.overrides:
-            self.ip_block_manager_map.get(ip_block).update_logging_level(
-                TANGO_TO_PYTHON_LOGGING_LEVEL[self._global_logging_level]
-            )
-        self.ip_block_logging_level_overrides.clear_overrides()
-        return ResultCode.OK, "ClearLoggingLevelOverrides completed successfully."
-
-    def test_cmd(self):
-        self.logger.critical("!!!!!!!!!!!!!!!!!!!!!!!!! VCC ALL BANDS CRITICAL MESSAGE !!!!!!!!!!!!!!!!!!!!!!!!!")
-        self.logger.error("&&&&&&&&&&&&&&&&&&&&&&&&& VCC ALL BANDS ERROR MESSAGE &&&&&&&&&&&&&&&&&&&&&&&&&")
-        self.logger.warning("@@@@@@@@@@@@@@@@@@@@@@@@@ VCC ALL BANDS WARNING MESSAGE @@@@@@@@@@@@@@@@@@@@@@@@@")
-        self.logger.info("######################### VCC ALL BANDS INFO MESSAGE #########################")
-        self.logger.debug("????????????????????????? VCC ALL BANDS DEBUG MESSAGE ?????????????????????????")
-        self.wideband_power_meters[VCCBandGroup.B123].test()
-        self.wideband_power_meters[VCCBandGroup.B45A].test()
-        self.wideband_power_meters[17].test()
-        return ResultCode.OK, "TEST CMD OK"
+        ]
 
     def update_subarray_membership(
         self: VCCAllBandsComponentManager,
@@ -512,227 +127,169 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             task_callback=task_callback,
         )
 
-    def _configure_scan(
-        self: VCCAllBandsComponentManager,
-        argin: str,
+    @override
+    def _configure_scan_controller_impl(
+        self,
+        configuration: dict[str, Any],
         task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
     ) -> None:
-        try:
-            """
-            Read from JSON Config argin and setup VCC All bands with initial configuration from the control
-            software
-            """
-            self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_INVOKED)
-            task_callback(status=TaskStatus.IN_PROGRESS)
-            configuration = json.loads(argin)
-            jsonschema.validate(configuration, vcc_all_bands_configure_scan_schema)
-            if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
-                return
+        self._sample_rate = configuration["dish_sample_rate"]
+        self._samples_per_frame = configuration["samples_per_frame"]
+        self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
+        self._expected_dish_id = configuration["expected_dish_id"]
+        self._config_id = configuration["config_id"]
+        self.logger.info(f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}")
 
-            self._sample_rate = configuration["dish_sample_rate"]
-            self._samples_per_frame = configuration["samples_per_frame"]
-            self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
-            self._expected_dish_id = configuration["expected_dish_id"]
-            self._config_id = configuration["config_id"]
-            self.logger.info(
-                f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}"
-            )
+        if "frequency_band_offset_stream_1" in configuration:
+            self.frequency_band_offset[0] = configuration["frequency_band_offset_stream_1"]
 
-            if "frequency_band_offset_stream_1" in configuration:
-                self.frequency_band_offset[0] = configuration["frequency_band_offset_stream_1"]
+        if "frequency_band_offset_stream_2" in configuration:
+            self.frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
 
-            if "frequency_band_offset_stream_2" in configuration:
-                self.frequency_band_offset[1] = configuration["frequency_band_offset_stream_2"]
-
-            match self.frequency_band:
-                case FrequencyBandEnum._1 | FrequencyBandEnum._2:
-                    self._num_fs = 10
-                case FrequencyBandEnum._3 | FrequencyBandEnum._4:
-                    self._reset_attributes()
-                    raise ValueError("Bands 3/4 not implemented")
-                    # self._num_fs = 15
-                case _:
-                    self._reset_attributes()
-                    raise ValueError("Bands 5A/B not implemented")
-                    # self._num_fs = 26
-
-            # number of channels * number of polarizations
-            self._num_vcc_gains = self._num_fs * 2
-
-            self.vcc_gains = configuration["vcc_gain"]
-
-            if len(self.vcc_gains) != self._num_vcc_gains:
+        match self.frequency_band:
+            case FrequencyBandEnum._1 | FrequencyBandEnum._2:
+                self._num_fs = 10
+            case FrequencyBandEnum._3 | FrequencyBandEnum._4:
                 self._reset_attributes()
-                raise ValueError(f"Incorrect number of gain values supplied: {self.vcc_gains} != {self._num_vcc_gains}")
+                raise ValueError("Bands 3/4 not implemented")
+                # self._num_fs = 15
+            case _:
+                self._reset_attributes()
+                raise ValueError("Bands 5A/B not implemented")
+                # self._num_fs = 26
 
-            if not self.simulation_mode:
-                # VCC123 Channelizer Configuration
-                self.logger.debug("VCC123 Channelizer Configuring..")
-                if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                    result = self.b123_vcc.configure(
-                        B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains)
-                    )
+        # number of channels * number of polarizations
+        self._num_vcc_gains = self._num_fs * 2
 
-                    if result == 1:
-                        self.logger.error("Configuration of VCC123 Channelizer failed.")
-                        self._reset_attributes()
-                        raise ChildProcessError("Configuration of VCC123 failed.")
+        self.vcc_gains = configuration["vcc_gain"]
 
-                else:
-                    # TODO: Implement routing to the 5 Channelizer once outlined
+        if len(self.vcc_gains) != self._num_vcc_gains:
+            self._reset_attributes()
+            raise ValueError(f"Incorrect number of gain values supplied: {self.vcc_gains} != {self._num_vcc_gains}")
+
+        if not self.simulation_mode:
+            # VCC123 Channelizer Configuration
+            self.logger.debug("VCC123 Channelizer Configuring..")
+            if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
+                result = self.b123_vcc.configure(
+                    B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains)
+                )
+
+                if result == 1:
+                    self.logger.error("Configuration of VCC123 Channelizer failed.")
                     self._reset_attributes()
-                    raise ValueError(f"ConfigureScan failed unsupported band specified: {self.frequency_band}")
+                    raise RuntimeError("Configuration of VCC123 failed.")
 
-                # WFS Configuration
-                self.logger.debug("Wideband Frequency Shifter Configuring..")
-                result = self.wideband_frequency_shifter.configure(
-                    WidebandFrequencyShifterConfig(shift_frequency=self.frequency_band_offset[0])
+            else:
+                # TODO: Implement routing to the 5 Channelizer once outlined
+                self._reset_attributes()
+                raise ValueError(f"ConfigureScan failed unsupported band specified: {self.frequency_band}")
+
+            # WFS Configuration
+            self.logger.debug("Wideband Frequency Shifter Configuring..")
+            result = self.wideband_frequency_shifter.configure(
+                WidebandFrequencyShifterConfig(shift_frequency=self.frequency_band_offset[0])
+            )
+            if result == 1:
+                self.logger.error("Configuration of Wideband Frequency Shifter failed.")
+                raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
+
+            # FSS Configuration
+            result = self.frequency_slice_selection.configure(
+                FrequencySliceSelectionConfig(
+                    band_select=self.frequency_band.value + 1,
+                    band_start_channel=[0, 1],
+                )
+            )
+
+            if result == 1:
+                self.logger.error("Configuration of FS Selection failed.")
+                raise RuntimeError("Configuration of FS Selection failed.")
+
+            # WIB Configuration
+            self.logger.debug("Wideband Input Buffer Configuring..")
+            result = self.wideband_input_buffer.configure(
+                WidebandInputBufferConfig(
+                    expected_sample_rate=self._sample_rate,
+                    noise_diode_transition_holdoff_seconds=configuration["noise_diode_transition_holdoff_seconds"],
+                    expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
+                )
+            )
+
+            if result == 1:
+                self.logger.error("Configuration of WIB failed.")
+                raise RuntimeError("Configuration of WIB failed.")
+
+            self.wideband_input_buffer.expected_dish_id = self._expected_dish_id
+
+            # Pre-channelizer WPM Configuration
+            self.logger.debug("Pre-channelizer Wideband Power Meters Configuring..")
+            self._b123_pwrm = configuration["b123_pwrm"]
+            self._b45a_pwrm = configuration["b45a_pwrm"]
+            self._b5b_pwrm = configuration["b5b_pwrm"]
+
+            for band_group in VCCBandGroup:
+                config = configuration[f"{band_group.value}_pwrm"]
+                self.logger.debug(f"Configuring {band_group.value} power meter with {config}")
+                result = self.wideband_power_meters[band_group].configure(
+                    WidebandPowerMeterConfig(
+                        averaging_time=config["averaging_time"],
+                        flagging=config["flagging"],
+                    )
                 )
                 if result == 1:
-                    self.logger.error("Configuration of Wideband Frequency Shifter failed.")
-                    raise ChildProcessError("Configuration of Wideband Frequency Shifter failed.")
+                    self.logger.error(f"Configuration of {band_group.value} Wideband Power Meter failed.")
+                    raise RuntimeError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
 
-                # FSS Configuration
-                result = self.frequency_slice_selection.configure(
-                    FrequencySliceSelectionConfig(
-                        band_select=self.frequency_band.value + 1,
-                        band_start_channel=[0, 1],
+            # Post-channelizer WPM Configuration
+            self.logger.debug("Post-channelizer Wideband Power Meters Configuring..")
+            self._fs_lanes = configuration["fs_lanes"]
+
+            # Verify vlan_id is within range
+            # ((config.vid >= 2 && config.vid <= 1001) || (config.vid >= 1006 && config.vid <= 4094))
+            for config in self._fs_lanes:
+                if not (2 <= config["vlan_id"] <= 1001 or 1006 <= config["vlan_id"] <= 4094):
+                    raise ValueError(f"VLAN ID {config['vlan_id']} is not within range")
+
+            for config in self._fs_lanes:
+                fs_id = int(config["fs_id"])
+                self.logger.debug(f"Configuring FS {fs_id} power meter with {config}")
+                result = self.wideband_power_meters[fs_id].configure(
+                    WidebandPowerMeterConfig(
+                        averaging_time=config["averaging_time"],
+                        flagging=config["flagging"],
                     )
                 )
-
                 if result == 1:
-                    self.logger.error("Configuration of FS Selection failed.")
-                    raise ChildProcessError("Configuration of FS Selection failed.")
+                    self.logger.error(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
+                    raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
 
-                # WIB Configuration
-                self.logger.debug("Wideband Input Buffer Configuring..")
-                result = self.wideband_input_buffer.configure(
-                    WidebandInputBufferConfig(
-                        expected_sample_rate=self._sample_rate,
-                        noise_diode_transition_holdoff_seconds=configuration["noise_diode_transition_holdoff_seconds"],
-                        expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
+            # VCC Stream Merge Configuration
+            self.logger.debug("VCC Stream Merge Configuring..")
+            for i in range(1, 3):
+                result = self.vcc_stream_merges[i].configure(
+                    VCCStreamMergeConfigureArgin(
+                        fs_lane_configs=[
+                            VCCStreamMergeConfig(
+                                vid=lane["vlan_id"],
+                                vcc_id=self._vcc_id,
+                                fs_id=lane["fs_id"],
+                            )
+                            for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
+                        ]
                     )
                 )
-
                 if result == 1:
-                    self.logger.error("Configuration of WIB failed.")
-                    raise ChildProcessError("Configuration of WIB failed.")
+                    self.logger.error("Configuration of VCC Stream Merge failed.")
+                    raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
-                self.wideband_input_buffer.expected_dish_id = self._expected_dish_id
+        self.logger.info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}")
 
-                # Pre-channelizer WPM Configuration
-                self.logger.debug("Pre-channelizer Wideband Power Meters Configuring..")
-                self._b123_pwrm = configuration["b123_pwrm"]
-                self._b45a_pwrm = configuration["b45a_pwrm"]
-                self._b5b_pwrm = configuration["b5b_pwrm"]
-
-                for band_group in VCCBandGroup:
-                    config = configuration[f"{band_group.value}_pwrm"]
-                    self.logger.debug(f"Configuring {band_group.value} power meter with {config}")
-                    result = self.wideband_power_meters[band_group].configure(
-                        WidebandPowerMeterConfig(
-                            averaging_time=config["averaging_time"],
-                            flagging=config["flagging"],
-                        )
-                    )
-                    if result == 1:
-                        self.logger.error(f"Configuration of {band_group.value} Wideband Power Meter failed.")
-                        raise ChildProcessError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
-
-                # Post-channelizer WPM Configuration
-                self.logger.debug("Post-channelizer Wideband Power Meters Configuring..")
-                self._fs_lanes = configuration["fs_lanes"]
-
-                # Verify vlan_id is within range
-                # ((config.vid >= 2 && config.vid <= 1001) || (config.vid >= 1006 && config.vid <= 4094))
-                for config in self._fs_lanes:
-                    if not (2 <= config["vlan_id"] <= 1001 or 1006 <= config["vlan_id"] <= 4094):
-                        raise ValueError(f"VLAN ID {config['vlan_id']} is not within range")
-
-                for config in self._fs_lanes:
-                    fs_id = int(config["fs_id"])
-                    self.logger.debug(f"Configuring FS {fs_id} power meter with {config}")
-                    result = self.wideband_power_meters[fs_id].configure(
-                        WidebandPowerMeterConfig(
-                            averaging_time=config["averaging_time"],
-                            flagging=config["flagging"],
-                        )
-                    )
-                    if result == 1:
-                        self.logger.error(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
-                        raise ChildProcessError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
-
-                # VCC Stream Merge Configuration
-                self.logger.debug("VCC Stream Merge Configuring..")
-                for i in range(1, 3):
-                    result = self.vcc_stream_merges[i].configure(
-                        VCCStreamMergeConfigureArgin(
-                            fs_lane_configs=[
-                                VCCStreamMergeConfig(
-                                    vid=lane["vlan_id"],
-                                    vcc_id=self._vcc_id,
-                                    fs_id=lane["fs_id"],
-                                )
-                                for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
-                            ]
-                        )
-                    )
-                    if result == 1:
-                        self.logger.error("Configuration of VCC Stream Merge failed.")
-                        raise ChildProcessError("Configuration of VCC Stream Merge failed.")
-
-            self.logger.info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}")
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
-            self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
-            return
-        except StateModelError as ex:
-            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
-            self.logger.exception(ex)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call ConfigureScan command from an incorrect state",
-            )
-        except ValueError as ex:
-            self.logger.error(f"Error due to config not meeting scan requirements: {repr(ex)}")
-            self.logger.exception(ex)
-            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                f"Arg provided does not meet ConfigureScan criteria: {ex}",
-            )
-        except ChildProcessError as ex:
-            self.logger.error(f"Uncaught error in child process: {repr(ex)}")
-            self.logger.exception(ex)
-            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, ex)
-        except jsonschema.ValidationError as ex:
-            self.logger.error(f"Invalid json provided for ConfigureScan: {repr(ex)}")
-            self.logger.exception(ex)
-            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                f"Arg provided does not meet ConfigureScan criteria: {ex}",
-            )
-        except Exception as ex:
-            self.logger.exception(ex)
-            self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
-            self._set_task_callback(
-                task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to an unexpected exception during ConfigureScan"
-            )
-
-    def _scan(
-        self: VCCAllBandsComponentManager,
-        argin: int,
+    @override
+    def _scan_controller_impl(
+        self,
+        scan_id: int,
         task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
     ) -> None:
         """
         Begin scan operation.
@@ -741,147 +298,36 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
         :return: None
         """
-        try:
-            # set task status in progress, check for abort event
-            self._scan_id = argin
-            if not self.simulation_mode:
-                try:
-                    eth_start_result, pv_start_result, wib_start_result = NonBlockingFunction.await_all(
-                        self.ethernet_200g.start(),
-                        self.packet_validation.start(),
-                        self.wideband_input_buffer.start(),
-                    )
-                    if eth_start_result == 1 or pv_start_result == 1 or wib_start_result == 1:
-                        self._set_task_callback(
-                            task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to start Ethernet, PV and/or WIB"
-                        )
-                        return
-                except tango.DevFailed as ex:
-                    self.logger.error(repr(ex))
-                    self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-                    self._set_task_callback(
-                        task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
-                    )
-                    return
-
-            # Update obsState callback
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Scan completed OK")
-            return
-        except StateModelError as ex:
-            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call Scan command from an incorrect state",
+        if not self.simulation_mode:
+            eth_start_result, pv_start_result, wib_start_result = NonBlockingFunction.await_all(
+                self.ethernet_200g.start(),
+                self.packet_validation.start(),
+                self.wideband_input_buffer.start(),
             )
+            if eth_start_result == 1 or pv_start_result == 1 or wib_start_result == 1:
+                raise RuntimeError("Failed to start Ethernet, PV and/or WIB")
 
-    def _end_scan(
-        self: VCCAllBandsComponentManager,
+    @override
+    def _end_scan_controller_impl(
+        self,
         task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
     ) -> None:
         """
         End scan operation.
 
         :return: None
         """
-        try:
-            task_callback(status=TaskStatus.IN_PROGRESS)
-            if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
-                return
-
-            if not self.simulation_mode:
-                try:
-                    eth_stop_result, pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
-                        self.ethernet_200g.stop(),
-                        self.packet_validation.stop(),
-                        self.wideband_input_buffer.stop(),
-                    )
-                    if eth_stop_result == 1 or pv_stop_result == 1 or wib_stop_result == 1:
-                        self._set_task_callback(
-                            task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to stop Ethernet, PV and/or WIB"
-                        )
-                        return
-                except tango.DevFailed as ex:
-                    self.logger.error(repr(ex))
-                    self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
-                    self._set_task_callback(
-                        task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, "Failed to establish proxies to FHS VCC devices"
-                    )
-                    return
-
-            # Update obsState callback
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
-            return
-        except StateModelError as ex:
-            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call EndScan command from an incorrect state",
+        if not self.simulation_mode:
+            eth_stop_result, pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
+                self.ethernet_200g.stop(),
+                self.packet_validation.stop(),
+                self.wideband_input_buffer.stop(),
             )
-
-    # A replacement for unconfigure
-    def _go_to_idle(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-    ) -> None:
-        try:
-            # TODO: Check if ReceiveEnable is still required on the Agilex for the WIB
-            task_callback(status=TaskStatus.IN_PROGRESS)
-            if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
-                return
-
-            self._reset_attributes()
-
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
-            return
-        except StateModelError as ex:
-            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call GoToIdle command from an incorrect state",
-            )
-        except Exception as ex:
-            self.logger.error(f"ERROR SETTING GO_TO_IDLE: {repr(ex)}")
-
-    def _obs_reset(
-        self: VCCAllBandsComponentManager,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-        from_state=ObsState.ABORTED,
-    ) -> None:
-        try:
-            task_callback(status=TaskStatus.IN_PROGRESS)
-            if self.task_abort_event_is_set("ObsReset", task_callback, task_abort_event):
-                return
-
-            # If in FAULT state, devices may still be running, so make sure they are stopped
-            if from_state is ObsState.FAULT:
-                self._stop_low_level()
-
-            self._reset_attributes()
-
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ObsReset completed OK")
-            return
-        except StateModelError as ex:
-            self.logger.error(f"Attempted to call command from an incorrect state: {repr(ex)}")
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call ObsReset command from an incorrect state",
-            )
-        except Exception as ex:
-            self.logger.error(f"Unexpected error in ObsReset command: {repr(ex)}")
+            if eth_stop_result == 1 or pv_stop_result == 1 or wib_stop_result == 1:
+                raise RuntimeError("Failed to stop Ethernet, PV and/or WIB")
 
     def _update_subarray_membership(
-        self: VCCAllBandsComponentManager,
+        self,
         argin: int,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
@@ -926,7 +372,7 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             )
 
     def _auto_set_filter_gains(
-        self: VCCAllBandsComponentManager,
+        self,
         argin: list[float] = [3.0],
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
@@ -1032,7 +478,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
                 "An unexpected error occurred while trying to auto-set gains.",
             )
 
-    def _stop_low_level(self: VCCAllBandsComponentManager):
+    @override
+    def _stop_low_level(self) -> int:
         eth_stop_result, pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
             self.ethernet_200g.stop(),
             self.packet_validation.stop(),
@@ -1040,10 +487,11 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         )
         if eth_stop_result == 1 or pv_stop_result == 1 or wib_stop_result == 1:
             self.logger.error("Ethernet/PV/WIB STOP FAILURE (TODO)")
-            return ResultCode.FAILED, "Failed to stop proxies."
-        return ResultCode.OK, "Stopped proxies successfully."
+            return 1
+        return 0
 
-    def _reset_attributes(self: VCCAllBandsComponentManager):
+    @override
+    def _reset(self) -> None:
         self._config_id = ""
         self._scan_id = 0
         self.frequency_band = FrequencyBandEnum._1
@@ -1051,38 +499,3 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
         self._sample_rate = 0
         self._samples_per_frame = 0
         self._fsps = []
-
-    def task_abort_event_is_set(
-        self: VCCAllBandsComponentManager,
-        command_name: str,
-        task_callback: Callable,
-        task_abort_event: Event,
-    ) -> bool:
-        """
-        Helper method for checking task abort event during command thread.
-
-        :param command_name: name of command for result message
-        :param task_callback: command tracker update_command_info callback
-        :param task_abort_event: task executor abort event
-
-        :return: True if abort event is set, otherwise False
-        """
-        if task_abort_event.is_set():
-            task_callback(
-                status=TaskStatus.ABORTED,
-                result=(
-                    ResultCode.ABORTED,
-                    f"{command_name} command aborted by task executor abort event.",
-                ),
-            )
-            return True
-        return False
-
-    def ll_health_state_callback(self: VCCAllBandsComponentManager, health_state: HealthState, ll_name: str = "DEFAULT"):
-        self.logger.info(
-            f"VCC ALLBANDS LL HEALTH CALLBACK: name={ll_name}, curr vcc health_state={self.get_device_health_state()}, new ip health_state={health_state}"
-        )
-        self.fhs_health_monitor.add_health_state(ll_name, health_state)
-        self.logger.info(
-            f"VCC ALLBANDS LL HEALTH CALLBACK AFTER UPDATING: name={ll_name}, new vcc health_state={self.get_device_health_state()}, new ip health_state={health_state}"
-        )
