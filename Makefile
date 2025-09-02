@@ -90,7 +90,6 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 # --ignore=E731:				allow assigning lambdas
 PYTHON_SWITCHES_FOR_FLAKE8 = \
 	--ignore=DAR201,W503,E731,E203 \
-	--max-line-length=130 \
 	--extend-ignore=E203,W503 \
 
 # Style Guide Mapping PyLlnt
@@ -112,7 +111,6 @@ PYTHON_SWITCHES_FOR_FLAKE8 = \
 # --const-rgx='[A-Z_][A-Z0-9_]*$':					constants are named in all caps with underscores
 PYTHON_SWITCHES_FOR_PYLINT = \ 
 	--disable=E0401,E0611,F0002,F0010,E0001,E1101 \
-	--max-line-length=130 \
 	--load-plugins=pylint.extensions.docparams \
 	--enable=C0114,C0115,C0116,C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801 \
 	--module-naming-style=snake_case \
