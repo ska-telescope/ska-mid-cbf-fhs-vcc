@@ -82,12 +82,47 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	${PV_STORAGE_PARAM}
 
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
-PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503,E731,E203
 
+# Style guide mapping flake8
+# --max-line-length=130: 		line length from pyproject 
+# --extend-ignore=E203,W503: 	ignore whitespace before ':' in slices and line breaks before binary operators
+# --ignore=DAR201:				docstrings don't require a returns section if nothing is returned
+# --ignore=E731:				allow assigning lambdas
+PYTHON_SWITCHES_FOR_FLAKE8 = \
+	--ignore=DAR201,W503,E731,E203 \
+	--max-line-length=130 \
+	--extend-ignore=E203,W503 \
+
+# Style Guide Mapping PyLlnt
 # F0002, F0010: Astroid errors. Not our problem.
 # E0401: Import errors. Ignore for now until we figure out our actual project structure.
 # E0611: Name not found in module. This occurs in our pipeline because the image we pull down uses an older version of Python; we should remove this immediately once we have our image building to CAR.
-PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010,E0001,E1101
+# --disable=E0401,E0611,F0002,F0010,E0001,E1101:	suppress known import and parsing errors
+# --max-line-length=130:							line length from pyproject
+# --load-plugins=pylint.extensions.docparams:		docstrings for all public modules functions classes and methods have to include argument return and raise sections
+# --enable=											enable
+# 	C0114,C0115,C0116:								require module class and function docstrings
+# 	C0209:											use f strings instead of percent formatting or str.format()
+#	R1732,W1514:									use 'with' to open files
+#	W0603:											discourage using global
+#	W0401,W0622:									do not allow from module import *, and don't copy built in names
+#	C0321,W0301:									one statement per line
+#	C1801:											don't terminate lines with semicolons
+# --ALL-naming-style:								classes, functions, methods, and variables are named in snake case
+# --const-rgx='[A-Z_][A-Z0-9_]*$':					constants are named in all caps with underscores
+PYTHON_SWITCHES_FOR_PYLINT = \ 
+	--disable=E0401,E0611,F0002,F0010,E0001,E1101 \
+	--max-line-length=130 \
+	--load-plugins=pylint.extensions.docparams \
+	--enable=C0114,C0115,C0116,C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801 \
+	--module-naming-style=snake_case \
+	--function-naming-style=snake_case \
+	--method-naming-style=snake-case \
+	--variable-naming-style=snake_case \
+	--class-naming-style=snake_case \
+	--const-rgx='[A-Z_][A-Z0-9_]*$'
+
+
 PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010,E1101
 PYTHON_LINE_LENGTH = 130
 POETRY_PYTHON_RUNNER = poetry run python3 -m
