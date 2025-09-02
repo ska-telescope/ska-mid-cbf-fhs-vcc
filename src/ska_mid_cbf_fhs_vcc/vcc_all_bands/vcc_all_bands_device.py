@@ -5,7 +5,9 @@ from ska_mid_cbf_fhs_common import FhsObsBaseDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command, device_property
 
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VCCAllBandsComponentManager
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import (
+    VCCAllBandsComponentManager,
+)
 
 
 class VCCAllBandsController(FhsObsBaseDevice):
@@ -78,7 +80,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
         max_dim_x=2,
         doc="The given input sample rate",
     )
-    def frequencyBandOffset(self: VCCAllBandsController) -> tango.DevVarLongArray:
+    def frequencyBandOffset(
+        self: VCCAllBandsController,
+    ) -> tango.DevVarLongArray:
         """
         Read the frequency band offset k, a spectrum max(len) = 2
 
@@ -93,7 +97,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
         max_dim_x=26,
         doc="The most recent requested RFI headroom values provided to AutoSetFilterGains.",
     )
-    def requestedRFIHeadroom(self: VCCAllBandsController) -> tango.DevVarDoubleArray:
+    def requestedRFIHeadroom(
+        self: VCCAllBandsController,
+    ) -> tango.DevVarDoubleArray:
         """
         Read the requestedRFIHeadroom attribute.
 
@@ -122,7 +128,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
         dtype_out="DevVarLongStringArray",
         doc_in="Configuration json.",
     )
-    def ConfigureScan(self: VCCAllBandsController, config: str) -> DevVarLongStringArrayType:
+    def ConfigureScan(
+        self: VCCAllBandsController, config: str
+    ) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="ConfigureScan")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
@@ -134,7 +142,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
         dtype_out="DevVarLongStringArray",
         doc_in="Configuration json.",
     )
-    def Scan(self: VCCAllBandsController, scan_id: int) -> DevVarLongStringArrayType:
+    def Scan(
+        self: VCCAllBandsController, scan_id: int
+    ) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="Scan")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
@@ -158,8 +168,12 @@ class VCCAllBandsController(FhsObsBaseDevice):
         dtype_out="DevVarLongStringArray",
         doc_in="Subarray ID to assign to the VCC.",
     )
-    def UpdateSubarrayMembership(self: VCCAllBandsController, subarray_id: int) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="UpdateSubarrayMembership")
+    def UpdateSubarrayMembership(
+        self: VCCAllBandsController, subarray_id: int
+    ) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(
+            command_name="UpdateSubarrayMembership"
+        )
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=subarray_id)
@@ -174,14 +188,20 @@ class VCCAllBandsController(FhsObsBaseDevice):
             "or a value per frequency slice to be applied separately."
         ),
     )
-    def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] = [3.0]) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="AutoSetFilterGains")
+    def AutoSetFilterGains(
+        self: VCCAllBandsController, headroom: list[float] = [3.0]
+    ) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(
+            command_name="AutoSetFilterGains"
+        )
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=headroom)
         return [[result_code], [command_id]]
 
-    def create_component_manager(self: VCCAllBandsController) -> VCCAllBandsComponentManager:
+    def create_component_manager(
+        self: VCCAllBandsController,
+    ) -> VCCAllBandsComponentManager:
         return VCCAllBandsComponentManager(
             device=self,
             logger=self.logger,

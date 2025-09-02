@@ -6,7 +6,12 @@ from typing import Any, Callable, Tuple
 import numpy as np
 from dataclasses_json import dataclass_json
 from marshmallow import ValidationError
-from ska_control_model import CommunicationStatus, HealthState, ResultCode, TaskStatus
+from ska_control_model import (
+    CommunicationStatus,
+    HealthState,
+    ResultCode,
+    TaskStatus,
+)
 from ska_mid_cbf_fhs_common import (
     FhsHealthMonitor,
     FhsLowLevelBaseDevice,
@@ -14,7 +19,9 @@ from ska_mid_cbf_fhs_common import (
     convert_dish_id_uint16_t_to_mnemonic,
 )
 
-from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
+from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import (
+    WidebandInputBufferSimulator,
+)
 
 
 @dataclass_json
@@ -78,11 +85,15 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
     ##
     # Public Commands
     ##
-    def configure(self: FhsLowLevelComponentManagerBase, argin: str) -> tuple[ResultCode, str]:
+    def configure(
+        self: FhsLowLevelComponentManagerBase, argin: str
+    ) -> tuple[ResultCode, str]:
         try:
             self.logger.info("WIB Configuring..")
 
-            wib_config: WidebandInputBufferConfig = WidebandInputBufferConfig.schema().loads(argin)
+            wib_config: WidebandInputBufferConfig = (
+                WidebandInputBufferConfig.schema().loads(argin)
+            )
 
             self.logger.info(f"WIB JSON CONFIG: {wib_config.to_json()}")
 
@@ -91,10 +102,14 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
             result = super().configure(wib_config.to_dict())
 
             if result[0] != ResultCode.OK:
-                self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
+                self.logger.error(
+                    f"Configuring {self._device_id} failed. {result[1]}"
+                )
 
         except ValidationError as vex:
-            error_msg = "Validation error: argin doesn't match the required schema"
+            error_msg = (
+                "Validation error: argin doesn't match the required schema"
+            )
             self.logger.error(f"{error_msg}: {vex}")
             result = ResultCode.FAILED, error_msg
         except Exception as ex:
@@ -104,11 +119,15 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
 
         return result
 
-    def start(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
+    def start(
+        self: WidebandInputBufferComponentManager, *args, **kwargs
+    ) -> Tuple[TaskStatus, str]:
         self.fhs_health_monitor.start_polling()
         return super().start(*args, **kwargs)
 
-    def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
+    def stop(
+        self: WidebandInputBufferComponentManager, *args, **kwargs
+    ) -> Tuple[TaskStatus, str]:
         self.fhs_health_monitor.stop_polling()
         return super().stop(*args, **kwargs)
 
@@ -121,12 +140,18 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
 
         super().start_communicating()
 
-    def check_registers(self: WidebandInputBufferComponentManager, status_dict: dict) -> dict[str, HealthState]:
-        status: WidebandInputBufferStatus = WidebandInputBufferStatus.schema().load(status_dict)
+    def check_registers(
+        self: WidebandInputBufferComponentManager, status_dict: dict
+    ) -> dict[str, HealthState]:
+        status: WidebandInputBufferStatus = (
+            WidebandInputBufferStatus.schema().load(status_dict)
+        )
 
         register_statuses = {}
 
-        register_statuses["meta_dish_id"] = self.check_meta_dish_id(status.meta_dish_id)
+        register_statuses["meta_dish_id"] = self.check_meta_dish_id(
+            status.meta_dish_id
+        )
 
         register_statuses["rx_sample_rate"] = self.check_register(
             self.expected_sample_rate,
@@ -166,11 +191,15 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
 
         return register_statuses
 
-    def check_meta_dish_id(self: WidebandInputBufferComponentManager, meta_dish_id: int) -> HealthState:
+    def check_meta_dish_id(
+        self: WidebandInputBufferComponentManager, meta_dish_id: int
+    ) -> HealthState:
         result = HealthState.OK
 
         if meta_dish_id:
-            meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(meta_dish_id)
+            meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(
+                meta_dish_id
+            )
 
             result = self.check_register(
                 self.expected_dish_id,
@@ -178,7 +207,9 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
                 error_msg=f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_mnemonic} ({meta_dish_id})",
             )
         else:
-            self.logger.error("Unable to convert meta_dish_id.  Meta_dish_id is none")
+            self.logger.error(
+                "Unable to convert meta_dish_id.  Meta_dish_id is none"
+            )
             result = HealthState.FAILED
 
         return result
@@ -193,7 +224,9 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
         result = HealthState.OK
 
         if expected_value is not None:
-            result = self.check_register_expected_value(expected_value, register_value)
+            result = self.check_register_expected_value(
+                expected_value, register_value
+            )
 
             if result != HealthState.OK:
                 if error_msg:
@@ -204,7 +237,9 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
 
         return result
 
-    def check_register_expected_value(self, expected_value: Any, register_value: Any) -> HealthState:
+    def check_register_expected_value(
+        self, expected_value: Any, register_value: Any
+    ) -> HealthState:
         result = HealthState.FAILED
 
         if expected_value is not None and register_value is not None:

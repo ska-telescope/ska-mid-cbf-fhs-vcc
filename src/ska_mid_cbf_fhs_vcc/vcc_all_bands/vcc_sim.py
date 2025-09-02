@@ -13,11 +13,18 @@ from __future__ import annotations
 from functools import partial
 from typing import Any
 
-from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, SimModeObsCMBase
+from ska_mid_cbf_fhs_common.testing.simulation import (
+    FhsObsSimMode,
+    SimModeObsCMBase,
+)
 from tango.server import run
 
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import (
+    VCCAllBandsController,
+)
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import (
+    FrequencyBandEnum,
+)
 
 __all__ = ["SimVCCAllBandsCM", "SimVCCAllBandsController"]
 
@@ -109,12 +116,18 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
                 },
             }
         )
-        self.configure_scan = partial(self.sim_command, command_name="ConfigureScan")
+        self.configure_scan = partial(
+            self.sim_command, command_name="ConfigureScan"
+        )
         self.scan = partial(self.sim_command, command_name="Scan")
         self.end_scan = partial(self.sim_command, command_name="EndScan")
         self.obs_reset = partial(self.sim_command, command_name="ObsReset")
-        self.update_subarray_membership = partial(self.sim_command, command_name="UpdateSubarrayMembership")
-        self.auto_set_filter_gains = partial(self.sim_command, command_name="AutoSetFilterGains")
+        self.update_subarray_membership = partial(
+            self.sim_command, command_name="UpdateSubarrayMembership"
+        )
+        self.auto_set_filter_gains = partial(
+            self.sim_command, command_name="AutoSetFilterGains"
+        )
 
     @property
     def expected_dish_id(self: SimVCCAllBandsCM) -> str:
@@ -146,11 +159,15 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
 
 
 class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
-    def create_component_manager(self: SimVCCAllBandsController) -> SimVCCAllBandsCM:
+    def create_component_manager(
+        self: SimVCCAllBandsController,
+    ) -> SimVCCAllBandsCM:
         return SimVCCAllBandsCM(
             logger=self.logger,
             communication_state_callback=self._communication_state_changed,
-            component_state_callback=partial(FhsObsSimMode._component_state_changed, self),
+            component_state_callback=partial(
+                FhsObsSimMode._component_state_changed, self
+            ),
         )
 
 

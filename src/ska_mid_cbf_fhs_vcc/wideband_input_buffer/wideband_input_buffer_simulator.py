@@ -21,7 +21,9 @@ __all__ = ["WidebandInputBufferSimulator"]
 
 
 class WidebandInputBufferSimulator(BaseSimulatorApi):
-    def __init__(self: BaseSimulatorApi, device_id: str, logger: Logger) -> None:
+    def __init__(
+        self: BaseSimulatorApi, device_id: str, logger: Logger
+    ) -> None:
         self.status_str = """{
                 "link_failure": false,
                 "buffer_overflow": false,

@@ -8,7 +8,9 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_simulator import CircuitSwitchSimulator
+from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_simulator import (
+    CircuitSwitchSimulator,
+)
 
 
 @dataclass_json
@@ -50,11 +52,15 @@ class CircuitSwitchComponentManager(FhsLowLevelComponentManagerBase):
     ##
     # Public Commands
     ##
-    def configure(self: FhsLowLevelComponentManagerBase, argin: str) -> tuple[ResultCode, str]:
+    def configure(
+        self: FhsLowLevelComponentManagerBase, argin: str
+    ) -> tuple[ResultCode, str]:
         try:
             self.logger.info("Circuit Switch Configuring..")
 
-            argin_parsed: CircuitSwitchConfigureArgin = CircuitSwitchConfigureArgin.schema().loads(argin)
+            argin_parsed: CircuitSwitchConfigureArgin = (
+                CircuitSwitchConfigureArgin.schema().loads(argin)
+            )
 
             self.logger.info(f"CONFIG JSON CONFIG: {argin_parsed.to_json()}")
 
@@ -64,18 +70,26 @@ class CircuitSwitchComponentManager(FhsLowLevelComponentManagerBase):
             )
 
             for band in argin_parsed.band:
-                cs_config = CircuitSwitchConfig(output=band.get("output"), input=band.get("input"))
+                cs_config = CircuitSwitchConfig(
+                    output=band.get("output"), input=band.get("input")
+                )
 
-                self.logger.info(f"Circuit Switch JSON CONFIG: {cs_config.to_json()}")
+                self.logger.info(
+                    f"Circuit Switch JSON CONFIG: {cs_config.to_json()}"
+                )
 
                 result = super().configure(cs_config.to_dict())
 
                 if result[0] != ResultCode.OK:
-                    self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
+                    self.logger.error(
+                        f"Configuring {self._device_id} failed. {result[1]}"
+                    )
                     break
 
         except ValidationError as vex:
-            error_msg = "Validation error: argin doesn't match the required schema"
+            error_msg = (
+                "Validation error: argin doesn't match the required schema"
+            )
             self.logger.error(f"{error_msg}: {vex}")
             result = ResultCode.FAILED, error_msg
         except Exception as ex:

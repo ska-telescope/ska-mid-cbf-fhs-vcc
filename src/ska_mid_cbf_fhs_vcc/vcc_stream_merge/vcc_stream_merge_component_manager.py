@@ -9,7 +9,9 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_simulator import VCCStreamMergeSimulator
+from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_simulator import (
+    VCCStreamMergeSimulator,
+)
 
 
 @dataclass_json
@@ -35,7 +37,9 @@ class VCCStreamMergeStatus:
 @dataclass_json
 @dataclass
 class VCCStreamMergeConfigureArgin:
-    fs_lane_configs: list[VCCStreamMergeConfig] = field(default_factory=lambda: [])
+    fs_lane_configs: list[VCCStreamMergeConfig] = field(
+        default_factory=lambda: []
+    )
 
 
 class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
@@ -54,7 +58,9 @@ class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
     # Public Commands
     # ------------------
 
-    def configure(self: VCCStreamMergeComponentManager, argin: str) -> tuple[ResultCode, str]:
+    def configure(
+        self: VCCStreamMergeComponentManager, argin: str
+    ) -> tuple[ResultCode, str]:
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
@@ -63,20 +69,30 @@ class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
 
             self.logger.info("VCC Stream Merge Configuring..")
 
-            argin_parsed: VCCStreamMergeConfigureArgin = VCCStreamMergeConfigureArgin.schema().loads(argin)
-            self.logger.info(f"VCC Stream Merge JSON CONFIG: {argin_parsed.to_json()}")
+            argin_parsed: VCCStreamMergeConfigureArgin = (
+                VCCStreamMergeConfigureArgin.schema().loads(argin)
+            )
+            self.logger.info(
+                f"VCC Stream Merge JSON CONFIG: {argin_parsed.to_json()}"
+            )
 
             for vcc_sm_config in argin_parsed.fs_lane_configs:
-                self.logger.info(f"VCC Stream Merge FS Lane JSON CONFIG: {vcc_sm_config.to_json()}")
+                self.logger.info(
+                    f"VCC Stream Merge FS Lane JSON CONFIG: {vcc_sm_config.to_json()}"
+                )
 
                 result = super().configure(vcc_sm_config.to_dict())
 
                 if result[0] != ResultCode.OK:
-                    self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
+                    self.logger.error(
+                        f"Configuring {self._device_id} failed. {result[1]}"
+                    )
                     break
 
         except ValidationError as vex:
-            error_msg = "Validation error: argin doesn't match the required schema"
+            error_msg = (
+                "Validation error: argin doesn't match the required schema"
+            )
             self.logger.error(f"{error_msg}: {vex}")
             result = ResultCode.FAILED, error_msg
         except Exception as ex:
@@ -86,7 +102,9 @@ class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
 
         return result
 
-    def deconfigure(self: VCCStreamMergeComponentManager, argin: str = None) -> tuple[ResultCode, str]:
+    def deconfigure(
+        self: VCCStreamMergeComponentManager, argin: str = None
+    ) -> tuple[ResultCode, str]:
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
@@ -96,21 +114,31 @@ class VCCStreamMergeComponentManager(FhsLowLevelComponentManagerBase):
             if argin is None:
                 result = super().recover()
             else:
-                argin_parsed: VCCStreamMergeConfigureArgin = VCCStreamMergeConfigureArgin.schema().loads(argin)
+                argin_parsed: VCCStreamMergeConfigureArgin = (
+                    VCCStreamMergeConfigureArgin.schema().loads(argin)
+                )
 
-                self.logger.info(f"DECONFIG JSON CONFIG: {argin_parsed.to_json()}")
+                self.logger.info(
+                    f"DECONFIG JSON CONFIG: {argin_parsed.to_json()}"
+                )
 
                 for vcc_sm_config in argin_parsed.fs_lane_configs:
-                    self.logger.info(f"VCC Stream Merge FS Lane JSON CONFIG: {vcc_sm_config.to_json()}")
+                    self.logger.info(
+                        f"VCC Stream Merge FS Lane JSON CONFIG: {vcc_sm_config.to_json()}"
+                    )
 
                     result = super().deconfigure(vcc_sm_config.to_dict())
 
                     if result[0] != ResultCode.OK:
-                        self.logger.error(f"Deconfiguring {self._device_id} failed. {result[1]}")
+                        self.logger.error(
+                            f"Deconfiguring {self._device_id} failed. {result[1]}"
+                        )
                         break
 
         except ValidationError as vex:
-            error_msg = "Validation error: argin doesn't match the required schema"
+            error_msg = (
+                "Validation error: argin doesn't match the required schema"
+            )
             self.logger.error(f"{error_msg}: {vex}")
             result = ResultCode.FAILED, error_msg
         except Exception as ex:

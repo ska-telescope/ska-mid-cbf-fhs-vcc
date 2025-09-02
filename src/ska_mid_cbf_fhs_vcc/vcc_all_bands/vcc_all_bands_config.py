@@ -12,7 +12,10 @@ schema = {
             "maximum": 11891998800,
         },
         "samples_per_frame": {"type": "integer"},
-        "frequency_band": {"type": "string", "enum": ["1", "2", "3", "4", "5a", "5b"]},
+        "frequency_band": {
+            "type": "string",
+            "enum": ["1", "2", "3", "4", "5a", "5b"],
+        },
         "frequency_band_offset_stream_1": {
             "type": "integer",
             "min": -100000000,
@@ -24,14 +27,42 @@ schema = {
             "max": 100000000,
         },
         "vcc_gain": {"type": "array", "items": {"type": "number"}},
-        "noise_diode_transition_holdoff_seconds": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "noise_diode_transition_holdoff_seconds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535,
+        },
         "band_5_tuning": {"type": "number"},
-        "b123_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
-        "b45a_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
-        "b5b_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
+        "b123_pwrm": {
+            "type": "object",
+            "properties": {
+                "averaging_time": {"type": "integer"},
+                "flagging": {"type": "integer"},
+            },
+        },
+        "b45a_pwrm": {
+            "type": "object",
+            "properties": {
+                "averaging_time": {"type": "integer"},
+                "flagging": {"type": "integer"},
+            },
+        },
+        "b5b_pwrm": {
+            "type": "object",
+            "properties": {
+                "averaging_time": {"type": "integer"},
+                "flagging": {"type": "integer"},
+            },
+        },
         "fs_lanes": {
             "type": "array",
-            "items": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
+            "items": {
+                "type": "object",
+                "properties": {
+                    "averaging_time": {"type": "integer"},
+                    "flagging": {"type": "integer"},
+                },
+            },
         },
     },
     "required": [
