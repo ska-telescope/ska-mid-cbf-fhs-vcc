@@ -150,11 +150,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             case FrequencyBandEnum._1 | FrequencyBandEnum._2:
                 self._num_fs = 10
             case FrequencyBandEnum._3 | FrequencyBandEnum._4:
-                self._reset_attributes()
+                self._reset()
                 raise ValueError("Bands 3/4 not implemented")
                 # self._num_fs = 15
             case _:
-                self._reset_attributes()
+                self._reset()
                 raise ValueError("Bands 5A/B not implemented")
                 # self._num_fs = 26
 
@@ -164,7 +164,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.vcc_gains = configuration["vcc_gain"]
 
         if len(self.vcc_gains) != self._num_vcc_gains:
-            self._reset_attributes()
+            self._reset()
             raise ValueError(f"Incorrect number of gain values supplied: {self.vcc_gains} != {self._num_vcc_gains}")
 
         if not self.simulation_mode:
@@ -177,12 +177,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
                 if result == 1:
                     self.logger.error("Configuration of VCC123 Channelizer failed.")
-                    self._reset_attributes()
+                    self._reset()
                     raise RuntimeError("Configuration of VCC123 failed.")
 
             else:
                 # TODO: Implement routing to the 5 Channelizer once outlined
-                self._reset_attributes()
+                self._reset()
                 raise ValueError(f"ConfigureScan failed unsupported band specified: {self.frequency_band}")
 
             # WFS Configuration
