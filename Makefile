@@ -90,7 +90,6 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 PYTHON_SWITCHES_FOR_FLAKE8 = \
 	--ignore=DAR201,W503,E731,E203 \
 	--extend-ignore=E203,W503 \
-	--disable=C0301
 
 # Style Guide Mapping PyLlnt
 # F0002, F0010: Astroid errors. Not our problem.
