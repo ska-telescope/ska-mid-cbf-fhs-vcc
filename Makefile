@@ -84,13 +84,12 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
 
 # Style guide mapping flake8
-# --max-line-length=130: 		line length from pyproject 
 # --extend-ignore=E203,W503: 	ignore whitespace before ':' in slices and line breaks before binary operators
 # --ignore=DAR201:				docstrings don't require a returns section if nothing is returned
 # --ignore=E731:				allow assigning lambdas
 PYTHON_SWITCHES_FOR_FLAKE8 = \
 	--ignore=DAR201,W503,E731,E203 \
-	--extend-ignore=E203,W503 \
+	--extend-ignore=E203,W503
 
 # Style Guide Mapping PyLlnt
 # F0002, F0010: Astroid errors. Not our problem.
