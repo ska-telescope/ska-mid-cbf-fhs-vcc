@@ -8,9 +8,7 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_simulator import (
-    FrequencySliceSelectionSimulator,
-)
+from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_simulator import FrequencySliceSelectionSimulator
 
 
 @dataclass_json
@@ -45,15 +43,11 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
     ##
     # Public Commands
     ##
-    def configure(
-        self: FrequencySliceSelectionComponentManager, argin: dict
-    ) -> tuple[ResultCode, str]:
+    def configure(self: FrequencySliceSelectionComponentManager, argin: dict) -> tuple[ResultCode, str]:
         try:
             self.logger.info("FS Selection Configuring..")
 
-            fss_config: FrequencySliceSelectionConfig = (
-                FrequencySliceSelectionConfig.schema().loads(argin)
-            )
+            fss_config: FrequencySliceSelectionConfig = FrequencySliceSelectionConfig.schema().loads(argin)
 
             self.logger.info(f"CONFIG JSON CONFIG: {fss_config.to_json()}")
 
@@ -65,14 +59,10 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
             result = super().configure(fss_config.to_dict())
 
             if result[0] != ResultCode.OK:
-                self.logger.error(
-                    f"Configuring {self._device_id} failed. {result[1]}"
-                )
+                self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            error_msg = (
-                "Validation error: argin doesn't match the required schema"
-            )
+            error_msg = "Validation error: argin doesn't match the required schema"
             self.logger.error(f"{error_msg}: {vex}")
             result = ResultCode.FAILED, error_msg
         except Exception as ex:
@@ -82,9 +72,7 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
 
         return result
 
-    def deconfigure(
-        self: FrequencySliceSelectionComponentManager, argin: str = None
-    ) -> tuple[ResultCode, str]:
+    def deconfigure(self: FrequencySliceSelectionComponentManager, argin: str = None) -> tuple[ResultCode, str]:
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
@@ -94,25 +82,17 @@ class FrequencySliceSelectionComponentManager(FhsLowLevelComponentManagerBase):
             if argin is None:
                 result = super().recover()
             else:
-                fss_config: FrequencySliceSelectionConfig = (
-                    FrequencySliceSelectionConfig.schema().loads(argin)
-                )
+                fss_config: FrequencySliceSelectionConfig = FrequencySliceSelectionConfig.schema().loads(argin)
 
-                self.logger.info(
-                    f"DECONFIG JSON CONFIG: {fss_config.to_json()}"
-                )
+                self.logger.info(f"DECONFIG JSON CONFIG: {fss_config.to_json()}")
 
                 result = super().deconfigure(argin)
 
                 if result[0] != ResultCode.OK:
-                    self.logger.error(
-                        f"DeConfiguring {self._device_id} failed. {result[1]}"
-                    )
+                    self.logger.error(f"DeConfiguring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            error_msg = (
-                "Validation error: argin doesn't match the required schema"
-            )
+            error_msg = "Validation error: argin doesn't match the required schema"
             self.logger.error(f"{error_msg}: {vex}")
             result = ResultCode.FAILED, error_msg
         except Exception as ex:

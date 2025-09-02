@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from ska_mid_cbf_fhs_common import FhsLowLevelBaseDevice
 
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_component_manager import (
-    B123VccOsppfbChannelizerComponentManager,
-)
+from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_component_manager import B123VccOsppfbChannelizerComponentManager
 
 
 class B123VccOsppfbChannelizer(FhsLowLevelBaseDevice):

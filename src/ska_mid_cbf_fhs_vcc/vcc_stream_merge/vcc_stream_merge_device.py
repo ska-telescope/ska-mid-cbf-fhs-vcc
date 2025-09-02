@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from ska_mid_cbf_fhs_common import FhsLowLevelBaseDevice
 
-from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_component_manager import (
-    VCCStreamMergeComponentManager,
-)
+from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_component_manager import VCCStreamMergeComponentManager
 
 
 class VCCStreamMerge(FhsLowLevelBaseDevice):

@@ -9,9 +9,7 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, PowerState, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_simulator import (
-    B123VccOsppfbChannelizerSimulator,
-)
+from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_simulator import B123VccOsppfbChannelizerSimulator
 
 
 @dataclass_json
@@ -65,9 +63,7 @@ class B123VccOsppfbChannelizerConfigureArgin:
     )  # default gain values
 
 
-class B123VccOsppfbChannelizerComponentManager(
-    FhsLowLevelComponentManagerBase
-):
+class B123VccOsppfbChannelizerComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: B123VccOsppfbChannelizerComponentManager,
         *args: Any,
@@ -105,23 +101,15 @@ class B123VccOsppfbChannelizerComponentManager(
     # Commands
     #####
 
-    def configure(
-        self: B123VccOsppfbChannelizerComponentManager, argin: str
-    ) -> tuple[ResultCode, str]:
+    def configure(self: B123VccOsppfbChannelizerComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
             self.logger.info("VCC Configuring..")
 
-            argin_parsed: B123VccOsppfbChannelizerConfigureArgin = (
-                B123VccOsppfbChannelizerConfigureArgin.schema().loads(argin)
-            )
+            argin_parsed: B123VccOsppfbChannelizerConfigureArgin = B123VccOsppfbChannelizerConfigureArgin.schema().loads(argin)
 
-            self.logger.info(
-                f"CONFIGURE JSON CONFIG: {argin_parsed.to_json()}"
-            )
+            self.logger.info(f"CONFIGURE JSON CONFIG: {argin_parsed.to_json()}")
 
-            return self._generate_and_configure(
-                argin_parsed, super().configure
-            )
+            return self._generate_and_configure(argin_parsed, super().configure)
         except ValidationError as vex:
             error_msg = "Validation error: Unable to configure, argin doesn't match the required schema"
             self.logger.error(f"{error_msg}: {vex}")
@@ -132,9 +120,7 @@ class B123VccOsppfbChannelizerComponentManager(
             return ResultCode.FAILED, error_msg
             # TODO helthstate check
 
-    def deconfigure(
-        self: B123VccOsppfbChannelizerComponentManager, argin: str = None
-    ) -> tuple[ResultCode, str]:
+    def deconfigure(self: B123VccOsppfbChannelizerComponentManager, argin: str = None) -> tuple[ResultCode, str]:
         try:
             self.logger.info("VCC Deconfiguring..")
 
@@ -143,19 +129,11 @@ class B123VccOsppfbChannelizerComponentManager(
 
             # If the argin is not none then we're 'reconfiguring' using the values set otherwise we use the default values
             if argin is not None:
-                argin_parsed: B123VccOsppfbChannelizerConfigureArgin = (
-                    B123VccOsppfbChannelizerConfigureArgin.schema().loads(
-                        argin
-                    )
-                )
+                argin_parsed: B123VccOsppfbChannelizerConfigureArgin = B123VccOsppfbChannelizerConfigureArgin.schema().loads(argin)
 
-            self.logger.info(
-                f"DECONFIGURE JSON CONFIG: {argin_parsed.to_json()}"
-            )
+            self.logger.info(f"DECONFIGURE JSON CONFIG: {argin_parsed.to_json()}")
 
-            return self._generate_and_configure(
-                argin_parsed, super().deconfigure
-            )
+            return self._generate_and_configure(argin_parsed, super().deconfigure)
         except ValidationError as vex:
             error_msg = "Validation error: Unable to deconfigure, argin doesn't match the required schema"
             self.logger.error(f"{error_msg}: {vex}")
@@ -182,22 +160,16 @@ class B123VccOsppfbChannelizerComponentManager(
             for i in range(num_channels):
                 vcc_config = B123VccOsppfbChannelizerConfig(
                     sample_rate=vcc_config_argin.sample_rate,
-                    gain=vcc_config_argin.gains[
-                        i + polarization * num_channels
-                    ],
+                    gain=vcc_config_argin.gains[i + polarization * num_channels],
                     channel=i,
                     pol=polarization,
                 )
 
-                self.logger.info(
-                    f"VCC JSON CONFIG channel={i} pol={polarization}: {vcc_config}"
-                )
+                self.logger.info(f"VCC JSON CONFIG channel={i} pol={polarization}: {vcc_config}")
 
                 result = configure(vcc_config.to_dict())
                 if result[0] != ResultCode.OK:
-                    self.logger.error(
-                        f"Configuring {self._device_id} failed. {result[1]}"
-                    )
+                    self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
                     break
 
         return result

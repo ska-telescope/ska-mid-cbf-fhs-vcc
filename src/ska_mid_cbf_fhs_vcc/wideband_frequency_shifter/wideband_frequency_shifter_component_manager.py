@@ -8,9 +8,7 @@ from marshmallow import ValidationError
 from ska_control_model import CommunicationStatus, ResultCode
 from ska_mid_cbf_fhs_common import FhsLowLevelComponentManagerBase
 
-from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_simulator import (
-    WidebandFrequencyShifterSimulator,
-)
+from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_simulator import WidebandFrequencyShifterSimulator
 
 
 @dataclass_json
@@ -28,9 +26,7 @@ class WidebandFrequencyShifterStatus:
     shift_frequency: float
 
 
-class WidebandFrequencyShifterComponentManager(
-    FhsLowLevelComponentManagerBase
-):
+class WidebandFrequencyShifterComponentManager(FhsLowLevelComponentManagerBase):
     def __init__(
         self: WidebandFrequencyShifterComponentManager,
         *args: Any,
@@ -46,29 +42,21 @@ class WidebandFrequencyShifterComponentManager(
     # Public Commands
     ##
 
-    def configure(
-        self: WidebandFrequencyShifterComponentManager, argin: str
-    ) -> tuple[ResultCode, str]:
+    def configure(self: WidebandFrequencyShifterComponentManager, argin: str) -> tuple[ResultCode, str]:
         try:
             self.logger.info("WFS Configuring..")
 
-            wfs_config: WidebandFrequencyShifterConfig = (
-                WidebandFrequencyShifterConfig.schema().loads(argin)
-            )
+            wfs_config: WidebandFrequencyShifterConfig = WidebandFrequencyShifterConfig.schema().loads(argin)
 
             self.logger.info(f"WFS JSON CONFIG: {wfs_config.to_json()}")
 
             result = super().configure(wfs_config.to_dict())
 
             if result[0] != ResultCode.OK:
-                self.logger.error(
-                    f"Configuring {self._device_id} failed. {result[1]}"
-                )
+                self.logger.error(f"Configuring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            error_msg = (
-                "Validation error: argin doesn't match the required schema"
-            )
+            error_msg = "Validation error: argin doesn't match the required schema"
             self.logger.error(f"{error_msg}: {vex}")
             result = ResultCode.FAILED, error_msg
         except Exception as ex:
@@ -78,9 +66,7 @@ class WidebandFrequencyShifterComponentManager(
 
         return result
 
-    def deconfigure(
-        self: WidebandFrequencyShifterComponentManager, argin: str = None
-    ) -> tuple[ResultCode, str]:
+    def deconfigure(self: WidebandFrequencyShifterComponentManager, argin: str = None) -> tuple[ResultCode, str]:
         try:
             result: tuple[ResultCode, str] = (
                 ResultCode.OK,
@@ -90,25 +76,17 @@ class WidebandFrequencyShifterComponentManager(
             if argin is None:
                 result = super().recover()
             else:
-                wfs_config: WidebandFrequencyShifterConfig = (
-                    WidebandFrequencyShifterConfig.schema().loads(argin)
-                )
+                wfs_config: WidebandFrequencyShifterConfig = WidebandFrequencyShifterConfig.schema().loads(argin)
 
-                self.logger.info(
-                    f"DECONFIG JSON CONFIG: {wfs_config.to_json()}"
-                )
+                self.logger.info(f"DECONFIG JSON CONFIG: {wfs_config.to_json()}")
 
                 result = super().deconfigure(argin)
 
                 if result[0] != ResultCode.OK:
-                    self.logger.error(
-                        f"DeConfiguring {self._device_id} failed. {result[1]}"
-                    )
+                    self.logger.error(f"DeConfiguring {self._device_id} failed. {result[1]}")
 
         except ValidationError as vex:
-            error_msg = (
-                "Validation error: argin doesn't match the required schema"
-            )
+            error_msg = "Validation error: argin doesn't match the required schema"
             self.logger.error(f"{error_msg}: {vex}")
             result = ResultCode.FAILED, error_msg
         except Exception as ex:
