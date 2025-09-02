@@ -50,7 +50,7 @@ class PacketValidationStatus:
 
 
 class PacketValidationManager(BaseIPBlockManager):
-    """Mock Packet Validation IP block manager."""
+    """Packet Validation IP block manager."""
 
     def __init__(
         self,
@@ -66,6 +66,7 @@ class PacketValidationManager(BaseIPBlockManager):
         emulator_id: str | None = None,
         emulator_base_url: str | None = None,
         logging_level: str = "INFO",
+        create_log_file: bool = True,
     ):
         super().__init__(
             ip_block_id,
@@ -81,6 +82,7 @@ class PacketValidationManager(BaseIPBlockManager):
             emulator_id,
             emulator_base_url,
             logging_level,
+            create_log_file,
         )
 
     def configure(self, config: PacketValidationConfig):

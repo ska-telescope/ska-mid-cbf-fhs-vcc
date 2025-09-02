@@ -41,7 +41,7 @@ class WidebandInputBufferStatus:
 
 
 class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
-    """Mock Wideband Input Buffer IP block manager."""
+    """Wideband Input Buffer IP block manager."""
 
     def __init__(
         self,
@@ -59,6 +59,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
         logging_level: str = "INFO",
         health_monitor_poll_interval: float = 30.0,
         update_health_state_callback: Callable = lambda _: None,
+        create_log_file: bool = True,
     ):
         self.test_attr_value: int = 15
         self.expected_sample_rate = None
@@ -80,6 +81,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
             logging_level,
             health_monitor_poll_interval,
             update_health_state_callback,
+            create_log_file,
         )
 
     def configure(self, config: WidebandInputBufferConfig) -> int:

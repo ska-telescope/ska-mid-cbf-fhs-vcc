@@ -63,7 +63,7 @@ class B123VccOsppfbChannelizerConfigureArgin:
 
 
 class B123VccOsppfbChannelizerManager(BaseIPBlockManager):
-    """Mock B123 VCC IP block manager."""
+    """B123 VCC IP block manager."""
 
     def __init__(
         self,
@@ -79,6 +79,7 @@ class B123VccOsppfbChannelizerManager(BaseIPBlockManager):
         emulator_id: str | None = None,
         emulator_base_url: str | None = None,
         logging_level: str = "INFO",
+        create_log_file: bool = True,
     ):
         super().__init__(
             ip_block_id,
@@ -94,13 +95,14 @@ class B123VccOsppfbChannelizerManager(BaseIPBlockManager):
             emulator_id,
             emulator_base_url,
             logging_level,
+            create_log_file,
         )
 
-    def configure(self, config: B123VccOsppfbChannelizerConfigureArgin):
+    def configure(self, config: B123VccOsppfbChannelizerConfigureArgin) -> int:
         """Configure the B123 VCC."""
         return self._generate_and_configure(config, super().configure)
 
-    def deconfigure(self, config: B123VccOsppfbChannelizerConfigureArgin | None):
+    def deconfigure(self, config: B123VccOsppfbChannelizerConfigureArgin | None = None) -> int:
         """Deconfigure the B123 VCC."""
         if config is None:
             config = B123VccOsppfbChannelizerConfigureArgin()

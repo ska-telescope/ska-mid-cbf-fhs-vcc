@@ -25,7 +25,7 @@ class FrequencySliceSelectionStatus:
 
 
 class FrequencySliceSelectionManager(BaseIPBlockManager):
-    """Mock Frequency Slice Selection IP block manager."""
+    """Frequency Slice Selection IP block manager."""
 
     def __init__(
         self,
@@ -41,6 +41,7 @@ class FrequencySliceSelectionManager(BaseIPBlockManager):
         emulator_id: str | None = None,
         emulator_base_url: str | None = None,
         logging_level: str = "INFO",
+        create_log_file: bool = True,
     ):
         super().__init__(
             ip_block_id,
@@ -56,13 +57,14 @@ class FrequencySliceSelectionManager(BaseIPBlockManager):
             emulator_id,
             emulator_base_url,
             logging_level,
+            create_log_file,
         )
 
-    def configure(self, config: FrequencySliceSelectionConfig):
+    def configure(self, config: FrequencySliceSelectionConfig) -> int:
         """Configure the Frequency Slice Selection."""
         return super().configure(config.to_dict())
 
-    def deconfigure(self, config: FrequencySliceSelectionConfig | None):
+    def deconfigure(self, config: FrequencySliceSelectionConfig | None = None) -> int:
         """Deconfigure the Frequency Slice Selection."""
         if config is None:
             return super().recover()

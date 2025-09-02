@@ -32,7 +32,7 @@ class CircuitSwitchConfigureArgin:
 
 
 class CircuitSwitchManager(BaseIPBlockManager):
-    """Mock Circuit Switch IP block manager."""
+    """Circuit Switch IP block manager."""
 
     def __init__(
         self,
@@ -48,6 +48,7 @@ class CircuitSwitchManager(BaseIPBlockManager):
         emulator_id: str | None = None,
         emulator_base_url: str | None = None,
         logging_level: str = "INFO",
+        create_log_file: bool = True,
     ):
         super().__init__(
             ip_block_id,
@@ -63,6 +64,7 @@ class CircuitSwitchManager(BaseIPBlockManager):
             emulator_id,
             emulator_base_url,
             logging_level,
+            create_log_file,
         )
 
     def configure(self, config: CircuitSwitchConfigureArgin):
