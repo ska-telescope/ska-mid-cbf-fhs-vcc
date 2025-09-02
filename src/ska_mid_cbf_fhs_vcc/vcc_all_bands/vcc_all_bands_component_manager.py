@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import textwrap
 from math import isnan
 from threading import Event
 from typing import Any, Callable, Optional
@@ -368,7 +369,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
-                "An unexpected error occurred while trying to update subarray membership.",
+                textwrap.shorten(f"An unexpected exception occurred during UpdateSubarrayMembership: {ex}", width=400),
             )
 
     def _auto_set_filter_gains(
@@ -475,7 +476,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
-                "An unexpected error occurred while trying to auto-set gains.",
+                textwrap.shorten(f"An unexpected exception occurred during AutoSetFilterGains: {ex}", width=400),
             )
 
     @override
