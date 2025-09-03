@@ -1,27 +1,29 @@
 from __future__ import annotations
 
-import json
-
 import tango
-from ska_control_model import ResultCode
-from ska_mid_cbf_fhs_common import FhsFastCommand, FhsObsBaseDevice
+from overrides import override
+from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
-from tango.server import attribute, command, device_property
+from tango.server import attribute, command
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VCCAllBandsComponentManager
 
 
-class VCCAllBandsController(FhsObsBaseDevice):
-    component_manager: VCCAllBandsComponentManager  # type hint only
+class VCCAllBandsController(FhsControllerBaseDevice):
+    @property
+    @override(check_signature=False)
+    def component_manager_class(self) -> type[VCCAllBandsComponentManager]:
+        """The component manager class associated with this controller device."""
+        return VCCAllBandsComponentManager
 
-    ll_props = device_property(dtype=str)
-    logging_level = device_property(dtype=str)
-
-    bitstream_path = device_property(dtype="str")
-    bitstream_id = device_property(dtype="str")
-    bitstream_version = device_property(dtype="str")
-    emulator_id = device_property(dtype="str")
-    emulator_base_url = device_property(dtype="str")
+    @property
+    @override
+    def extra_lrcs(self) -> list[tuple[str, str]]:
+        """Any extra long-running commands defined on this device."""
+        return [
+            ("UpdateSubarrayMembership", "update_subarray_membership"),
+            ("AutoSetFilterGains", "auto_set_filter_gains"),
+        ]
 
     @attribute(
         dtype=str,
@@ -38,46 +40,6 @@ class VCCAllBandsController(FhsObsBaseDevice):
     )
     def subarrayID(self):
         return self.component_manager.subarray_id
-
-    @attribute(
-        dtype=(str,),
-        max_dim_x=1000,
-        doc="The list of IP block IDs the VCC can interact with.",
-    )
-    def ipBlockIDs(self) -> tango.DevVarStringArray:
-        """
-        Read the ipBlockIDs attribute.
-
-        :return: The list of IP block IDs the VCC can interact with.
-        :rtype: tango.DevVarLongStringArray
-        """
-        return self.component_manager.ip_block_list
-
-    @attribute(
-        dtype=str,
-        doc="List of aliases for all IP blocks.",
-    )
-    def ipBlockAliases(self) -> tango.DevString:
-        """
-        Read the ipBlockAliases attribute.
-
-        :return: The list of IP block IDs the VCC can interact with.
-        :rtype: tango.DevVarLongStringArray
-        """
-        return json.dumps(self.component_manager.ip_block_aliases)
-
-    @attribute(
-        dtype=str,
-        doc="JSON object containing any overridden IP block logging levels.",
-    )
-    def loggingLevelOverrides(self) -> tango.DevString:
-        """
-        Read the loggingLevelOverrides attribute.
-
-        :return: The current logging levels for each IP block.
-        :rtype: tango.DevVarLongStringArray
-        """
-        return self.component_manager.ip_block_logging_level_overrides.to_json()
 
     @attribute(
         abs_change=1,
@@ -158,20 +120,6 @@ class VCCAllBandsController(FhsObsBaseDevice):
         abs_change=1,
         min_alarm=5,
         dtype=int,
-        doc="Test top-level attribute on LL class variable",
-    )
-    def wibprotoTest(self) -> int:
-        return self.component_manager.wideband_input_buffer.test_attr_value
-
-    @wibprotoTest.write
-    def wibprotoTest(self, value: int) -> None:
-        self.component_manager.wideband_input_buffer.test_attr_value = value
-        self.push_change_event("wibprotoTest", value)
-
-    @attribute(
-        abs_change=1,
-        min_alarm=5,
-        dtype=int,
         doc="Expected sample rate of the WIB",
     )
     def wibExpectedSampleRate(self) -> int:
@@ -193,42 +141,6 @@ class VCCAllBandsController(FhsObsBaseDevice):
     def wibExpectedDishId(self, value: str) -> None:
         self.component_manager.wideband_input_buffer.expected_dish_id = value
         self.push_change_event("wibExpectedDishId", value)
-
-    @command(
-        dtype_in="DevString",
-        dtype_out="DevVarLongStringArray",
-        doc_in="Configuration JSON.",
-    )
-    def ConfigureScan(self, config: str) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="ConfigureScan")
-        # It is important that the argin keyword be provided, as the
-        # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=config)
-        return [[result_code], [command_id]]
-
-    @command(
-        dtype_in="DevULong",
-        dtype_out="DevVarLongStringArray",
-        doc_in="The scan ID.",
-    )
-    def Scan(self, scan_id: int) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="Scan")
-        # It is important that the argin keyword be provided, as the
-        # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=scan_id)
-        return [[result_code], [command_id]]
-
-    @command(dtype_out="DevVarLongStringArray")
-    def EndScan(self) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="EndScan")
-        result_code, command_id = command_handler()
-        return [[result_code], [command_id]]
-
-    @command(dtype_out="DevVarLongStringArray")
-    def ObsReset(self) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="ObsReset")
-        result_code, command_id = command_handler()
-        return [[result_code], [command_id]]
 
     @command(
         dtype_in="DevUShort",
@@ -258,124 +170,6 @@ class VCCAllBandsController(FhsObsBaseDevice):
         result_code, command_id = command_handler(argin=headroom)
         return [[result_code], [command_id]]
 
-    @command(
-        dtype_in=(str,),
-        dtype_out="DevVarLongStringArray",
-        doc_in="Array of IP block names to get the status of.",
-        doc_out="JSON object containing the requested IP block statuses.",
-    )
-    @tango.DebugIt()
-    def GetStatus(self, ip_blocks: list[str] = []) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="GetStatus")
-        result_code, result = command_handler(ip_blocks=ip_blocks)
-        return [[result_code], [result]]
-
-    @command(
-        dtype_in=str,
-        dtype_out="DevVarLongStringArray",
-        doc_in="Logging level to set as the new global/default.",
-    )
-    @tango.DebugIt()
-    def UpdateGlobalLoggingLevel(self, logging_level: str) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="UpdateGlobalLoggingLevel")
-        result_code, message = command_handler(logging_level=logging_level)
-        return [[result_code], [message]]
-
-    @command(
-        dtype_in=str,
-        dtype_out="DevVarLongStringArray",
-        doc_in="JSON object describing a set of IP blocks to update with a certain logging level override.",
-    )
-    @tango.DebugIt()
-    def UpdateIPBlockLoggingLevels(self, input_json: str) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="UpdateIPBlockLoggingLevels")
-        result_code, message = command_handler(input_json=input_json)
-        return [[result_code], [message]]
-
-    @command(dtype_out="DevVarLongStringArray")
-    @tango.DebugIt()
-    def ClearLoggingLevelOverrides(self) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="ClearLoggingLevelOverrides")
-        result_code, message = command_handler()
-        return [[result_code], [message]]
-
-    # TODO: REMOVE THIS
-    @command(dtype_out="DevVarLongStringArray")
-    @tango.DebugIt()
-    def TestCmd(self) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="TestCmd")
-        result_code, message = command_handler()
-        return [[result_code], [message]]
-
-    class GetStatusCommand(FhsFastCommand):
-        def do(self, ip_blocks: list[str] = []) -> tuple[ResultCode, str]:
-            result_code, result = self._component_manager.get_status(ip_blocks=ip_blocks)
-            return result_code, json.dumps(result)
-
-    class UpdateGlobalLoggingLevelCommand(FhsFastCommand):
-        def do(self, logging_level: str) -> tuple[ResultCode, str]:
-            result_code, message = self._component_manager.update_global_logging_level(logging_level=logging_level)
-            return result_code, message
-
-    class UpdateIPBlockLoggingLevelsCommand(FhsFastCommand):
-        def do(self, input_json: str) -> tuple[ResultCode, str]:
-            result_code, message = self._component_manager.update_ip_block_logging_levels(input_json=input_json)
-            return result_code, message
-
-    class ClearLoggingLevelOverridesCommand(FhsFastCommand):
-        def do(self) -> tuple[ResultCode, str]:
-            result_code, message = self._component_manager.clear_logging_level_overrides()
-            return result_code, message
-
-    class TestCmdCommand(FhsFastCommand):
-        def do(self) -> tuple[ResultCode, str]:
-            result_code, message = self._component_manager.test_cmd()
-            return result_code, message
-
-    def create_component_manager(self) -> VCCAllBandsComponentManager:
-        return VCCAllBandsComponentManager(
-            device=self,
-            logger=self.logger,
-            attr_change_callback=self.push_change_event,
-            attr_archive_callback=self.push_archive_event,
-            health_state_callback=self._update_health_state,
-            communication_state_callback=self._communication_state_changed,
-            obs_command_running_callback=self._obs_command_running,
-            component_state_callback=self._component_state_changed,
-            obs_state_action_callback=self._obs_state_action,
-            simulation_mode=self.simulation_mode,
-            emulation_mode=self.emulation_mode,
-        )
-
-    def init_command_objects(self) -> None:
-        commands_and_methods = [
-            ("GoToIdle", "go_to_idle"),  # replacement for Deconfigure
-            ("ConfigureBand", "configure_band"),
-            ("ConfigureScan", "configure_scan"),
-            ("Scan", "scan"),
-            ("EndScan", "end_scan"),
-            ("ObsReset", "obs_reset"),
-            ("UpdateSubarrayMembership", "update_subarray_membership"),
-            ("AutoSetFilterGains", "auto_set_filter_gains"),
-        ]
-
-        super().init_command_objects(commands_and_methods)
-
-        # init the fast commands
-        commands_and_classes = [
-            ("GetStatus", self.GetStatusCommand),
-            ("UpdateGlobalLoggingLevel", self.UpdateGlobalLoggingLevelCommand),
-            ("UpdateIPBlockLoggingLevels", self.UpdateIPBlockLoggingLevelsCommand),
-            ("ClearLoggingLevelOverrides", self.ClearLoggingLevelOverridesCommand),
-            ("TestCmd", self.TestCmdCommand),
-        ]
-
-        super().init_fast_command_objects(commands_and_classes)
-
-
-def main(args=None, **kwargs):
-    return VCCAllBandsController.run_server(args=args or None, **kwargs)
-
 
 if __name__ == "__main__":
-    main()
+    VCCAllBandsController.run()

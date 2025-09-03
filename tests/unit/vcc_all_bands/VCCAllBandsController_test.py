@@ -1,16 +1,9 @@
 import json
 import time
 from unittest import mock
-from assertpy import assert_that
 import pytest
 from ska_mid_cbf_fhs_common.testing.device_test_utils import DeviceTestUtils
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_device import B123VccOsppfbChannelizer
-from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device import FrequencySliceSelection
-from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
-from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device import WidebandFrequencyShifter
-from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
-from ska_mid_cbf_fhs_common import WidebandPowerMeter, FtileEthernet, MPFloat, DeviceTestUtils
-from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_device import VCCStreamMerge
+from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils
 from tango import DevState
 from ska_control_model import AdminMode, HealthState, ResultCode
 from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
@@ -29,196 +22,18 @@ class TestVCCAllBandsController:
         """
         harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
 
-        harness.add_device(
-            device_name="test/vcc123/1",
-            device_class=B123VccOsppfbChannelizer,
-            device_id="1",
-            device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
-            simulation_mode="1",
-            emulation_mode="0",
-            emulator_ip_block_id="b123vcc",
-            emulator_id="vcc-emulator-1",
-        )
-
-        harness.add_device(
-            device_name="test/fss/1",
-            device_class=FrequencySliceSelection,
-            device_id="1",
-            device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
-            simulation_mode="1",
-            emulation_mode="0",
-            emulator_ip_block_id="fs_selection_26_2_1",
-            emulator_id="vcc-emulator-1",
-        )
-
-        harness.add_device(
-            device_name="test/ethernet200g/1",
-            device_class=FtileEthernet,
-            device_id="1",
-            device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
-            simulation_mode="1",
-            emulation_mode="0",
-            emulator_ip_block_id="ethernet_200g",
-            emulator_id="vcc-emulator-1",
-            health_monitor_poll_interval="1",
-        )
-
-        harness.add_device(
-            device_name="test/packet_validation/1",
-            device_class=PacketValidation,
-            device_id="1",
-            device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
-            simulation_mode="1",
-            emulation_mode="0",
-            emulator_ip_block_id="packet_validation",
-            emulator_id="vcc-emulator-1",
-        )
-
-        harness.add_device(
-            device_name="test/wfs/1",
-            device_class=WidebandFrequencyShifter,
-            device_id="1",
-            device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
-            simulation_mode="1",
-            emulation_mode="0",
-            emulator_ip_block_id="wideband_frequency_shifter",
-            emulator_id="vcc-emulator-1",
-        )
-
-        harness.add_device(
-            device_name="test/wib/1",
-            device_class=WidebandInputBuffer,
-            device_id="1",
-            device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
-            simulation_mode="1",
-            emulation_mode="0",
-            emulator_ip_block_id="wideband_input_buffer",
-            emulator_id="vcc-emulator-1",
-            health_monitor_poll_interval="1",
-        )
-
-        harness.add_device(
-            device_name="test/b123wpm/1",
-            device_class=WidebandPowerMeter,
-            device_id="1",
-            device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
-            simulation_mode="1",
-            emulation_mode="0",
-            emulator_ip_block_id="b123_wideband_power_meter",
-            emulator_id="vcc-emulator-1",
-        )
-
-        harness.add_device(
-            device_name="test/b45awpm/1",
-            device_class=WidebandPowerMeter,
-            device_id="1",
-            device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
-            simulation_mode="1",
-            emulation_mode="0",
-            emulator_ip_block_id="b45a_wideband_power_meter",
-            emulator_id="vcc-emulator-1",
-        )
-
-        harness.add_device(
-            device_name="test/b5bwpm/1",
-            device_class=WidebandPowerMeter,
-            device_id="1",
-            device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
-            simulation_mode="1",
-            emulation_mode="0",
-            emulator_ip_block_id="b5b_wideband_power_meter",
-            emulator_id="vcc-emulator-1",
-        )
-
-        for i in range(1, 3):
-            harness.add_device(
-                device_name=f"test/vcc-stream-merge{i}/1",
-                device_class=VCCStreamMerge,
-                device_id="1",
-                device_version_num="1.0",
-                device_gitlab_hash="abc123",
-                emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-                bitstream_path="../resources",
-                bitstream_id="agilex-vcc",
-                bitstream_version="0.0.1",
-                simulation_mode="1",
-                emulation_mode="0",
-                emulator_ip_block_id=f"vcc_stream_merge{i}",
-                emulator_id="vcc-emulator-1",
-            )
-
-        for i in range(1, 26 + 1):
-            harness.add_device(
-                device_name=f"test/fs{i}wpm/1",
-                device_class=WidebandPowerMeter,
-                device_id="1",
-                device_version_num="1.0",
-                device_gitlab_hash="abc123",
-                emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-                bitstream_path="../resources",
-                bitstream_id="agilex-vcc",
-                bitstream_version="0.0.1",
-                simulation_mode="1",
-                emulation_mode="0",
-                emulator_ip_block_id=f"fs_wideband_power_meter_{i}",
-                emulator_id="vcc-emulator-1",
-            )
+        ip_block_props = {}
 
         harness.add_device(
             device_name="test/vccallbands/1",
             device_class=VCCAllBandsController,
             device_id="1",
             device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
+            device_gitlab_hash="n/a",
+            emulator_base_url="n/a",
+            bitstream_path="n/a",
+            bitstream_id="n/a",
+            bitstream_version="n/a",
             simulation_mode="0",
             emulation_mode="1",
             ethernet_200g_fqdn="test/ethernet200g/1",

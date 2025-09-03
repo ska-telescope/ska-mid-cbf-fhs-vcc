@@ -111,7 +111,7 @@ vccAllBandsDevice:
     - name: logging_level
       values:
         - "DEBUG"
-    - name: ll_props
+    - name: ip_blocks
       values:
         Ethernet200Gb:
           emulator_ip_block_id: "ethernet_200g"
