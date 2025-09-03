@@ -1,13 +1,14 @@
+from base64 import b64encode
 import json
-import time
 from unittest import mock
 import pytest
 from ska_mid_cbf_fhs_common.testing.device_test_utils import DeviceTestUtils
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils
 from tango import DevState
-from ska_control_model import AdminMode, HealthState, ResultCode
+from ska_control_model import AdminMode, ResultCode
 from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
+from ska_tango_testing.integration import TangoEventTracer
 
 EVENT_TIMEOUT = 30
 
@@ -22,7 +23,29 @@ class TestVCCAllBandsController:
         """
         harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
 
-        ip_block_props = {}
+        default_ip_block = {
+            "emulator_ip_block_id": "n/a",
+            "firmware_ip_block_id": "n/a",
+        }
+        ip_blocks = {
+            "Ethernet200Gb": default_ip_block | {
+                "ethernet_mode": "200GbE",
+                "health_monitor_poll_interval": "60",
+            }, 
+            "B123VccOsppfbChannelizer": default_ip_block,
+            "FrequencySliceSelection": default_ip_block,
+            "PacketValidation": default_ip_block,
+            "WidebandFrequencyShifter": default_ip_block,
+            "WidebandInputBuffer": default_ip_block | {
+                "health_monitor_poll_interval": "3",
+            }, 
+            "VCCStreamMerge1": default_ip_block,
+            "VCCStreamMerge2": default_ip_block,
+            "B123WidebandPowerMeter": default_ip_block,
+            "B45AWidebandPowerMeter": default_ip_block,
+            "B5BWidebandPowerMeter": default_ip_block,
+            **{f"FS{i}WidebandPowerMeter": default_ip_block for i in range(1, 27)},
+        }
 
         harness.add_device(
             device_name="test/vccallbands/1",
@@ -30,35 +53,24 @@ class TestVCCAllBandsController:
             device_id="1",
             device_version_num="1.0",
             device_gitlab_hash="n/a",
-            emulator_base_url="n/a",
-            bitstream_path="n/a",
-            bitstream_id="n/a",
-            bitstream_version="n/a",
-            simulation_mode="0",
-            emulation_mode="1",
-            ethernet_200g_fqdn="test/ethernet200g/1",
-            packet_validation_fqdn="test/packet_validation/1",
-            vcc123_channelizer_fqdn="test/vcc123/1",
-            vcc45_channelizer_fqdn="vcc45",
-            wideband_input_buffer_fqdn="test/wib/1",
-            wideband_frequency_shifter_fqdn="test/wfs/1",
-            circuit_switch_fqdn="cs",
-            fs_selection_fqdn="test/fss/1",
-            b123_wideband_power_meter_fqdn="test/b123wpm/1",
-            b45a_wideband_power_meter_fqdn="test/b45awpm/1",
-            b5b_wideband_power_meter_fqdn="test/b5bwpm/1",
-            fs_wideband_power_meter_fqdn="test/fs<multiplicity>wpm/1",
-            vcc_stream_merge_fqdn="test/vcc-stream-merge<multiplicity>/1",
+            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
+            bitstream_path="tests/resources",
+            bitstream_id="agilex-vcc",
+            bitstream_version="0.0.1",
+            simulation_mode="1",
+            emulation_mode="0",
+            logging_level="DEBUG",
+            ip_blocks=b64encode(json.dumps(ip_blocks).encode("utf-8")).decode("ascii"),
         )
 
         with harness as test_context:
             yield test_context
 
-    def test_init(self, vcc_all_bands_device):
+    def test_init(self, vcc_all_bands_device: VCCAllBandsController):
         state = vcc_all_bands_device.state()
         assert state == DevState.ON
 
-    def test_adminMode_online(self, vcc_all_bands_device):
+    def test_admin_mode_online(self, vcc_all_bands_device: VCCAllBandsController):
         prev_admin_mode = vcc_all_bands_device.read_attribute("adminMode")
 
         assert prev_admin_mode.value == AdminMode.OFFLINE.value
@@ -69,32 +81,8 @@ class TestVCCAllBandsController:
 
         assert admin_mode.value == AdminMode.ONLINE.value
 
-    def test_health_state_prop(self, vcc_all_bands_device, wib_device, wib_event_tracer):
-        self.test_adminMode_online(vcc_all_bands_device)
-
-        all_bands_health_state = vcc_all_bands_device.read_attribute("healthState")
-
-        assert all_bands_health_state.value == HealthState.OK.value
-
-        DeviceTestUtils.polling_test_setup(
-            device_under_test=wib_device,
-            event_tracer=wib_event_tracer,
-            config_json_file="tests/test_data/device_config/wideband_input_buffer_health_failure.json",
-            event_timeout=EVENT_TIMEOUT
-        )
-
-        time.sleep(3)
-
-        health_state = wib_device.read_attribute("healthState")
-
-        assert health_state.value is HealthState.FAILED.value
-
-        vcc_health_state = vcc_all_bands_device.read_attribute("healthState")
-
-        assert vcc_health_state.value is HealthState.FAILED.value
-
-    def test_adminMode_offline(self, vcc_all_bands_device, wib_device, wib_event_tracer):
-        self.test_health_state_prop(vcc_all_bands_device, wib_device, wib_event_tracer)
+    def test_admin_mode_offline(self, vcc_all_bands_device: VCCAllBandsController):
+        self.test_admin_mode_online(vcc_all_bands_device)
         prev_admin_mode = vcc_all_bands_device.read_attribute("adminMode")
 
         assert prev_admin_mode.value == AdminMode.ONLINE.value
@@ -120,8 +108,8 @@ class TestVCCAllBandsController:
         current_subarray: int,
         new_subarray: int,
         expected_result: ResultCode,
-        vcc_all_bands_device,
-        vcc_all_bands_event_tracer
+        vcc_all_bands_device: VCCAllBandsController,
+        vcc_all_bands_event_tracer: TangoEventTracer,
     ):
         with mock.patch(
             "ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager.VCCAllBandsComponentManager.subarray_id",
@@ -458,8 +446,8 @@ class TestVCCAllBandsController:
         headroom: list[float],
         expected_multipliers: list[MPFloat],
         expected_result: ResultCode,
-        vcc_all_bands_device,
-        vcc_all_bands_event_tracer
+        vcc_all_bands_device: VCCAllBandsController,
+        vcc_all_bands_event_tracer: TangoEventTracer,
     ):
         with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
             config_json = f.read()
@@ -476,9 +464,9 @@ class TestVCCAllBandsController:
         )
 
         with mock.patch(
-            "tango.DeviceProxy.GetStatus",
+            "ska_mid_cbf_fhs_common.ip_blocks.wideband_power_meter.wideband_power_meter_manager.WidebandPowerMeterManager.status",
             side_effect=[
-                (None, (json.dumps({"avg_power_pol_x": measured_power[i], "avg_power_pol_y": measured_power[i + len(measured_power) // 2]}), None))
+                {"avg_power_pol_x": measured_power[i], "avg_power_pol_y": measured_power[i + len(measured_power) // 2]}
             for i in range(len(measured_power) // 2)],
             create=True,
         ):

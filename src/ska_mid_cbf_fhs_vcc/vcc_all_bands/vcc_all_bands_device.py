@@ -9,7 +9,7 @@ from tango.server import attribute, command
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VCCAllBandsComponentManager
 
 
-class VCCAllBandsController(FhsControllerBaseDevice):
+class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]):
     @property
     @override(check_signature=False)
     def component_manager_class(self) -> type[VCCAllBandsComponentManager]:
