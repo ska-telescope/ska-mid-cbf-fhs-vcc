@@ -55,6 +55,9 @@ pytest-repeat = "^0.9.3"
 pytest-pylint = "^0.21.0"
 pylint = "3.2.6"
 pylint-junit = "0.3.4"
+flake8-quotes = "^3.4.0"
+flake8-annotations = "^3.0.1"
+# flake8-import-conventions = "0.2.2"
 
 [tool.poetry.group.docs.dependencies]
 Sphinx = "^6"

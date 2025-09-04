@@ -87,8 +87,16 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 # --extend-ignore=E203,W503: 	ignore whitespace before ':' in slices and line breaks before binary operators
 # --ignore=DAR201:				docstrings don't require a returns section if nothing is returned
 # --ignore=E731:				allow assigning lambdas
+# --__-quotes=double: 			make strings double quotes everywhere
+# --extend-ignore=ANN...:		ignore flake8 annotation errors so hints are advisory
+
+
 PYTHON_SWITCHES_FOR_FLAKE8 = \
-	--ignore=DAR201,W503,E731,E203 \
+	--ignore=W503,E731,E203 \
+	--extend-ignore=ANN001,ANN002,ANN003,ANN101,ANN102,ANN201,ANN202,ANN401
+	--inline-quotes=double \
+	--multiline-quotes=double \
+	--docstring-quotes=double \
 
 # Style Guide Mapping PyLlnt
 # F0002, F0010: Astroid errors. Not our problem.
@@ -97,7 +105,7 @@ PYTHON_SWITCHES_FOR_FLAKE8 = \
 # --disable=E0401,E0611,F0002,F0010,E0001,E1101:	suppress known import and parsing errors
 # --load-plugins=pylint.extensions.docparams:		docstrings for all public modules functions classes and methods have to include argument return and raise sections
 # --enable=											enable
-# 	C0114,C0115,C0116:								require module class and function docstrings
+# 	C0114:											top level description to module, try to document method classes and files when necessary and when comments would benefit the developer (not enforced)
 # 	C0209:											use f strings instead of percent formatting or str.format()
 #	R1732,W1514:									use 'with' to open files
 #	W0603:											discourage using global
@@ -109,7 +117,7 @@ PYTHON_SWITCHES_FOR_FLAKE8 = \
 PYTHON_SWITCHES_FOR_PYLINT = \ 
 	--disable=E0401,E0611,F0002,F0010,E0001,E1101 \
 	--load-plugins=pylint.extensions.docparams \
-	--enable=C0114,C0115,C0116,C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801 \
+	--enable=C0114,C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801 \
 	--module-naming-style=snake_case \
 	--function-naming-style=snake_case \
 	--method-naming-style=snake-case \
@@ -121,7 +129,7 @@ PYTHON_SWITCHES_FOR_PYLINT = \
 PYTHON_SWITCHES_FOR_PYLINT_LOCAL = \ 
 	--disable=E0401,F0002,F0010,E1101 \
 	--load-plugins=pylint.extensions.docparams \
-	--enable=C0114,C0115,C0116,C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801 \
+	--enable=C0114,C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801 \
 	--module-naming-style=snake_case \
 	--function-naming-style=snake_case \
 	--method-naming-style=snake-case \
