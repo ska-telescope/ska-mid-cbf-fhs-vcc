@@ -178,7 +178,9 @@ class VCCAllBandsController(FhsObsBaseDevice):
             "or a value per frequency slice to be applied separately."
         ),
     )
-    def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] = [3.0]) -> DevVarLongStringArrayType:
+    def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] | None = None) -> DevVarLongStringArrayType:
+        if headroom is None:
+            headroom = [3.0]
         command_handler = self.get_command_object(command_name="AutoSetFilterGains")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode

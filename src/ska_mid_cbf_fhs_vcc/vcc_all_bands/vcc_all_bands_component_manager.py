@@ -778,10 +778,12 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
 
     def _auto_set_filter_gains(
         self: VCCAllBandsComponentManager,
-        argin: list[float] = [3.0],
+        argin: list[float] | None = None,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
     ) -> None:
+        if argin is None:
+            argin = [3.0]
         """
         Calculate and apply optimal gain multipliers for VCC coarse channels.
 

@@ -59,6 +59,7 @@ flake8-quotes = "^3.4.0"
 flake8-annotations = "^3.0.1"
 flake8-import-conventions = "0.1.0"
 flake8-pep585 = "0.1.7"
+flake8-bugbear = "24.12.12"
 
 [tool.poetry.group.docs.dependencies]
 Sphinx = "^6"

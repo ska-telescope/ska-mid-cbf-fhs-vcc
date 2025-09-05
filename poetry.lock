@@ -701,6 +701,30 @@ url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
 reference = "gitlab-fhs-common"
 
 [[package]]
+name = "flake8-bugbear"
+version = "24.12.12"
+description = "A plugin for flake8 finding likely bugs and design problems in your program. Contains warnings that don't belong in pyflakes and pycodestyle."
+optional = false
+python-versions = ">=3.8.1"
+groups = ["dev"]
+files = [
+    {file = "flake8_bugbear-24.12.12-py3-none-any.whl", hash = "sha256:1b6967436f65ca22a42e5373aaa6f2d87966ade9aa38d4baf2a1be550767545e"},
+    {file = "flake8_bugbear-24.12.12.tar.gz", hash = "sha256:46273cef0a6b6ff48ca2d69e472f41420a42a46e24b2a8972e4f0d6733d12a64"},
+]
+
+[package.dependencies]
+attrs = ">=22.2.0"
+flake8 = ">=6.0.0"
+
+[package.extras]
+dev = ["coverage", "hypothesis", "hypothesmith (>=0.2)", "pre-commit", "pytest", "tox"]
+
+[package.source]
+type = "legacy"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
+
+[[package]]
 name = "flake8-import-conventions"
 version = "0.1.0"
 description = "An opinionated plugin for Flake8 on how certain packages should be imported or aliased."
@@ -3287,4 +3311,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "5aabd2bb055d9080708f8906b190bf54d2fb361505367a4d0378e8795b87e73b"
+content-hash = "5616bacc66aec0ddc032b2cb32c015334c22dadc5e57a95ccdeb187948489fbe"
