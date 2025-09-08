@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import tango
-from overrides import override
 from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command
@@ -11,16 +10,21 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VC
 
 class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]):
     @property
-    @override(check_signature=False)
     def component_manager_class(self) -> type[VCCAllBandsComponentManager]:
         """The component manager class associated with this controller device."""
         return VCCAllBandsComponentManager
 
     @property
-    @override
-    def extra_lrcs(self) -> list[tuple[str, str]]:
-        """Any extra long-running commands defined on this device."""
+    def long_running_commands(self) -> list[tuple[str, str]]:
+        """:obj:`list[tuple[str, str]]`: A list of long-running commands defined on this controller,
+        each a tuple of the form ("TangoCommandName", "python_method_name").
+        """
         return [
+            ("ConfigureScan", "configure_scan"),
+            ("Scan", "scan"),
+            ("EndScan", "end_scan"),
+            ("GoToIdle", "go_to_idle"),
+            ("ObsReset", "obs_reset"),
             ("UpdateSubarrayMembership", "update_subarray_membership"),
             ("AutoSetFilterGains", "auto_set_filter_gains"),
         ]

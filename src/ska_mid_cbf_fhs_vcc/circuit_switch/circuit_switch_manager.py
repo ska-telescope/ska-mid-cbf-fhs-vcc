@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 from dataclasses_json import dataclass_json
-from ska_control_model import SimulationMode
 from ska_mid_cbf_fhs_common import BaseIPBlockManager
 
 from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_simulator import CircuitSwitchSimulator
@@ -34,38 +33,10 @@ class CircuitSwitchConfigureArgin:
 class CircuitSwitchManager(BaseIPBlockManager):
     """Circuit Switch IP block manager."""
 
-    def __init__(
-        self,
-        ip_block_id: str,
-        controlling_device_name: str,
-        bitstream_path: str,
-        bitstream_id: str,
-        bitstream_version: str,
-        firmware_ip_block_id: str,
-        simulation_mode: SimulationMode = SimulationMode.TRUE,
-        emulation_mode: bool = False,
-        emulator_ip_block_id: str | None = None,
-        emulator_id: str | None = None,
-        emulator_base_url: str | None = None,
-        logging_level: str = "INFO",
-        create_log_file: bool = True,
-    ):
-        super().__init__(
-            ip_block_id,
-            controlling_device_name,
-            bitstream_path,
-            bitstream_id,
-            bitstream_version,
-            firmware_ip_block_id,
-            CircuitSwitchSimulator,
-            simulation_mode,
-            emulation_mode,
-            emulator_ip_block_id,
-            emulator_id,
-            emulator_base_url,
-            logging_level,
-            create_log_file,
-        )
+    @property
+    def simulator_api_class(self) -> type[CircuitSwitchSimulator]:
+        """:obj:`type[CircuitSwitchSimulator]`: The simulator API class for this IP block."""
+        return CircuitSwitchSimulator
 
     def configure(self, config: CircuitSwitchConfigureArgin):
         """Configure the Circuit Switch."""

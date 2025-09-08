@@ -6,7 +6,6 @@ from math import isnan
 from threading import Event
 from typing import Any, Callable, Optional
 
-from overrides import override
 from ska_control_model import ResultCode, TaskStatus
 from ska_mid_cbf_fhs_common import (
     FtileEthernetManager,
@@ -48,12 +47,10 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager imp
 
 class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     @property
-    @override
     def config_schema(self) -> dict[str, Any]:
         """The ConfigureScan input JSON schema for this controller."""
         return vcc_all_bands_configure_scan_schema
 
-    @override
     def _controller_specific_setup(self) -> None:
         """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
         self._vcc_id = self.device.device_id
@@ -76,7 +73,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.vcc_gains: list[float] = []
         self.last_requested_headrooms: list[float] = []
 
-    @override
     def _init_ip_block_managers(self) -> list[BaseIPBlockManager]:
         self.ethernet_200g = FtileEthernetManager(**self._ip_block_props("Ethernet200Gb", additional_props=["ethernet_mode"]))
         self.b123_vcc = B123VccOsppfbChannelizerManager(**self._ip_block_props("B123VccOsppfbChannelizer"))
@@ -128,7 +124,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             task_callback=task_callback,
         )
 
-    @override
     def _configure_scan_controller_impl(
         self,
         configuration: dict[str, Any],
@@ -286,7 +281,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.logger.info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}")
 
-    @override
     def _scan_controller_impl(
         self,
         scan_id: int,
@@ -308,7 +302,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             if eth_start_result == 1 or pv_start_result == 1 or wib_start_result == 1:
                 raise RuntimeError("Failed to start Ethernet, PV and/or WIB")
 
-    @override
     def _end_scan_controller_impl(
         self,
         task_callback: Optional[Callable] = None,
@@ -479,7 +472,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 textwrap.shorten(f"An unexpected exception occurred during AutoSetFilterGains: {ex}", width=400),
             )
 
-    @override
     def _stop_low_level(self) -> int:
         eth_stop_result, pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
             self.ethernet_200g.stop(),
@@ -491,7 +483,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             return 1
         return 0
 
-    @override
     def _reset(self) -> None:
         self._config_id = ""
         self._scan_id = 0

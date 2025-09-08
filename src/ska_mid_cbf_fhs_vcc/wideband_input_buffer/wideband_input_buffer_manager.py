@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 from dataclasses_json import dataclass_json
-from ska_control_model import HealthState, SimulationMode
+from ska_control_model import HealthState
 from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, convert_dish_id_uint16_t_to_mnemonic, non_blocking
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
@@ -43,46 +43,14 @@ class WidebandInputBufferStatus:
 class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
     """Wideband Input Buffer IP block manager."""
 
-    def __init__(
-        self,
-        ip_block_id: str,
-        controlling_device_name: str,
-        bitstream_path: str,
-        bitstream_id: str,
-        bitstream_version: str,
-        firmware_ip_block_id: str,
-        simulation_mode: SimulationMode = SimulationMode.TRUE,
-        emulation_mode: bool = False,
-        emulator_ip_block_id: str | None = None,
-        emulator_id: str | None = None,
-        emulator_base_url: str | None = None,
-        logging_level: str = "INFO",
-        health_monitor_poll_interval: float = 30.0,
-        update_health_state_callback: Callable = lambda _: None,
-        create_log_file: bool = True,
-    ):
-        self.test_attr_value: int = 15
+    @property
+    def simulator_api_class(self) -> type[WidebandInputBufferSimulator]:
+        """:obj:`type[WidebandInputBufferSimulator]`: The simulator API class for this IP block."""
+        return WidebandInputBufferSimulator
+
+    def _manager_specific_setup(self, **kwargs):
         self.expected_sample_rate = None
         self.expected_dish_id = None
-
-        super().__init__(
-            ip_block_id,
-            controlling_device_name,
-            bitstream_path,
-            bitstream_id,
-            bitstream_version,
-            firmware_ip_block_id,
-            WidebandInputBufferSimulator,
-            simulation_mode,
-            emulation_mode,
-            emulator_ip_block_id,
-            emulator_id,
-            emulator_base_url,
-            logging_level,
-            health_monitor_poll_interval,
-            update_health_state_callback,
-            create_log_file,
-        )
 
     def configure(self, config: WidebandInputBufferConfig) -> int:
         """Configure the Wideband Input Buffer."""
