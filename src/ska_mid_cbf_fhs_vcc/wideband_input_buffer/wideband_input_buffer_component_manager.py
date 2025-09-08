@@ -1,7 +1,7 @@
 from __future__ import annotations  # allow forward references in type hints
 
 from dataclasses import dataclass
-from typing import Any, Callable, Tuple
+from typing import Any, Callable
 
 import numpy as np
 from dataclasses_json import dataclass_json
@@ -99,11 +99,11 @@ class WidebandInputBufferComponentManager(FhsLowLevelComponentManagerBase):
 
         return result
 
-    def start(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
+    def start(self: WidebandInputBufferComponentManager, *args, **kwargs) -> tuple[TaskStatus, str]:
         self.fhs_health_monitor.start_polling()
         return super().start(*args, **kwargs)
 
-    def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> Tuple[TaskStatus, str]:
+    def stop(self: WidebandInputBufferComponentManager, *args, **kwargs) -> tuple[TaskStatus, str]:
         self.fhs_health_monitor.stop_polling()
         return super().stop(*args, **kwargs)
 
