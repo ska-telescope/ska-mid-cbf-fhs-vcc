@@ -190,6 +190,16 @@ lint-python-local:
 	if [ $$PYLINT_ERROR -ne 0 ]; then echo "Pylint lint errors were found. Check build/lint-output/4-pylint-output.txt for details."; fi; \
 	if [ $$ISORT_ERROR -eq 0 ] && [ $$BLACK_ERROR -eq 0 ] && [ $$FLAKE_ERROR -eq 0 ] && [ $$PYLINT_ERROR -eq 0 ]; then echo "Lint was successful. Check build/lint-output for any additional details."; fi;
 
+build-docs-local:
+	@echo "Cleaning up old build(s)..."
+	-@rm -rf docs/src/_code/ska_mid_cbf_fhs_vcc/*.rst
+	-@rm -rf ./build/sphinx_local/
+	@echo "Generating API docs..."
+	-@poetry run sphinx-apidoc -t docs/src/_templates -o docs/src/_code/ska_mid_cbf_fhs_vcc -M -f -d 2 src/ska_mid_cbf_fhs_vcc/
+	@echo "Building docs..."
+	-@$(POETRY_PYTHON_RUNNER) sphinx -T -b html -d ./build/sphinx_local/cache/doctrees -D language=en ./docs/src ./build/sphinx_local/output
+	@echo "Done. Open build/sphinx_local/output/index.html to view the generated docs."
+
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
 
 # define private overrides for above variables in here

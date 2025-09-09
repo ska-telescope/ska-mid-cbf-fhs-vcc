@@ -97,14 +97,9 @@ language = 'En-en'
 exclude_patterns = []
 
 # Packages to ignore importing of these packages when building the documentation
-autodoc_mock_imports = [
-    'PyTango',
-    'tango',
-    'ska_tango_base',
-    'jsonschema',
-    'numpy',
-    'plotly'
-]
+autodoc_mock_imports = []
+
+autoclass_content = 'both'
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'

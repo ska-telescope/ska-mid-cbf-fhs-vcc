@@ -20,11 +20,13 @@ def event_timeout() -> int:
 def vcc_all_bands_device_fixture(
     test_context: TangoTestHarnessContext,
 ) -> VCCAllBandsController:
-    """
-    Fixture that returns the device under test.
+    """Fixture that returns the device under test.
 
-    :param test_context: the context in which the tests run
-    :return: the DeviceProxy to device under test
+    Args:
+        test_context (:obj:`TangoTestHarnessContext`): The context in which the tests run.
+
+    Returns:
+        :obj:`DeviceProxy`: A proxy to the device under test.
     """
     return test_context.get_device("test/vccallbands/1")
 
@@ -32,12 +34,14 @@ def vcc_all_bands_device_fixture(
 def vcc_all_bands_tango_event_tracer(
     vcc_all_bands_device,
 ) -> Generator[TangoEventTracer, None, None]:
-    """
-    Fixture that returns a TangoEventTracer for pertinent devices.
+    """Fixture that returns a TangoEventTracer for pertinent devices.
     Takes as parameter all required device proxy fixtures for this test module.
 
-    :param device_under_test: the DeviceProxy to device under test
-    :return: TangoEventTracer
+    Args:
+        device_under_test (:obj:`DeviceProxy`): Proxy to the device under test.
+
+    Returns:
+        :obj:`TangoEventTracer`: An event tracer for the device under test.
     """
     tracer = TangoEventTracer(
         event_enum_mapping={

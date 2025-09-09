@@ -46,6 +46,54 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager imp
 
 
 class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
+    """Component manager for the VCC All Bands Controller device."""
+
+    subarray_id: int
+    """:obj:`int`: The ID of the subarray assigned to this VCC."""
+
+    frequency_band: FrequencyBandEnum
+    """:obj:`FrequencyBandEnum`: The frequency band in which this VCC is operating."""
+
+    frequency_band_offset: list[int]
+    """:obj:`list[int]`: The frequency band offset(s) configured for this VCC.
+    Contains two offset values, however the second value is only meaningful when operating in band 5.
+    Only the first value is required in all other bands.
+    """
+
+    input_sample_rate: int
+    """:obj:`int`: The input sample rate of this VCC."""
+
+    vcc_gains: list[float]
+    """:obj:`list[float]`: The currently applied gain multipliers for VCC coarse channels."""
+
+    last_requested_headrooms: list[float]
+    """:obj:`list[float]`: The requested headrooms from the most recent call to AutoSetFilterGains."""
+
+    ethernet_200g: FtileEthernetManager
+    """:obj:`FtileEthernetManager`: The IP block manager for the F-tile Ethernet block."""
+
+    b123_vcc: B123VccOsppfbChannelizerManager
+    """:obj:`B123VccOsppfbChannelizerManager`: The IP block manager for the B123 Channelizer."""
+
+    frequency_slice_selection: FrequencySliceSelectionManager
+    """:obj:`FrequencySliceSelectionManager`: The IP block manager for the Frequency Slice Selection block."""
+
+    packet_validation: PacketValidationManager
+    """:obj:`PacketValidationManager`: The IP block manager for the Packet Validation block."""
+
+    wideband_frequency_shifter: WidebandFrequencyShifterManager
+    """:obj:`WidebandFrequencyShifterManager`: The IP block manager for the Wideband Frequency Shifter."""
+
+    wideband_input_buffer: WidebandInputBufferManager
+    """:obj:`WidebandInputBufferManager`: The IP block manager for the Wideband Input Buffer."""
+
+    vcc_stream_merges: dict[int, VCCStreamMergeManager]
+    """:obj:`dict[int, VCCStreamMergeManager]`: Dictionary containing the IP block managers for the two VCC Stream Merge blocks, mapped by index (1 or 2)."""
+
+    wideband_power_meters: dict[VCCBandGroup | int, WidebandPowerMeterManager]
+    """:obj:`dict[VCCBandGroup | int, WidebandPowerMeterManager]`: Dictionary containing the IP block managers
+    for all Wideband Power Meters, mapped by either band group (B123, etc) or FS index (1 to 26)."""
+
     @property
     def config_schema(self) -> dict[str, Any]:
         """The ConfigureScan input JSON schema for this controller."""
@@ -60,9 +108,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.subarray_id = 0
 
-        self.frequency_band = FrequencyBandEnum._1
-        self.frequency_band_offset = [0, 0]
-        self.input_sample_rate = 0
+        self.frequency_band: FrequencyBandEnum = FrequencyBandEnum._1
+        self.frequency_band_offset: list[int] = [0, 0]
+
+        self.input_sample_rate: int = 0
 
         self._fsps = []
         self._maximum_fsps = 10
@@ -70,10 +119,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         # vcc channels * number of polarizations
         self._num_fs = 0
         self._num_vcc_gains = 0
+
         self.vcc_gains: list[float] = []
         self.last_requested_headrooms: list[float] = []
 
     def _init_ip_block_managers(self) -> list[BaseIPBlockManager]:
+        """Instantiate all the IP block managers for the VCC controller."""
+
         self.ethernet_200g = FtileEthernetManager(**self._ip_block_props("Ethernet200Gb", additional_props=["ethernet_mode"]))
         self.b123_vcc = B123VccOsppfbChannelizerManager(**self._ip_block_props("B123VccOsppfbChannelizer"))
         self.frequency_slice_selection = FrequencySliceSelectionManager(**self._ip_block_props("FrequencySliceSelection"))
@@ -107,6 +159,15 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         argin: int,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the UpdateSubarrayMembership command implementation.
+
+        Args:
+            argin (:obj:`int`): The subarray ID.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
         return self.submit_task(
             func=self._update_subarray_membership,
             args=[argin],
@@ -118,6 +179,17 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         argin: list[float],
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the AutoSetFilterGains command implementation.
+
+        Args:
+            argin (:obj:`list[float]`): Requested RFI headroom, in decibels (dB).
+                Must be a list containing either a single value to apply to all frequency slices,
+                or a value per frequency slice to be applied separately.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
         return self.submit_task(
             func=self._auto_set_filter_gains,
             args=[argin],
@@ -129,6 +201,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         configuration: dict[str, Any],
         task_callback: Optional[Callable] = None,
     ) -> None:
+        """VCC-specific implementation for the ConfigureScan command.
+
+        Args:
+            configuration (:obj:`dict[str, Any]`): The configuration JSON string from the command's input argument.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+        """
         self._sample_rate = configuration["dish_sample_rate"]
         self._samples_per_frame = configuration["samples_per_frame"]
         self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
@@ -286,12 +364,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         scan_id: int,
         task_callback: Optional[Callable] = None,
     ) -> None:
-        """
-        Begin scan operation.
+        """VCC-specific implementation for the Scan command.
 
-        :param argin: scan ID integer
-
-        :return: None
+        Args:
+            scan_id (:obj:`int`): ID of the scan
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
         """
         if not self.simulation_mode:
             eth_start_result, pv_start_result, wib_start_result = NonBlockingFunction.await_all(
@@ -306,10 +383,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self,
         task_callback: Optional[Callable] = None,
     ) -> None:
-        """
-        End scan operation.
+        """VCC-specific implementation for the EndScan command.
 
-        :return: None
+        Args:
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
         """
         if not self.simulation_mode:
             eth_stop_result, pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
@@ -326,12 +403,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
     ) -> None:
-        """
-        Update subarray membership for this VCC.
+        """Update subarray membership for this VCC. This is the implementation for the UpdateSubarrayMembership command.
 
-        :param argin: Subarray ID to assign to this VCC. Set to 0 to unassign the currently assigned subarray.
-
-        :return: None
+        Args:
+            argin (:obj:`int`): Subarray ID to assign to this VCC. Set to 0 to unassign the currently assigned subarray.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+            task_abort_event (:obj:`Optional[Event]`, optional): An event representing whether or not the task has aborted.
+                Default is None.
         """
         try:
             if argin < 0 or argin > 16:
@@ -371,14 +449,16 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
     ) -> None:
-        """
-        Calculate and apply optimal gain multipliers for VCC coarse channels.
+        """Calculate and apply optimal gain multipliers for VCC coarse channels.
+        This is the implementation for the AutoSetFilterGains command.
 
-        :param argin: Requested RFI headroom, in decibels (dB).
-            Must be a list containing either a single value to apply to all frequency slices,
-            or a value per frequency slice to be applied separately.
-
-        :return: None
+        Args:
+            argin (:obj:`list[float]`): Requested RFI headroom, in decibels (dB).
+                Must be a list containing either a single value to apply to all frequency slices,
+                or a value per frequency slice to be applied separately.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+            task_abort_event (:obj:`Optional[Event]`, optional): An event representing whether or not the task has aborted.
+                Default is None.
         """
         try:
             if (num_headrooms := len(argin)) not in [1, self._num_fs]:
@@ -472,7 +552,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 textwrap.shorten(f"An unexpected exception occurred during AutoSetFilterGains: {ex}", width=400),
             )
 
-    def _stop_low_level(self) -> int:
+    def _stop_ip_blocks(self) -> int:
+        """Stop all IP blocks."""
         eth_stop_result, pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
             self.ethernet_200g.stop(),
             self.packet_validation.stop(),
@@ -484,6 +565,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         return 0
 
     def _reset(self) -> None:
+        """Reset all attributes and other data."""
         self._config_id = ""
         self._scan_id = 0
         self.frequency_band = FrequencyBandEnum._1
