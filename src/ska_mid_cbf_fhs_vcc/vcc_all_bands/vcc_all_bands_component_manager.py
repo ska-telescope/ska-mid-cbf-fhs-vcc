@@ -982,8 +982,8 @@ class VCCAllBandsComponentManager(FhsObsComponentManagerBase):
             self.fhs_health_monitor.add_health_state(event_data.device.dev_name(), event_data.attr_value.value)
 
     def _long_running_command_callback(self: VCCAllBandsComponentManager, event: EventData):
-        id, result = event.attr_value.value
+        event_data_id, result = event.attr_value.value
 
-        self.logger.info(f"VCC {self._vcc_id}: Long running command '{id}' on '{event.device.name()}' completed with result '{result}'")
+        self.logger.info(f"VCC {self._vcc_id}: Long running command '{event_data_id}' on '{event.device.name()}' completed with result '{result}'")
         if event.err:
             self.logger.error(f"VCC {self._vcc_id}: Long running command failed {event.errors}")

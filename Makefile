@@ -98,9 +98,8 @@ check-filenames:
 # --ignore=E731:                 allow assigning lambdas
 # --__-quotes=double:            make strings double quotes everywhere
 # --extend-ignore=ANN...:        ignore flake8 annotation errors so hints are advisory
-PYTHON_SWITCHES_FOR_FLAKE8 = \
-	--ignore=W503,E731,E203 \
-	--extend-ignore=ANN001,ANN002,ANN003,ANN101,ANN102,ANN201,ANN202,ANN401
+PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=W503,E731,E203 \
+	--extend-ignore=ANN001,ANN002,ANN003,ANN101,ANN102,ANN201,ANN202,ANN401 \ 
 	--inline-quotes=double \
 	--multiline-quotes=double \
 	--docstring-quotes=double \
@@ -121,26 +120,24 @@ PYTHON_SWITCHES_FOR_FLAKE8 = \
 #    C1801:                                         don't terminate lines with semicolons
 # --ALL-naming-style:                               classes, functions, methods, and variables are named in snake case
 # --const-rgx='[A-Z_][A-Z0-9_]*$':                  constants are named in all caps with underscores
-PYTHON_SWITCHES_FOR_PYLINT = \ 
-	--disable=E0401,E0611,F0002,F0010,E0001,E1101 \
+PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010,E0001,E1101,C0114 \
 	--load-plugins=pylint.extensions.docparams \
-	--enable=C0114,C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801 \
+	--enable=C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801,C0103 \
 	--module-naming-style=snake_case \
 	--function-naming-style=snake_case \
 	--variable-naming-style=snake_case \
 	--class-naming-style=PascalCase \
-	--const-rgx='[A-Z_][A-Z0-9_]*$'
+	--const-rgx='[A-Z_][A-Z0-9_]*$\'
 
 
-PYTHON_SWITCHES_FOR_PYLINT_LOCAL = \ 
-	--disable=E0401,F0002,F0010,E1101 \
+PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010,E1101,C0114 \
 	--load-plugins=pylint.extensions.docparams \
-	--enable=C0114,C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801 \
+	--enable=C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801,C0103 \
 	--module-naming-style=snake_case \
 	--function-naming-style=snake_case \
 	--variable-naming-style=snake_case \
 	--class-naming-style=PascalCase \
-	--const-rgx='[A-Z_][A-Z0-9_]*$'
+	--const-rgx='[A-Z_][A-Z0-9_]*$\'
 
 PYTHON_LINE_LENGTH = 180
 POETRY_PYTHON_RUNNER = poetry run python3 -m
@@ -243,7 +240,7 @@ lint-python-local:
 	if [ $$BLACK_ERROR -ne 0 ]; then echo "Black lint errors were found. Check build/lint-output/2-black-output.txt for details."; fi; \
 	if [ $$FLAKE_ERROR -ne 0 ]; then echo "Flake8 lint errors were found. Check build/lint-output/3-flake8-output.txt for details."; fi; \
 	if [ $$PYLINT_ERROR -ne 0 ]; then echo "Pylint lint errors were found. Check build/lint-output/4-pylint-output.txt for details."; fi; \
-	if [ $$ISORT_ERROR -eq 0 ] && [ $$BLACK_ERROR -eq 0 ] && [ $$FLAKE_ERROR -eq 0 ] && [ $$PYLINT_ERROR -eq 0 ]; then echo "Lint was successful. Check build/lint-output for any additional details."; fi;
+	if [ $$ISORT_ERROR -eq 0 ] && [ $$BLACK_ERROR -eq 0 ] && [ $$FLAKE_ERROR -eq 0 ] && [ $$PYLINT_ERROR -eq 0 ]; then echo "Lint was successful. Check build/lint-output for any additional details."; fi; 
 
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
 
