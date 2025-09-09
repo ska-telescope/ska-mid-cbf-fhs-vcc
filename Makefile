@@ -99,7 +99,7 @@ check-filenames:
 # --__-quotes=double:            make strings double quotes everywhere
 # --extend-ignore=ANN...:        ignore flake8 annotation errors so hints are advisory
 PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=W503,E731,E203 \
-	--extend-ignore=ANN001,ANN002,ANN003,ANN101,ANN102,ANN201,ANN202,ANN401 \ 
+	--extend-ignore=ANN001,ANN002,ANN003,ANN101,ANN102,ANN201,ANN202,ANN401 \
 	--inline-quotes=double \
 	--multiline-quotes=double \
 	--docstring-quotes=double \
