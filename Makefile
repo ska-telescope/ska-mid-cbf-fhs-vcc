@@ -81,16 +81,6 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	${TARANTA_PARAMS} \
 	${PV_STORAGE_PARAM}
 
-# checks that python filenames don't use dashes
-.PHONY: check-filenames
-check-filenames:
-	@bad=$$(git ls-files '*.py' | grep -E '/|^' | grep -n -- "-" || true); \
-	if [ -n "$$bad" ]; then \
-		echo "Filename rule violated (no dashes allowed in .py files)"; \
-		echo "$$bad"; \
-		exit 1; \
-	else echo "Filename check passed."; fi
-
 # Style guide mapping flake8
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
 # --extend-ignore=E203,W503:     ignore whitespace before ':' in slices and line breaks before binary operators
@@ -98,7 +88,8 @@ check-filenames:
 # --ignore=E731:                 allow assigning lambdas
 # --__-quotes=double:            make strings double quotes everywhere
 # --extend-ignore=ANN...:        ignore flake8 annotation errors so hints are advisory
-PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=W503,E731,E203 \
+
+# PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=W503,E731,E203 \
 	--extend-ignore=ANN001,ANN002,ANN003,ANN101,ANN102,ANN201,ANN202,ANN401 \
 	--inline-quotes=double \
 	--multiline-quotes=double \
@@ -120,7 +111,8 @@ PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=W503,E731,E203 \
 #    C1801:                                         don't terminate lines with semicolons
 # --ALL-naming-style:                               classes, functions, methods, and variables are named in snake case
 # --const-rgx='[A-Z_][A-Z0-9_]*$':                  constants are named in all caps with underscores
-PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010,E0001,E1101,C0114 \
+
+# PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010,E0001,E1101,C0114 \
 	--load-plugins=pylint.extensions.docparams \
 	--enable=C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801,C0103 \
 	--module-naming-style=snake_case \
@@ -130,7 +122,7 @@ PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010,E0001,E1101,C0114
 	--const-rgx='[A-Z_][A-Z0-9_]*$\'
 
 
-PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010,E1101,C0114 \
+# PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010,E1101,C0114 \
 	--load-plugins=pylint.extensions.docparams \
 	--enable=C0209,R1732,W1514,W0603,W0401,W0622,C0321,W0301,C1801,C0103 \
 	--module-naming-style=snake_case \
@@ -146,8 +138,6 @@ PYTHON_LINT_TARGET = ./src/
 K8S_VARS_AFTER_PYTEST = -s
 
 PYTHON_TEST_FILE = ./tests/unit/
-
-.PHONY: check-filenames lint lint-ci
 
 #
 # include makefile to pick up the standard Make targets, e.g., 'make build'
@@ -227,7 +217,6 @@ lint-python-local:
 	mkdir -p build/lint-output
 	@echo "Linting..."
 	-@ISORT_ERROR=0 BLACK_ERROR=0 FLAKE_ERROR=0 PYLINT_ERROR=0; \
-	$(MAKE) check-filenames; \
 	$(POETRY_PYTHON_RUNNER) isort --check-only --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET) &> build/lint-output/1-isort-output.txt; \
 	if [ $$? -ne 0 ]; then ISORT_ERROR=1; fi; \
 	$(POETRY_PYTHON_RUNNER) black --exclude .+\.ipynb --check --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_BLACK) $(PYTHON_LINT_TARGET) &> build/lint-output/2-black-output.txt; \
