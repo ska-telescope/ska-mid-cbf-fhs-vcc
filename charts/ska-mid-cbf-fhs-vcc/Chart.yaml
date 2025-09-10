@@ -8,8 +8,6 @@ dependencies:
 - name: ska-tango-util
   version: 0.4.23
   repository: https://artefact.skao.int/repository/helm-internal
-  #repository: "file:///home/ja004983_p/projects/ska-tango-charts/charts/ska-tango-util"
-  #repository: "file://../../../ska-tango-charts/charts/ska-tango-util"
 - name: ska-tango-base
   version: 0.4.23
   repository: https://artefact.skao.int/repository/helm-internal
