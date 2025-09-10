@@ -51,6 +51,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     subarray_id: int
     """:obj:`int`: The ID of the subarray assigned to this VCC."""
 
+    expected_dish_id: str | None
+    """:obj:`int`: The ID of the dish this VCC is expecting data from."""
+
     frequency_band: FrequencyBandEnum
     """:obj:`FrequencyBandEnum`: The frequency band in which this VCC is operating."""
 
@@ -104,9 +107,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self._vcc_id = self.device.device_id
         self._config_id = ""
         self._scan_id = 0
-        self._expected_dish_id = None
 
         self.subarray_id = 0
+        self.expected_dish_id = None
 
         self.frequency_band: FrequencyBandEnum = FrequencyBandEnum._1
         self.frequency_band_offset: list[int] = [0, 0]
@@ -210,7 +213,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self._sample_rate = configuration["dish_sample_rate"]
         self._samples_per_frame = configuration["samples_per_frame"]
         self.frequency_band = freq_band_dict()[configuration["frequency_band"]]
-        self._expected_dish_id = configuration["expected_dish_id"]
+        self.expected_dish_id = configuration["expected_dish_id"]
         self._config_id = configuration["config_id"]
         self.logger.info(f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}")
 
@@ -294,7 +297,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 self.logger.error("Configuration of WIB failed.")
                 raise RuntimeError("Configuration of WIB failed.")
 
-            self.wideband_input_buffer.expected_dish_id = self._expected_dish_id
+            self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
 
             # Pre-channelizer WPM Configuration
             self.logger.debug("Pre-channelizer Wideband Power Meters Configuring..")
