@@ -110,7 +110,7 @@ vccAllBandsDevice:
   properties:
     - name: logging_level
       values:
-        - "DEBUG"
+        - "INFO"
     - name: ip_blocks
       values:
         Ethernet200Gb:
