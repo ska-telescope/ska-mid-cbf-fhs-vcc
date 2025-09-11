@@ -191,7 +191,7 @@ class TestVCCAllBandsSim:
         #     attribute_new_value = "_2"
 
         # Override attribute with new value
-        sim_vcc_all_bands_device.simOverrides = json.dumps(
+        sim_vcc_all_bands_device.simOverrides2 = json.dumps(
             {
                 "attributes": {
                     attribute_name: attribute_new_value,
