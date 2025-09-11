@@ -16,8 +16,8 @@ from typing import Any
 from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, SimModeObsCMBase
 from tango.server import run
 
+from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_helpers import FrequencyBandEnum
 
 __all__ = ["SimVCCAllBandsCM", "SimVCCAllBandsController"]
 

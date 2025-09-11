@@ -1,4 +1,4 @@
-schema = {
+vcc_all_bands_configure_scan_schema = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "VCC All Bands Controller Configuration",
     "description": "Configuration object for the VCC All Bands Controller",

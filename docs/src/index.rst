@@ -25,6 +25,18 @@
   icd/icd.md
 
 .. toctree::
+  :caption: VCC Controller Class Reference
+  :maxdepth: 2
+
+  code/vcc_all_bands/index
+
+.. toctree::
+  :caption: Full Code Reference
+  :maxdepth: 2
+
+  code/full/index
+
+.. toctree::
   :caption: Deployment
 
   package/minikube_setup
