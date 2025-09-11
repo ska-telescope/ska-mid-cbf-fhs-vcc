@@ -25,6 +25,7 @@ pytest-logs.txt
 docs/_build
 docs/src/_build
 docs/src/_code/*.rst
+docs/src/_code/ska_mid_cbf_fhs_vcc/*.rst
 docs/src/_generated_pages/*.rst
 docs/src/_generated_pages/img/*.png
 docs/apidocs

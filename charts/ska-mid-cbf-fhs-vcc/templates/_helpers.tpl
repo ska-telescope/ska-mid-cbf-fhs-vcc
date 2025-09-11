@@ -63,8 +63,13 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
           {{- range $index, $property := $device.properties }}
           - name: {{ $property.name }}
             values:
+            {{- if eq $property.name "ip_blocks" }}
+            {{- $tmp := $property.values | toJson }}
+            - {{ tpl $tmp $scope | b64enc | quote }}
+            {{- else }}
             {{- range $index, $value := $property.values }}
             - "{{ tpl $value $scope }}"
+            {{- end }}
             {{- end }}
           {{- end }}
       {{- end }}
