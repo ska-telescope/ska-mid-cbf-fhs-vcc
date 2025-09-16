@@ -685,3 +685,297 @@ class TestVCCAllBandsSim:
                     previous_value=previous,
                     min_n_events=n,
                 )
+
+    def test_attribute_overrides_queueing(
+        self: TestVCCAllBandsSim,
+        sim_vcc_all_bands_device: Any,
+    ) -> None:
+        """ Test attribute overrides by queueing multiple and consuming from the queue. Additionally checks default overrides """
+        attribute_name = "subarrayID"
+        attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
+        attribute_new_value = ""
+        if isinstance(attribute_value, str):
+            attribute_new_value = "test"
+        elif isinstance(attribute_value, int):
+            attribute_new_value = 1
+        elif isinstance(attribute_value, list):
+            attribute_new_value = [1]
+        # TODO fix enum test
+        # elif isinstance(attribute_value, str):
+        #     attribute_new_value = "_2"
+
+        # Override attribute with new value
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "attributes": {
+                    attribute_name: attribute_new_value,
+                }
+            }
+        )
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "attributes": {
+                    attribute_name: attribute_new_value + attribute_new_value,
+                }
+            }
+        )
+
+        # Check value change
+        assert (
+            getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value
+        )
+
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "attributes": {
+                    attribute_name: attribute_new_value + attribute_new_value + attribute_new_value,
+                }
+            }
+        )
+
+        assert (
+            getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value + attribute_new_value
+        )
+        assert (
+            getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value + attribute_new_value + attribute_new_value
+        )
+        assert (
+            getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
+        )
+
+    def test_command_queueing(
+        self: TestVCCAllBandsSim,
+        sim_vcc_all_bands_device: Any,
+        sim_vcc_all_bands_event_tracer: TangoEventTracer,
+        event_timeout: int,
+    ) -> None:
+        """ Test command overrides by queueing multiple and consuming from the queue. Additionally checks default overrides """
+
+        # Queue Up 2 commands
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "commands": {
+                    "ConfigureScan": {
+                        "result_code": "FAILED",
+                        "message": "ConfigureScan failed",
+                        "invoked_action": "CONFIGURE_INVOKED",
+                        "completed_action": "GO_TO_IDLE",
+                    },
+                }
+            }
+        )
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "commands":{
+                    "ConfigureScan": {
+                        "allowed": True,
+                        "allowed_states": ["ON"],
+                        "allowed_obs_states": ["IDLE", "READY"],
+                        "result_code": "OK",
+                        "message": "ConfigureScan completed OK",
+                        "invoked_action": "CONFIGURE_INVOKED",
+                        "completed_action": "CONFIGURE_COMPLETED",
+                    },
+                }
+            }
+        )
+        # Set sim_vcc_all_bands_device ONLINE
+        sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
+
+        # Check event
+        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+            event_timeout
+        ).has_change_event_occurred(
+            device_name=sim_vcc_all_bands_device,
+            attribute_name="adminMode",
+            attribute_value=AdminMode.ONLINE,
+            previous_value=AdminMode.OFFLINE,
+            min_n_events=1,
+        )
+
+        # sim_vcc_all_bands_device pushes attribute events if value changes
+        old_sub_id = sim_vcc_all_bands_device.subarrayID
+        new_sub_id = old_sub_id + 1
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "attributes": {
+                    "subarrayID": new_sub_id,
+                }
+            }
+        )
+
+        # Test for first queued command
+        [[result_code], [configure_scan_command_id]] = (
+            sim_vcc_all_bands_device.ConfigureScan("test")
+        )
+        assert result_code == ResultCode.QUEUED
+        expected_events = [
+            ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
+            ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 1),
+            (
+                "longRunningCommandResult",
+                (
+                    f"{configure_scan_command_id}",
+                    f'[{ResultCode.FAILED.value}, "ConfigureScan failed"]',
+                ),
+                None,
+                1,
+            ),
+        ]
+
+        # Check events
+        for name, value, previous, n in expected_events:
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+                event_timeout
+            ).has_change_event_occurred(
+                device_name=sim_vcc_all_bands_device,
+                attribute_name=name,
+                attribute_value=value,
+                previous_value=previous,
+                min_n_events=n,
+            )
+
+        # Queue up 3rd command
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "commands": {
+                    "ConfigureScan": {
+                        "result_code": "FAILED",
+                        "message": "ConfigureScan failed",
+                        "invoked_action": "CONFIGURE_INVOKED",
+                        "completed_action": "GO_TO_IDLE",
+                    },
+                }
+            }
+        )
+        
+        # Test for second queued command
+        [[result_code], [configure_scan_command_id]] = (
+            sim_vcc_all_bands_device.ConfigureScan("test")
+        )
+        assert result_code == ResultCode.QUEUED
+        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle()
+        assert result_code == ResultCode.QUEUED
+        expected_events = [
+            ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
+            ("obsState", ObsState.READY, ObsState.CONFIGURING, 1),
+            (
+                "longRunningCommandResult",
+                (
+                    f"{configure_scan_command_id}",
+                    f'[{ResultCode.OK.value}, "ConfigureScan completed OK"]',
+                ),
+                None,
+                1,
+            ),
+            ("obsState", ObsState.CONFIGURING, ObsState.READY, 1),
+            ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 1),
+            (
+                "longRunningCommandResult",
+                (
+                    f"{go_to_idle_command_id}",
+                    f'[{ResultCode.OK.value}, "GoToIdle completed OK"]',
+                ),
+                None,
+                1,
+            ),
+        ]
+        # Check events
+        for name, value, previous, n in expected_events:
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+                event_timeout
+            ).has_change_event_occurred(
+                device_name=sim_vcc_all_bands_device,
+                attribute_name=name,
+                attribute_value=value,
+                previous_value=previous,
+                min_n_events=n,
+            )
+
+        # Test for 3rd queued command
+        [[result_code], [configure_scan_command_id]] = (
+            sim_vcc_all_bands_device.ConfigureScan("test")
+        )
+        assert result_code == ResultCode.QUEUED
+        expected_events = [
+            ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
+            ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 1),
+            (
+                "longRunningCommandResult",
+                (
+                    f"{configure_scan_command_id}",
+                    f'[{ResultCode.FAILED.value}, "ConfigureScan failed"]',
+                ),
+                None,
+                1,
+            ),
+        ]
+
+        # Check events
+        for name, value, previous, n in expected_events:
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+                event_timeout
+            ).has_change_event_occurred(
+                device_name=sim_vcc_all_bands_device,
+                attribute_name=name,
+                attribute_value=value,
+                previous_value=previous,
+                min_n_events=n,
+            )
+
+        # Check events
+        for name, value, previous, n in expected_events:
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+                event_timeout
+            ).has_change_event_occurred(
+                device_name=sim_vcc_all_bands_device,
+                attribute_name=name,
+                attribute_value=value,
+                previous_value=previous,
+                min_n_events=n,
+            )
+        
+        #Test for default command
+        [[result_code], [configure_scan_command_id]] = (
+            sim_vcc_all_bands_device.ConfigureScan("test")
+        )
+        assert result_code == ResultCode.QUEUED
+        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle()
+        assert result_code == ResultCode.QUEUED
+        expected_events = [
+            ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
+            ("obsState", ObsState.READY, ObsState.CONFIGURING, 1),
+            (
+                "longRunningCommandResult",
+                (
+                    f"{configure_scan_command_id}",
+                    f'[{ResultCode.OK.value}, "ConfigureScan completed OK"]',
+                ),
+                None,
+                1,
+            ),
+            ("obsState", ObsState.CONFIGURING, ObsState.READY, 1),
+            ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 1),
+            (
+                "longRunningCommandResult",
+                (
+                    f"{go_to_idle_command_id}",
+                    f'[{ResultCode.OK.value}, "GoToIdle completed OK"]',
+                ),
+                None,
+                1,
+            ),
+        ]
+        # Check events
+        for name, value, previous, n in expected_events:
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+                event_timeout
+            ).has_change_event_occurred(
+                device_name=sim_vcc_all_bands_device,
+                attribute_name=name,
+                attribute_value=value,
+                previous_value=previous,
+                min_n_events=n,
+            )
+
+
