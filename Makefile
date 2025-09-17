@@ -81,6 +81,14 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	${TARANTA_PARAMS} \
 	${PV_STORAGE_PARAM}
 
+# shared lint config file var definitions
+LINTCFG_DIR = tools/ska-mid-cbf-linter
+PYLINT_BASE_RC = $(LINTCFG_DIR)/.pylintrc
+PYLINT_EXTRA ?= 
+FLAKE8_BASE_CFG = $(LINTCFG_DIR)/.flake8
+FLAKE8_EXTRA ?= 
+
+
 # Style guide mapping flake8
 # W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
 # --extend-ignore=E203,W503:     ignore whitespace before ':' in slices and line breaks before binary operators
@@ -221,9 +229,9 @@ lint-python-local:
 	if [ $$? -ne 0 ]; then ISORT_ERROR=1; fi; \
 	$(POETRY_PYTHON_RUNNER) black --exclude .+\.ipynb --check --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_BLACK) $(PYTHON_LINT_TARGET) &> build/lint-output/2-black-output.txt; \
 	if [ $$? -ne 0 ]; then BLACK_ERROR=1; fi; \
-	$(POETRY_PYTHON_RUNNER) flake8 --show-source --statistics --max-line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_FLAKE8) $(PYTHON_LINT_TARGET) &> build/lint-output/3-flake8-output.txt; \
+	$(POETRY_PYTHON_RUNNER) flake8 --show-source --statistics --config=$(FLAKE8_BASE_CFG) $(PYTHON_LINT_TARGET) &> build/lint-output/3-flake8-output.txt; \
 	if [ $$? -ne 0 ]; then FLAKE_ERROR=1; fi; \
-	$(POETRY_PYTHON_RUNNER) pylint --output-format=parseable --max-line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_PYLINT_LOCAL) $(PYTHON_LINT_TARGET) &> build/lint-output/4-pylint-output.txt; \
+	$(POETRY_PYTHON_RUNNER) pylint --output-format=parseable --rcfile=$(PYLINT_BASE_RC) $(PYTHON_LINT_TARGET) &> build/lint-output/4-pylint-output.txt; \
 	if [ $$? -ne 0 ]; then PYLINT_ERROR=1; fi; \
 	if [ $$ISORT_ERROR -ne 0 ]; then echo "Isort lint errors were found. Check build/lint-output/1-isort-output.txt for details."; fi; \
 	if [ $$BLACK_ERROR -ne 0 ]; then echo "Black lint errors were found. Check build/lint-output/2-black-output.txt for details."; fi; \
