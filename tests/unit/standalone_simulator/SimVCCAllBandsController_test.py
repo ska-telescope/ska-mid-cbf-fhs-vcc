@@ -686,12 +686,25 @@ class TestVCCAllBandsSim:
                     min_n_events=n,
                 )
 
+
+    @pytest.mark.parametrize(
+        "attribute_name",
+        [
+            "expectedDishId",
+            "requestedRFIHeadroom",
+            "vccGains",
+            # "frequencyBand", # TODO fix enum test
+            "inputSampleRate",
+            "frequencyBandOffset",
+            "subarrayID",
+        ],
+    )
     def test_attribute_overrides_queueing(
         self: TestVCCAllBandsSim,
         sim_vcc_all_bands_device: Any,
+        attribute_name: Any,
     ) -> None:
         """ Test attribute overrides by queueing multiple and consuming from the queue. Additionally checks default overrides """
-        attribute_name = "subarrayID"
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
         attribute_new_value = ""
         if isinstance(attribute_value, str):
@@ -732,16 +745,16 @@ class TestVCCAllBandsSim:
                 }
             }
         )
-
-        assert (
-            getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value + attribute_new_value
-        )
-        assert (
-            getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value + attribute_new_value + attribute_new_value
-        )
-        assert (
-            getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
-        )
+        if not (isinstance(attribute_new_value, list)):
+            assert (
+                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value + attribute_new_value
+            )
+            assert (
+                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value + attribute_new_value + attribute_new_value
+            )
+            assert (
+                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
+            )
 
     def test_command_queueing(
         self: TestVCCAllBandsSim,
@@ -977,5 +990,31 @@ class TestVCCAllBandsSim:
                 previous_value=previous,
                 min_n_events=n,
             )
+
+    def test_deep_update(
+        self: TestVCCAllBandsSim,
+        sim_vcc_all_bands_device: Any,
+        sim_vcc_all_bands_event_tracer: TangoEventTracer,
+        event_timeout: int,
+    ) -> None:
+        """ Test command overrides updates merging default and override properly """
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "commands":{
+                    "ConfigureScan": {
+                        "allowed": False,
+                    },
+                }
+            }
+        )
+        assert json.loads(sim_vcc_all_bands_device.simOverrides)["commands"]["ConfigureScan"] == {
+                "allowed": False,
+                "allowed_states": ["ON"],
+                "allowed_obs_states": ["IDLE", "READY"],
+                "result_code": "OK",
+                "message": "ConfigureScan completed OK",
+                "invoked_action": "CONFIGURE_INVOKED",
+                "completed_action": "CONFIGURE_COMPLETED",
+            }
 
 
