@@ -61,6 +61,10 @@ LABEL int.skao.image.team=cipa-halifax \
 
 USER root
 
+ENV LOGS_DIR=/app/logs
+RUN mkdir -p $LOGS_DIR
+RUN chmod -R 777 $LOGS_DIR
+
 RUN apt-get update && \
   apt-get install -y apt-transport-https ca-certificates curl gnupg && \
   curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \

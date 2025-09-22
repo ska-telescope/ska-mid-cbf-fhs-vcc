@@ -1,4 +1,10 @@
-from enum import IntEnum
+from enum import Enum, IntEnum
+
+
+class VCCBandGroup(Enum):
+    B123 = "b123"
+    B45A = "b45a"
+    B5B = "b5b"
 
 
 class FrequencyBandEnum(IntEnum):
