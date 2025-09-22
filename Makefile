@@ -81,14 +81,13 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	${TARANTA_PARAMS} \
 	${PV_STORAGE_PARAM}
 
-# W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
-PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503,E731,E203
+# shared lint config file var definitions
+LINTCFG_DIR = tools/ska-mid-cbf-linter
+PYLINT_BASE_RC = $(LINTCFG_DIR)/.pylintrc
+PYLINT_EXTRA ?= 
+FLAKE8_BASE_CFG = $(LINTCFG_DIR)/.flake8
+FLAKE8_EXTRA ?= 
 
-# F0002, F0010: Astroid errors. Not our problem.
-# E0401: Import errors. Ignore for now until we figure out our actual project structure.
-# E0611: Name not found in module. This occurs in our pipeline because the image we pull down uses an older version of Python; we should remove this immediately once we have our image building to CAR.
-PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010,E0001,E1101
-PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010,E1101
 PYTHON_LINE_LENGTH = 130
 POETRY_PYTHON_RUNNER = poetry run python3 -m
 
@@ -180,9 +179,9 @@ lint-python-local:
 	if [ $$? -ne 0 ]; then ISORT_ERROR=1; fi; \
 	$(POETRY_PYTHON_RUNNER) black --exclude .+\.ipynb --check --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_BLACK) $(PYTHON_LINT_TARGET) &> build/lint-output/2-black-output.txt; \
 	if [ $$? -ne 0 ]; then BLACK_ERROR=1; fi; \
-	$(POETRY_PYTHON_RUNNER) flake8 --show-source --statistics --max-line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_FLAKE8) $(PYTHON_LINT_TARGET) &> build/lint-output/3-flake8-output.txt; \
+	$(POETRY_PYTHON_RUNNER) flake8 --show-source --statistics --config=$(FLAKE8_BASE_CFG) $(PYTHON_LINT_TARGET) &> build/lint-output/3-flake8-output.txt; \
 	if [ $$? -ne 0 ]; then FLAKE_ERROR=1; fi; \
-	$(POETRY_PYTHON_RUNNER) pylint --output-format=parseable --max-line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_PYLINT_LOCAL) $(PYTHON_LINT_TARGET) &> build/lint-output/4-pylint-output.txt; \
+	$(POETRY_PYTHON_RUNNER) pylint --output-format=parseable --rcfile=$(PYLINT_BASE_RC) $(PYTHON_LINT_TARGET) &> build/lint-output/4-pylint-output.txt; \
 	if [ $$? -ne 0 ]; then PYLINT_ERROR=1; fi; \
 	if [ $$ISORT_ERROR -ne 0 ]; then echo "Isort lint errors were found. Check build/lint-output/1-isort-output.txt for details."; fi; \
 	if [ $$BLACK_ERROR -ne 0 ]; then echo "Black lint errors were found. Check build/lint-output/2-black-output.txt for details."; fi; \
