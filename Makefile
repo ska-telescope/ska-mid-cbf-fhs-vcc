@@ -200,6 +200,16 @@ build-docs-local:
 	-@$(POETRY_PYTHON_RUNNER) sphinx -T -b html -d ./build/sphinx_local/cache/doctrees -D language=en ./docs/src ./build/sphinx_local/output
 	@echo "Done. Open build/sphinx_local/output/index.html to view the generated docs."
 
+FIND_MAIN_TAG_SCRIPT := scripts/find_latest_main_tag.sh
+
+COMMON_LATEST_COMMIT:=$(shell curl -s https://gitlab.com/api/v4/projects/66141956/repository/branches/main | jq -r '.commit.short_id')
+COMMON_LATEST_TAG:=$(shell $(FIND_MAIN_TAG_SCRIPT) 66141956)
+COMMON_VERSION?=$(COMMON_LATEST_TAG)+dev.c$(COMMON_LATEST_COMMIT)
+
+get-latest-common:
+	echo "latest version is $(COMMON_VERSION) and repository to $(FHS_REPO)"; \
+
+
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
 
 # define private overrides for above variables in here
