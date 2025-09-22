@@ -151,7 +151,9 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
             "or a value per frequency slice to be applied separately."
         ),
     )
-    def AutoSetFilterGains(self, headroom: list[float] = [3.0]) -> DevVarLongStringArrayType:
+    def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] | None = None) -> DevVarLongStringArrayType:
+        if headroom is None:
+            headroom = [3.0]
         """Tango command to start a scan operation.
 
         Args:

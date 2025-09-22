@@ -418,7 +418,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def _auto_set_filter_gains(
         self,
-        argin: list[float] = [3.0],
+        argin: list[float] | None = None,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
     ) -> None:
