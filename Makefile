@@ -87,9 +87,9 @@ PYLINT_CONFIG_FILE = $(LINTCFG_DIR)/.pylintrc
 FLAKE8_CONFIG_FILE = $(LINTCFG_DIR)/.flake8
 PYTHON_SWITCHES_FOR_FLAKE8 = --config=$(FLAKE8_CONFIG_FILE)
 PYTHON_SWITCHES_FOR_PYLINT = --rcfile=$(PYLINT_CONFIG_FILE)
-PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --rcfile=$(PYLINT_BASE_RC)
+PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --rcfile=$(PYLINT_CONFIG_FILE)
 
-PYTHON_LINE_LENGTH = 130
+PYTHON_LINE_LENGTH = 160
 POETRY_PYTHON_RUNNER = poetry run python3 -m
 
 PYTHON_LINT_TARGET = ./src/
@@ -180,9 +180,9 @@ lint-python-local:
 	if [ $$? -ne 0 ]; then ISORT_ERROR=1; fi; \
 	$(POETRY_PYTHON_RUNNER) black --exclude .+\.ipynb --check --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_BLACK) $(PYTHON_LINT_TARGET) &> build/lint-output/2-black-output.txt; \
 	if [ $$? -ne 0 ]; then BLACK_ERROR=1; fi; \
-	$(POETRY_PYTHON_RUNNER) flake8 --show-source --statistics $(PYTHON_SWITCHES_FOR_FLAKE8) $(PYTHON_LINT_TARGET) &> build/lint-output/3-flake8-output.txt; \
+	$(POETRY_PYTHON_RUNNER) flake8 --show-source --statistics --max-line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_FLAKE8) $(PYTHON_LINT_TARGET) &> build/lint-output/3-flake8-output.txt; \
 	if [ $$? -ne 0 ]; then FLAKE_ERROR=1; fi; \
-	$(POETRY_PYTHON_RUNNER) pylint --output-format=parseable $(PYTHON_SWITCHES_FOR_PYLINT_LOCAL) $(PYTHON_LINT_TARGET) &> build/lint-output/4-pylint-output.txt; \
+	$(POETRY_PYTHON_RUNNER) pylint --output-format=parseable --max-line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_PYLINT_LOCAL) $(PYTHON_LINT_TARGET) &> build/lint-output/4-pylint-output.txt; \
 	if [ $$? -ne 0 ]; then PYLINT_ERROR=1; fi; \
 	if [ $$ISORT_ERROR -ne 0 ]; then echo "Isort lint errors were found. Check build/lint-output/1-isort-output.txt for details."; fi; \
 	if [ $$BLACK_ERROR -ne 0 ]; then echo "Black lint errors were found. Check build/lint-output/2-black-output.txt for details."; fi; \

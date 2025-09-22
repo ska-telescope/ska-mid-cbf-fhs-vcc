@@ -5,9 +5,7 @@ import numpy as np
 from dataclasses_json import dataclass_json
 from ska_mid_cbf_fhs_common import BaseIPBlockManager
 
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_simulator import (
-    B123VccOsppfbChannelizerSimulator,
-)
+from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_simulator import B123VccOsppfbChannelizerSimulator
 
 
 @dataclass_json
