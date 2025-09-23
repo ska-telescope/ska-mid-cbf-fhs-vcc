@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from ska_mid_cbf_fhs_common import BaseSimulatorApi
 
-__all__ = ["PacketValidationControllerSimulator"]
+__all__ = ["PacketValidationSimulator"]
 
 
-class PacketValidationControllerSimulator(BaseSimulatorApi):
+class PacketValidationSimulator(BaseSimulatorApi):
     pass

@@ -38,16 +38,15 @@ volume:
   mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
 
-{{- if .fhsVccUnit.toleration }}
-{{ $fhsToleration := .fhsVccUnit.toleration }}
+{{- if $fhsVccUnit.toleration }}
 tolerations:
   - key: "vcc"
     operator: "Equal"
-    value: {{ .fhsVccUnit.id }}
+    value: {{ $fhsVccUnit.toleration }}
     effect: "NoSchedule"
 {{- end }}
 
-{{- if .fhsVccUnit.affinity }}
+{{- if $fhsVccUnit.affinity }}
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -56,7 +55,7 @@ affinity:
           - key: "vcc"
             operator: In
             values:
-              - {{ .fhsVccUnit.affinity }}
+              - {{ $fhsVccUnit.affinity }}
 {{- end }}
 
 {{- end -}}

@@ -1,0 +1,75 @@
+from dataclasses import dataclass
+
+import numpy as np
+from dataclasses_json import dataclass_json
+from ska_mid_cbf_fhs_common import BaseIPBlockManager, non_blocking
+
+from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_simulator import PacketValidationSimulator
+
+
+@dataclass_json
+@dataclass
+class PacketValidationConfig:
+    drop_dst_mac: bool = True
+    drop_src_mac: bool = True
+    drop_ethertype: bool = True
+    drop_antenna_id: bool = True
+    clr_cnt: bool = True
+    exp_dst_mac: np.uint64 = 0
+    exp_src_mac: np.uint64 = 0
+    exp_ethertype: np.uint64 = 0
+    exp_antenna_id: np.uint64 = 0
+
+
+##
+# status class that will be populated by the APIs and returned to provide the status of Packet Validation
+##
+@dataclass_json
+@dataclass
+class PacketValidationStatus:
+    drop_dst_mac: bool = True
+    drop_src_mac: bool = True
+    drop_ethertype: bool = True
+    drop_antenna_id: bool = True
+    egress_cnt: np.uint32 = 0
+    ingress_error_cnt: np.uint32 = 0
+    size_error_cnt: np.uint32 = 0
+    exp_dst_mac: np.uint64 = 0
+    last_wrong_dst_mac: np.uint64 = 0
+    wrong_dst_mac_cnt: np.uint32 = 0
+    exp_src_mac: np.uint64 = 0
+    last_wrong_src_mac: np.uint64 = 0
+    wrong_src_mac_cnt: np.uint32 = 0
+    exp_ethertype: np.uint64 = 0
+    last_wrong_ethertype: np.uint64 = 0
+    wrong_ethertype_cnt: np.uint32 = 0
+    exp_antenna_id: np.uint64 = 0
+    last_wrong_antenna_id: np.uint64 = 0
+    wrong_antenna_id_cnt: np.uint32 = 0
+
+
+class PacketValidationManager(BaseIPBlockManager):
+    """Packet Validation IP block manager."""
+
+    @property
+    def simulator_api_class(self) -> type[PacketValidationSimulator]:
+        """:obj:`type[PacketValidationSimulator]`: The simulator API class for this IP block."""
+        return PacketValidationSimulator
+
+    def configure(self, config: PacketValidationConfig):
+        """Configure the Packet Validation."""
+        return super().configure(config.to_dict())
+
+    def deconfigure(self, config: PacketValidationConfig | None):
+        """Deconfigure the Packet Validation."""
+        if config is None:
+            return super().recover()
+        return super().deconfigure(config.to_dict())
+
+    @non_blocking
+    def start(self) -> int:
+        return super().start()
+
+    @non_blocking
+    def stop(self) -> int:
+        return super().stop()

@@ -1,37 +1,10 @@
 import subprocess
 
-from ska_mid_cbf_fhs_common import FtileEthernet, WidebandPowerMeter
 from tango.server import run
 
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_device import B123VccOsppfbChannelizer
-from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_device import FrequencySliceSelection
-from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_device import PacketValidation
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
-from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_device import VCCStreamMerge
-from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_device import WidebandFrequencyShifter
-from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_device import WidebandInputBuffer
 
 __all__ = ["main"]
-
-
-class Ethernet200Gb(FtileEthernet):
-    pass
-
-
-class B123WidebandPowerMeter(WidebandPowerMeter):
-    pass
-
-
-class B45AWidebandPowerMeter(WidebandPowerMeter):
-    pass
-
-
-class B5BWidebandPowerMeter(WidebandPowerMeter):
-    pass
-
-
-class FSWidebandPowerMeter(WidebandPowerMeter):
-    pass
 
 
 def main(args=None, **kwargs):  # noqa: E302
@@ -39,20 +12,7 @@ def main(args=None, **kwargs):  # noqa: E302
     wait_for_job_completion("bitstream-download-job")
 
     return run(
-        classes=(
-            B123VccOsppfbChannelizer,
-            FrequencySliceSelection,
-            Ethernet200Gb,
-            PacketValidation,
-            WidebandInputBuffer,
-            WidebandFrequencyShifter,
-            B123WidebandPowerMeter,
-            B45AWidebandPowerMeter,
-            B5BWidebandPowerMeter,
-            FSWidebandPowerMeter,
-            VCCStreamMerge,
-            VCCAllBandsController,
-        ),
+        classes=(VCCAllBandsController,),
         args=args,
         **kwargs,
     )

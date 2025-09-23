@@ -38,9 +38,7 @@ class TestVCCAllBandsSim:
 
     @pytest.fixture(name="test_context", scope="module")
     def init_test_context(self):
-        """
-        Fixture to set up the VCC All Bands device for testing with a mock Tango database.
-        """
+        """Fixture to set up the VCC All Bands device for testing with a mock Tango database."""
         harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
 
         harness.add_device(
@@ -79,10 +77,14 @@ class TestVCCAllBandsSim:
         sim_vcc_all_bands_event_tracer: TangoEventTracer,
         event_timeout: int,
     ) -> bool:
-        """
-        Helper function that starts up and turns on the DUT.
+        """Helper function that starts up and turns on the DUT.
 
-        :param sim_vcc_all_bands_device: DeviceProxy to the device under test.
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
+            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer for the device under test.
+
+        Returns:
+            :obj:`bool`: True if AdminMode was successfuly set ONLINE, False otherwise.
         """
         # Set a given device to AdminMode.ONLINE and DevState.ON
         sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
@@ -106,18 +108,18 @@ class TestVCCAllBandsSim:
         return sim_vcc_all_bands_device.adminMode == AdminMode.ONLINE
 
     def test_State(self: TestVCCAllBandsSim, sim_vcc_all_bands_device: Any) -> None:
-        """
-        Test the State attribute just after device initialization.
+        """Test the State attribute just after device initialization.
 
-        :param sim_vcc_all_bands_device: DeviceProxy to the device under test.
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
         """
         assert sim_vcc_all_bands_device.state() == DevState.ON
 
     def test_Status(self: TestVCCAllBandsSim, sim_vcc_all_bands_device: Any) -> None:
-        """
-        Test the Status attribute just after device initialization.
+        """Test the Status attribute just after device initialization.
 
-        :param sim_vcc_all_bands_device: DeviceProxy to the device under test.
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
         """
         assert sim_vcc_all_bands_device.Status() == "ON"
 
@@ -125,10 +127,10 @@ class TestVCCAllBandsSim:
         self: TestVCCAllBandsSim,
         sim_vcc_all_bands_device: Any,
     ) -> None:
-        """
-        Test the adminMode attribute just after device initialization.
+        """Test the adminMode attribute just after device initialization.
 
-        :param sim_vcc_all_bands_device: DeviceProxy to the device under test.
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
         """
         assert sim_vcc_all_bands_device.adminMode == AdminMode.OFFLINE
 
@@ -149,11 +151,11 @@ class TestVCCAllBandsSim:
         sim_vcc_all_bands_device: Any,
         attribute_name: str,
     ) -> None:
-        """
-        Test uploading delay model
+        """Test uploading delay model
 
-        :param sim_vcc_all_bands_device: DeviceProxy to the device under test.
-        :param attribute_name: name of attribute to test
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
+            attribute_name (:obj:`str`): Name of the attribute to test.
         """
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
         assert getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
@@ -208,13 +210,13 @@ class TestVCCAllBandsSim:
         sim_vcc_all_bands_event_tracer: TangoEventTracer,
         event_timeout: int,
     ) -> None:
-        """
-        Test overriding ConfigureScan command to fail, then resetting to default
+        """Test overriding ConfigureScan command to fail, then resetting to default
         behaviour.
 
-        :param sim_vcc_all_bands_device: DeviceProxy to the device under test.
-        :param sim_vcc_all_bands_event_tracer: A TangoEventTracer used to recieve subscribed change
-                             events from the device under test.
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
+            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
+                events from the device under test.
         """
         # Store original override values to reset later
         original_overrides = sim_vcc_all_bands_device.simOverrides
@@ -401,12 +403,12 @@ class TestVCCAllBandsSim:
         sim_vcc_all_bands_event_tracer: TangoEventTracer,
         event_timeout: int,
     ) -> None:
-        """
-        Test Scan command
+        """Test Scan command
 
-        :param sim_vcc_all_bands_device: DeviceProxy to the device under test.
-        :param sim_vcc_all_bands_event_tracer: A TangoEventTracer used to recieve subscribed change
-                             events from the device under test.
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
+            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
+                events from the device under test.
         """
         # Set sim_vcc_all_bands_device ONLINE
         sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
@@ -479,12 +481,12 @@ class TestVCCAllBandsSim:
         command_param: Any,
         event_timeout: int,
     ) -> None:
-        """
-        Test commands failing in incorrect state parametrized
+        """Test commands failing in incorrect state parametrized
 
-        :param sim_vcc_all_bands_device: DeviceProxy to the device under test.
-        :param sim_vcc_all_bands_event_tracer: A TangoEventTracer used to recieve subscribed change
-                            events from the device under test.
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
+            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
+                events from the device under test.
         """
         # Test command not allowed in AdminMode.OFFLINE
         [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
@@ -544,12 +546,12 @@ class TestVCCAllBandsSim:
         command_param: int,
         event_timeout: int,
     ) -> None:
-        """
-        Test all commands which do not require attribute change
+        """Test all commands which do not require attribute change
 
-        :param sim_vcc_all_bands_device: DeviceProxy to the device under test.
-        :param sim_vcc_all_bands_event_tracer: A TangoEventTracer used to recieve subscribed change
-                            events from the device under test.
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
+            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
+                events from the device under test.
         """
         # Set device ONLINE
         sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
@@ -618,12 +620,12 @@ class TestVCCAllBandsSim:
         command_param: int,
         event_timeout: int,
     ) -> None:
-        """
-        Test overriding command to fail
+        """Test overriding command to fail
 
-        :param sim_vcc_all_bands_device: DeviceProxy to the device under test.
-        :param sim_vcc_all_bands_event_tracer: A TangoEventTracer used to recieve subscribed change
-                             events from the device under test.
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
+            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
+                events from the device under test.
         """
         # Set device ONLINE
         sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
