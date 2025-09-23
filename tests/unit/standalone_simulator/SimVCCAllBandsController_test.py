@@ -161,34 +161,25 @@ class TestVCCAllBandsSim:
         assert getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
 
     @pytest.mark.parametrize(
-        "attribute_name",
+        "attribute_name, attribute_new_value",
         [
-            "expectedDishId",
-            "requestedRFIHeadroom",
-            "vccGains",
+            ("expectedDishId", "test"),
+            ("requestedRFIHeadroom", 26 * [1.0]),
+            ("vccGains", 26 * [1.0]),
             # "frequencyBand", # TODO fix enum test
-            "inputSampleRate",
-            "frequencyBandOffset",
-            "subarrayID",
+            ("inputSampleRate", 1),
+            ("frequencyBandOffset", 2 * [1]),
+            ("subarrayID", 1),
         ],
     )
     def test_attribute_overrides(
         self: TestVCCAllBandsSim,
         sim_vcc_all_bands_device: Any,
         attribute_name: str,
+        attribute_new_value: Any,
     ) -> None:
         """Test overriding attributes"""
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
-        attribute_new_value = ""
-        if isinstance(attribute_value, str):
-            attribute_new_value = "test"
-        elif isinstance(attribute_value, int):
-            attribute_new_value = 1
-        elif isinstance(attribute_value, list):
-            attribute_new_value = [1]
-        # TODO fix enum test
-        # elif isinstance(attribute_value, str):
-        #     attribute_new_value = "_2"
 
         # Override attribute with new value
         sim_vcc_all_bands_device.simOverrides = json.dumps(
@@ -200,9 +191,14 @@ class TestVCCAllBandsSim:
         )
 
         # Check value change
-        assert (
-            getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value
-        )
+        if isinstance(attribute_new_value, list):
+            assert (
+                list(getattr(sim_vcc_all_bands_device, attribute_name)) == list(attribute_new_value)
+            )
+        else:
+            assert (
+                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value
+            )
 
     def test_ConfigureScan_override_fail(
         self: TestVCCAllBandsSim,
@@ -688,36 +684,27 @@ class TestVCCAllBandsSim:
 
 
     @pytest.mark.parametrize(
-        "attribute_name",
+        "attribute_name, attribute_new_value",
         [
-            "expectedDishId",
-            "requestedRFIHeadroom",
-            "vccGains",
+            ("expectedDishId", "test"),
+            ("requestedRFIHeadroom", 13 * [1.0]),
+            ("vccGains", 13 * [1.0]),
             # "frequencyBand", # TODO fix enum test
-            "inputSampleRate",
-            "frequencyBandOffset",
-            "subarrayID",
+            ("inputSampleRate", 1),
+            ("frequencyBandOffset", [1]),
+            ("subarrayID", 1),
         ],
     )
     def test_attribute_overrides_queueing(
         self: TestVCCAllBandsSim,
         sim_vcc_all_bands_device: Any,
         attribute_name: Any,
+        attribute_new_value: Any,
     ) -> None:
         """ Test attribute overrides by queueing multiple and consuming from the queue. Additionally checks default overrides """
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
-        attribute_new_value = ""
-        if isinstance(attribute_value, str):
-            attribute_new_value = "test"
-        elif isinstance(attribute_value, int):
-            attribute_new_value = 1
-        elif isinstance(attribute_value, list):
-            attribute_new_value = [1]
-        # TODO fix enum test
-        # elif isinstance(attribute_value, str):
-        #     attribute_new_value = "_2"
 
-        # Override attribute with new value
+        # Queue up two attributes
         sim_vcc_all_bands_device.simOverrides = json.dumps(
             {
                 "attributes": {
@@ -733,24 +720,40 @@ class TestVCCAllBandsSim:
             }
         )
 
-        # Check value change
-        assert (
-            getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value
-        )
+        # Check first value change
+        if isinstance(attribute_new_value, list):
+            assert (
+                list(getattr(sim_vcc_all_bands_device, attribute_name)) == list(attribute_new_value)
+            )
+        else:
+            assert (
+                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value
+            )
 
         sim_vcc_all_bands_device.simOverrides = json.dumps(
             {
                 "attributes": {
-                    attribute_name: attribute_new_value + attribute_new_value + attribute_new_value,
+                    attribute_name: attribute_new_value
                 }
             }
         )
-        if not (isinstance(attribute_new_value, list)):
+        # Check second third and default value change
+        if isinstance(attribute_new_value, list):
+            assert (
+                list(getattr(sim_vcc_all_bands_device, attribute_name)) == list(attribute_new_value + attribute_new_value)
+            )
+            assert (
+                list(getattr(sim_vcc_all_bands_device, attribute_name)) == list(attribute_new_value)
+            )
+            assert (
+                list(getattr(sim_vcc_all_bands_device, attribute_name)) == list(attribute_value)
+            )
+        else:         
             assert (
                 getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value + attribute_new_value
             )
             assert (
-                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value + attribute_new_value + attribute_new_value
+                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value
             )
             assert (
                 getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
@@ -764,7 +767,7 @@ class TestVCCAllBandsSim:
     ) -> None:
         """ Test command overrides by queueing multiple and consuming from the queue. Additionally checks default overrides """
 
-        # Queue Up 2 commands
+        # Queue Up 3 commands
         sim_vcc_all_bands_device.simOverrides = json.dumps(
             {
                 "commands": {
@@ -788,6 +791,18 @@ class TestVCCAllBandsSim:
                         "message": "ConfigureScan completed OK",
                         "invoked_action": "CONFIGURE_INVOKED",
                         "completed_action": "CONFIGURE_COMPLETED",
+                    },
+                }
+            }
+        )
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "commands": {
+                    "ConfigureScan": {
+                        "result_code": "FAILED",
+                        "message": "ConfigureScan failed",
+                        "invoked_action": "CONFIGURE_INVOKED",
+                        "completed_action": "GO_TO_IDLE",
                     },
                 }
             }
@@ -847,20 +862,6 @@ class TestVCCAllBandsSim:
                 previous_value=previous,
                 min_n_events=n,
             )
-
-        # Queue up 3rd command
-        sim_vcc_all_bands_device.simOverrides = json.dumps(
-            {
-                "commands": {
-                    "ConfigureScan": {
-                        "result_code": "FAILED",
-                        "message": "ConfigureScan failed",
-                        "invoked_action": "CONFIGURE_INVOKED",
-                        "completed_action": "GO_TO_IDLE",
-                    },
-                }
-            }
-        )
         
         # Test for second queued command
         [[result_code], [configure_scan_command_id]] = (
