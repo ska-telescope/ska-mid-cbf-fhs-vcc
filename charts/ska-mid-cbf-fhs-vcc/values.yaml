@@ -37,7 +37,7 @@ midcbf:
 resources:
   limits:
     cpu: 500m
-    memory: 100Mi
+    memory: 250Mi
     ephemeral-storage: 512Mi
   requests:
     cpu: 250m
