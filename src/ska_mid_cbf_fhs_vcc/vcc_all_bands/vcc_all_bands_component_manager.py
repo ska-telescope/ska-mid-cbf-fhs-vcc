@@ -433,6 +433,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             task_abort_event (:obj:`Optional[Event]`, optional): An event representing whether or not the task has aborted.
                 Default is None.
         """
+        if argin is None:
+            argin = [3.0]
         try:
             if (num_headrooms := len(argin)) not in [1, self._num_fs]:
                 self._set_task_callback(

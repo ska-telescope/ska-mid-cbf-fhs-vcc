@@ -152,8 +152,6 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         ),
     )
     def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] | None = None) -> DevVarLongStringArrayType:
-        if headroom is None:
-            headroom = [3.0]
         """Tango command to start a scan operation.
 
         Args:
@@ -165,6 +163,8 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
             message indicating status. The message is for information purpose only.
         """
+        if headroom is None:
+            headroom = [3.0]
         command_handler = self.get_command_object(command_name="AutoSetFilterGains")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
