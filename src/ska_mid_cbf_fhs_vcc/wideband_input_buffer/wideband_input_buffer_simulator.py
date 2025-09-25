@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from logging import Logger
 
-from ska_control_model import ResultCode
 from ska_mid_cbf_fhs_common import BaseSimulatorApi
 
 __all__ = ["WidebandInputBufferSimulator"]
@@ -21,7 +20,7 @@ __all__ = ["WidebandInputBufferSimulator"]
 
 
 class WidebandInputBufferSimulator(BaseSimulatorApi):
-    def __init__(self: BaseSimulatorApi, device_id: str, logger: Logger) -> None:
+    def __init__(self, ip_block_name: str, logger: Logger) -> None:
         self.status_str = """{
                 "link_failure": false,
                 "buffer_overflow": false,
@@ -40,14 +39,10 @@ class WidebandInputBufferSimulator(BaseSimulatorApi):
                 "expected_sample_rate": 3960000000
             }"""
 
-        super().__init__(device_id, logger)
+        super().__init__(ip_block_name, logger)
 
-    def status(self, clear: bool = False) -> tuple[ResultCode, str]:
-        try:
-            return ResultCode.OK, json.loads(self.status_str)
-
-        except Exception as ex:
-            print(f"status error {repr(ex)}")
+    def status(self, clear: bool = False) -> dict:
+        return json.loads(self.status_str)
 
     def update_status(self, new_status: str):
         self.status_str = new_status

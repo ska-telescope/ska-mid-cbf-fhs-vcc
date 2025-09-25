@@ -30,7 +30,7 @@ WORKDIR /build
 # `--only main` to avoid installing dev dependencies.  This option is not
 # available for pip.
 COPY pyproject.toml poetry.lock* ./
-RUN sed -i 's|^ska-mid-cbf-fhs-common\s*=\s*.*$|ska-mid-cbf-fhs-common = "0.1.5"|g' pyproject.toml
+RUN sed -i 's|^ska-mid-cbf-fhs-common\s*=\s*.*$|ska-mid-cbf-fhs-common = "0.1.8"|g' pyproject.toml
 
 RUN poetry lock && poetry install --only main --no-root
 
@@ -61,6 +61,10 @@ LABEL int.skao.image.team=cipa-halifax \
       license=licence
 
 USER root
+
+ENV LOGS_DIR=/app/logs
+RUN mkdir -p $LOGS_DIR
+RUN chmod -R 777 $LOGS_DIR
 
 RUN rm -rf /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common/*
 COPY ./temp-common/src/ska_mid_cbf_fhs_common /app/lib/python3.10/site-packages/ska_mid_cbf_fhs_common

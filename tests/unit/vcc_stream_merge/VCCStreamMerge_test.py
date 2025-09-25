@@ -1,144 +1,54 @@
-from assertpy import assert_that
 import pytest
-from tango import DevState
-from ska_tango_testing.integration import TangoEventTracer
-from ska_control_model import ResultCode
-from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, DeviceTestUtils
-from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_device import VCCStreamMerge
 
-EVENT_TIMEOUT = 30
+from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 
 
-@pytest.mark.forked
 class TestVCCStreamMerge:
 
-    @pytest.fixture(name="test_context", scope="module")
-    def init_test_context(self):
-        """
-        Fixture to set up the VCC Stream Merge device for testing with a mock Tango database.
-        """
-        harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
-        harness.add_device(
-            device_name="test/vcc-stream-merge/1",
-            device_class=VCCStreamMerge,
-            device_id="1",
-            device_version_num="1.0",
-            device_gitlab_hash="abc123",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
-            bitstream_path="../resources",
-            bitstream_id="agilex-vcc",
-            bitstream_version="0.0.1",
-            simulation_mode="1",
-            emulation_mode="0",
-            emulator_ip_block_id="vcc_stream_merge1",
-            emulator_id="vcc-emulator-1",
+    @pytest.fixture(scope="function")
+    def vcc_stream_merge(self):
+        """Fixture to set up the VCC Stream Merge block."""
+        manager = VCCStreamMergeManager(
+            ip_block_id="VCCStreamMerge",
+            controlling_device_name="n/a",
+            bitstream_path="n/a",
+            bitstream_id="n/a",
+            bitstream_version="n/a",
+            firmware_ip_block_id="n/a",
+            create_log_file=False,
         )
+        yield manager
 
-        with harness as test_context:
-            yield test_context
-
-    def test_device_initialization(self, device_under_test):
-        """
-        Test that the VCC Stream Merge device initializes correctly.
-        """
-
-        # Check device state
-        state = device_under_test.state()
-        assert state == DevState.ON, f"Expected state ON, got {state}"
-
-        # # Check device status
-        status = device_under_test.status()
-        assert status == "ON", f"Expected status 'ON', got '{status}'"
-
-    def test_configure_command(self, device_under_test):
-        """
-        Test the Configure command of the VCC Stream Merge device.
-        """
-
+    def test_configure(self, vcc_stream_merge: VCCStreamMergeManager):
+        """Test the configure method of the VCC Stream Merge block."""
         with open("tests/test_data/device_config/vcc_stream_merge.json", "r") as f:
             config_json = f.read()
+        result = vcc_stream_merge.configure(VCCStreamMergeConfigureArgin.schema().loads(config_json))
+        assert result == 0, f"Expected return code 0, got {result}"
 
-        # Invoke the command
-        result = device_under_test.command_inout("Configure", config_json)
+    def test_deconfigure(self, vcc_stream_merge: VCCStreamMergeManager):
+        """Test the deconfigure method of the VCC Stream Merge block."""
+        self.test_configure(vcc_stream_merge)
+        result = vcc_stream_merge.deconfigure()
+        assert result == 0, f"Expected return code 0, got {result}"
 
-        # Extract the result code and message
-        result_code = result[0][0]
+    def test_start(self, vcc_stream_merge: VCCStreamMergeManager):
+        """Test the start method of the VCC Stream Merge block."""
+        result = vcc_stream_merge.start()
+        assert result == 0, f"Expected return code 0, got {result}"
 
-        # Assertions
-        assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
+    def test_stop(self, vcc_stream_merge: VCCStreamMergeManager):
+        """Test the stop method of the VCC Stream Merge block."""
+        self.test_start(vcc_stream_merge)
+        result = vcc_stream_merge.stop()
+        assert result == 0, f"Expected return code 0, got {result}"
 
-    def test_deconfigure_command(self, device_under_test):
-        """
-        Test the Deconfigure command of the VCC Stream Merge device.
-        """
+    def test_status(self, vcc_stream_merge: VCCStreamMergeManager):
+        """Test the status method of the VCC Stream Merge block."""
+        result = vcc_stream_merge.status(clear=False)
+        assert result is not None, f"Expected valid return value, got {result}"
 
-        self.test_configure_command(device_under_test)
-
-        # Invoke the command
-        result = device_under_test.command_inout("Deconfigure")
-
-        # Extract the result code and message
-        result_code, message = result[0][0], result[1][0]
-
-        # Assertions
-        assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
-
-    def test_start_command(self, device_under_test, event_tracer: TangoEventTracer):
-        """
-        Test the Start command of the VCC Stream Merge device.
-        """
-
-        # Invoke the command
-        result = device_under_test.command_inout("Start")
-
-        # Extract the result code and message
-        result_code = result[0][0]
-
-        # Assertions
-        assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
-
-        DeviceTestUtils.assert_lrc_completed(device_under_test, event_tracer, EVENT_TIMEOUT, "Start")
-
-    def test_stop_command(self, device_under_test, event_tracer: TangoEventTracer):
-        """
-        Test the Stop command of the VCC Stream Merge device.
-        """
-        result = device_under_test.command_inout("Stop")
-
-        # Extract the result code and message
-        result_code = result[0][0]
-
-        # Assertions
-        assert result_code == ResultCode.QUEUED.value, f"Expected ResultCode.QUEUED ({ResultCode.QUEUED.value}), got {result_code}"
-
-        DeviceTestUtils.assert_lrc_completed(device_under_test, event_tracer, EVENT_TIMEOUT, "Stop")
-
-    def test_status_command(self, device_under_test):
-        """
-        Test the Status command of the VCC Stream Merge device.
-        """
-        # Define input for clear flag
-        clear = False  # or True, depending on the test case
-
-        # Invoke the command
-        result = device_under_test.command_inout("GetStatus", clear)
-
-        # Extract the result code and message
-        result_code = result[0][0]
-
-        # Assertions
-        assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
-
-    def test_recover_command(self, device_under_test):
-        """
-        Test the Recover command of the VCC Stream Merge device.
-        """
-
-        # Invoke the command
-        result = device_under_test.command_inout("Recover")
-
-        # Extract the result code and message
-        result_code = result[0][0]
-
-        # Assertions
-        assert result_code == ResultCode.OK.value, f"Expected ResultCode.OK ({ResultCode.OK.value}), got {result_code}"
+    def test_recover(self, vcc_stream_merge: VCCStreamMergeManager):
+        """Test the recover method of the VCC Stream Merge block."""
+        result = vcc_stream_merge.recover()
+        assert result == 0, f"Expected return code 0, got {result}"
