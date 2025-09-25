@@ -197,7 +197,7 @@ The low level device servers are communicated with using the VCC All bands devic
 
 This section will give a brief description of each, the common structure and base class inheritance and commands / schemas
 
-## Architechture Design
+## Architecture Design
 
 ### High-Level FHS-VCC Design
 
