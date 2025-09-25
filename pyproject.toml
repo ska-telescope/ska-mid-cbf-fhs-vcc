@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.3.0"
+version = "0.3.1"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },

@@ -8,9 +8,13 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
-0.3.0
+0.3.1
 ******
 * CIP-4104: Update FHS-VCC sim and tests for override queueing
+* CIP-4159: Update to use common linter
+
+0.3.0
+******
 * CIP-3737, CIP-4014, CIP-4015, CIP-4053, CIP-4054, CIP-4058: Refactor to use new common base classes which eliminate all low-level Tango devices.
 
 0.2.2
