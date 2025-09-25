@@ -118,31 +118,31 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
 
     @property
     def expected_dish_id(self: SimVCCAllBandsCM) -> str:
-        return self.attribute_overrides["expectedDishId"]
+        return self.get_attribute_override("expectedDishId")
 
     @property
     def subarray_id(self: SimVCCAllBandsCM) -> int:
-        return self.attribute_overrides["subarrayID"]
+        return self.get_attribute_override("subarrayID")
 
     @property
     def frequency_band(self: SimVCCAllBandsCM) -> FrequencyBandEnum:
-        return self.attribute_overrides["frequencyBand"]
+        return self.get_attribute_override("frequencyBand")
 
     @property
     def input_sample_rate(self: SimVCCAllBandsCM) -> int:
-        return self.attribute_overrides["inputSampleRate"]
+        return self.get_attribute_override("inputSampleRate")
 
     @property
     def frequency_band_offset(self: SimVCCAllBandsCM) -> list[int]:
-        return self.attribute_overrides["frequencyBandOffset"]
+        return self.get_attribute_override("frequencyBandOffset")
 
     @property
     def last_requested_headrooms(self: SimVCCAllBandsCM) -> list[int]:
-        return self.attribute_overrides["requestedRFIHeadroom"]
+        return self.get_attribute_override("requestedRFIHeadroom")
 
     @property
     def vcc_gains(self: SimVCCAllBandsCM) -> list[int]:
-        return self.attribute_overrides["vccGains"]
+        return self.get_attribute_override("vccGains")
 
 
 class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
