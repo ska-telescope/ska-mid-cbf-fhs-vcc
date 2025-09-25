@@ -81,15 +81,15 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	${TARANTA_PARAMS} \
 	${PV_STORAGE_PARAM}
 
-# W503: "Line break before binary operator." Disabled to work around a bug in flake8 where currently both "before" and "after" are disallowed.
-PYTHON_SWITCHES_FOR_FLAKE8 = --ignore=DAR201,W503,E731,E203
+# shared lint config file var definitions
+LINTCFG_DIR = tools/ska-mid-cbf-linter
+PYLINT_CONFIG_FILE = $(LINTCFG_DIR)/.pylintrc
+FLAKE8_CONFIG_FILE = $(LINTCFG_DIR)/.flake8
+PYTHON_SWITCHES_FOR_FLAKE8 = --config=$(FLAKE8_CONFIG_FILE)
+PYTHON_SWITCHES_FOR_PYLINT = --rcfile=$(PYLINT_CONFIG_FILE)
+PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --rcfile=$(PYLINT_CONFIG_FILE)
 
-# F0002, F0010: Astroid errors. Not our problem.
-# E0401: Import errors. Ignore for now until we figure out our actual project structure.
-# E0611: Name not found in module. This occurs in our pipeline because the image we pull down uses an older version of Python; we should remove this immediately once we have our image building to CAR.
-PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010,E0001,E1101
-PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010,E1101
-PYTHON_LINE_LENGTH = 130
+PYTHON_LINE_LENGTH = 160
 POETRY_PYTHON_RUNNER = poetry run python3 -m
 
 PYTHON_LINT_TARGET = ./src/

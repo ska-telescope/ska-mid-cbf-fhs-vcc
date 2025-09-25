@@ -7,42 +7,21 @@ from threading import Event
 from typing import Any, Callable, Optional
 
 from ska_control_model import ResultCode, TaskStatus
-from ska_mid_cbf_fhs_common import (
-    FtileEthernetManager,
-    NonBlockingFunction,
-    WidebandPowerMeterConfig,
-    WidebandPowerMeterManager,
-    calculate_gain_multiplier,
-)
-from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import (
-    FhsControllerComponentManagerBase,
-)
+from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, WidebandPowerMeterConfig, WidebandPowerMeterManager, calculate_gain_multiplier
+from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
     B123VccOsppfbChannelizerConfigureArgin,
     B123VccOsppfbChannelizerManager,
 )
-from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_manager import (
-    FrequencySliceSelectionConfig,
-    FrequencySliceSelectionManager,
-)
+from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_manager import FrequencySliceSelectionConfig, FrequencySliceSelectionManager
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
-from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import (
-    VCCStreamMergeConfig,
-    VCCStreamMergeConfigureArgin,
-    VCCStreamMergeManager,
-)
-from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import (
-    WidebandFrequencyShifterConfig,
-    WidebandFrequencyShifterManager,
-)
-from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import (
-    WidebandInputBufferConfig,
-    WidebandInputBufferManager,
-)
+from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
+from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
+from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
 
 
 class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
@@ -135,14 +114,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.packet_validation = PacketValidationManager(**self._ip_block_props("PacketValidation"))
         self.wideband_frequency_shifter = WidebandFrequencyShifterManager(**self._ip_block_props("WidebandFrequencyShifter"))
         self.wideband_input_buffer = WidebandInputBufferManager(**self._ip_block_props("WidebandInputBuffer"))
-        self.vcc_stream_merges: dict[int, VCCStreamMergeManager] = {
-            i: VCCStreamMergeManager(**self._ip_block_props(f"VCCStreamMerge{i}")) for i in range(1, 3)
-        }
+        self.vcc_stream_merges: dict[int, VCCStreamMergeManager] = {i: VCCStreamMergeManager(**self._ip_block_props(f"VCCStreamMerge{i}")) for i in range(1, 3)}
         self.wideband_power_meters: dict[VCCBandGroup | int, WidebandPowerMeterManager] = {
-            **{
-                band_group: WidebandPowerMeterManager(**self._ip_block_props(f"{band_group.value.upper()}WidebandPowerMeter"))
-                for band_group in VCCBandGroup
-            },
+            **{band_group: WidebandPowerMeterManager(**self._ip_block_props(f"{band_group.value.upper()}WidebandPowerMeter")) for band_group in VCCBandGroup},
             **{i: WidebandPowerMeterManager(**self._ip_block_props(f"FS{i}WidebandPowerMeter")) for i in range(1, 27)},
         }
 
@@ -248,9 +222,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             # VCC123 Channelizer Configuration
             self.logger.debug("VCC123 Channelizer Configuring..")
             if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                result = self.b123_vcc.configure(
-                    B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains)
-                )
+                result = self.b123_vcc.configure(B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains))
 
                 if result == 1:
                     self.logger.error("Configuration of VCC123 Channelizer failed.")
@@ -264,9 +236,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             # WFS Configuration
             self.logger.debug("Wideband Frequency Shifter Configuring..")
-            result = self.wideband_frequency_shifter.configure(
-                WidebandFrequencyShifterConfig(shift_frequency=self.frequency_band_offset[0])
-            )
+            result = self.wideband_frequency_shifter.configure(WidebandFrequencyShifterConfig(shift_frequency=self.frequency_band_offset[0]))
             if result == 1:
                 self.logger.error("Configuration of Wideband Frequency Shifter failed.")
                 raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
@@ -448,7 +418,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def _auto_set_filter_gains(
         self,
-        argin: list[float] = [3.0],
+        argin: list[float] | None = None,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
     ) -> None:
@@ -463,6 +433,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             task_abort_event (:obj:`Optional[Event]`, optional): An event representing whether or not the task has aborted.
                 Default is None.
         """
+        if argin is None:
+            argin = [3.0]
         try:
             if (num_headrooms := len(argin)) not in [1, self._num_fs]:
                 self._set_task_callback(
@@ -488,10 +460,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                             task_callback,
                             TaskStatus.COMPLETED,
                             ResultCode.FAILED,
-                            (
-                                f"Failed to auto-set gains: The FS {i + 1} power meter "
-                                f"failed to provide a valid power measurement for polarization {pol}."
-                            ),
+                            (f"Failed to auto-set gains: The FS {i + 1} power meter failed to provide a valid power measurement for polarization {pol}."),
                         )
                         return
 
