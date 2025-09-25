@@ -460,7 +460,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                             task_callback,
                             TaskStatus.COMPLETED,
                             ResultCode.FAILED,
-                            (f"Failed to auto-set gains: The FS {i + 1} power meter " f"failed to provide a valid power measurement for polarization {pol}."),
+                            (f"Failed to auto-set gains: The FS {i + 1} power meter failed to provide a valid power measurement for polarization {pol}."),
                         )
                         return
 
