@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.2
+******
+* Update make submodule to fix SKA pipeline bug
+
 0.3.1
 ******
 * CIP-4104: Update FHS-VCC sim and tests for override queueing
