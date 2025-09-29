@@ -40,7 +40,7 @@ volume:
 
 {{- if $fhsVccUnit.toleration }}
 tolerations:
-  - key: "vcc"
+  - key: "node-type"
     operator: "Equal"
     value: {{ $fhsVccUnit.toleration }}
     effect: "NoSchedule"
@@ -52,7 +52,7 @@ affinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
         - matchExpressions:
-          - key: "vcc"
+          - key: "node-type"
             operator: In
             values:
               - {{ $fhsVccUnit.affinity }}
