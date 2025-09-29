@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.3.0"
+version = "0.3.2"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },
@@ -35,9 +35,9 @@ dataclasses-json = "^0.6.7"
 debugpy = "^1.8.5"
 # Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = "0.2.0"
+ska-mid-cbf-fhs-common = "0.2.2"
 # Commit hash version from Gitlab
-# ska-mid-cbf-fhs-common = { version = "0.2.0+dev.c7d872b99", source = "gitlab-fhs-common" }
+# ska-mid-cbf-fhs-common = { version = "0.2.1+dev.c2aa468a4", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 
@@ -55,6 +55,11 @@ pytest-repeat = "^0.9.3"
 pytest-pylint = "^0.21.0"
 pylint = "3.2.6"
 pylint-junit = "0.3.4"
+flake8-quotes = "^3.4.0"
+flake8-annotations = "^3.0.1"
+flake8-import-conventions = "0.1.0"
+flake8-pep585 = "0.1.7"
+flake8-bugbear = "24.12.12"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^8"
