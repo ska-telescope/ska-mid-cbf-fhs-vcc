@@ -7,7 +7,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 UNRELEASED CHANGES
 ******************
-
+* CIP-4349: Passed controller as argument to Component Manager for use with pushing change events
 0.3.0
 ******
 * CIP-4104: Update FHS-VCC sim and tests for override queueing
