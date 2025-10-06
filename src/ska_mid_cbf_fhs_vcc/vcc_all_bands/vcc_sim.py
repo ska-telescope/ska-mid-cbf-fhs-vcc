@@ -149,6 +149,7 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
     def create_component_manager(self: SimVCCAllBandsController) -> SimVCCAllBandsCM:
         return SimVCCAllBandsCM(
             logger=self.logger,
+            controller=self,
             communication_state_callback=self._communication_state_changed,
             component_state_callback=partial(FhsObsSimMode._component_state_changed, self),
         )
