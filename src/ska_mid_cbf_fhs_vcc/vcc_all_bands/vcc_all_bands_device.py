@@ -172,10 +172,7 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         result_code, command_id = command_handler(argin=headroom)
         return [[result_code], [command_id]]
 
-    @command(
-        dtype_out="DevVarLongStringArray",
-        doc_in=("Test from fhs-vcc to pyro server on host"),
-    )
+    @command(dtype_out="DevVarLongStringArray")
     def TestHostCommunication(self: VCCAllBandsController) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="TestHostCommunication")
         result_code, command_id = command_handler()

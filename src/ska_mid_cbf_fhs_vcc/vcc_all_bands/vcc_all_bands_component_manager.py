@@ -178,17 +178,24 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self: VCCAllBandsComponentManager,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
-        return self.submit_task(func=self._test_host_communication, task_callback=task_callback)
+        return self.submit_task(
+            func=self._test_host_communication,
+            args=[],
+            kwargs={},
+            task_callback=task_callback,
+            )
+    
 
     def _test_host_communication(
         self,
         task_callback: Optional[Callable] = None,
     ) -> None:
+        
         pyro_client = PyroClient()
 
-        print("Checking connection to nameserver....")
+        self.logger.info("Checking connection to nameserver....")
         pyro_client.ping()
-        print("Ping finished....")
+        self.logger.info("Ping finished....")
 
     def _configure_scan_controller_impl(
         self,
