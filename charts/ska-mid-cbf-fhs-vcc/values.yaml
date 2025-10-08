@@ -262,3 +262,7 @@ VCCUnits:
 # set simulated to true to deploy VCCAllBandsController simulators
 standaloneSimulator: false
 simDeviceCommand: "SimVCCAllBandsController"
+
+pyro:
+  nsHost: "status.hostIP"
+  nsPort: 9090

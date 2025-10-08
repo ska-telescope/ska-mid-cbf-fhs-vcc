@@ -58,4 +58,12 @@ affinity:
               - {{ $fhsVccUnit.affinity }}
 {{- end }}
 
+environment_variables:
+- name: NS_HOST
+  valueFrom:
+    fieldRef: {{ .Values.pyro.nsHost | quote }}
+- name: NS_PORT
+  value: {{ .Values.pyro.nsPort | quote }}
+
+
 {{- end -}}

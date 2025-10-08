@@ -11,6 +11,7 @@ from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, Wi
 from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
 
+from ska_mid_cbf_fhs_vcc.api.pyro_client import PyroClient
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
     B123VccOsppfbChannelizerConfigureArgin,
     B123VccOsppfbChannelizerManager,
@@ -172,6 +173,25 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             args=[argin],
             task_callback=task_callback,
         )
+    
+    def test_host_communication(
+            self: VCCAllBandsComponentManager,
+            task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=self._test_host_communication,
+            task_callback=task_callback
+        )
+
+    def _test_host_communication(
+            self,
+            task_callback: Optional[Callable] = None,
+    ) -> None:
+        pyro_client = PyroClient()
+
+        print("Checking connection to nameserver....")
+        pyro_client.ping()
+        print("Ping finished....")
 
     def _configure_scan_controller_impl(
         self,

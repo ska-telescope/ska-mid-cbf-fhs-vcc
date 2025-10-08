@@ -30,6 +30,7 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
             ("ObsReset", "obs_reset"),
             ("UpdateSubarrayMembership", "update_subarray_membership"),
             ("AutoSetFilterGains", "auto_set_filter_gains"),
+            ("TestHostCommunication", "test_host_communication"),
         ]
 
     @attribute(
@@ -169,6 +170,11 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=headroom)
+        return [[result_code], [command_id]]
+
+    def TestHostCommunication(self: VCCAllBandsController) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="TestHostCommunication")
+        result_code, command_id = command_handler()
         return [[result_code], [command_id]]
 
 

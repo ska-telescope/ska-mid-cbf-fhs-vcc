@@ -1878,6 +1878,26 @@ url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
 reference = "gitlab-fhs-common"
 
 [[package]]
+name = "pyro5"
+version = "5.15"
+description = "Remote object communication library, fifth major version"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "Pyro5-5.15-py3-none-any.whl", hash = "sha256:4d85428ed75985e63f159d2486ad5680743ea76f766340fd30b65dd20f83d471"},
+    {file = "Pyro5-5.15.tar.gz", hash = "sha256:82c3dfc9860b49f897b28ff24fe6716c841672c600af8fe40d0e3a7fac9a3f5e"},
+]
+
+[package.dependencies]
+serpent = ">=1.41"
+
+[package.source]
+type = "legacy"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
+
+[[package]]
 name = "pytango"
 version = "9.5.1"
 description = "Python bindings for the cppTango library; part of the Tango Distributed Control System toolkit"
@@ -2573,6 +2593,23 @@ groups = ["main"]
 files = [
     {file = "schema-0.7.7-py2.py3-none-any.whl", hash = "sha256:5d976a5b50f36e74e2157b47097b60002bd4d42e65425fcc9c9befadb4255dde"},
     {file = "schema-0.7.7.tar.gz", hash = "sha256:7da553abd2958a19dc2547c388cde53398b39196175a9be59ea1caf5ab0a1807"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
+
+[[package]]
+name = "serpent"
+version = "1.41"
+description = "Serialization based on ast.literal_eval"
+optional = false
+python-versions = ">=3.2"
+groups = ["main"]
+files = [
+    {file = "serpent-1.41-py3-none-any.whl", hash = "sha256:5fd776b3420441985bc10679564c2c9b4a19f77bea59f018e473441d98ae5dd7"},
+    {file = "serpent-1.41.tar.gz", hash = "sha256:0407035fe3c6644387d48cff1467d5aa9feff814d07372b78677ed0ee3ed7095"},
 ]
 
 [package.source]
@@ -3429,4 +3466,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "6d773203f6f6be1e41d498f176c43f352a66afc29522ecf67844c844deb90dc8"
+content-hash = "8dbe83fad3fff0d207368c227cce5bc3c1164621a4f1d72d267852ad48614c5a"
