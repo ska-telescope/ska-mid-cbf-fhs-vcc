@@ -1,6 +1,9 @@
-import os, sys
-from Pyro5.api import locate_ns, Proxy
+import os
+import sys
+
 from Pyro5 import errors
+from Pyro5.api import Proxy, locate_ns
+
 
 class PyroClient():
 
