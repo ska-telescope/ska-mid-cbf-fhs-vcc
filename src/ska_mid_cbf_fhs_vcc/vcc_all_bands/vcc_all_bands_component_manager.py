@@ -193,16 +193,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         task_callback(status=TaskStatus.IN_PROGRESS)
 
         if self.task_abort_event_is_set("TestHostCommunication", task_callback, task_abort_event):
-                return
-
+            return
 
         self.logger.info("Checking connection to nameserver....")
         pyro_client.ping()
         self.logger.info("Ping finished....")
 
-        task_callback(status=TaskStatus.COMPLETED,
-                      result=(ResultCode.OK, "Host Communication OK")
-        )
+        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "Host Communication OK"))
 
     def _configure_scan_controller_impl(
         self,
