@@ -4,8 +4,11 @@ import os
 from Pyro5.api import locate_ns
 
 
-class PyroClient():
-    def __init__(self, logger: logging.Logger,):
+class PyroClient:
+    def __init__(
+        self,
+        logger: logging.Logger,
+    ):
         self.logger = logger
         self.ns_host = os.environ["NS_HOST"]
         self.ns_port = int(os.getenv("NS_PORT", "9090"))
