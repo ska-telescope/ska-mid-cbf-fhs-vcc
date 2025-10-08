@@ -61,9 +61,9 @@ affinity:
 environment_variables:
 - name: NS_HOST
   valueFrom:
-    fieldRef: {{ .Values.pyro.nsHost | quote }}
+    fieldRef: status.hostIP
 - name: NS_PORT
-  value: {{ .Values.pyro.nsPort | quote }}
+  value: 9090
 
 
 {{- end -}}

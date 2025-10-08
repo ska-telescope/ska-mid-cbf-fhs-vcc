@@ -10,7 +10,7 @@ class PyroClient:
         logger: logging.Logger,
     ):
         self.logger = logger
-        self.ns_host = os.environ["NS_HOST"]
+        self.ns_host = os.getenv["NS_HOST"]
         self.ns_port = int(os.getenv("NS_PORT", "9090"))
 
     def ping(self):
