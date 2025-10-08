@@ -173,19 +173,16 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             args=[argin],
             task_callback=task_callback,
         )
-    
+
     def test_host_communication(
-            self: VCCAllBandsComponentManager,
-            task_callback: Optional[Callable] = None,
+        self: VCCAllBandsComponentManager,
+        task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=self._test_host_communication,
-            task_callback=task_callback
-        )
+        return self.submit_task(func=self._test_host_communication, task_callback=task_callback)
 
     def _test_host_communication(
-            self,
-            task_callback: Optional[Callable] = None,
+        self,
+        task_callback: Optional[Callable] = None,
     ) -> None:
         pyro_client = PyroClient()
 
