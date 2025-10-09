@@ -25,7 +25,7 @@ typing-extensions = "^4.8.0"
 pytango = "^9.5.1"
 pyyaml = "^6.0.1"
 requests = "^2.32.3"
-ska-tango-base = "1.0.0"
+ska-tango-base = "1.2.3"
 ska-control-model = "1.1.0"
 ska-tango-testing = "0.8.0"
 ska-ser-log-transactions = "^0.2.2+ae0f5c92"
@@ -35,9 +35,9 @@ dataclasses-json = "^0.6.7"
 debugpy = "^1.8.5"
 # Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = "0.2.3"
+# ska-mid-cbf-fhs-common = "0.2.3"
 # Commit hash version from Gitlab
-# ska-mid-cbf-fhs-common = { version = "0.2.3+dev.ca6b4c30f", source = "gitlab-fhs-common" }
+ska-mid-cbf-fhs-common = { version = "0.2.2+dev.c19d80ada", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 
