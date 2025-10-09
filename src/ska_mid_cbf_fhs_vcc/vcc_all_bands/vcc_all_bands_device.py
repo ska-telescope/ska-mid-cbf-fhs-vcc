@@ -173,9 +173,9 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         return [[result_code], [command_id]]
 
     @command(
-            dtype_in=(str,),
-            dtype_out="DevVarLongStringArray",
-            )
+        dtype_in=(str,),
+        dtype_out="DevVarLongStringArray",
+    )
     def TestHostCommunication(self: VCCAllBandsController, driver_name: str) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="TestHostCommunication")
         result_code, command_id = command_handler(argin=driver_name)

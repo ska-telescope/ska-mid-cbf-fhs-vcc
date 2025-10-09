@@ -2,34 +2,30 @@ import logging
 import os
 
 from kubernetes import client, config
-from Pyro5.api import locate_ns, Proxy
+from Pyro5.api import Proxy, locate_ns
 
 
 class PyroClient:
     def __init__(
         self,
         logger: logging.Logger,
-        driver_name: str,
     ):
         self.logger = logger
-        self.driver_name = driver_name
         self.ns_host = self.get_host_ip()
         self.ns_port = int(os.getenv("NS_PORT", "9090"))
 
         self.logger.info(f"...locate_ns using host={self.ns_host}, port={self.ns_port}")
         self.ns = locate_ns(host=self.ns_host, port=self.ns_port)
 
-    def get_driver_status(self):
-        print(f"[OK] lookup('{self.driver_name}') -> {uri}")
-
+    def get_driver_status(self, driver_name: str):
         try:
-            with Proxy(f"PYRONAME:{self.driver_name}_driver@{self.ns_host}:{self.ns_port}") as p:
+            with Proxy(f"PYRONAME:{driver_name}_driver@{self.ns_host}:{self.ns_port}") as p:
                 p._pyroTimeout = 5.0
                 fn = getattr(p, "status")
                 res = fn(False)
-                print("[OK]")
+                self.logger.info(f"[OK] result = {res}")
         except Exception as e:
-            self.logger.error(f"Unable to call status on driver {self.driver_name}: ex: {repr(e)}")
+            self.logger.error(f"Unable to call status on driver {driver_name}: ex: {repr(e)}")
 
     def ping(self):
         try:
@@ -80,8 +76,8 @@ class PyroClient:
             # The host IP is available under status.host_ip
             return host_ip
         except client.ApiException as e:
-            print(f"Error accessing Kubernetes API: {e}")
+            self.logger.error(f"Error accessing Kubernetes API: {e}")
             return None
         except Exception as e:
-            print(f"An error occurred: {e}")
+            self.logger.error(f"An error occurred: {e}")
             return None
