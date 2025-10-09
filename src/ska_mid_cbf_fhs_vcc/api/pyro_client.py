@@ -1,5 +1,6 @@
 import logging
 import os
+
 from kubernetes import client, config
 from Pyro5.api import locate_ns
 
@@ -28,7 +29,7 @@ class PyroClient:
             except Exception:
                 self.logger.info("Error releasing ns")
 
-    def get_host_ip():
+    def get_host_ip(self):
         """
         Fetches the node IP address from inside a pod.
         Requires the pod to have a ServiceAccount with get pod permissions.
@@ -42,20 +43,19 @@ class PyroClient:
             pod_name = os.getenv("HOSTNAME")
 
             # In a pod, HOSTNAME is the pod's name
-            namespace = open("/var/run/secrets/kubernetes.io/serviceaccount/namespace").read()
+            with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace").read() as namespace:
+                if not pod_name or not namespace:
+                    raise ValueError("Could not determine pod name or namespace from environment.")
 
-            if not pod_name or not namespace:
-                raise ValueError("Could not determine pod name or namespace from environment.")
+                # Get the pod's status from the Kubernetes API
+                pod_info = v1.read_namespaced_pod_status(name=pod_name, namespace=namespace)
 
-            # Get the pod's status from the Kubernetes API
-            pod_info = v1.read_namespaced_pod_status(name=pod_name, namespace=namespace)
-            
-            # The host IP is available under status.host_ip
-            return pod_info.status.host_ip
+                # The host IP is available under status.host_ip
+                return pod_info.status.host_ip
+            return "unable to get host_ip"
         except client.ApiException as e:
             print(f"Error accessing Kubernetes API: {e}")
             return None
         except Exception as e:
             print(f"An error occurred: {e}")
             return None
-
