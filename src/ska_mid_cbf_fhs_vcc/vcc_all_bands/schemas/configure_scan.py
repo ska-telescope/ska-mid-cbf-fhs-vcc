@@ -13,22 +13,6 @@ vcc_all_bands_configure_scan_schema = {
         },
         "samples_per_frame": {"type": "integer"},
         "frequency_band": {"type": "string", "enum": ["1", "2", "3", "4", "5a", "5b"]},
-        "fsp": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "fsp_id": {"type": "integer"},
-                    "frequency_slice_id": {"type": "integer"},
-                    "function_mode": {"type": "string"},
-                },
-                "required": [
-                    "fsp_id",
-                    "frequency_slice_id",
-                    "function_mode",
-                ],
-            },
-        },
         "frequency_band_offset_stream_1": {
             "type": "integer",
             "min": -100000000,
@@ -70,7 +54,6 @@ vcc_all_bands_configure_scan_schema = {
         "dish_sample_rate",
         "samples_per_frame",
         "frequency_band",
-        "fsp",
         "frequency_band_offset_stream_1",
         "vcc_gain",
         "noise_diode_transition_holdoff_seconds",

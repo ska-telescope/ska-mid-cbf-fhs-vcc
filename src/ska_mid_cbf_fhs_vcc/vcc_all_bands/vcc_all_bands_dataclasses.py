@@ -4,15 +4,6 @@ from ska_mid_cbf_fhs_common import FhsControllerBaseConfig
 
 
 @dataclass
-class VCCAllBandsConfigureScanFSPConfig(DataClassJsonMixin):
-    """Dataclass representing an element of the fsp property of the VCC All Bands ConfigureScan input parameter."""
-
-    fsp_id: int
-    frequency_slice_id: int
-    function_mode: str
-
-
-@dataclass
 class VCCAllBandsConfigureScanPowerMeterConfig(DataClassJsonMixin):
     """Dataclass representing a power meter configuration as part of the VCC All Bands ConfigureScan input parameter."""
 
@@ -39,7 +30,6 @@ class VCCAllBandsConfigureScanConfig(FhsControllerBaseConfig, DataClassJsonMixin
     dish_sample_rate: int
     samples_per_frame: int
     frequency_band: str
-    fsp: list[VCCAllBandsConfigureScanFSPConfig]
     frequency_band_offset_stream_1: int
     vcc_gain: list[float]
     noise_diode_transition_holdoff_seconds: int
