@@ -66,15 +66,15 @@ environment_variables:
 
 extraVolumes:
   - name: podInfo
-   downwardAPI:
-     items:
-       - path: hostIP
-         fieldRef:
-           fieldPath: status.hostIP
+    downwardAPI:
+      items:
+        - path: hostIP
+          fieldRef:
+            fieldPath: status.hostIP
 
 extraVolumeMounts:
-  -name: podInfo
-   mountPath: /app/podInfo
-   readOnly: true
+  - name: podInfo
+    mountPath: /app/podInfo
+    readOnly: true
 
 {{- end -}}
