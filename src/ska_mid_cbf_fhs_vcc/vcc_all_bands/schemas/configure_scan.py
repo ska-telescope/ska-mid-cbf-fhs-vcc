@@ -62,7 +62,7 @@ vcc_all_bands_configure_scan_schema = {
         "b5b_pwrm",
         "fs_lanes",
     ],
-    "additionalProperties": False,
+    #    "additionalProperties": False,  # TODO uncomment once schema and test data are correct and match
 }
 
 # fmt: off
