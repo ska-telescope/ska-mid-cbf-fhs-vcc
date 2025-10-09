@@ -41,6 +41,7 @@ ska-mid-cbf-fhs-common = "0.2.2"
 # ska-mid-cbf-fhs-common = { version = "0.2.1+dev.c2aa468a4", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
+kubernetes = "^34.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest-pydocstyle = "2.3.2"

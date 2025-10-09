@@ -64,17 +64,4 @@ environment_variables:
 - name: NS_PORT
   value: 9090
 
-extraVolumes:
-  - name: podInfo
-    downwardAPI:
-      items:
-        - path: hostIP
-          fieldRef:
-            fieldPath: status.hostIP
-
-extraVolumeMounts:
-  - name: podInfo
-    mountPath: /app/podInfo
-    readOnly: true
-
 {{- end -}}

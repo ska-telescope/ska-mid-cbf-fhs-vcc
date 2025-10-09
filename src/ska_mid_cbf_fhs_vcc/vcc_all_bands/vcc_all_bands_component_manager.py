@@ -196,6 +196,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             return
 
         self.logger.info("Checking connection to nameserver....")
+        self.logger.info(f"::::: GETTING NS_HOST: {pyro_client.get_host_ip()}")
         pyro_client.ping()
         self.logger.info("Ping finished....")
 
