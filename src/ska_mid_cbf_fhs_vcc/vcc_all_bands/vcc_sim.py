@@ -21,6 +21,8 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsCo
 
 __all__ = ["SimVCCAllBandsCM", "SimVCCAllBandsController"]
 
+
+# Default simulator attribute return values are initialized with this dict
 VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
     "expectedDishId": "",
     "requestedRFIHeadroom": [0],
@@ -29,6 +31,14 @@ VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
     "inputSampleRate": 0,
     "frequencyBandOffset": [0],
     "subarrayID": 0,
+}
+
+# Add any attributes that are configured for change/archive events to these sets
+VCC_SIM_CHANGE_EVENT_ATTRS = {
+    "subarrayID",
+}
+VCC_SIM_ARCHIVE_EVENT_ATTRS = {
+    "subarrayID",
 }
 
 
@@ -49,6 +59,9 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
         # Setup attribute read overrides
         self.enum_attrs.update({"frequencyBand": FrequencyBandEnum})
         self.attribute_overrides.update(VCC_SIM_DEFAULT_ATTRIBUTE_VALUES)
+        self._change_event_attrs = VCC_SIM_CHANGE_EVENT_ATTRS
+        self._archive_event_attrs = VCC_SIM_ARCHIVE_EVENT_ATTRS
+
 
         # Setup LRC method simulation
         self.command_overrides.update(
@@ -149,7 +162,8 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
     def create_component_manager(self: SimVCCAllBandsController) -> SimVCCAllBandsCM:
         return SimVCCAllBandsCM(
             logger=self.logger,
-            controller=self,
+            attr_archive_callback=self.push_archive_event,
+            attr_change_callback=self.push_change_event,
             communication_state_callback=self._communication_state_changed,
             component_state_callback=partial(FhsObsSimMode._component_state_changed, self),
         )

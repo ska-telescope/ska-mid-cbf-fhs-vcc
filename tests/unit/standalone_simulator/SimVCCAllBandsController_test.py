@@ -682,17 +682,16 @@ class TestVCCAllBandsSim:
                     min_n_events=n,
                 )
 
-
     @pytest.mark.parametrize(
-        "attribute_name, attribute_new_value",
+        "attribute_name, attribute_new_value, is_change_event",
         [
-            ("expectedDishId", "test"),
-            ("requestedRFIHeadroom", 13 * [1.0]),
-            ("vccGains", 13 * [1.0]),
+            ("expectedDishId", "test", False),
+            ("requestedRFIHeadroom", 13 * [1.0], False),
+            ("vccGains", 13 * [1.0], False),
             # "frequencyBand", # TODO fix enum test
-            ("inputSampleRate", 1),
-            ("frequencyBandOffset", [1]),
-            ("subarrayID", 1),
+            ("inputSampleRate", 1, False),
+            ("frequencyBandOffset", [1], False),
+            ("subarrayID", 1, True),
         ],
     )
     def test_attribute_overrides_queueing(
@@ -700,8 +699,17 @@ class TestVCCAllBandsSim:
         sim_vcc_all_bands_device: Any,
         attribute_name: Any,
         attribute_new_value: Any,
+        is_change_event: bool,
+        sim_vcc_all_bands_event_tracer: TangoEventTracer,
+        event_timeout: int,
     ) -> None:
-        """ Test attribute overrides by queueing multiple and consuming from the queue. Additionally checks default overrides """
+        """ Test attribute overrides by queueing multiple and consuming from the queue. Additionally checks default overrides 
+        
+            Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
+            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
+                events from the device under test.
+        """
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
 
         # Queue up two attributes
@@ -729,6 +737,20 @@ class TestVCCAllBandsSim:
             assert (
                 getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value
             )
+        if is_change_event:
+            expected_events = [
+                (attribute_name, attribute_value, attribute_new_value, 1),
+            ]
+            for name, value, previous, n in expected_events:
+                assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+                    event_timeout
+                ).has_change_event_occurred(
+                    device_name=sim_vcc_all_bands_device,
+                    attribute_name=name,
+                    attribute_value=value,
+                    previous_value=previous,
+                    min_n_events=n,
+                )
 
         sim_vcc_all_bands_device.simOverrides = json.dumps(
             {
