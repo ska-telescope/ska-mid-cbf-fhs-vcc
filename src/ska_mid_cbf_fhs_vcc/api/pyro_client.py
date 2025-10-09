@@ -43,24 +43,28 @@ class PyroClient:
             pod_name = os.getenv("HOSTNAME")
 
             # In a pod, HOSTNAME is the pod's name
-            with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace").read() as namespace:
-                if not pod_name or not namespace:
-                    raise ValueError("Could not determine pod name or namespace from environment.")
+            try:
+                with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace") as f:
+                    namespace = f.read().strip()
+            except FileNotFoundError:
+                return "namespace file not found..."
 
-                # Get the pod's status from the Kubernetes API
-                pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
+            if not pod_name or not namespace:
+                raise ValueError("Could not determine pod name or namespace from environment.")
 
-                self.logger.info(f":::: POD INFO: {pod}")
+            # Get the pod's status from the Kubernetes API
+            pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
 
-                host_ip = pod.status.host_ip
-                self.logger.info(f":::: HOST_IP: {host_ip}")
+            self.logger.info(f":::: POD INFO: {pod}")
 
-                node_name = pod.spec.node_name
-                self.logger.info(f":::: NODE_NAME: {node_name}")
+            host_ip = pod.status.host_ip
+            self.logger.info(f":::: HOST_IP: {host_ip}")
 
-                # The host IP is available under status.host_ip
-                return host_ip
-            return "unable to get host_ip"
+            node_name = pod.spec.node_name
+            self.logger.info(f":::: NODE_NAME: {node_name}")
+
+            # The host IP is available under status.host_ip
+            return host_ip
         except client.ApiException as e:
             print(f"Error accessing Kubernetes API: {e}")
             return None
