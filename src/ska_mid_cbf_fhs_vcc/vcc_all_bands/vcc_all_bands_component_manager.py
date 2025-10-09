@@ -176,19 +176,22 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def test_host_communication(
         self: VCCAllBandsComponentManager,
+        argin: str,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
             func=self._test_host_communication,
+            args=[argin],
             task_callback=task_callback,
         )
 
     def _test_host_communication(
         self,
+        driver_name: str,
         task_abort_event: Event,
         task_callback: Optional[Callable] = None,
     ) -> None:
-        pyro_client = PyroClient(self.logger)
+        pyro_client = PyroClient(self.logger, driver_name)
 
         task_callback(status=TaskStatus.IN_PROGRESS)
 
@@ -196,9 +199,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             return
 
         self.logger.info("Checking connection to nameserver....")
-        self.logger.info(f"::::: GETTING NS_HOST: {pyro_client.get_host_ip()}")
+        self.logger.info(f"::::: Getting NS_HOST: {pyro_client.get_host_ip()}")
         pyro_client.ping()
-        self.logger.info("Ping finished....")
+        self.logger.info("[SUCCESS] Ping completed....")
+
+        self.logger.info(f":::::: Calling status function on driver {driver_name}")
+        pyro_client.get_driver_status(driver_name)
 
         task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "Host Communication OK"))
 
