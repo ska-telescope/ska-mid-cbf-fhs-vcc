@@ -48,10 +48,18 @@ class PyroClient:
                     raise ValueError("Could not determine pod name or namespace from environment.")
 
                 # Get the pod's status from the Kubernetes API
-                pod_info = v1.read_namespaced_pod_status(name=pod_name, namespace=namespace)
+                pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
+
+                self.logger.info(f":::: POD INFO: {pod}")
+
+                host_ip = pod.status.host_ip
+                self.logger.info(f":::: HOST_IP: {host_ip}")
+
+                node_name = pod.spec.node_name
+                self.logger.info(f":::: NODE_NAME: {node_name}")
 
                 # The host IP is available under status.host_ip
-                return pod_info.status.host_ip
+                return host_ip
             return "unable to get host_ip"
         except client.ApiException as e:
             print(f"Error accessing Kubernetes API: {e}")
