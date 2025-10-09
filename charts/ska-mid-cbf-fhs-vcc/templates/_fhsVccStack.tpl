@@ -61,7 +61,8 @@ affinity:
 environment_variables:
 - name: NS_HOST
   valueFrom:
-    fieldRef: status.hostIP
+    fieldRef: 
+      fieldPath: status.hostIP
 - name: NS_PORT
   value: 9090
 
