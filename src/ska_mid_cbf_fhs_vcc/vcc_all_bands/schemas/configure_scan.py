@@ -31,7 +31,21 @@ vcc_all_bands_configure_scan_schema = {
         "b5b_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
         "fs_lanes": {
             "type": "array",
-            "items": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
+            "items": {
+                "type": "object",
+                "properties": {
+                    "vlan_id": {"type": "integer"},
+                    "fs_id": {"type": "integer"},
+                    "averaging_time": {"type": "integer"},
+                    "flagging": {"type": "integer"},
+                },
+                "required": [
+                    "vlan_id",
+                    "fs_id",
+                    "averaging_time",
+                    "flagging",
+                ],
+            },
         },
     },
     "required": [
@@ -46,7 +60,9 @@ vcc_all_bands_configure_scan_schema = {
         "b123_pwrm",
         "b45a_pwrm",
         "b5b_pwrm",
+        "fs_lanes",
     ],
+    #    "additionalProperties": False,  # TODO uncomment once schema and test data are correct and match
 }
 
 # fmt: off
