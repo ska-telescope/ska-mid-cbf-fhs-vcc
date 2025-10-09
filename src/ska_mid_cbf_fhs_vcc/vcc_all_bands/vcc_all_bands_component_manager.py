@@ -176,7 +176,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def test_host_communication(
         self: VCCAllBandsComponentManager,
-        argin: str,
+        argin,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
@@ -187,7 +187,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def _test_host_communication(
         self,
-        argin: str,
+        argin,
         task_abort_event: Event,
         task_callback: Optional[Callable] = None,
     ) -> None:
@@ -203,8 +203,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         pyro_client.ping()
         self.logger.info("[SUCCESS] Ping completed....")
 
-        self.logger.info(f":::::: Calling status function on driver {argin}")
-        pyro_client.get_driver_status(argin)
+        self.logger.info(f":::::: Calling status function on driver {argin[0]}")
+        pyro_client.get_driver_status(argin[0])
 
         task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "Host Communication OK"))
 
