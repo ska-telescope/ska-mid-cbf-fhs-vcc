@@ -322,9 +322,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                     VCCStreamMergeConfigureArgin(
                         fs_lane_configs=[
                             VCCStreamMergeConfig(
-                                vid=lane["vlan_id"],
+                                vid=lane.vlan_id,
                                 vcc_id=self._vcc_id,
-                                fs_id=lane["fs_id"],
+                                fs_id=lane.fs_id,
                             )
                             for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
                         ]
