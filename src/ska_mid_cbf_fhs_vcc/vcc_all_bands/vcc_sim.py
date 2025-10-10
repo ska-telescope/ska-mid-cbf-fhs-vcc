@@ -165,7 +165,7 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
         return SimVCCAllBandsCM(
             logger=self.logger,
             attr_change_callback=self.push_change_event,
-            # attr_archive_callback=self.push_archive_event,
+            attr_archive_callback=self.push_archive_event,
             communication_state_callback=self._communication_state_changed,
             component_state_callback=partial(FhsObsSimMode._component_state_changed, self),
         )
