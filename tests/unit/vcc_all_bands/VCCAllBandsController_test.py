@@ -63,7 +63,8 @@ def vcc_all_bands_tango_event_tracer(
         "adminMode",
         "state",
         "obsState",
-        "healthState"
+        "healthState",
+        "subarrayID",
     ]
     for attr in change_event_attr_list:
         tracer.subscribe_event(vcc_all_bands_device, attr)
@@ -172,13 +173,6 @@ class TestVCCAllBandsController:
         vcc_all_bands_device: VCCAllBandsController,
         vcc_all_bands_event_tracer: TangoEventTracer,
     ):
-        # with mock.patch(
-        #     "ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager.VCCAllBandsComponentManager.subarray_id",
-        #     new_callable=mock.PropertyMock,
-        #     return_value=current_subarray,
-        #     create=True
-        # ):
-
         # Setup for unassign cases by first assigning subarray membership
         instant_fail = True
         if current_subarray != 0:
