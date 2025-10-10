@@ -759,7 +759,7 @@ class TestVCCAllBandsSim:
             ("expectedDishId", "test"),
             ("requestedRFIHeadroom", 13 * [1.0]),
             ("vccGains", 13 * [1.0]),
-            # # "frequencyBand", # TODO fix enum test
+            # "frequencyBand", # TODO fix enum test
             ("inputSampleRate", 1),
             ("frequencyBandOffset", [1]),
             ("subarrayID", 1),
@@ -771,13 +771,7 @@ class TestVCCAllBandsSim:
         attribute_name: Any,
         attribute_new_value: Any,
     ) -> None:
-        """ Test attribute overrides by queueing multiple and consuming from the queue. Additionally checks default overrides 
-        
-            Args:
-            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
-            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
-                events from the device under test.
-        """
+        """ Test attribute overrides by queueing multiple and consuming from the queue. Additionally checks default overrides """
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
 
         # Queue up two attributes

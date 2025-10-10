@@ -9,6 +9,4 @@ __all__ = ["CircuitSwitchSimulator"]
 
 class CircuitSwitchSimulator(BaseSimulatorApi):
     def status(self, clear: bool = False) -> dict:
-        return json.loads(
-            '{"num_inputs": 10, "num_outputs": 10, "connected": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}'
-        )
+        return json.loads('{"num_inputs": 10, "num_outputs": 10, "connected": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}')

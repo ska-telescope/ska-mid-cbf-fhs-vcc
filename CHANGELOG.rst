@@ -8,6 +8,17 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 * CIP-4349: Passed controller as argument to Component Manager for use with pushing change events
+* CIP-2768: Use dataclass for VCC controller config 
+
+0.3.2
+******
+* Update make submodule to fix SKA pipeline bug
+
+0.3.1
+******
+* CIP-4104: Update FHS-VCC sim and tests for override queueing
+* CIP-4159: Update to use common linter
+
 0.3.0
 ******
 * CIP-4104: Update FHS-VCC sim and tests for override queueing
