@@ -7,7 +7,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 UNRELEASED CHANGES
 ******************
-* CIP-4349: Passed controller as argument to Component Manager for use with pushing change events
+* CIP-4349: tested UpdateSubarrayMembership command pushing subarrayID change events in standalone simulation
 * CIP-2768: Use dataclass for VCC controller config 
 
 0.3.2
