@@ -62,7 +62,6 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
         self._change_event_attrs = VCC_SIM_CHANGE_EVENT_ATTRS
         self._archive_event_attrs = VCC_SIM_ARCHIVE_EVENT_ATTRS
 
-
         # Setup LRC method simulation
         self.command_overrides.update(
             {
@@ -112,6 +111,9 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
                     "allowed_obs_states": ["IDLE"],
                     "result_code": "OK",
                     "message": "UpdateSubarrayMembership completed OK",
+                    "attr_change_events": {
+                        "subarrayID": None,
+                    },
                 },
                 "AutoSetFilterGains": {
                     "allowed": True,
@@ -162,8 +164,8 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
     def create_component_manager(self: SimVCCAllBandsController) -> SimVCCAllBandsCM:
         return SimVCCAllBandsCM(
             logger=self.logger,
-            attr_archive_callback=self.push_archive_event,
             attr_change_callback=self.push_change_event,
+            # attr_archive_callback=self.push_archive_event,
             communication_state_callback=self._communication_state_changed,
             component_state_callback=partial(FhsObsSimMode._component_state_changed, self),
         )

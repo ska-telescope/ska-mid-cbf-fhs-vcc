@@ -55,7 +55,7 @@ def sim_vcc_all_bands_tango_event_tracer(
         "state",
         "obsState",
         "healthState",
-        "subarrayID"
+        "subarrayID",
     ]
     for attr in change_event_attr_list:
         tracer.subscribe_event(sim_vcc_all_bands_device, attr)

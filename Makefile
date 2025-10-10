@@ -91,7 +91,6 @@ PYTHON_SWITCHES_FOR_PYLINT = --disable=E0401,E0611,F0002,F0010,E0001,E1101
 PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --disable=E0401,F0002,F0010,E1101
 PYTHON_LINE_LENGTH = 130
 POETRY_PYTHON_RUNNER = poetry run python3 -m
-PYTHON_VARS_AFTER_PYTEST = -k test_attribute_overrides_queueing
 
 PYTHON_LINT_TARGET = ./src/
 K8S_VARS_AFTER_PYTEST = -s
@@ -200,7 +199,6 @@ build-docs-local:
 	@echo "Building docs..."
 	-@$(POETRY_PYTHON_RUNNER) sphinx -T -b html -d ./build/sphinx_local/cache/doctrees -D language=en ./docs/src ./build/sphinx_local/output
 	@echo "Done. Open build/sphinx_local/output/index.html to view the generated docs."
-
 
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
 

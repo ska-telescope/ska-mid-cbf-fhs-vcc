@@ -431,6 +431,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
             else:
                 self.subarray_id = argin
+                self._attr_change_callback("subarrayID", argin)
+                self._attr_archive_callback("subarrayID", argin)
                 self._set_task_callback(
                     task_callback,
                     TaskStatus.COMPLETED,

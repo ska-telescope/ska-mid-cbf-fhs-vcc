@@ -13,6 +13,7 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
     """Tango device class for the VCC All Bands Controller."""
 
     def set_local_change_events(self) -> None:
+        super().set_local_change_events()
         self.set_change_event("subarrayID", True)
         self.set_archive_event("subarrayID", True)
 

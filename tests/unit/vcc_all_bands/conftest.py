@@ -56,7 +56,8 @@ def vcc_all_bands_tango_event_tracer(
         "adminMode",
         "state",
         "obsState",
-        "healthState"
+        "healthState",
+        "subarrayID",
     ]
     for attr in change_event_attr_list:
         tracer.subscribe_event(vcc_all_bands_device, attr)
