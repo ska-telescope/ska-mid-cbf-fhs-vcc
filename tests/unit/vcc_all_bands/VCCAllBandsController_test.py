@@ -3,6 +3,7 @@ from collections.abc import Generator
 import json
 from unittest import mock
 import pytest
+from assertpy import assert_that
 from ska_mid_cbf_fhs_common.testing.device_test_utils import DeviceTestUtils
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils
 from tango import DevState
@@ -62,7 +63,8 @@ def vcc_all_bands_tango_event_tracer(
         "adminMode",
         "state",
         "obsState",
-        "healthState"
+        "healthState",
+        "subarrayID",
     ]
     for attr in change_event_attr_list:
         tracer.subscribe_event(vcc_all_bands_device, attr)
@@ -171,21 +173,48 @@ class TestVCCAllBandsController:
         vcc_all_bands_device: VCCAllBandsController,
         vcc_all_bands_event_tracer: TangoEventTracer,
     ):
-        with mock.patch(
-            "ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager.VCCAllBandsComponentManager.subarray_id",
-            new_callable=mock.PropertyMock,
-            return_value=current_subarray,
-            create=True
-        ):
-            vcc_all_bands_device.command_inout("UpdateSubarrayMembership", new_subarray)
-            
+        # Setup for unassign cases by first assigning subarray membership
+        instant_fail = True
+        if current_subarray != 0:
+            vcc_all_bands_device.command_inout("UpdateSubarrayMembership", current_subarray)
             DeviceTestUtils.assert_lrc_completed(
                 vcc_all_bands_device,
                 vcc_all_bands_event_tracer,
                 EVENT_TIMEOUT,
                 "UpdateSubarrayMembership",
-                [expected_result]
+                [ResultCode.OK]
             )
+            instant_fail = False
+            assert_that(vcc_all_bands_event_tracer).within_timeout(
+                EVENT_TIMEOUT
+            ).has_change_event_occurred(
+                device_name=vcc_all_bands_device,
+                attribute_name="subarrayID",
+                attribute_value=current_subarray,
+                previous_value=0,
+            )
+
+        # Update subarray membership
+        vcc_all_bands_device.command_inout("UpdateSubarrayMembership", new_subarray)
+        DeviceTestUtils.assert_lrc_completed(
+            vcc_all_bands_device,
+            vcc_all_bands_event_tracer,
+            EVENT_TIMEOUT,
+            "UpdateSubarrayMembership",
+            [expected_result],
+            instant_fail_on_non_passing_result=instant_fail
+        )
+        if expected_result == ResultCode.OK:
+            assert_that(vcc_all_bands_event_tracer).within_timeout(
+                EVENT_TIMEOUT
+            ).has_change_event_occurred(
+                device_name=vcc_all_bands_device,
+                attribute_name="subarrayID",
+                attribute_value=new_subarray,
+                previous_value=current_subarray,
+            )
+        else:
+            assert vcc_all_bands_device.subarrayID == current_subarray
 
     @pytest.mark.parametrize(
         ("measured_power", "headroom", "expected_multipliers", "expected_result"),
