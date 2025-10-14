@@ -36,7 +36,7 @@ gc.disable()
 class TestVCCAllBandsSim:
     """Test class for VCCAllBandsSim."""
 
-    @pytest.fixture(name="test_context", scope="module")
+    @pytest.fixture(name="test_context")
     def init_test_context(self):
         """Fixture to set up the VCC All Bands device for testing with a mock Tango database."""
         harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
@@ -599,6 +599,77 @@ class TestVCCAllBandsSim:
                 )
 
     @pytest.mark.parametrize(
+        "subarray_id", 
+        [1, 2, 16],
+    )
+    def test_UpdateSubarrayMembership_with_event(
+        self: TestVCCAllBandsSim,
+        sim_vcc_all_bands_device: Any,
+        sim_vcc_all_bands_event_tracer: TangoEventTracer,
+        subarray_id: int,
+        event_timeout: int,
+    ) -> None:
+        """Test UpdateSubarrayMembership command with change event override
+
+        Args:
+            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
+            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
+                events from the device under test.
+        """
+        # Set device ONLINE
+        sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
+        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+            event_timeout
+        ).has_change_event_occurred(
+            device_name=sim_vcc_all_bands_device,
+            attribute_name="adminMode",
+            attribute_value=AdminMode.ONLINE,
+            previous_value=AdminMode.OFFLINE,
+            min_n_events=1,
+        )
+
+        assert sim_vcc_all_bands_device.subarrayID == 0
+
+        # Load UpdateSubarrayMembership override to push subarrayID event
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "commands": {
+                    "UpdateSubarrayMembership": {
+                        "attr_change_events": {
+                            "subarrayID": subarray_id,
+                        },
+                    },
+                }
+            }
+        )
+        [[result_code], [command_id]] = sim_vcc_all_bands_device.UpdateSubarrayMembership(subarray_id)
+        assert result_code == ResultCode.QUEUED
+
+        # Check for expected events
+        expected_events = [
+            ("subarrayID", subarray_id, 0, 1),
+            (
+                "longRunningCommandResult",
+                (
+                    f"{command_id}",
+                    f'[{ResultCode.OK.value}, "UpdateSubarrayMembership completed OK"]',
+                ),
+                None,
+                1,
+            ),
+        ]
+        for name, value, previous, n in expected_events:
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+                event_timeout
+            ).has_change_event_occurred(
+                device_name=sim_vcc_all_bands_device,
+                attribute_name=name,
+                attribute_value=value,
+                previous_value=previous,
+                min_n_events=n,
+            )
+
+    @pytest.mark.parametrize(
         "command_name, \
         allowed_obs_states, \
         command_param", 
@@ -681,7 +752,6 @@ class TestVCCAllBandsSim:
                     previous_value=previous,
                     min_n_events=n,
                 )
-
 
     @pytest.mark.parametrize(
         "attribute_name, attribute_new_value",
