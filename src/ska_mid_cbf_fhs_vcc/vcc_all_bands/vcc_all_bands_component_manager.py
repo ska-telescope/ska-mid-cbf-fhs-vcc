@@ -216,6 +216,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     ) -> None:
         task_callback(status=TaskStatus.IN_PROGRESS)
 
+        if self.task_abort_event_is_set("TestWIBStatus", task_callback, task_abort_event):
+            return
+
         self.logger.info("::: Getting WIB status from Terabox Server :::")
         pyro_wib_client = PyroWibClient(self.logger, argin[0])
         pyro_wib_client.status()
@@ -229,6 +232,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         task_callback: Optional[Callable] = None,
     ) -> None:
         task_callback(status=TaskStatus.IN_PROGRESS)
+
+        if self.task_abort_event_is_set("TestWIBConfig", task_callback, task_abort_event):
+            return
 
         self.logger.info("::: Configured WIB on Terabox Server :::")
         pyro_wib_client = PyroWibClient(self.logger, argin[0])
