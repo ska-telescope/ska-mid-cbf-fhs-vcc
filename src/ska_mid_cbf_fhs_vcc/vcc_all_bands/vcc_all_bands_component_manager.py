@@ -11,7 +11,8 @@ from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, Wi
 from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
 
-from ska_mid_cbf_fhs_vcc.api.pyro_client import PyroClient
+from ska_mid_cbf_fhs_vcc.api.pyro.pyro_client import PyroClient
+from ska_mid_cbf_fhs_vcc.api.pyro.pyro_wib_client import PyroWibClient
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
     B123VccOsppfbChannelizerConfigureArgin,
     B123VccOsppfbChannelizerManager,
@@ -184,6 +185,56 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             args=[argin],
             task_callback=task_callback,
         )
+    
+    def test_wib_config(
+            self: VCCAllBandsComponentManager,
+            argin,
+            task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=self._test_wib_config,
+            args=[argin],
+            task_callback=task_callback,
+        )
+    
+    def test_wib_status(
+            self: VCCAllBandsComponentManager,
+            argin,
+            task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=self._test_wib_status,
+            args=[argin],
+            task_callback=task_callback,
+        )
+    
+    def _test_wib_status(
+            self,
+            argin,
+            task_abort_event: Event,
+            task_callback: Optional[Callable] = None,
+    ) -> None:
+        task_callback(status=TaskStatus.IN_PROGRESS)
+
+        self.logger.info("::: Getting WIB status from Terabox Server :::")
+        pyro_wib_client = PyroWibClient(self.logger, argin[0])
+        pyro_wib_client.status()
+
+        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "WIB Status Recieved on Terabox OK"))
+
+    def _test_wib_config(
+            self,
+            argin,
+            task_abort_event: Event,
+            task_callback: Optional[Callable] = None,
+    ) -> None:
+        task_callback(status=TaskStatus.IN_PROGRESS)
+
+        self.logger.info("::: Configured WIB on Terabox Server :::")
+        pyro_wib_client = PyroWibClient(self.logger, argin[0])
+        pyro_wib_client.configure(argin[1])
+
+        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "WIB Configured on Terabox OK"))
 
     def _test_host_communication(
         self,

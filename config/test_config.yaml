@@ -1,0 +1,140 @@
+bite:
+  speed: 1.0
+  t1412c0-0:
+    noise:
+      polX:
+        mean: 0.0
+        seed: 1361135679
+        stddev: 0.14433536488091325
+      polY:
+        mean: 0.0
+        seed: 1123709374
+        stddev: 0.14433536488091325
+    pol_Y_one_frame_delay: false
+    pol_coupling_rho: 0.0
+    tone:
+      frequency: 0.0
+      magnitude: 0.0
+cards:
+  t1412c0:
+    detri_physical_function: 1
+    detri_region: 0
+    device: 0000:81:00
+dish:
+  t1412c0-0:
+    AntennaID: null
+    EtherType: '0xFEED'
+    MAC: null
+    band: 1
+    noise_diode:
+      transition_holdoff: 0.0
+    sample_rate: 3960000000
+    source: BITE
+    start_time: 1760038123
+testcase:
+  description: '|FHS-VCC to Pyro test.'
+  id: '1.0'
+  title: FHS-VCC to Pyro test
+vcc:
+  t1412c0-0:
+    DishEth:
+      MAC: null
+    coarse_channels:
+      0:
+        fsp:
+          MAC: 00:00:00:00:00:00
+          vlan: 2
+        gain:
+          X: 1.0
+          Y: 1.0
+        power_meter:
+          averaging_time: 0.1
+          flag_behaviour: ignore
+      1:
+        fsp:
+          MAC: 00:00:00:00:00:00
+          vlan: 2
+        gain:
+          X: 1.0
+          Y: 1.0
+        power_meter:
+          averaging_time: 0.1
+          flag_behaviour: ignore
+      2:
+        fsp:
+          MAC: 00:00:00:00:00:00
+          vlan: 2
+        gain:
+          X: 1.0
+          Y: 1.0
+        power_meter:
+          averaging_time: 0.1
+          flag_behaviour: ignore
+      3:
+        fsp:
+          MAC: 00:00:00:00:00:00
+          vlan: 2
+        gain:
+          X: 1.0
+          Y: 1.0
+        power_meter:
+          averaging_time: 0.1
+          flag_behaviour: ignore
+      4:
+        fsp:
+          MAC: 00:00:00:00:00:00
+          vlan: 2
+        gain:
+          X: 1.0
+          Y: 1.0
+        power_meter:
+          averaging_time: 0.1
+          flag_behaviour: ignore
+      5:
+        fsp: {}
+        gain:
+          X: 1.0
+          Y: 1.0
+        power_meter:
+          averaging_time: 0.1
+          flag_behaviour: ignore
+      6:
+        fsp: {}
+        gain:
+          X: 1.0
+          Y: 1.0
+        power_meter:
+          averaging_time: 0.1
+          flag_behaviour: ignore
+      7:
+        fsp: {}
+        gain:
+          X: 1.0
+          Y: 1.0
+        power_meter:
+          averaging_time: 0.1
+          flag_behaviour: ignore
+      8:
+        fsp: {}
+        gain:
+          X: 1.0
+          Y: 1.0
+        power_meter:
+          averaging_time: 0.1
+          flag_behaviour: ignore
+      9:
+        fsp: {}
+        gain:
+          X: 1.0
+          Y: 1.0
+        power_meter:
+          averaging_time: 0.1
+          flag_behaviour: ignore
+    default_gain:
+      X: 1.0
+      Y: 1.0
+    num_dish_packets_to_capture: null
+    power_meter:
+      band123:
+        averaging_time: 0.1
+        flag_behaviour: ignore
