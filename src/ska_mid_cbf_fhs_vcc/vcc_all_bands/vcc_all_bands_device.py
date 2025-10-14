@@ -178,25 +178,25 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         dtype_in=(str,),
         dtype_out="DevVarLongStringArray",
     )
-    def TestHostCommunication(self: VCCAllBandsController, driver_name: str) -> DevVarLongStringArrayType:
+    def TestHostCommunication(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="TestHostCommunication")
         result_code, command_id = command_handler(argin=driver_name)
-        return [[result_code], [command_id]]
-
-    @command(
-        dtype_in=(str, str),
-        dtype_out="DevVarLongStringArray",
-    )
-    def TestWIBConfig(self: VCCAllBandsController, driver_name: str, file_name: str) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="TestWIBConfig")
-        result_code, command_id = command_handler(argin=[driver_name, file_name])
         return [[result_code], [command_id]]
 
     @command(
         dtype_in=(str,),
         dtype_out="DevVarLongStringArray",
     )
-    def TestWIBStatus(self: VCCAllBandsController, driver_name: str) -> DevVarLongStringArrayType:
+    def TestWIBConfig(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="TestWIBConfig")
+        result_code, command_id = command_handler(argin=driver_name)
+        return [[result_code], [command_id]]
+
+    @command(
+        dtype_in=(str,),
+        dtype_out="DevVarLongStringArray",
+    )
+    def TestWIBStatus(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="TestWIBStatus")
         result_code, command_id = command_handler(argin=[driver_name])
         return [[result_code], [command_id]]
