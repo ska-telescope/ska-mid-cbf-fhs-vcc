@@ -184,7 +184,7 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         return [[result_code], [command_id]]
 
     @command(
-        dtype_in=(str,str),
+        dtype_in=(str, str),
         dtype_out="DevVarLongStringArray",
     )
     def TestWIBConfig(self: VCCAllBandsController, driver_name: str, file_name: str) -> DevVarLongStringArrayType:
@@ -192,15 +192,6 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         result_code, command_id = command_handler(argin=[driver_name, file_name])
         return [[result_code], [command_id]]
 
-    @command(
-        dtype_in=(str,str),
-        dtype_out="DevVarLongStringArray",
-    )
-    def TestWIBStatus(self: VCCAllBandsController, driver_name: str, file_name: str) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="TestWIBConfig")
-        result_code, command_id = command_handler(argin=[driver_name, file_name])
-        return [[result_code], [command_id]]
-    
     @command(
         dtype_in=(str,),
         dtype_out="DevVarLongStringArray",

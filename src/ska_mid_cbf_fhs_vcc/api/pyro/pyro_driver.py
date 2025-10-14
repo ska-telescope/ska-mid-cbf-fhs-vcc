@@ -11,7 +11,7 @@ class PyroDriver:
     def __init__(self, logger: logging.Logger, driver_name: str):
         self.logger = logger
         self.driver_name = driver_name
-        
+
         self.ns_host = self.get_host_ip()
         self.ns_port = int(os.getenv("NS_PORT", "9090"))
 
@@ -45,7 +45,7 @@ class PyroDriver:
         except Exception as ex:
             self.logger.error(f"Unable to open {file_name}; {repr(ex)}")
             raise ex
-        
+
     def get_host_ip(self):
         """
         Fetches the node IP address from inside a pod.
@@ -88,4 +88,3 @@ class PyroDriver:
         except Exception as e:
             self.logger.error(f"An error occurred: {e}")
             return None
-

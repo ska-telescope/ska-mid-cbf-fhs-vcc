@@ -185,34 +185,34 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             args=[argin],
             task_callback=task_callback,
         )
-    
+
     def test_wib_config(
-            self: VCCAllBandsComponentManager,
-            argin,
-            task_callback: Optional[Callable] = None,
+        self: VCCAllBandsComponentManager,
+        argin,
+        task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
             func=self._test_wib_config,
             args=[argin],
             task_callback=task_callback,
         )
-    
+
     def test_wib_status(
-            self: VCCAllBandsComponentManager,
-            argin,
-            task_callback: Optional[Callable] = None,
+        self: VCCAllBandsComponentManager,
+        argin,
+        task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
             func=self._test_wib_status,
             args=[argin],
             task_callback=task_callback,
         )
-    
+
     def _test_wib_status(
-            self,
-            argin,
-            task_abort_event: Event,
-            task_callback: Optional[Callable] = None,
+        self,
+        argin,
+        task_abort_event: Event,
+        task_callback: Optional[Callable] = None,
     ) -> None:
         task_callback(status=TaskStatus.IN_PROGRESS)
 
@@ -223,10 +223,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "WIB Status Recieved on Terabox OK"))
 
     def _test_wib_config(
-            self,
-            argin,
-            task_abort_event: Event,
-            task_callback: Optional[Callable] = None,
+        self,
+        argin,
+        task_abort_event: Event,
+        task_callback: Optional[Callable] = None,
     ) -> None:
         task_callback(status=TaskStatus.IN_PROGRESS)
 
