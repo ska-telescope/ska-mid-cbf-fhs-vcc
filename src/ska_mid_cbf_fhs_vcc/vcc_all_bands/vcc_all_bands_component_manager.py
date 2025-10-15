@@ -238,7 +238,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.logger.info("::: Configured WIB on Terabox Server :::")
         pyro_wib_client = PyroWibClient(self.logger, argin[0])
-        pyro_wib_client.configure(argin[1])
+        pyro_wib_client.configure()
 
         task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "WIB Configured on Terabox OK"))
 
