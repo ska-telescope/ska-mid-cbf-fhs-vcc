@@ -34,7 +34,7 @@ class PyroDriver:
             self.logger.error(f"Unable to run command {command_name} with param {param}:  {repr(ex)}")
             raise ex
 
-    def get_config_file(self, file_name: str) -> dict:
+    def get_config_file(self) -> dict:
         try:
             config_file = {}
 
@@ -43,7 +43,7 @@ class PyroDriver:
 
             return config_file
         except Exception as ex:
-            self.logger.error(f"Unable to open {file_name}; {repr(ex)}")
+            self.logger.error(f"Unable to open test_config.yaml; {repr(ex)}")
             raise ex
 
     def get_host_ip(self):

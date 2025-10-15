@@ -5,9 +5,9 @@ class PyroWibClient(PyroDriver):
     def __init__(self, logger, driver_name):
         super().__init__(logger, driver_name)
 
-    def configure(self, config_file):
+    def configure(self):
         try:
-            test_config: dict = self.get_config_file(config_file)
+            test_config: dict = self.get_config_file()
 
             band = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("band", 1)
             sample_rate = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("sample_rate", 3.96e9)
