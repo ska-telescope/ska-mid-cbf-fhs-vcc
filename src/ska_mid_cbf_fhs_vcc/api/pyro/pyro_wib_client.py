@@ -10,12 +10,18 @@ class PyroWibClient(PyroDriver):
 
     def configure(self):
         try:
+            test_config = self.get_config_file()
+
+            band = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("band", 1)
+            sample_rate = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("sample_rate", 3.96e9)
+            transition_holdoff = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("noise_diode", {}).setdefault("transition_holdoff", 0.0)
+
             config_t = dict(
-                expected_sample_rate=3960000000,
-                noise_diode_transition_holdoff_seconds=0.0,
-                expected_dish_band=1,
+                expected_sample_rate = int(sample_rate),
+                noise_diode_transition_holdoff_seconds = float(transition_holdoff),
+                expected_dish_band = int(band),
             )
-            print(config_t)
+
 
             super().configure(config_t)
 
@@ -25,6 +31,7 @@ class PyroWibClient(PyroDriver):
 
     def status(self, clear: bool = False):
         self.logger.info(f"::::: {self.driver_name} Driver Status :::::")
+        status_t = super().status(False)
         self.logger.info(f"{super().status(clear)}")
 
     def get_location(self, name: str):
