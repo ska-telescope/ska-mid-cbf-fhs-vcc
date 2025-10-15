@@ -30,4 +30,4 @@ class PyroWibClient(PyroDriver):
 
     def status(self, clear: bool = False):
         self.logger.info(f"::::: {self.driver_name} Driver Status :::::")
-        self.logger.info(f"{self.status(clear)}")
+        self.logger.info(f"{super().status(clear)}")
