@@ -38,7 +38,7 @@ class PyroDriver:
         try:
             config_file = {}
 
-            with open("/app/mnt/test_config.yaml", "r") as file:
+            with open("/app/mnt/pyro_test_config/pyro-test-configmap.yaml", "r") as file:
                 config_file: dict = yaml.safe_load(file)
 
             return config_file

@@ -68,12 +68,12 @@ extraVolumes:
 {{- if .Values.testConfig }}
 - name: pyro-test-mount
   configMap: 
-    name:  test-configmap
+    name:  pyro-test-configmap
 {{- end }}
 extraVolumeMounts:
 {{- if .Values.testConfig }}
   - name: pyro-test-mount
-    mountPath: /app/mnt/test_config.yaml
+    mountPath: /app/mnt/pyro_test_config
 {{- end }}
 
 {{- end -}}

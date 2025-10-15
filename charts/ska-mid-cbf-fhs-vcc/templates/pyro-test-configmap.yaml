@@ -1,0 +1,9 @@
+{{- if .Values.testConfig }}
+apiVersion: v1
+data:
+  pyro-test-configmap.yaml: | 
+{{ toYaml .Values.testConfig | indent 4 }}
+kind: ConfigMap
+metadata:
+  name: pyro-test-configmap
+{{- end }}
