@@ -229,7 +229,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             client = PyroWibClient(self.logger, argin[0])
         elif argin[0] == "t1412c0_receptor0_band123_vcc":
             client = PyroChannelizerClient(self.logger, argin[0])
-        elif argin[0] == "t1412c0_receptor0_band123_vcc":
+        elif argin[0] == "t1412c0_receptor0_band123_wideband_power_meter":
             client = PyroPowerMeterClient(self.logger, argin[0])
         else:
             self.logger.error(f"[ERROR] Unknown driver, cannot call status for {argin[0]}")
@@ -258,7 +258,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             client = PyroWibClient(self.logger, argin[0])
         elif argin[0] == "t1412c0_receptor0_band123_vcc":
             client = PyroChannelizerClient(self.logger, argin[0])
-        elif argin[0] == "t1412c0_receptor0_band123_vcc":
+        elif argin[0] == "t1412c0_receptor0_band123_wideband_power_meter":
             client = PyroPowerMeterClient(self.logger, argin[0])
         else:
             self.logger.error(f"[ERROR] Unknown driver, cannot configure {argin[0]}")
