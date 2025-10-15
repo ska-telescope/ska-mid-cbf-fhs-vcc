@@ -66,7 +66,7 @@ environment_variables:
 
 extraVolumes:
 {{- if .Values.testConfig }}
-- name: pyro-test
+- name: pyro-test-mount
   configMap: 
     name:  test-configmap
 {{- end }}
