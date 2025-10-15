@@ -198,7 +198,7 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
     )
     def TestStatus(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="TestStatus")
-        result_code, command_id = command_handler(argin=[driver_name])
+        result_code, command_id = command_handler(argin=driver_name)
         return [[result_code], [command_id]]
 
 
