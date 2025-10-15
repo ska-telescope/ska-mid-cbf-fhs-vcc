@@ -28,7 +28,6 @@ class PyroWibClient(PyroDriver):
         self.logger.info(f"{super().status(clear)}")
 
     def get_location(self, name: str):
-
         print(f"::: LOCATION NAME::: {name}")
 
         forms = {
