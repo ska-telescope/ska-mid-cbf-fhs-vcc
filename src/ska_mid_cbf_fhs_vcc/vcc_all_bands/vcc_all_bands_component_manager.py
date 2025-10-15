@@ -13,6 +13,7 @@ from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockMan
 
 from ska_mid_cbf_fhs_vcc.api.pyro.pyro_channelizer_client import PyroChannelizerClient
 from ska_mid_cbf_fhs_vcc.api.pyro.pyro_client import PyroClient
+from ska_mid_cbf_fhs_vcc.api.pyro.pyro_power_meter_client import PyroPowerMeterClient
 from ska_mid_cbf_fhs_vcc.api.pyro.pyro_wib_client import PyroWibClient
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
     B123VccOsppfbChannelizerConfigureArgin,
@@ -217,7 +218,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     ) -> None:
         task_callback(status=TaskStatus.IN_PROGRESS)
 
-        if self.task_abort_event_is_set("TestWIBStatus", task_callback, task_abort_event):
+        if self.task_abort_event_is_set("TestStatus", task_callback, task_abort_event):
             return
 
         self.logger.info(f"::: Getting {argin[0]} status from Terabox Server :::")
@@ -228,6 +229,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             client = PyroWibClient(self.logger, argin[0])
         elif argin[0] == "t1412c0_receptor0_band123_vcc":
             client = PyroChannelizerClient(self.logger, argin[0])
+        elif argin[0] == "t1412c0_receptor0_band123_vcc":
+            client = PyroPowerMeterClient(self.logger, argin[0])
+        else:
+            self.logger.error(f"[ERROR] Unknown driver, cannot call status for {argin[0]}")
 
         if client is not None:
             client.status()
@@ -242,7 +247,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     ) -> None:
         task_callback(status=TaskStatus.IN_PROGRESS)
 
-        if self.task_abort_event_is_set("TestWIBConfig", task_callback, task_abort_event):
+        if self.task_abort_event_is_set("TestConfig", task_callback, task_abort_event):
             return
 
         client = None
@@ -253,6 +258,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             client = PyroWibClient(self.logger, argin[0])
         elif argin[0] == "t1412c0_receptor0_band123_vcc":
             client = PyroChannelizerClient(self.logger, argin[0])
+        elif argin[0] == "t1412c0_receptor0_band123_vcc":
+            client = PyroPowerMeterClient(self.logger, argin[0])
+        else:
+            self.logger.error(f"[ERROR] Unknown driver, cannot configure {argin[0]}")
 
         client.configure()
 
