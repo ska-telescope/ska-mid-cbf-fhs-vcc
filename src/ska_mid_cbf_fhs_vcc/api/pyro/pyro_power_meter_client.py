@@ -5,10 +5,11 @@ class PyroPowerMeterClient(PyroDriver):
     def __init__(self, logger, driver_name):
         super().__init__(logger, driver_name)
         # work out where in the receptor lane this wpm is.
-        self.my_loc = self.local_location.split("_", 1)[0]  # first string before the next underscore.
+        self.my_loc = "band123"  # first string before the next underscore.
         self.time_resolution = 1.0
         self.enabled = False
         self.coarse_channel = "--"
+        self.location = "t1412c0-0"
 
     def configure(self):
         try:
@@ -32,7 +33,7 @@ class PyroPowerMeterClient(PyroDriver):
                     return
                 power_meter_cfg = coarse_channel_config.get(self.coarse_channel, {}).setdefault("power_meter", {})
                 # update the time_resolution so that status can convert the sample rate correctly.
-                sample_rate = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("sample_rate", 3.96e9)
+                sample_rate = 3.96e9
                 if band <= 3:
                     self.time_resolution = sample_rate // 18
                 else:

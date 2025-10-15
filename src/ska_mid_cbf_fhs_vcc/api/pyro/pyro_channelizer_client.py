@@ -13,12 +13,12 @@ class PyroChannelizerClient(PyroDriver):
         try:
             test_config: dict = self.get_config_file()
 
-            self.band = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("band", 1)
+            self.band = 1
             if self.band not in self.BANDS:
                 # nothing to do.
                 return
             config_t = {}
-            input_sample_rate = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("sample_rate", 3.96e9)
+            input_sample_rate = 3.96e9
             self.logger.info(
                 f"Setting the VCC sample_rate to {input_sample_rate} samples per second at the outputs. Frequency slice bandwidth will be {input_sample_rate // 2 // self.CHANNELS_OUT:e} Hz"
             )
@@ -37,14 +37,13 @@ class PyroChannelizerClient(PyroDriver):
                     channels_cfg.setdefault(chan, {})
 
             for chan in range(first_channel, last_channel):
-                chan_cfg = channels_cfg.get(chan, {})  # get but don't set a default.
-                for pol in ("X", "Y"):
-                    default_gain = test_config.setdefault("vcc", {}).setdefault(self.location, {}).setdefault("default_gain", {}).setdefault(pol, 1.0)
-                    gain = chan_cfg.setdefault("gain", {}).setdefault(pol, default_gain)
+                for _pol in ("X", "Y"):
                     # Call configure for each pol and channel separately.
-                    config_t["pol"] = self.pol_to_int(pol)
+                    config_t["pol"] = 1
                     config_t["channel"] = int(chan - first_channel)
-                    config_t["gain"] = float(gain)
+                    config_t["gain"] = 1.0
+
+                    self.logger.info(f"CONFIG: {config_t}")
                     super().configure(config_t)
         except Exception as ex:
             self.logger.error(f"Unable to configure the vcc_20 channelizer, {repr(ex)}")
