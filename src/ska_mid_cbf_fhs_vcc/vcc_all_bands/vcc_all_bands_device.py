@@ -31,8 +31,8 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
             ("UpdateSubarrayMembership", "update_subarray_membership"),
             ("AutoSetFilterGains", "auto_set_filter_gains"),
             ("TestHostCommunication", "test_host_communication"),
-            ("TestWIBConfig", "test_wib_config"),
-            ("TestWIBStatus", "test_wib_status"),
+            ("TestConfig", "test_config"),
+            ("TestStatus", "test_status"),
         ]
 
     @attribute(
@@ -187,16 +187,8 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         dtype_in=(str,),
         dtype_out="DevVarLongStringArray",
     )
-    def TestDriverConfig(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
-        dn = driver_name[0]
-        command_handler = None
-
-        if dn == "t1412c0_receptor0_wideband_input_buffer":
-            command_handler = self.get_command_object(command_name="TestWIBConfig")
-        # elif dn == "vcc_ch20":
-        #     command_handler = self.get_command_object(command_name="TestChannelizerConfig")
-        # elif dn == ""
-
+    def TestConfig(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="TestConfig")
         result_code, command_id = command_handler(argin=driver_name)
         return [[result_code], [command_id]]
 
@@ -204,8 +196,8 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         dtype_in=(str,),
         dtype_out="DevVarLongStringArray",
     )
-    def TestDriverStatus(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="TestWIBStatus")
+    def TestStatus(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="TestStatus")
         result_code, command_id = command_handler(argin=[driver_name])
         return [[result_code], [command_id]]
 

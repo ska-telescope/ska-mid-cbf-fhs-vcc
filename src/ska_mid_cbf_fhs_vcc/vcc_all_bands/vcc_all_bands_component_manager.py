@@ -11,6 +11,7 @@ from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, Wi
 from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
 
+from ska_mid_cbf_fhs_vcc.api.pyro.pyro_channelizer_client import PyroChannelizerClient
 from ska_mid_cbf_fhs_vcc.api.pyro.pyro_client import PyroClient
 from ska_mid_cbf_fhs_vcc.api.pyro.pyro_wib_client import PyroWibClient
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
@@ -186,29 +187,29 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             task_callback=task_callback,
         )
 
-    def test_wib_config(
+    def test_config(
         self: VCCAllBandsComponentManager,
         argin,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
-            func=self._test_wib_config,
+            func=self._test_config,
             args=[argin],
             task_callback=task_callback,
         )
 
-    def test_wib_status(
+    def test_status(
         self: VCCAllBandsComponentManager,
         argin,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
-            func=self._test_wib_status,
+            func=self._test_status,
             args=[argin],
             task_callback=task_callback,
         )
 
-    def _test_wib_status(
+    def _test_status(
         self,
         argin,
         task_abort_event: Event,
@@ -219,13 +220,21 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         if self.task_abort_event_is_set("TestWIBStatus", task_callback, task_abort_event):
             return
 
-        self.logger.info("::: Getting WIB status from Terabox Server :::")
-        pyro_wib_client = PyroWibClient(self.logger, argin[0])
-        pyro_wib_client.status()
+        self.logger.info(f"::: Getting {argin[0]} status from Terabox Server :::")
 
-        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "WIB Status Recieved on Terabox OK"))
+        client = None
 
-    def _test_wib_config(
+        if argin[0] == "t1412c0_receptor0_wideband_input_buffer":
+            client = PyroWibClient(self.logger, argin[0])
+        elif argin[0] == "t1412c0_receptor0_band123_vcc":
+            client = PyroChannelizerClient(self.logger, argin[0])
+
+        if client is not None:
+            client.status()
+
+        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Status Recieved on Terabox OK"))
+
+    def _test_config(
         self,
         argin,
         task_abort_event: Event,
@@ -235,12 +244,19 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         if self.task_abort_event_is_set("TestWIBConfig", task_callback, task_abort_event):
             return
+        
+        client = None
 
-        self.logger.info("::: Configured WIB on Terabox Server :::")
-        pyro_wib_client = PyroWibClient(self.logger, argin[0])
-        pyro_wib_client.configure()
+        self.logger.info(f"::: Configured {argin[0]} on Terabox Server :::")
 
-        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "WIB Configured on Terabox OK"))
+        if argin[0] == "t1412c0_receptor0_wideband_input_buffer":
+            client = PyroWibClient(self.logger, argin[0])
+        elif argin[0] == "t1412c0_receptor0_band123_vcc":
+            client = PyroChannelizerClient(self.logger, argin[0])
+        
+        client.configure()
+
+        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Configured on Terabox OK"))
 
     def _test_host_communication(
         self,
