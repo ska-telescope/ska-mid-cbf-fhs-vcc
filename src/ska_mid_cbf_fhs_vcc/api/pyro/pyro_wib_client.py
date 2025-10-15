@@ -36,12 +36,11 @@ class PyroWibClient(PyroDriver):
         self.logger.info(f"{super().status(clear)}")
 
     def get_location(self, name: str):
-        "Decode the name to find the 'location' in the system."
         forms = {
             "ska-vcc-vcc": "{card}_receptor{lane}_",
             "ska-base": "{card}_",
         }
-        for category, form in forms.items():
+        for _category, form in forms.items():
             form_rem = form + "{}_driver"
             match = parse.search(form_rem, name, evaluate_result=False)
             if match:
