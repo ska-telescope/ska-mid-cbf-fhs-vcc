@@ -64,4 +64,14 @@ environment_variables:
 - name: NS_PORT
   value: 9090
 
+extraVolumes:
+{{- if .Values.testConfig }}
+- name: pyro-test
+  configMap: 
+    name:  test-configmap
+extraVolumeMounts:
+{{- if .Values.testConfig }}
+  - name: pyro-test-mount
+    mountPath: /app/mnt/test_config.yaml
+
 {{- end -}}

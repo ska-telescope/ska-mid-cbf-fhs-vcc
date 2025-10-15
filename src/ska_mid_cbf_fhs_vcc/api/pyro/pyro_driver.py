@@ -38,9 +38,7 @@ class PyroDriver:
         try:
             config_file = {}
 
-            self.logger.info(f"::::: CURRENT DIR: {os.getcwd()} :::::")
-
-            with open("config/test_config.yaml", "r") as file:
+            with open("/app/mnt/test_config.yaml", "r") as file:
                 config_file: dict = yaml.safe_load(file)
 
             return config_file
