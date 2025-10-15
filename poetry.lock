@@ -1507,7 +1507,7 @@ version = "1.20.2"
 description = "parse() is the opposite of format()"
 optional = false
 python-versions = "*"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "parse-1.20.2-py2.py3-none-any.whl", hash = "sha256:967095588cb802add9177d0c0b6133b5ba33b1ea9007ca800e526f42a85af558"},
     {file = "parse-1.20.2.tar.gz", hash = "sha256:b41d604d16503c79d81af5165155c0b20f6c8d6c559efa66b4b695c3e5a0a0ce"},
@@ -3709,4 +3709,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "e8922cbe7ded61c12b071757d74c235a05382289920199f3b8c0fb5146e23f09"
+content-hash = "e62e31271243e43a7f7d2427ad4a26bd0203969c1b928f473236bc9b5cccfac2"
