@@ -28,7 +28,7 @@ class PyroDriver:
         try:
             with Proxy(self.pyro_uri) as p:
                 p._pyroTimeout = 5.0
-                fn = getattr(command_name)
+                fn = getattr(p, command_name)
                 return fn(param)
         except Exception as ex:
             self.logger.error(f"Unable to run command {command_name} with param {param}:  {repr(ex)}")
