@@ -244,7 +244,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         if self.task_abort_event_is_set("TestWIBConfig", task_callback, task_abort_event):
             return
-        
+
         client = None
 
         self.logger.info(f"::: Configured {argin[0]} on Terabox Server :::")
@@ -253,7 +253,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             client = PyroWibClient(self.logger, argin[0])
         elif argin[0] == "t1412c0_receptor0_band123_vcc":
             client = PyroChannelizerClient(self.logger, argin[0])
-        
+
         client.configure()
 
         task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Configured on Terabox OK"))
