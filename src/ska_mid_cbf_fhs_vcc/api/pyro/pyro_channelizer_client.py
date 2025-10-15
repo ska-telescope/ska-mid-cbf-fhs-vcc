@@ -54,9 +54,6 @@ class PyroChannelizerClient(PyroDriver):
             self.logger.error(f"Unable to configure the vcc_20 channelizer, {repr(ex)}")
 
     def status(self, clear: bool = False):
-        if self.band not in self.BANDS:
-            # nothing to do.
-            return {}
         self.logger.info(f"::::: {self.driver_name} Driver Status :::::")
         super().status(clear)
 
