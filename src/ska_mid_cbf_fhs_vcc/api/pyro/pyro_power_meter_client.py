@@ -57,8 +57,8 @@ class PyroPowerMeterClient(PyroDriver):
         if not self.enabled:
             return
         self.logger.info(f"::::: {self.driver_name} Driver Status :::::")
-        super().status(clear)
-
+        self.logger.info(f"{super().status(clear)}")
+        
     def lane_to_coarse_channel_from_test_config(self, test_config, location, lane):
         band = test_config.setdefault("dish", {}).setdefault(location, {}).setdefault("band", 1)
         ch_a, ch_b = self.start_coarse_channels(test_config, location)

@@ -55,7 +55,7 @@ class PyroChannelizerClient(PyroDriver):
 
     def status(self, clear: bool = False):
         self.logger.info(f"::::: {self.driver_name} Driver Status :::::")
-        super().status(clear)
+        self.logger.info(f"{super().status(clear)}")
 
     def pol_to_int(self, pol) -> int:
         """Convert a polarisation identifier such as 'X'|'Y' to an integer 0|1"""
