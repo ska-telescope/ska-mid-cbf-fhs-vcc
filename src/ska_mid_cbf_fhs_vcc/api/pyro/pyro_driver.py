@@ -2,6 +2,7 @@ import logging
 import os
 from typing import Any
 
+import parse
 import yaml
 from kubernetes import client, config
 from Pyro5.api import Proxy
@@ -22,14 +23,13 @@ class PyroDriver:
         self.run_command("configure", config)
 
     def status(self, clear: bool):
-        self.run_command("status", clear)
+        return self.run_command("status", clear)
 
     def run_command(self, command_name: str, param: Any):
         try:
             with Proxy(self.pyro_uri) as p:
                 p._pyroTimeout = 5.0
                 fn = getattr(p, command_name)
-                self.logger(f"::: FUNCTION {fn}")
                 return fn(param)
         except Exception as ex:
             self.logger.error(f"Unable to run command {command_name} with param {param}:  {repr(ex)}")
@@ -46,6 +46,26 @@ class PyroDriver:
         except Exception as ex:
             self.logger.error(f"Unable to open test_config.yaml; {repr(ex)}")
             raise ex
+
+    def get_location(self, name: str):
+        print(f"::: LOCATION NAME::: {name}")
+
+        forms = {
+            "ska-vcc-vcc": "{card}_receptor{lane}_",
+            "ska-base": "{card}_",
+        }
+        for _category, form in forms.items():
+            form_rem = form + "{}"
+            match = parse.search(form_rem, name, evaluate_result=False)
+            if match:
+                break
+        else:
+            self.logger.error(f"Name '{name}' doesn't match any of the known location strings: {forms}")
+            return
+        result = match.evaluate_result()
+        form_parts = result.named.values()
+        local_name = result.fixed[0]
+        return "-".join(form_parts), local_name
 
     def get_host_ip(self):
         """

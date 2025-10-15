@@ -1,5 +1,3 @@
-import parse
-
 from ska_mid_cbf_fhs_vcc.api.pyro.pyro_driver import PyroDriver
 
 
@@ -14,14 +12,15 @@ class PyroWibClient(PyroDriver):
 
             band = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("band", 1)
             sample_rate = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("sample_rate", 3.96e9)
-            transition_holdoff = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("noise_diode", {}).setdefault("transition_holdoff", 0.0)
-
-            config_t = dict(
-                expected_sample_rate = int(sample_rate),
-                noise_diode_transition_holdoff_seconds = float(transition_holdoff),
-                expected_dish_band = int(band),
+            transition_holdoff = (
+                test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("noise_diode", {}).setdefault("transition_holdoff", 0.0)
             )
 
+            config_t = dict(
+                expected_sample_rate=int(sample_rate),
+                noise_diode_transition_holdoff_seconds=float(transition_holdoff),
+                expected_dish_band=int(band),
+            )
 
             super().configure(config_t)
 
@@ -31,25 +30,4 @@ class PyroWibClient(PyroDriver):
 
     def status(self, clear: bool = False):
         self.logger.info(f"::::: {self.driver_name} Driver Status :::::")
-        status_t = super().status(False)
         self.logger.info(f"{super().status(clear)}")
-
-    def get_location(self, name: str):
-        print(f"::: LOCATION NAME::: {name}")
-
-        forms = {
-            "ska-vcc-vcc": "{card}_receptor{lane}_",
-            "ska-base": "{card}_",
-        }
-        for _category, form in forms.items():
-            form_rem = form + "{}"
-            match = parse.search(form_rem, name, evaluate_result=False)
-            if match:
-                break
-        else:
-            self.logger.error(f"Name '{name}' doesn't match any of the known location strings: {forms}")
-            return
-        result = match.evaluate_result()
-        form_parts = result.named.values()
-        local_name = result.fixed[0]
-        return "-".join(form_parts), local_name
