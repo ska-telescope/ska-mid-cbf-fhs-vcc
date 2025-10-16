@@ -12,8 +12,8 @@ class PyroPowerMeterClient(PyroDriver):
         super().__init__(logger, driver_name)
         # work out where in the receptor lane this wpm is.
         self.location, self.local_location = self.get_location(driver_name)
-        self.my_loc_split = self.location.split("_")
-        self.logger.info(f":::SPLIT  {self.my_loc_split}")
+        self.my_loc_split = self.driver_name.split("_")
+        self.logger.info(f":::SPLIT  {self.driver_name}")
         self.my_loc = self.my_loc_split[2]  # first string before the next underscore.
         self.time_resolution = 1.0
         self.enabled = False
