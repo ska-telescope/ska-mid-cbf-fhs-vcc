@@ -57,7 +57,7 @@ class PyroPowerMeterClient(PyroDriver):
             self.logger.info("[Success] WIB Power Meter was configured successfully!")
 
         except Exception as ex:
-            self.logger.error(f"Unable to configure the vcc_20 channelizer, {repr(ex)}")
+            self.logger.error(f"Unable to configure the band123 power meter, {repr(ex)}\n{ex.with_traceback()}")
 
     def status(self, clear: bool = False):
         if not self.enabled:
