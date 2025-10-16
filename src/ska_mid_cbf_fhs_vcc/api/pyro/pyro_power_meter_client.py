@@ -20,7 +20,7 @@ class PyroPowerMeterClient(PyroDriver):
     def configure(self):
         try:
             test_config: dict = self.get_config_file()
-
+            self.logger.info(f"::: MY_LOC={self.my_loc}; LOCATION={self.location}:::")
             band = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("band", 1)
             if "band" in self.my_loc:
                 # wideband power meter.
