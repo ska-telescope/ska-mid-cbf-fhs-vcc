@@ -15,6 +15,7 @@ class PyroPowerMeterClient(PyroDriver):
         self.my_loc_split = self.driver_name.split("_")
         self.logger.info(f":::SPLIT  {self.driver_name}")
         self.my_loc = self.my_loc_split[2]  # first string before the next underscore.
+        self.logger.info(f":::MY LOC {self.my_loc}")
         self.time_resolution = 1.0
         self.enabled = False
         self.coarse_channel = "--"
@@ -62,6 +63,8 @@ class PyroPowerMeterClient(PyroDriver):
             self.logger.error(f"Unable to configure the band123 power meter, {repr(ex)}\n{ex.with_traceback()}")
 
     def status(self, clear: bool = False):
+        if not self.enabled:
+            return
         self.logger.info(f"::::: {self.driver_name} Driver Status :::::")
         self.logger.info(f"{super().status(clear)}")
 
