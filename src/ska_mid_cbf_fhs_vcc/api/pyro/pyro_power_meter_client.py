@@ -12,7 +12,7 @@ class PyroPowerMeterClient(PyroDriver):
         super().__init__(logger, driver_name)
         # work out where in the receptor lane this wpm is.
         self.location, self.local_location = self.get_location(driver_name)
-        self.my_loc = self.local_location.split("_", 1)[0]  # first string before the next underscore.
+        self.my_loc = self.local_location.split("_", 1)  # first string before the next underscore.
         self.time_resolution = 1.0
         self.enabled = False
         self.coarse_channel = "--"
@@ -20,7 +20,7 @@ class PyroPowerMeterClient(PyroDriver):
     def configure(self):
         try:
             test_config: dict = self.get_config_file()
-            self.logger.info(f"::: MY_LOC={self.my_loc}; LOCATION={self.location}:::")
+            self.logger.info(f"::: MY_LOC={self.my_loc}; LOCAL_LOCATION={self.local_location}:::")
             band = test_config.setdefault("dish", {}).setdefault(self.location, {}).setdefault("band", 1)
             if "band" in self.my_loc:
                 # wideband power meter.
