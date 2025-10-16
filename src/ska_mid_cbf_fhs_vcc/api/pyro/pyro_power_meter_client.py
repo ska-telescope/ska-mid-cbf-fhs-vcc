@@ -2,6 +2,12 @@ from ska_mid_cbf_fhs_vcc.api.pyro.pyro_driver import PyroDriver
 
 
 class PyroPowerMeterClient(PyroDriver):
+    FLAG = {
+        "ignore": 0,
+        "use": 1,
+        "saturate": 2,
+    }
+
     def __init__(self, logger, driver_name):
         super().__init__(logger, driver_name)
         # work out where in the receptor lane this wpm is.
