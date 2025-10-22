@@ -200,6 +200,10 @@ build-docs-local:
 	-@$(POETRY_PYTHON_RUNNER) sphinx -T -b html -d ./build/sphinx_local/cache/doctrees -D language=en ./docs/src ./build/sphinx_local/output
 	@echo "Done. Open build/sphinx_local/output/index.html to view the generated docs."
 
+lint-all:
+	make fix-python-imports;make format-python;make lint-python-local
+	
+
 
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
 

@@ -209,7 +209,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             args=[argin],
             task_callback=task_callback,
         )
-    
+
     def test_start_driver(
         self: VCCAllBandsComponentManager,
         argin,
@@ -220,7 +220,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             args=[argin],
             task_callback=task_callback,
         )
-    
+
     def _test_start_driver(
         self,
         argin,
@@ -230,15 +230,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         task_callback(status=TaskStatus.IN_PROGRESS)
 
         if self.task_abort_event_is_set("TestStatus", task_callback, task_abort_event):
-            return 
-        
+            return
+
         client = self._get_test_client(argin[0])
-        
+
         if client is not None:
             client.start()
 
         task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Start Received on Terabox OK"))
-
 
     def _test_status(
         self,
@@ -302,8 +301,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "Host Communication OK"))
 
-    def _get_test_client(self, driver_name:str):
-
+    def _get_test_client(self, driver_name: str):
         client = None
 
         if driver_name == "t1412c0_receptor0_wideband_input_buffer":

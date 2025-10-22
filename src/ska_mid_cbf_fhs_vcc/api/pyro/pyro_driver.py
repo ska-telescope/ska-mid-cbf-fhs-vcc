@@ -24,7 +24,7 @@ class PyroDriver:
 
     def status(self, clear: bool):
         return self.run_command("status", clear)
-    
+
     def start(self):
         self.run_command("start")
 
