@@ -209,6 +209,36 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             args=[argin],
             task_callback=task_callback,
         )
+    
+    def test_start_driver(
+        self: VCCAllBandsComponentManager,
+        argin,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=self._test_start_driver,
+            args=[argin],
+            task_callback=task_callback,
+        )
+    
+    def _test_start_driver(
+        self,
+        argin,
+        task_abort_event: Event,
+        task_callback: Optional[Callable] = None,
+    ) -> None:
+        task_callback(status=TaskStatus.IN_PROGRESS)
+
+        if self.task_abort_event_is_set("TestStatus", task_callback, task_abort_event):
+            return 
+        
+        client = self._get_test_client(argin[0])
+        
+        if client is not None:
+            client.start()
+
+        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Start Received on Terabox OK"))
+
 
     def _test_status(
         self,
@@ -223,21 +253,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.logger.info(f"::: Getting {argin[0]} status from Terabox Server :::")
 
-        client = None
-
-        if argin[0] == "t1412c0_receptor0_wideband_input_buffer":
-            client = PyroWibClient(self.logger, argin[0])
-        elif argin[0] == "t1412c0_receptor0_band123_vcc":
-            client = PyroChannelizerClient(self.logger, argin[0])
-        elif argin[0] == "t1412c0_receptor0_band123_wideband_power_meter":
-            client = PyroPowerMeterClient(self.logger, argin[0])
-        else:
-            self.logger.error(f"[ERROR] Unknown driver, cannot call status for {argin[0]}")
+        client = self._get_test_client(argin[0])
 
         if client is not None:
             client.status()
 
-        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Status Recieved on Terabox OK"))
+        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Status Received on Terabox OK"))
 
     def _test_config(
         self,
@@ -250,18 +271,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         if self.task_abort_event_is_set("TestConfig", task_callback, task_abort_event):
             return
 
-        client = None
+        client = self._get_test_client(argin[0])
 
         self.logger.info(f"::: Configured {argin[0]} on Terabox Server :::")
-
-        if argin[0] == "t1412c0_receptor0_wideband_input_buffer":
-            client = PyroWibClient(self.logger, argin[0])
-        elif argin[0] == "t1412c0_receptor0_band123_vcc":
-            client = PyroChannelizerClient(self.logger, argin[0])
-        elif argin[0] == "t1412c0_receptor0_band123_wideband_power_meter":
-            client = PyroPowerMeterClient(self.logger, argin[0])
-        else:
-            self.logger.error(f"[ERROR] Unknown driver, cannot configure {argin[0]}")
 
         client.configure()
 
@@ -289,6 +301,21 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         pyro_client.get_driver_status(argin[0])
 
         task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "Host Communication OK"))
+
+    def _get_test_client(self, driver_name:str):
+
+        client = None
+
+        if driver_name == "t1412c0_receptor0_wideband_input_buffer":
+            client = PyroWibClient(self.logger, driver_name)
+        elif driver_name == "t1412c0_receptor0_band123_vcc":
+            client = PyroChannelizerClient(self.logger, driver_name)
+        elif driver_name == "t1412c0_receptor0_band123_wideband_power_meter":
+            client = PyroPowerMeterClient(self.logger, driver_name)
+        else:
+            self.logger.error(f"[ERROR] Unknown driver {driver_name}, cannot get client")
+
+        return client
 
     def _configure_scan_controller_impl(
         self,

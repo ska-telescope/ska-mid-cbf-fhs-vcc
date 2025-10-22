@@ -33,6 +33,7 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
             ("TestHostCommunication", "test_host_communication"),
             ("TestConfig", "test_config"),
             ("TestStatus", "test_status"),
+            ("TestStartDriver", "test_start_driver"),
         ]
 
     @attribute(
@@ -198,6 +199,15 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
     )
     def TestStatus(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
         command_handler = self.get_command_object(command_name="TestStatus")
+        result_code, command_id = command_handler(argin=driver_name)
+        return [[result_code], [command_id]]
+    
+    @command(
+        dtype_in=(str,),
+        dtype_out="DevVarLongStringArray",
+    )
+    def TestStartDriver(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="TestStartDriver")
         result_code, command_id = command_handler(argin=driver_name)
         return [[result_code], [command_id]]
 

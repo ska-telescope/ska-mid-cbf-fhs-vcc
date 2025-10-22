@@ -63,6 +63,7 @@ class PyroPowerMeterClient(PyroDriver):
             self.logger.error(f"Unable to configure the band123 power meter, {repr(ex)}\n{ex.with_traceback()}")
 
     def status(self, clear: bool = False):
+        self.logger.info("::: IS PW ENABLED? :::")
         if not self.enabled:
             return
         self.logger.info(f"::::: {self.driver_name} Driver Status :::::")

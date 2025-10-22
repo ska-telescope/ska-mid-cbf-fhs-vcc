@@ -24,13 +24,16 @@ class PyroDriver:
 
     def status(self, clear: bool):
         return self.run_command("status", clear)
+    
+    def start(self):
+        self.run_command("start")
 
-    def run_command(self, command_name: str, param: Any):
+    def run_command(self, command_name: str, param: Any = None):
         try:
             with Proxy(self.pyro_uri) as p:
                 p._pyroTimeout = 5.0
                 fn = getattr(p, command_name)
-                return fn(param)
+                return fn() if param is None else fn(param)
         except Exception as ex:
             self.logger.error(f"Unable to run command {command_name} with param {param}:  {repr(ex)}")
             raise ex
