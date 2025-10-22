@@ -231,10 +231,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         if self.task_abort_event_is_set("TestStatus", task_callback, task_abort_event):
             return
+        
+        self.logger.info(f"::: Starting {argin[0]} on Terabox Server :::")
+
 
         client = self._get_test_client(argin[0])
 
         if client is not None:
+            self.logger.info(f"::: Starting {argin[0]} on Terabox Server :::")
             client.start()
 
         task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Start Received on Terabox OK"))
