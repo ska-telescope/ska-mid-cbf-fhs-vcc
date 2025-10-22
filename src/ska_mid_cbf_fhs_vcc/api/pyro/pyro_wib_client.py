@@ -31,3 +31,7 @@ class PyroWibClient(PyroDriver):
     def status(self, clear: bool = False):
         self.logger.info(f"::::: {self.driver_name} Driver Status :::::")
         self.logger.info(f"{super().status(clear)}")
+
+    def start(self):
+        self.logger.info(f"::::: {self.driver_name} Starting :::::")
+        super().start()
