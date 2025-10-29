@@ -2,16 +2,15 @@ from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 from ska_control_model import HealthState
 from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, convert_dish_id_uint16_t_to_mnemonic, non_blocking
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 
 
-@dataclass_json
 @dataclass
-class WidebandInputBufferConfig:
+class WidebandInputBufferConfig(DataClassJsonMixin):
     expected_sample_rate: np.uint64
     noise_diode_transition_holdoff_seconds: float
     expected_dish_band: np.uint8
@@ -20,9 +19,8 @@ class WidebandInputBufferConfig:
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Wideband Input Buffer
 ##
-@dataclass_json
 @dataclass
-class WidebandInputBufferStatus:
+class WidebandInputBufferStatus(DataClassJsonMixin):
     buffer_overflow: bool
     loss_of_signal: np.uint32
     error: bool
@@ -40,12 +38,22 @@ class WidebandInputBufferStatus:
     expected_sample_rate: np.uint32
 
 
-class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
+class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBufferConfig, WidebandInputBufferStatus]):
     """Wideband Input Buffer IP block manager."""
 
     @property
+    def config_dataclass(self) -> type[WidebandInputBufferConfig]:
+        """:obj:`type[WidebandInputBufferConfig]`: The configuration dataclass for the Wideband Input Buffer."""
+        return WidebandInputBufferConfig
+
+    @property
+    def status_dataclass(self) -> type[WidebandInputBufferStatus]:
+        """:obj:`type[WidebandInputBufferStatus]`: The status dataclass for the Wideband Input Buffer."""
+        return WidebandInputBufferStatus
+
+    @property
     def simulator_api_class(self) -> type[WidebandInputBufferSimulator]:
-        """:obj:`type[WidebandInputBufferSimulator]`: The simulator API class for this IP block."""
+        """:obj:`type[WidebandInputBufferSimulator]`: The simulator API class for the Wideband Input Buffer."""
         return WidebandInputBufferSimulator
 
     def _manager_specific_setup(self, **kwargs):
@@ -55,7 +63,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
     def configure(self, config: WidebandInputBufferConfig) -> int:
         """Configure the Wideband Input Buffer."""
         self.expected_sample_rate = config.expected_sample_rate
-        return super().configure(config.to_dict())
+        return super().configure(config)
 
     @non_blocking
     def start(self) -> int:
@@ -65,9 +73,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager):
     def stop(self) -> int:
         return super().stop()
 
-    def get_status_healthstates(self, status_dict: dict) -> dict[str, HealthState]:
-        status: WidebandInputBufferStatus = WidebandInputBufferStatus.schema().load(status_dict)
-
+    def get_status_healthstates(self, status: WidebandInputBufferStatus) -> dict[str, HealthState]:
         status_healthstates = {}
 
         meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(status.meta_dish_id)
