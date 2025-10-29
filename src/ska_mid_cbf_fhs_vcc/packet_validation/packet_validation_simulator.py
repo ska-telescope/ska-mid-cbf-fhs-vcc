@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 
 from ska_mid_cbf_fhs_common import BaseSimulatorApi
