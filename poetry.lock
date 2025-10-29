@@ -2763,34 +2763,37 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.2.4"
+version = "0.2.4+dev.c5cec9070"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
-python-versions = "^3.10"
+python-versions = ">=3.10,<4.0"
 groups = ["main"]
 markers = "python_version == \"3.10\" or python_version >= \"3.12\" or python_version == \"3.11\""
-files = []
-develop = true
+files = [
+    {file = "ska_mid_cbf_fhs_common-0.2.4+dev.c5cec9070-py3-none-any.whl", hash = "sha256:81c59ade29ab3f5d8485e02573f8857d4f9b89388572e3b177fc16bd7907e2cd"},
+    {file = "ska_mid_cbf_fhs_common-0.2.4+dev.c5cec9070.tar.gz", hash = "sha256:570943b3b792c0604b5a2ed19f84cd5dc2b1562cf36d4b0e9ebcebf4fba18c0a"},
+]
 
 [package.dependencies]
-dataclasses-json = "^0.6.7"
-debugpy = "^1.8.5"
-mpmath = "^1.3.0"
-polling2 = "^0.5.0"
+dataclasses-json = ">=0.6.7,<0.7.0"
+debugpy = ">=1.8.5,<2.0.0"
+mpmath = ">=1.3.0,<2.0.0"
+polling2 = ">=0.5.0,<0.6.0"
 pydantic = "2.9.2"
-pytango = "^9.5.1"
-pyyaml = "^6.0.1"
-requests = "^2.32.3"
+pytango = ">=9.5.1,<10.0.0"
+pyyaml = ">=6.0.1,<7.0.0"
+requests = ">=2.32.3,<3.0.0"
 ska-control-model = "1.1.0"
-ska-ser-log-transactions = "^0.2.2+ae0f5c92"
+ska-ser-log-transactions = ">=0.2.2+ae0f5c92,<0.3.0"
 ska-tango-base = "1.0.0"
 ska-tango-testing = "0.8.0"
 ska-telmodel = "1.21.0"
-typing-extensions = "^4.8.0"
+typing-extensions = ">=4.8.0,<5.0.0"
 
 [package.source]
-type = "directory"
-url = "../ska-mid-cbf-fhs-common"
+type = "legacy"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "ska-ser-log-transactions"
@@ -3539,4 +3542,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "319c67f27cf3c040e1c584a20f41422619577220c9973daddf4aca6e0f518393"
+content-hash = "0060766bb45d4966322188033510216b103488405a9c50162e2787e5e73fff85"
