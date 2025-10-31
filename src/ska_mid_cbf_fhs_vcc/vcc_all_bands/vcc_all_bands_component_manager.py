@@ -457,8 +457,16 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             for i in range(self._num_fs):
                 # Read power
                 status = self.wideband_power_meters[i + 1].status()
-                measured_power_pol_x: float = status.get("avg_power_pol_x", None)
-                measured_power_pol_y: float = status.get("avg_power_pol_y", None)
+                if status is None:
+                    self._set_task_callback(
+                        task_callback,
+                        TaskStatus.COMPLETED,
+                        ResultCode.FAILED,
+                        (f"Failed to auto-set gains: Failed to retrieve status from the FS {i + 1} power meter."),
+                    )
+                    return
+                measured_power_pol_x = status.avg_power_pol_x
+                measured_power_pol_y = status.avg_power_pol_y
 
                 for power, pol in (measured_power_pol_x, "X"), (measured_power_pol_y, "Y"):
                     if not isinstance(power, (int, float)) or isinstance(power, bool) or isnan(power) or power <= 0 or power > 1:
