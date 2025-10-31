@@ -5,7 +5,7 @@ from unittest import mock
 import pytest
 from assertpy import assert_that
 from ska_mid_cbf_fhs_common.testing.device_test_utils import DeviceTestUtils
-from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils
+from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
 from tango import DevState
 from ska_control_model import AdminMode, HealthState, ObsState, ResultCode
 from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
@@ -555,7 +555,12 @@ class TestVCCAllBandsController:
         with mock.patch(
             "ska_mid_cbf_fhs_common.ip_blocks.wideband_power_meter.wideband_power_meter_manager.WidebandPowerMeterManager.status",
             side_effect=[
-                {"avg_power_pol_x": measured_power[i], "avg_power_pol_y": measured_power[i + len(measured_power) // 2]}
+                WidebandPowerMeterStatus(
+                    0,
+                    measured_power[i],
+                    measured_power[i + len(measured_power) // 2],
+                    0, 0, 0, 0, 0, 0, False, 0
+                )
             for i in range(len(measured_power) // 2)],
             create=True,
         ):
