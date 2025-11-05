@@ -1,15 +1,14 @@
 from dataclasses import dataclass
 
 import numpy as np
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 from ska_mid_cbf_fhs_common import BaseIPBlockManager, non_blocking
 
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_simulator import PacketValidationSimulator
 
 
-@dataclass_json
 @dataclass
-class PacketValidationConfig:
+class PacketValidationConfig(DataClassJsonMixin):
     drop_dst_mac: bool = True
     drop_src_mac: bool = True
     drop_ethertype: bool = True
@@ -24,9 +23,8 @@ class PacketValidationConfig:
 ##
 # status class that will be populated by the APIs and returned to provide the status of Packet Validation
 ##
-@dataclass_json
 @dataclass
-class PacketValidationStatus:
+class PacketValidationStatus(DataClassJsonMixin):
     drop_dst_mac: bool = True
     drop_src_mac: bool = True
     drop_ethertype: bool = True
@@ -48,23 +46,29 @@ class PacketValidationStatus:
     wrong_antenna_id_cnt: np.uint32 = 0
 
 
-class PacketValidationManager(BaseIPBlockManager):
+class PacketValidationManager(BaseIPBlockManager[PacketValidationConfig, PacketValidationStatus]):
     """Packet Validation IP block manager."""
 
     @property
-    def simulator_api_class(self) -> type[PacketValidationSimulator]:
-        """:obj:`type[PacketValidationSimulator]`: The simulator API class for this IP block."""
-        return PacketValidationSimulator
+    def config_dataclass(self) -> type[PacketValidationConfig]:
+        """:obj:`type[PacketValidationConfig]`: The configuration dataclass for the Packet Validation block."""
+        return PacketValidationConfig
 
-    def configure(self, config: PacketValidationConfig):
-        """Configure the Packet Validation."""
-        return super().configure(config.to_dict())
+    @property
+    def status_dataclass(self) -> type[PacketValidationStatus]:
+        """:obj:`type[PacketValidationStatus]`: The status dataclass for the Packet Validation block."""
+        return PacketValidationStatus
+
+    @property
+    def simulator_api_class(self) -> type[PacketValidationSimulator]:
+        """:obj:`type[PacketValidationSimulator]`: The simulator API class for the Packet Validation block."""
+        return PacketValidationSimulator
 
     def deconfigure(self, config: PacketValidationConfig | None):
         """Deconfigure the Packet Validation."""
         if config is None:
             return super().recover()
-        return super().deconfigure(config.to_dict())
+        return super().deconfigure(config)
 
     @non_blocking
     def start(self) -> int:

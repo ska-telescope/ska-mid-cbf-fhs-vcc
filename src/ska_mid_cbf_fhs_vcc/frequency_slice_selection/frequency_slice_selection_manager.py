@@ -1,14 +1,13 @@
 from dataclasses import dataclass, field
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 from ska_mid_cbf_fhs_common import BaseIPBlockManager
 
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_simulator import FrequencySliceSelectionSimulator
 
 
-@dataclass_json
 @dataclass
-class FrequencySliceSelectionConfig:
+class FrequencySliceSelectionConfig(DataClassJsonMixin):
     band_select: int = 1
     band_start_channel: list[int] = field(default_factory=lambda: [0, 1, 2])
 
@@ -16,27 +15,32 @@ class FrequencySliceSelectionConfig:
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
 ##
-@dataclass_json
 @dataclass
-class FrequencySliceSelectionStatus:
+class FrequencySliceSelectionStatus(DataClassJsonMixin):
     band_select: int
     band_start_channel: list[int]
 
 
-class FrequencySliceSelectionManager(BaseIPBlockManager):
+class FrequencySliceSelectionManager(BaseIPBlockManager[FrequencySliceSelectionConfig, FrequencySliceSelectionStatus]):
     """Frequency Slice Selection IP block manager."""
 
     @property
-    def simulator_api_class(self) -> type[FrequencySliceSelectionSimulator]:
-        """:obj:`type[FrequencySliceSelectionSimulator]`: The simulator API class for this IP block."""
-        return FrequencySliceSelectionSimulator
+    def config_dataclass(self) -> type[FrequencySliceSelectionConfig]:
+        """:obj:`type[FrequencySliceSelectionConfig]`: The configuration dataclass for the Frequency Slice Selection block."""
+        return FrequencySliceSelectionConfig
 
-    def configure(self, config: FrequencySliceSelectionConfig) -> int:
-        """Configure the Frequency Slice Selection."""
-        return super().configure(config.to_dict())
+    @property
+    def status_dataclass(self) -> type[FrequencySliceSelectionStatus]:
+        """:obj:`type[FrequencySliceSelectionStatus]`: The status dataclass for the Frequency Slice Selection block."""
+        return FrequencySliceSelectionStatus
+
+    @property
+    def simulator_api_class(self) -> type[FrequencySliceSelectionSimulator]:
+        """:obj:`type[FrequencySliceSelectionSimulator]`: The simulator API class for the Frequency Slice Selection block."""
+        return FrequencySliceSelectionSimulator
 
     def deconfigure(self, config: FrequencySliceSelectionConfig | None = None) -> int:
         """Deconfigure the Frequency Slice Selection."""
         if config is None:
             return super().recover()
-        return super().deconfigure(config.to_dict())
+        return super().deconfigure(config)

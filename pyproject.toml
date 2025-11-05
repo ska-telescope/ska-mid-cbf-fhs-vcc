@@ -36,9 +36,9 @@ debugpy = "^1.8.5"
 pyro5 = "^5.15"
 # Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = "0.2.2"
+ska-mid-cbf-fhs-common = "0.2.5"
 # Commit hash version from Gitlab
-# ska-mid-cbf-fhs-common = { version = "0.2.1+dev.c2aa468a4", source = "gitlab-fhs-common" }
+# ska-mid-cbf-fhs-common = { version = "0.2.5+dev.c37de8693", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 kubernetes = "^34.1.0"

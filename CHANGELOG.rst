@@ -7,6 +7,8 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 UNRELEASED CHANGES
 ******************
+* CIP-4349: tested UpdateSubarrayMembership command pushing subarrayID change events in standalone simulation
+* CIP-2768: Use dataclass for VCC controller config 
 
 0.3.2
 ******
@@ -19,6 +21,7 @@ UNRELEASED CHANGES
 
 0.3.0
 ******
+* CIP-4104: Update FHS-VCC sim and tests for override queueing
 * CIP-3737, CIP-4014, CIP-4015, CIP-4053, CIP-4054, CIP-4058: Refactor to use new common base classes which eliminate all low-level Tango devices.
 
 0.2.2

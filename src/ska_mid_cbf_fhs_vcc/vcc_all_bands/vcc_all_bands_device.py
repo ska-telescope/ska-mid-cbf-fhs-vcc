@@ -12,6 +12,11 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VC
 class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]):
     """Tango device class for the VCC All Bands Controller."""
 
+    def set_local_change_events(self) -> None:
+        super().set_local_change_events()
+        self.set_change_event("subarrayID", True)
+        self.set_archive_event("subarrayID", True)
+
     @property
     def component_manager_class(self) -> type[VCCAllBandsComponentManager]:
         """The component manager class associated with the VCC controller device."""
@@ -49,6 +54,7 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
 
     @attribute(
         dtype=tango.DevUShort,
+        abs_change=1,
         min_value=0,
         max_value=16,
     )

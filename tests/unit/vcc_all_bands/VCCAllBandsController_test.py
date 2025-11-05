@@ -1,16 +1,78 @@
 from base64 import b64encode
+from collections.abc import Generator
 import json
 from unittest import mock
 import pytest
+from assertpy import assert_that
 from ska_mid_cbf_fhs_common.testing.device_test_utils import DeviceTestUtils
-from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils
+from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
 from tango import DevState
-from ska_control_model import AdminMode, ResultCode
+from ska_control_model import AdminMode, HealthState, ObsState, ResultCode
 from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 from ska_tango_testing.integration import TangoEventTracer
+from ska_tango_testing.harness import TangoTestHarnessContext
 
 EVENT_TIMEOUT = 30
+
+
+@pytest.fixture(scope="session")  # Use "session" scope for true constants
+def event_timeout() -> int:
+    """Event tracer timeout."""
+    return 10
+
+
+@pytest.fixture(name="vcc_all_bands_device")
+def vcc_all_bands_device_fixture(
+    test_context: TangoTestHarnessContext,
+) -> VCCAllBandsController:
+    """Fixture that returns the device under test.
+
+    Args:
+        test_context (:obj:`TangoTestHarnessContext`): The context in which the tests run.
+
+    Returns:
+        :obj:`DeviceProxy`: A proxy to the device under test.
+    """
+    return test_context.get_device("test/vccallbands/1")
+
+
+@pytest.fixture(name="vcc_all_bands_event_tracer", autouse=True)
+def vcc_all_bands_tango_event_tracer(
+    vcc_all_bands_device,
+) -> Generator[TangoEventTracer, None, None]:
+    """Fixture that returns a TangoEventTracer for pertinent devices.
+    Takes as parameter all required device proxy fixtures for this test module.
+
+    Args:
+        device_under_test (:obj:`DeviceProxy`): Proxy to the device under test.
+
+    Returns:
+        :obj:`TangoEventTracer`: An event tracer for the device under test.
+    """
+    tracer = TangoEventTracer(
+        event_enum_mapping={
+            "adminMode": AdminMode,
+            "obsState": ObsState,
+            "healthState": HealthState,
+        }
+    )
+
+    change_event_attr_list = [
+        "longRunningCommandResult",
+        "adminMode",
+        "state",
+        "obsState",
+        "healthState",
+        "subarrayID",
+    ]
+    for attr in change_event_attr_list:
+        tracer.subscribe_event(vcc_all_bands_device, attr)
+
+    yield tracer
+
+    tracer.unsubscribe_all()
+    tracer.clear_events()
 
 
 @pytest.mark.forked
@@ -111,21 +173,48 @@ class TestVCCAllBandsController:
         vcc_all_bands_device: VCCAllBandsController,
         vcc_all_bands_event_tracer: TangoEventTracer,
     ):
-        with mock.patch(
-            "ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager.VCCAllBandsComponentManager.subarray_id",
-            new_callable=mock.PropertyMock,
-            return_value=current_subarray,
-            create=True
-        ):
-            vcc_all_bands_device.command_inout("UpdateSubarrayMembership", new_subarray)
-            
+        # Setup for unassign cases by first assigning subarray membership
+        instant_fail = True
+        if current_subarray != 0:
+            vcc_all_bands_device.command_inout("UpdateSubarrayMembership", current_subarray)
             DeviceTestUtils.assert_lrc_completed(
                 vcc_all_bands_device,
                 vcc_all_bands_event_tracer,
                 EVENT_TIMEOUT,
                 "UpdateSubarrayMembership",
-                [expected_result]
+                [ResultCode.OK]
             )
+            instant_fail = False
+            assert_that(vcc_all_bands_event_tracer).within_timeout(
+                EVENT_TIMEOUT
+            ).has_change_event_occurred(
+                device_name=vcc_all_bands_device,
+                attribute_name="subarrayID",
+                attribute_value=current_subarray,
+                previous_value=0,
+            )
+
+        # Update subarray membership
+        vcc_all_bands_device.command_inout("UpdateSubarrayMembership", new_subarray)
+        DeviceTestUtils.assert_lrc_completed(
+            vcc_all_bands_device,
+            vcc_all_bands_event_tracer,
+            EVENT_TIMEOUT,
+            "UpdateSubarrayMembership",
+            [expected_result],
+            instant_fail_on_non_passing_result=instant_fail
+        )
+        if expected_result == ResultCode.OK:
+            assert_that(vcc_all_bands_event_tracer).within_timeout(
+                EVENT_TIMEOUT
+            ).has_change_event_occurred(
+                device_name=vcc_all_bands_device,
+                attribute_name="subarrayID",
+                attribute_value=new_subarray,
+                previous_value=current_subarray,
+            )
+        else:
+            assert vcc_all_bands_device.subarrayID == current_subarray
 
     @pytest.mark.parametrize(
         ("measured_power", "headroom", "expected_multipliers", "expected_result"),
@@ -466,7 +555,12 @@ class TestVCCAllBandsController:
         with mock.patch(
             "ska_mid_cbf_fhs_common.ip_blocks.wideband_power_meter.wideband_power_meter_manager.WidebandPowerMeterManager.status",
             side_effect=[
-                {"avg_power_pol_x": measured_power[i], "avg_power_pol_y": measured_power[i + len(measured_power) // 2]}
+                WidebandPowerMeterStatus(
+                    0,
+                    measured_power[i],
+                    measured_power[i + len(measured_power) // 2],
+                    0, 0, 0, 0, 0, 0, False, 0
+                )
             for i in range(len(measured_power) // 2)],
             create=True,
         ):
