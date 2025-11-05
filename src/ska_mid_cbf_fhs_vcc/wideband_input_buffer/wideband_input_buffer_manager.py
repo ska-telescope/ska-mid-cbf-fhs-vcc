@@ -77,60 +77,65 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         status_healthstates = {}
 
         meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(status.meta_dish_id)
-        status_healthstates["meta_dish_id"] = self.health_check_assert_values_equal(
+        status_healthstates["meta_dish_id"] = self.get_health_state_by_expected_value(
             self.expected_dish_id,
             meta_dish_id_mnemonic,
-            error_msg=f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_mnemonic} ({status.meta_dish_id})",
+            failure_msg=f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_mnemonic} ({status.meta_dish_id})",
         )
 
-        status_healthstates["rx_sample_rate"] = self.health_check_assert_values_equal(
+        status_healthstates["rx_sample_rate"] = self.get_health_state_by_expected_value(
             self.expected_sample_rate,
             status.rx_sample_rate,
-            error_msg=f"rx_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.rx_sample_rate}",
+            failure_msg=f"rx_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.rx_sample_rate}",
         )
 
-        status_healthstates["meta_transport_sample_rate"] = self.health_check_assert_values_equal(
+        status_healthstates["meta_transport_sample_rate"] = self.get_health_state_by_expected_value(
             self.expected_sample_rate,
             status.meta_transport_sample_rate,
-            error_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
+            failure_msg=f"meta_transport_sample_rate mismatch. Expected {self.expected_sample_rate}, Actual: {status.meta_transport_sample_rate}",
         )
 
-        if status.error:
-            if status.buffer_overflow is True or status.link_failure is True:
-                status_healthstates["error"] = HealthState.FAILED
-            else:
-                # if not overflow or underflow, goes to degraded because one of packet_drop and packet_error set
-                status_healthstates["error"] = HealthState.DEGRADED
-        else:
-            status_healthstates["error"] = HealthState.OK
+        status_healthstates["packet_error"] = self.get_health_state_by_expected_value(
+            False,
+            status.packet_error,
+            health_on_failure=HealthState.DEGRADED,
+        )
 
-        status_healthstates["link_failure"] = self.health_check_assert_values_equal(
+        status_healthstates["packet_drop"] = self.get_health_state_by_expected_value(
+            False,
+            status.packet_drop,
+            health_on_failure=HealthState.DEGRADED,
+        )
+
+        status_healthstates["link_failure"] = self.get_health_state_by_expected_value(
             False,
             status.link_failure,
-            error_msg=f"link_failure mismatch. Expected False, Actual: {status.link_failure}",
+            failure_msg=f"link_failure mismatch. Expected False, Actual: {status.link_failure}",
         )
 
-        status_healthstates["buffer_overflow"] = self.health_check_assert_values_equal(
+        status_healthstates["buffer_overflow"] = self.get_health_state_by_expected_value(
             False,
             status.buffer_overflow,
-            error_msg=f"buffer_overflow mismatch. Expected False, Actual: {status.buffer_overflow}",
+            failure_msg=f"buffer_overflow mismatch. Expected False, Actual: {status.buffer_overflow}",
         )
 
         self.logger.info(f"REGISTER_STATUSES={status_healthstates}")
 
         return status_healthstates
 
-    def health_check_assert_values_equal(
+    def get_health_state_by_expected_value(
         self,
         expected_value: Any,
         actual_value: Any,
         success_msg: str = None,
-        error_msg: str = None,
+        failure_msg: str = None,
+        health_on_success: HealthState = HealthState.OK,
+        health_on_failure: HealthState = HealthState.FAILED,
     ) -> HealthState:
         if expected_value == actual_value:
             if success_msg:
                 self.logger.info(success_msg)
-            return HealthState.OK
-        if error_msg:
-            self.logger.error(error_msg)
-        return HealthState.FAILED
+            return health_on_success
+        if failure_msg:
+            self.logger.error(failure_msg)
+        return health_on_failure
