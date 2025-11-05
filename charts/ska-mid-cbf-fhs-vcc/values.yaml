@@ -250,11 +250,8 @@ VCCUnits:
     networkSwitchId: "127.0.0.1"
     bmcEndpointIp: "127.0.1.1"
     instancesRange: [1, 6]
-  - unitNum: 2
-    emulationMode: "0"
-    networkSwitchId: "127.0.0.2"
-    bmcEndpointIp: "127.0.1.2"
-    instancesRange: [7, 12]
+    toleration: "vcc-1"
+    affinity: "vcc-1"
 
 # --- DEVICE SERVER SIMULATION --- #
 
