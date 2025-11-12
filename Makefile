@@ -127,7 +127,7 @@ lint:
 .PHONY: all test lint
 
 python-pre-test:
-	export PYTHONPATH=/usr/local/lib/python3.10/dist-packages/ska_mid_cbf_fhs_common/terrabox_software/grpc_driver_system/generated:$PYTHONPATH"
+	export PYTHONPATH=/usr/local/lib/python3.10/dist-packages/ska_mid_cbf_fhs_common/terrabox_software/grpc_driver_system/generated:$PYTHONPATH
 
 check-minikube-eval:
 	@minikube status | grep -iE '^.*(docker-env: in-use).*$$'; \
