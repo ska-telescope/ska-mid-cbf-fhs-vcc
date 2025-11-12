@@ -202,7 +202,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.logger.info(f"[LIST DRIVERS] - getting driver list, bitstream_path: {bitstream_path}, device_id={self.device.device_id}")
 
         try:
-            driver_list = lambda x: FirmwareApi(bitstream_path, self.device.device_id, self.logger).list_all_drivers()
+            driver_list = (lambda: FirmwareApi(bitstream_path, self.device.device_id, self.logger).list_all_drivers())()
             self.logger.info("[LIST DRIVERS] - got list of drivers")
             self.logger.info(f"[LIST DRIVERS] {driver_list}")
         except Exception as ex:
