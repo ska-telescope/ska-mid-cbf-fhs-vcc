@@ -97,6 +97,8 @@ K8S_VARS_AFTER_PYTEST = -s
 
 PYTHON_TEST_FILE = ./tests/unit/
 
+PYTHON_VARS_BEFORE_PYTEST = PYTHONPATH=$(CURDIR)/$(PYTHON_SRC):/app/$(PYTHON_SRC):/usr/local/lib/python3.10/dist-packages/ska_mid_cbf_fhs_common/terrabox_software/grpc_driver_system/generated:$(PYTHONPATH)
+
 #
 # include makefile to pick up the standard Make targets, e.g., 'make build'
 # build, 'make push' docker push procedure, etc. The other Make targets
@@ -125,9 +127,6 @@ lint:
 
 
 .PHONY: all test lint
-
-python-pre-test:
-	export PYTHONPATH="/usr/local/lib/python3.10/dist-packages/ska_mid_cbf_fhs_common/terrabox_software/grpc_driver_system/generated:$(PYTHONPATH)"
 
 check-minikube-eval:
 	@minikube status | grep -iE '^.*(docker-env: in-use).*$$'; \
