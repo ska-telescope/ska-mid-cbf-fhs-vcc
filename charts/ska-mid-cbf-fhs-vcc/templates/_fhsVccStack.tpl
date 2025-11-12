@@ -59,10 +59,8 @@ affinity:
 {{- end }}
 
 environment_variables:
-- name: NS_HOST
-  value: status.hostIP
-- name: NS_PORT
-  value: 9090
+- name: GRPC_DRIVER_PORT
+  value: 50051
 
 extraVolumes:
 {{- if .Values.testConfig }}
