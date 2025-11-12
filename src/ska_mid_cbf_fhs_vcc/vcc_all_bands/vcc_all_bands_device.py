@@ -35,10 +35,7 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
             ("ObsReset", "obs_reset"),
             ("UpdateSubarrayMembership", "update_subarray_membership"),
             ("AutoSetFilterGains", "auto_set_filter_gains"),
-            ("TestHostCommunication", "test_host_communication"),
-            ("TestConfig", "test_config"),
-            ("TestStatus", "test_status"),
-            ("TestStartDriver", "test_start_driver"),
+            ("ListDrivers", "list_drivers"),
         ]
 
     @attribute(
@@ -181,40 +178,10 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         result_code, command_id = command_handler(argin=headroom)
         return [[result_code], [command_id]]
 
-    @command(
-        dtype_in=(str,),
-        dtype_out="DevVarLongStringArray",
-    )
-    def TestHostCommunication(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="TestHostCommunication")
-        result_code, command_id = command_handler(argin=driver_name)
-        return [[result_code], [command_id]]
-
-    @command(
-        dtype_in=(str,),
-        dtype_out="DevVarLongStringArray",
-    )
-    def TestConfig(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="TestConfig")
-        result_code, command_id = command_handler(argin=driver_name)
-        return [[result_code], [command_id]]
-
-    @command(
-        dtype_in=(str,),
-        dtype_out="DevVarLongStringArray",
-    )
-    def TestStatus(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="TestStatus")
-        result_code, command_id = command_handler(argin=driver_name)
-        return [[result_code], [command_id]]
-
-    @command(
-        dtype_in=(str,),
-        dtype_out="DevVarLongStringArray",
-    )
-    def TestStartDriver(self: VCCAllBandsController, driver_name: list[str]) -> DevVarLongStringArrayType:
-        command_handler = self.get_command_object(command_name="TestStartDriver")
-        result_code, command_id = command_handler(argin=driver_name)
+    @command(dtype_out="DevVarLongStringArray")
+    def ListDrivers(self: VCCAllBandsController) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="ListDrivers")
+        result_code, command_id = command_handler()
         return [[result_code], [command_id]]
 
 

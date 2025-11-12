@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import os
 import textwrap
 from math import isnan
 from threading import Event
@@ -10,11 +11,8 @@ from ska_control_model import ResultCode, TaskStatus
 from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, WidebandPowerMeterConfig, WidebandPowerMeterManager, calculate_gain_multiplier
 from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
+from ska_mid_cbf_fhs_common.services.api.firmware_api import FirmwareApi
 
-from ska_mid_cbf_fhs_vcc.api.pyro.pyro_channelizer_client import PyroChannelizerClient
-from ska_mid_cbf_fhs_vcc.api.pyro.pyro_client import PyroClient
-from ska_mid_cbf_fhs_vcc.api.pyro.pyro_power_meter_client import PyroPowerMeterClient
-from ska_mid_cbf_fhs_vcc.api.pyro.pyro_wib_client import PyroWibClient
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
     B123VccOsppfbChannelizerConfigureArgin,
     B123VccOsppfbChannelizerManager,
@@ -183,146 +181,33 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             task_callback=task_callback,
         )
 
-    def test_host_communication(
+    def list_drivers(
         self: VCCAllBandsComponentManager,
-        argin,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         return self.submit_task(
-            func=self._test_host_communication,
-            args=[argin],
+            func=self._list_drivers,
             task_callback=task_callback,
         )
 
-    def test_config(
-        self: VCCAllBandsComponentManager,
-        argin,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=self._test_config,
-            args=[argin],
-            task_callback=task_callback,
-        )
-
-    def test_status(
-        self: VCCAllBandsComponentManager,
-        argin,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=self._test_status,
-            args=[argin],
-            task_callback=task_callback,
-        )
-
-    def test_start_driver(
-        self: VCCAllBandsComponentManager,
-        argin,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        return self.submit_task(
-            func=self._test_start_driver,
-            args=[argin],
-            task_callback=task_callback,
-        )
-
-    def _test_start_driver(
+    def _list_drivers(
         self,
-        argin,
         task_abort_event: Event,
         task_callback: Optional[Callable] = None,
     ) -> None:
-        task_callback(status=TaskStatus.IN_PROGRESS)
-
-        if self.task_abort_event_is_set("TestStatus", task_callback, task_abort_event):
+        if self.task_abort_event_is_set("ListDrivers", task_callback, task_abort_event):
             return
 
-        self.logger.info(f"::: Starting {argin[0]} on Terabox Server :::")
+        bitstream_path = os.path.join(self.device.bitstream_path, self.device.bitstream_id, self.device.bitstream_version)
+        self.logger.info(f"[LIST DRIVERS] - getting driver list, bitstream_path: {bitstream_path}, device_id={self.device.device_id}")
 
-        client = self._get_test_client(argin[0])
-
-        if client is not None:
-            self.logger.info(f"::: Starting {argin[0]} on Terabox Server :::")
-            client.start()
-
-        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Start Received on Terabox OK"))
-
-    def _test_status(
-        self,
-        argin,
-        task_abort_event: Event,
-        task_callback: Optional[Callable] = None,
-    ) -> None:
-        task_callback(status=TaskStatus.IN_PROGRESS)
-
-        if self.task_abort_event_is_set("TestStatus", task_callback, task_abort_event):
-            return
-
-        self.logger.info(f"::: Getting {argin[0]} status from Terabox Server :::")
-
-        client = self._get_test_client(argin[0])
-
-        if client is not None:
-            client.status()
-
-        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Status Received on Terabox OK"))
-
-    def _test_config(
-        self,
-        argin,
-        task_abort_event: Event,
-        task_callback: Optional[Callable] = None,
-    ) -> None:
-        task_callback(status=TaskStatus.IN_PROGRESS)
-
-        if self.task_abort_event_is_set("TestConfig", task_callback, task_abort_event):
-            return
-
-        client = self._get_test_client(argin[0])
-
-        self.logger.info(f"::: Configured {argin[0]} on Terabox Server :::")
-
-        client.configure()
-
-        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, f"{argin[0]} Configured on Terabox OK"))
-
-    def _test_host_communication(
-        self,
-        argin,
-        task_abort_event: Event,
-        task_callback: Optional[Callable] = None,
-    ) -> None:
-        pyro_client = PyroClient(self.logger)
-
-        task_callback(status=TaskStatus.IN_PROGRESS)
-
-        if self.task_abort_event_is_set("TestHostCommunication", task_callback, task_abort_event):
-            return
-
-        self.logger.info("Checking connection to nameserver....")
-        self.logger.info(f"::::: Getting NS_HOST: {pyro_client.get_host_ip()}")
-        pyro_client.ping()
-        self.logger.info("[SUCCESS] Ping completed....")
-
-        self.logger.info(f":::::: Calling status function on driver {argin[0]}")
-        pyro_client.get_driver_status(argin[0])
-
-        task_callback(status=TaskStatus.COMPLETED, result=(ResultCode.OK, "Host Communication OK"))
-
-    def _get_test_client(self, driver_name: str):
-        client = None
-
-        if driver_name == "t1412c0_receptor0_wideband_input_buffer":
-            client = PyroWibClient(self.logger, driver_name)
-        elif driver_name == "t1412c0_receptor0_band123_vcc":
-            client = PyroChannelizerClient(self.logger, driver_name)
-        elif driver_name == "t1412c0_receptor0_band123_wideband_power_meter":
-            client = PyroPowerMeterClient(self.logger, driver_name)
-        else:
-            self.logger.error(f"[ERROR] Unknown driver {driver_name}, cannot get client")
-
-        return client
+        try:
+            driver_list = lambda x: FirmwareApi(bitstream_path, self.device.device_id, self.logger).list_all_drivers()
+            self.logger.info("[LIST DRIVERS] - got list of drivers")
+            self.logger.info(f"[LIST DRIVERS] {driver_list}")
+        except Exception as ex:
+            self.logger.error(f"[LIST DRIVERS] - Unable to get list of drivers: {repr(ex)}")
+            self.logger.error(f"{ex}")
 
     def _configure_scan_controller_impl(
         self,

@@ -132,7 +132,7 @@ vccAllBandsDevice:
           firmware_ip_block_id: "wideband_frequency_shifter_unimplemented"
         WidebandInputBuffer:
           emulator_ip_block_id: "wideband_input_buffer"
-          firmware_ip_block_id: "wideband_input_buffer_unimplemented"
+          firmware_ip_block_id: "receptor{{.receptorId}}_wideband_input_buffer"
           health_monitor_poll_interval: "3"
         VCCStreamMerge1:
           emulator_ip_block_id: "fs1_vcc_stream_merge"
