@@ -9,6 +9,7 @@ UNRELEASED CHANGES
 ******************
 * CIP-4349: tested UpdateSubarrayMembership command pushing subarrayID change events in standalone simulation
 * CIP-2768: Use dataclass for VCC controller config 
+* CIP-4496: Updates to Wideband Input Buffer manager to support emulator changes
 
 0.3.2
 ******
