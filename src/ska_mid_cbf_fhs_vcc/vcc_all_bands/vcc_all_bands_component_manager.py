@@ -189,6 +189,26 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             func=self._list_drivers,
             task_callback=task_callback,
         )
+    
+    def configure_driver(
+            self: VCCAllBandsComponentManager,
+            argin: str,
+            task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        return self.submit_task(
+            func=self._configure_driver,
+            args=[argin],
+            task_callback=task_callback
+        )
+    
+    def _configure_driver(self: VCCAllBandsComponentManager, 
+                          argin: str,
+                          task_callback: Optional[Callable] = None,
+                          task_abort_event: Optional[Event] = None,
+    ):
+        if self.task_abort_event_is_set("ConfigureDriver", task_callback, task_abort_event):
+            return
+
 
     def _list_drivers(
         self,

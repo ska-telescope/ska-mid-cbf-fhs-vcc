@@ -36,6 +36,7 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
             ("UpdateSubarrayMembership", "update_subarray_membership"),
             ("AutoSetFilterGains", "auto_set_filter_gains"),
             ("ListDrivers", "list_drivers"),
+            ("ConfigureDriver", "configure_driver"),
         ]
 
     @attribute(
@@ -183,6 +184,14 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         command_handler = self.get_command_object(command_name="ListDrivers")
         result_code, command_id = command_handler()
         return [[result_code], [command_id]]
+    
+    @command(dtype_out="DevVarLongStringArray",
+             dtype_in="DevString",
+             )
+    def ConfigureDriver(self: VCCAllBandsController, config: str) -> DevVarLongStringArrayType:
+        command_handler = self.get_command_object(command_name="ConfigureDriver")
+        result_code, command_id = command_handler(config)
+        return[[result_code], [command_id]]
 
 
 if __name__ == "__main__":
