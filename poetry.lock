@@ -2624,14 +2624,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.2.3+dev.c94fd14d5"
+version = "0.2.3+dev.c0a71fa1d"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<4.0"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.2.3+dev.c94fd14d5-py3-none-any.whl", hash = "sha256:31b1ce4ed7185ab065438a07315f2007e3e99f28a492aab851fc33c3d6874ced"},
-    {file = "ska_mid_cbf_fhs_common-0.2.3+dev.c94fd14d5.tar.gz", hash = "sha256:32696727a5fab9006f9b133637ca72f1cc7356f62e9e44578ae675fe81883adb"},
+    {file = "ska_mid_cbf_fhs_common-0.2.3+dev.c0a71fa1d-py3-none-any.whl", hash = "sha256:23862224b56f1dacc69766ae027ec1a763665ea762842119211a6c933c09916c"},
+    {file = "ska_mid_cbf_fhs_common-0.2.3+dev.c0a71fa1d.tar.gz", hash = "sha256:041652215ce0a1b5c146ae59677e0c3729627f391a3ed11d4cd3af25247bc022"},
 ]
 
 [package.dependencies]
@@ -3364,4 +3364,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "a52595a2900ff7c48b65732f10d7220e9c9d63abcdfd4fdfbfe5e9c95f552255"
+content-hash = "b80cbb0b621344a77dad69a9e534254b25e3981b63852e158823d8876dc39f86"
