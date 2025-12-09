@@ -50,7 +50,7 @@ def sim_vcc_all_bands_tango_event_tracer(
     )
 
     change_event_attr_list = [
-        "longRunningCommandResult",
+        "lrcFinished",
         "adminMode",
         "state",
         "obsState",

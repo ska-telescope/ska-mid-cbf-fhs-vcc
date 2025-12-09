@@ -253,7 +253,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
             ("obsState", ObsState.READY, ObsState.CONFIGURING, 1),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{configure_scan_command_id}",
                     f'[{ResultCode.OK.value}, "ConfigureScan completed OK"]',
@@ -264,7 +264,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.READY, 1),
             ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 1),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{go_to_idle_command_id}",
                     f'[{ResultCode.OK.value}, "GoToIdle completed OK"]',
@@ -307,7 +307,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 2),
             ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 1),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{configure_scan_command_id}",
                     f'[{ResultCode.FAILED.value}, "ConfigureScan failed"]',
@@ -341,7 +341,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 3),
             ("obsState", ObsState.READY, ObsState.CONFIGURING, 2),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{configure_scan_command_id}",
                     f'[{ResultCode.OK.value}, "ConfigureScan completed OK"]',
@@ -352,7 +352,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.READY, 2),
             ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 2),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{go_to_idle_command_id}",
                     f'[{ResultCode.OK.value}, "GoToIdle completed OK"]',
@@ -429,7 +429,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.SCANNING, ObsState.READY, 1),
             ("obsState", ObsState.SCANNING, ObsState.READY, 1),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{configure_scan_command_id}",
                     f'[{ResultCode.OK.value}, "ConfigureScan completed OK"]',
@@ -438,7 +438,7 @@ class TestVCCAllBandsSim:
                 1,
             ),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{scan_command_id}",
                     f'[{ResultCode.OK.value}, "Scan completed OK"]',
@@ -493,7 +493,7 @@ class TestVCCAllBandsSim:
             event_timeout
         ).has_change_event_occurred(
             device_name=sim_vcc_all_bands_device,
-            attribute_name="longRunningCommandResult",
+            attribute_name="lrcFinished",
             attribute_value=(
                 f"{command_id}",
                 f'[{ResultCode.NOT_ALLOWED.value}, "Command is not allowed"]',
@@ -517,7 +517,7 @@ class TestVCCAllBandsSim:
                 event_timeout
             ).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,
-                attribute_name="longRunningCommandResult",
+                attribute_name="lrcFinished",
                 attribute_value=(
                     f"{command_id}",
                     f'[{ResultCode.NOT_ALLOWED.value}, "Command is not allowed"]',
@@ -576,7 +576,7 @@ class TestVCCAllBandsSim:
             assert result_code == ResultCode.QUEUED
             expected_events = [
                 (
-                    "longRunningCommandResult",
+                    "lrcFinished",
                     (
                         f"{command_id}",
                         f'[{ResultCode.OK.value}, "{command_name} completed OK"]',
@@ -661,7 +661,7 @@ class TestVCCAllBandsSim:
             assert result_code == ResultCode.QUEUED
             expected_events = [
                 (
-                    "longRunningCommandResult",
+                    "lrcFinished",
                     (
                         f"{command_id}",
                         f'[{ResultCode.FAILED.value}, "{command_name} failed"]',
@@ -841,7 +841,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
             ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 1),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{configure_scan_command_id}",
                     f'[{ResultCode.FAILED.value}, "ConfigureScan failed"]',
@@ -874,7 +874,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
             ("obsState", ObsState.READY, ObsState.CONFIGURING, 1),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{configure_scan_command_id}",
                     f'[{ResultCode.OK.value}, "ConfigureScan completed OK"]',
@@ -885,7 +885,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.READY, 1),
             ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 1),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{go_to_idle_command_id}",
                     f'[{ResultCode.OK.value}, "GoToIdle completed OK"]',
@@ -915,7 +915,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
             ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 1),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{configure_scan_command_id}",
                     f'[{ResultCode.FAILED.value}, "ConfigureScan failed"]',
@@ -960,7 +960,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
             ("obsState", ObsState.READY, ObsState.CONFIGURING, 1),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{configure_scan_command_id}",
                     f'[{ResultCode.OK.value}, "ConfigureScan completed OK"]',
@@ -971,7 +971,7 @@ class TestVCCAllBandsSim:
             ("obsState", ObsState.CONFIGURING, ObsState.READY, 1),
             ("obsState", ObsState.IDLE, ObsState.CONFIGURING, 1),
             (
-                "longRunningCommandResult",
+                "lrcFinished",
                 (
                     f"{go_to_idle_command_id}",
                     f'[{ResultCode.OK.value}, "GoToIdle completed OK"]',
