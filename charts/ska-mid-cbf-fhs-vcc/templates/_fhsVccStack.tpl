@@ -33,10 +33,12 @@ image:
   tag: "{{.Values.midcbf.image.tag}}"
   pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
 
+{{- if $fhsVccUnit.bitstreamDownloadJobEnabled }}
 volume:
   existingClaimName: "fhs-vcc-bitstream-pv"
   mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
+{{- end }}
 
 {{- if $fhsVccUnit.toleration }}
 tolerations:
