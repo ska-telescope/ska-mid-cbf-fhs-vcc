@@ -10,6 +10,7 @@ UNRELEASED CHANGES
 * CIP-4349: tested UpdateSubarrayMembership command pushing subarrayID change events in standalone simulation
 * CIP-2768: Use dataclass for VCC controller config 
 * CIP-4496: Updates to Wideband Input Buffer manager to support emulator changes
+* CIP-4382: Upgrade ska-tango-base to version 1.3.2, disable PV if bitstream download disabled
 
 0.3.2
 ******
