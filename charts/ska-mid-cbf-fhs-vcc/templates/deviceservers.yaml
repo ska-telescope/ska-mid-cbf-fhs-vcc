@@ -25,7 +25,7 @@
     {{- end }}
 
     {{- $serverInstances := include "generateServerInstances" (list $instance $fhsVccUnit $deviceValues $.Values.properties $vccNum) | nindent 2 }}
-    {{- $fileDeviceServerContext := dict "fhsVccUnit" $fhsVccUnit "instance" $instance "serverInstances" $serverInstances "deviceCommand" $deviceCommand "bitstreamDownloadJobEnabled" $.Values.bitstreamDownloadJob.enabled }}
+    {{- $fileDeviceServerContext := dict "fhsVccUnit" $fhsVccUnit "instance" $instance "serverInstances" $serverInstances "deviceCommand" $deviceCommand "pvEnabled" $.Values.bitstreamDownloadJob.enabled }}
     {{- $fileDeviceServer := include "ska-mid-cbf-fhs-vcc.fhsVccStack" (merge $fileDeviceServerContext $) | fromYaml }}
 
     {{- if $fileDeviceServer.tolerations }}
