@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.3.2"
+version = "0.3.3"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },
@@ -35,7 +35,7 @@ dataclasses-json = "^0.6.7"
 debugpy = "^1.8.5"
 # Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = { version = "0.2.7", source = "ska-nexus" }
+ska-mid-cbf-fhs-common = { version = "0.2.8", source = "ska-nexus" }
 # Commit hash version from Gitlab
 # ska-mid-cbf-fhs-common = { version = "0.2.6+dev.c1c44089e", source = "gitlab-fhs-common" }
 # Local repository

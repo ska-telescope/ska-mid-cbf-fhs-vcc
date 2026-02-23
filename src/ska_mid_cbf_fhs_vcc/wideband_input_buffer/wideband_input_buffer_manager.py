@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 from dataclasses_json import DataClassJsonMixin
@@ -14,6 +14,7 @@ class WidebandInputBufferConfig(DataClassJsonMixin):
     expected_sample_rate: np.uint64
     noise_diode_transition_holdoff_seconds: float
     expected_dish_band: np.uint8
+    transaction_id: Optional[str] = None
 
 
 ##

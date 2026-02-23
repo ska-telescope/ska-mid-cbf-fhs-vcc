@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 
 from dataclasses_json import DataClassJsonMixin
 from ska_mid_cbf_fhs_common import BaseIPBlockManager
@@ -8,6 +9,7 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_sim
 
 @dataclass
 class FrequencySliceSelectionConfig(DataClassJsonMixin):
+    transaction_id: Optional[str] = None
     band_select: int = 1
     band_start_channel: list[int] = field(default_factory=lambda: [0, 1, 2])
 

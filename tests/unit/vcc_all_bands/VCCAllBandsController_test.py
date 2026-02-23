@@ -217,7 +217,7 @@ class TestVCCAllBandsController:
             assert vcc_all_bands_device.subarrayID == current_subarray
 
     @pytest.mark.parametrize(
-        ("measured_power", "headroom", "expected_multipliers", "expected_result"),
+        ("measured_power", "headrooms_str", "expected_multipliers", "expected_result"),
         [
             pytest.param(
                 [
@@ -242,7 +242,7 @@ class TestVCCAllBandsController:
                     0.4,
                     0.4
                 ],
-                [3.0],
+                json.dumps({"headrooms": [3.0], "transaction_id": "TEST_HEADROOMS"}),
                 [
                     MPFloat("1.119360569284169805977475"),
                     MPFloat("1.119360569284169805977475"),
@@ -291,7 +291,7 @@ class TestVCCAllBandsController:
                     0.6,
                     0.7
                 ],
-                [3.0],
+                json.dumps({"headrooms": [3.0], "transaction_id": "TEST_HEADROOMS"}),
                 [
                     MPFloat("1.119360569284169805977475"),
                     MPFloat("1.001186529700906718108588"),
@@ -340,7 +340,7 @@ class TestVCCAllBandsController:
                     0.4,
                     0.4
                 ],
-                [6.0],
+                json.dumps({"headrooms": [6.0]}),
                 [
                     MPFloat("0.7924465962305567426010507"),
                     MPFloat("0.7924465962305567426010507"),
@@ -389,7 +389,7 @@ class TestVCCAllBandsController:
                     0.4,
                     0.4
                 ],
-                [
+                json.dumps({"headrooms": [
                     3.0,
                     6.0,
                     3.0,
@@ -400,7 +400,8 @@ class TestVCCAllBandsController:
                     6.0,
                     3.0,
                     6.0,
-                ],
+                ], 
+                "transaction_id": "TEST_HEADROOMS"}),
                 [
                     MPFloat("1.119360569284169805977475"),
                     MPFloat("0.7924465962305567426010507"),
@@ -449,10 +450,12 @@ class TestVCCAllBandsController:
                     0.4,
                     0.4
                 ],
+                json.dumps({"headrooms":
                 [
                     3.0,
                     6.0,
                 ],
+                "transaction_id": "TEST_HEADROOMS"}),
                 [
                     MPFloat("1.0"),
                     MPFloat("1.0"),
@@ -501,7 +504,7 @@ class TestVCCAllBandsController:
                     0.4,
                     0.4
                 ],
-                [3.0],
+                json.dumps({"headrooms": [3.0], "transaction_id": "TEST_HEADROOMS"}),
                 [
                     MPFloat("1.0"),
                     MPFloat("1.0"),
@@ -532,12 +535,14 @@ class TestVCCAllBandsController:
     def test_auto_set_filter_gains(
         self,
         measured_power: list[float],
-        headroom: list[float],
+        headrooms_str: str,
         expected_multipliers: list[MPFloat],
         expected_result: ResultCode,
         vcc_all_bands_device: VCCAllBandsController,
         vcc_all_bands_event_tracer: TangoEventTracer,
     ):
+        headroom_dict = json.loads(headrooms_str)
+        headrooms = headroom_dict.get("headrooms")
         with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
             config_json = f.read()
 
@@ -566,7 +571,7 @@ class TestVCCAllBandsController:
         ):
             requested_headrooms_before = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
 
-            vcc_all_bands_device.command_inout("AutoSetFilterGains", headroom)
+            vcc_all_bands_device.command_inout("AutoSetFilterGains", headrooms_str)
 
             DeviceTestUtils.assert_lrc_completed(
                 vcc_all_bands_device,
@@ -582,7 +587,7 @@ class TestVCCAllBandsController:
                 MPFloat.assert_almosteq(multiplier, expected_multiplier, rel_tolerance=1e-12, abs_tolerance=1e-14)
 
             requested_headrooms_after = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
-            expected_headrooms = headroom if expected_result == ResultCode.OK else requested_headrooms_before.value
+            expected_headrooms = headrooms if expected_result == ResultCode.OK else requested_headrooms_before.value
             assert len(requested_headrooms_after.value) == len(expected_headrooms)
             assert all(
                 requested_headroom == expected_headroom
