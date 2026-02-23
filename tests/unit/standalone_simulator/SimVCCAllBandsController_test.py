@@ -247,7 +247,7 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_device.ConfigureScan("test")
         )
         assert result_code == ResultCode.QUEUED
-        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle()
+        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle("")
         assert result_code == ResultCode.QUEUED
         expected_events = [
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
@@ -335,7 +335,7 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_device.ConfigureScan("test")
         )
         assert result_code == ResultCode.QUEUED
-        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle()
+        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle("")
         assert result_code == ResultCode.QUEUED
         expected_events = [
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 3),
@@ -422,7 +422,7 @@ class TestVCCAllBandsSim:
 
         # Set to READY obsState
         [[result_code], [configure_scan_command_id]] = sim_vcc_all_bands_device.ConfigureScan("")
-        [[result_code], [scan_command_id]] = sim_vcc_all_bands_device.Scan(0)
+        [[result_code], [scan_command_id]] = sim_vcc_all_bands_device.Scan(json.dumps({"scan_id": 0}))
         assert result_code == ResultCode.QUEUED
         assert result_code == ResultCode.QUEUED
         expected_events = [
@@ -464,7 +464,7 @@ class TestVCCAllBandsSim:
         not_allowed_obs_states, \
         command_param",
         [
-            ("AutoSetFilterGains", [ObsState.IDLE, ObsState.READY], [3.0]),
+            ("AutoSetFilterGains", [ObsState.IDLE, ObsState.READY], json.dumps({"headrooms": [3.0]})),
             ("UpdateSubarrayMembership", [ObsState.READY, ObsState.SCANNING], 1),
         ],
     )
@@ -506,7 +506,7 @@ class TestVCCAllBandsSim:
             if obs_state == ObsState.READY:
                 sim_vcc_all_bands_device.ConfigureScan("")
             elif obs_state == ObsState.SCANNING:
-                sim_vcc_all_bands_device.Scan(0)
+                sim_vcc_all_bands_device.Scan(json.dumps({"scan_id": 0}))
 
             [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
                 command_name, command_param
@@ -529,7 +529,7 @@ class TestVCCAllBandsSim:
         allowed_obs_states, \
         command_param", 
         [
-            ("AutoSetFilterGains", [ObsState.SCANNING], [3.0]),
+            ("AutoSetFilterGains", [ObsState.SCANNING], json.dumps({"headrooms": [3.0]})),
             ("UpdateSubarrayMembership", [ObsState.IDLE], 1),
         ],
     )
@@ -567,7 +567,7 @@ class TestVCCAllBandsSim:
             if obs_state in [ObsState.READY, ObsState.SCANNING]:
                 sim_vcc_all_bands_device.ConfigureScan("")
                 if obs_state == ObsState.SCANNING:
-                    sim_vcc_all_bands_device.Scan(0)
+                    sim_vcc_all_bands_device.Scan(json.dumps({"scan_id": 0}))
 
             [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
                 command_name, command_param
@@ -674,7 +674,7 @@ class TestVCCAllBandsSim:
         allowed_obs_states, \
         command_param", 
         [
-            ("AutoSetFilterGains", [ObsState.SCANNING], [3.0]),
+            ("AutoSetFilterGains", [ObsState.SCANNING], json.dumps({"headrooms": [3.0]})),
             ("UpdateSubarrayMembership", [ObsState.IDLE], 1),
         ],
     )
@@ -724,7 +724,7 @@ class TestVCCAllBandsSim:
             if obs_state in [ObsState.READY, ObsState.SCANNING]:
                 sim_vcc_all_bands_device.ConfigureScan("")
                 if obs_state == ObsState.SCANNING:
-                    sim_vcc_all_bands_device.Scan(0)
+                    sim_vcc_all_bands_device.Scan(json.dumps({"scan_id": 0}))
 
             [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
                 command_name, command_param
@@ -938,7 +938,7 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_device.ConfigureScan("test")
         )
         assert result_code == ResultCode.QUEUED
-        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle()
+        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle("")
         assert result_code == ResultCode.QUEUED
         expected_events = [
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
@@ -1024,7 +1024,7 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_device.ConfigureScan("test")
         )
         assert result_code == ResultCode.QUEUED
-        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle()
+        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle("")
         assert result_code == ResultCode.QUEUED
         expected_events = [
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),

@@ -1,3 +1,4 @@
 {
-  "shift_frequency": 110.0
+  "shift_frequency": 110.0,
+  "transaction_id": "TEST_WIDEBAND_FREQUENCY_SHIFTER"
 }

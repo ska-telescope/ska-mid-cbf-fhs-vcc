@@ -1,4 +1,5 @@
 {
   "band_select": 1,
-  "band_start_channel": [0, 1]
+  "band_start_channel": [0, 1],
+  "transaction_id": "TEST_FREQUENCY_SLICE_SELECTION"
 }

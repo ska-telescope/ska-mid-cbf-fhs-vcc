@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 from dataclasses_json import DataClassJsonMixin
@@ -54,6 +54,7 @@ class B123VccOsppfbChannelizerConfigureArgin(DataClassJsonMixin):
             1.0,
         ]
     )  # default gain values
+    transaction_id: Optional[str] = None
 
 
 class B123VccOsppfbChannelizerManager(BaseIPBlockManager[B123VccOsppfbChannelizerConfig, B123VccOsppfbChannelizerStatus]):
@@ -91,6 +92,7 @@ class B123VccOsppfbChannelizerManager(BaseIPBlockManager[B123VccOsppfbChannelize
     ) -> int:
         # Channels are dual-polarized i.e. 2 gain values per channel[x, y]
         num_channels = len(vcc_config_argin.gains) // 2
+        transaction_id = vcc_config_argin.transaction_id
         for polarization in (0, 1):
             for i in range(num_channels):
                 vcc_config = B123VccOsppfbChannelizerConfig(
@@ -100,10 +102,10 @@ class B123VccOsppfbChannelizerManager(BaseIPBlockManager[B123VccOsppfbChannelize
                     pol=polarization,
                 )
 
-                self.logger.info(f"VCC JSON CONFIG channel={i} pol={polarization}: {vcc_config}")
+                self.log_info(f"VCC JSON CONFIG channel={i} pol={polarization}: {vcc_config}", transaction_id)
 
                 result = configure_fn(vcc_config)
                 if result == 1:
-                    self.logger.error("Configuring VCC failed.")
+                    self.log_error("Configuring VCC failed.", transaction_id)
                     return result
         return result

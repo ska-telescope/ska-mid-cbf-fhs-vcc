@@ -5,6 +5,7 @@ vcc_all_bands_configure_scan_schema = {
     "type": "object",
     "properties": {
         "config_id": {"type": "string"},
+        "transaction_id": {"type": "string"},
         "expected_dish_id": {"type": "string"},
         "dish_sample_rate": {
             "type": "integer",

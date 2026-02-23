@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import textwrap
 from math import isnan
 from threading import Event
@@ -8,6 +9,7 @@ from typing import Any, Callable, Optional
 
 from ska_control_model import ResultCode, TaskStatus
 from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, WidebandPowerMeterConfig, WidebandPowerMeterManager, calculate_gain_multiplier
+from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_base_dataclasses import FhsControllerBaseScanSchema
 from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
 
@@ -19,7 +21,7 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_man
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureScanConfig
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsAutoSetFilterGainsSchema, VCCAllBandsConfigureScanConfig
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
@@ -159,13 +161,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def auto_set_filter_gains(
         self: VCCAllBandsComponentManager,
-        argin: list[float],
+        argin: str,
         task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         """Submit the task to start running the AutoSetFilterGains command implementation.
 
         Args:
-            argin (:obj:`list[float]`): Requested RFI headroom, in decibels (dB).
+            argin (:obj:`str`): JSON String following the auto set filter gains command schema
+                Requested RFI headroom, in decibels (dB).
                 Must be a list containing either a single value to apply to all frequency slices,
                 or a value per frequency slice to be applied separately.
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
@@ -195,9 +198,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.frequency_band = freq_band_dict()[configuration.frequency_band]
         self.expected_dish_id = configuration.expected_dish_id
         self._config_id = configuration.config_id
-        self.logger.info(f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}")
         self.frequency_band_offset[0] = configuration.frequency_band_offset_stream_1
         self.frequency_band_offset[1] = configuration.frequency_band_offset_stream_2
+
+        transaction_id = configuration.transaction_id
+        self.log_info(f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}", transaction_id)
 
         match self.frequency_band:
             case FrequencyBandEnum._1 | FrequencyBandEnum._2:
@@ -222,12 +227,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         if not self.simulation_mode:
             # VCC123 Channelizer Configuration
-            self.logger.debug("VCC123 Channelizer Configuring..")
+            self.log_debug("VCC123 Channelizer Configuring..", transaction_id)
             if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                result = self.b123_vcc.configure(B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains))
+                result = self.b123_vcc.configure(
+                    B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains, transaction_id=transaction_id)
+                )
 
                 if result == 1:
-                    self.logger.error("Configuration of VCC123 Channelizer failed.")
+                    self.log_error("Configuration of VCC123 Channelizer failed.", transaction_id)
                     self._reset()
                     raise RuntimeError("Configuration of VCC123 failed.")
 
@@ -237,10 +244,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 raise ValueError(f"ConfigureScan failed unsupported band specified: {self.frequency_band}")
 
             # WFS Configuration
-            self.logger.debug("Wideband Frequency Shifter Configuring..")
-            result = self.wideband_frequency_shifter.configure(WidebandFrequencyShifterConfig(shift_frequency=self.frequency_band_offset[0]))
+            self.log_debug("Wideband Frequency Shifter Configuring..", transaction_id)
+            result = self.wideband_frequency_shifter.configure(
+                WidebandFrequencyShifterConfig(shift_frequency=self.frequency_band_offset[0], transaction_id=transaction_id)
+            )
             if result == 1:
-                self.logger.error("Configuration of Wideband Frequency Shifter failed.")
+                self.log_error("Configuration of Wideband Frequency Shifter failed.", transaction_id)
                 raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
 
             # FSS Configuration
@@ -248,17 +257,19 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 FrequencySliceSelectionConfig(
                     band_select=self.frequency_band.value + 1,
                     band_start_channel=[0, 1],
+                    transaction_id=transaction_id,
                 )
             )
 
             if result == 1:
-                self.logger.error("Configuration of FS Selection failed.")
+                self.log_error("Configuration of FS Selection failed.", transaction_id)
                 raise RuntimeError("Configuration of FS Selection failed.")
 
             # WIB Configuration
-            self.logger.debug("Wideband Input Buffer Configuring..")
+            self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
             result = self.wideband_input_buffer.configure(
                 WidebandInputBufferConfig(
+                    transaction_id=transaction_id,
                     expected_sample_rate=self._sample_rate,
                     noise_diode_transition_holdoff_seconds=configuration.noise_diode_transition_holdoff_seconds,
                     expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
@@ -266,13 +277,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             )
 
             if result == 1:
-                self.logger.error("Configuration of WIB failed.")
+                self.log_error("Configuration of WIB failed.", transaction_id)
                 raise RuntimeError("Configuration of WIB failed.")
 
             self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
 
             # Pre-channelizer WPM Configuration
-            self.logger.debug("Pre-channelizer Wideband Power Meters Configuring..")
+            self.log_debug("Pre-channelizer Wideband Power Meters Configuring..", transaction_id)
             self._pre_channelizer_power_meter_configs = {
                 VCCBandGroup.B123: configuration.b123_pwrm,
                 VCCBandGroup.B45A: configuration.b45a_pwrm,
@@ -281,19 +292,20 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             for band_group in VCCBandGroup:
                 config = self._pre_channelizer_power_meter_configs.get(band_group)
-                self.logger.debug(f"Configuring {band_group.value} power meter with {config}")
+                self.log_debug(f"Configuring {band_group.value} power meter with {config}", transaction_id)
                 result = self.wideband_power_meters[band_group].configure(
                     WidebandPowerMeterConfig(
+                        transaction_id=transaction_id,
                         averaging_time=config.averaging_time,
                         flagging=config.flagging,
                     )
                 )
                 if result == 1:
-                    self.logger.error(f"Configuration of {band_group.value} Wideband Power Meter failed.")
+                    self.log_error(f"Configuration of {band_group.value} Wideband Power Meter failed.", transaction_id)
                     raise RuntimeError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
 
             # Post-channelizer WPM Configuration
-            self.logger.debug("Post-channelizer Wideband Power Meters Configuring..")
+            self.log_debug("Post-channelizer Wideband Power Meters Configuring..", transaction_id)
             self._fs_lanes = configuration.fs_lanes
 
             # Verify vlan_id is within range
@@ -304,22 +316,24 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             for config in self._fs_lanes:
                 fs_id = int(config.fs_id)
-                self.logger.debug(f"Configuring FS {fs_id} power meter with {config}")
+                self.log_debug(f"Configuring FS {fs_id} power meter with {config}", transaction_id)
                 result = self.wideband_power_meters[fs_id].configure(
                     WidebandPowerMeterConfig(
+                        transaction_id=transaction_id,
                         averaging_time=config.averaging_time,
                         flagging=config.flagging,
                     )
                 )
                 if result == 1:
-                    self.logger.error(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
+                    self.log_error(f"Configuration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
                     raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
 
             # VCC Stream Merge Configuration
-            self.logger.debug("VCC Stream Merge Configuring..")
+            self.log_debug("VCC Stream Merge Configuring..", transaction_id)
             for i in range(1, 3):
                 result = self.vcc_stream_merges[i].configure(
                     VCCStreamMergeConfigureArgin(
+                        transaction_id=transaction_id,
                         fs_lane_configs=[
                             VCCStreamMergeConfig(
                                 vid=lane.vlan_id,
@@ -327,18 +341,18 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                                 fs_id=lane.fs_id,
                             )
                             for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
-                        ]
+                        ],
                     )
                 )
                 if result == 1:
-                    self.logger.error("Configuration of VCC Stream Merge failed.")
+                    self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
                     raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
-        self.logger.info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}")
+        self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
 
     def _scan_controller_impl(
         self,
-        scan_id: int,
+        scan_schema: FhsControllerBaseScanSchema,
         task_callback: Optional[Callable] = None,
     ) -> None:
         """VCC-specific implementation for the Scan command.
@@ -347,6 +361,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             scan_id (:obj:`int`): ID of the scan
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
         """
+        self.scan_id = scan_schema.scan_id
         if not self.simulation_mode:
             eth_start_result, pv_start_result, wib_start_result = NonBlockingFunction.await_all(
                 self.ethernet_200g.start(),
@@ -358,6 +373,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def _end_scan_controller_impl(
         self,
+        transaction_id: Optional[int] = None,
         task_callback: Optional[Callable] = None,
     ) -> None:
         """VCC-specific implementation for the EndScan command.
@@ -424,7 +440,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def _auto_set_filter_gains(
         self,
-        argin: list[float] | None = None,
+        argin: str | None = None,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
     ) -> None:
@@ -432,22 +448,36 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         This is the implementation for the AutoSetFilterGains command.
 
         Args:
-            argin (:obj:`list[float]`): Requested RFI headroom, in decibels (dB).
+            argin (:obj:`str`): JSON String following the auto set filter gains command schema
+                Requested RFI headroom, in decibels (dB).
                 Must be a list containing either a single value to apply to all frequency slices,
                 or a value per frequency slice to be applied separately.
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
             task_abort_event (:obj:`Optional[Event]`, optional): An event representing whether or not the task has aborted.
                 Default is None.
         """
-        if argin is None:
-            argin = [3.0]
+        headrooms = None
+        transaction_id = None
+
+        if argin is None or argin == "":
+            headrooms = [3.0]
+        else:
+            auto_set_filter_gains_schema_dict = json.loads(argin)
+            transaction_id = auto_set_filter_gains_schema_dict.get("transaction_id", None)
+
+            auto_set_filter_gains_schema = VCCAllBandsAutoSetFilterGainsSchema.from_dict(auto_set_filter_gains_schema_dict)
+
+            headrooms = auto_set_filter_gains_schema.headrooms
+
+        if headrooms is None:
+            headrooms = [3.0]
         try:
-            if (num_headrooms := len(argin)) not in [1, self._num_fs]:
+            if (num_headrooms := len(headrooms)) not in [1, self._num_fs]:
                 self._set_task_callback(
                     task_callback,
                     TaskStatus.COMPLETED,
                     ResultCode.REJECTED,
-                    f"Cannot auto-set gains as the input headroom {argin} is invalid.",
+                    f"Cannot auto-set gains as the input headroom {headrooms} is invalid.",
                 )
                 return
 
@@ -478,7 +508,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                         )
                         return
 
-                headroom = argin[i % num_headrooms]
+                headroom = headrooms[i % num_headrooms]
 
                 # Convert to multiplier
                 new_gains[i] = float(calculate_gain_multiplier(0.0, measured_power_pol_x, headroom))
@@ -488,15 +518,17 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
                 result = self.b123_vcc.configure(
                     B123VccOsppfbChannelizerConfigureArgin(
+                        transaction_id=transaction_id,
                         sample_rate=self._sample_rate,
                         gains=new_gains,
                     )
                 )
 
                 if result == 1:
-                    self.logger.error("Failed to reconfigure VCC123 Channelizer with new gain values.")
+                    self.log_error("Failed to reconfigure VCC123 Channelizer with new gain values.", transaction_id)
                     self.b123_vcc.configure(
                         B123VccOsppfbChannelizerConfigureArgin(
+                            transaction_id=transaction_id,
                             sample_rate=self._sample_rate,
                             gains=self.vcc_gains,
                         )
@@ -518,10 +550,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                     "Failed to auto-set gains: currently selected frequency band is not supported.",
                 )
                 return
-
             # Update vccGains and publish change
             self.vcc_gains = new_gains
-            self.last_requested_headrooms = argin
+            self.last_requested_headrooms = headrooms
+
+            self.log_info(f"Set Autofilter gains with headrooms {headrooms}", transaction_id)
 
             self._set_task_callback(
                 task_callback,
