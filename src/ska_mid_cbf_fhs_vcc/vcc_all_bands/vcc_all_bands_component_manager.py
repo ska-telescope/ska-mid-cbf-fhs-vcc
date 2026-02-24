@@ -358,7 +358,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         """VCC-specific implementation for the Scan command.
 
         Args:
-            scan_id (:obj:`int`): ID of the scan
+            scan_schema (:obj:`dict[str, Any]`): The scan schema JSON string from the command's input argument.
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
         """
         self.scan_id = scan_schema.scan_id
@@ -373,12 +373,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def _end_scan_controller_impl(
         self,
-        transaction_id: Optional[int] = None,
+        transaction_id: Optional[str] = None,
         task_callback: Optional[Callable] = None,
     ) -> None:
         """VCC-specific implementation for the EndScan command.
 
         Args:
+            transaction_id (:obj:`str`): The Transaction id from the command's input argument, can be none
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
         """
         if not self.simulation_mode:
