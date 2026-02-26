@@ -362,6 +362,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
         """
         self.scan_id = scan_schema.scan_id
+        transaction_id = scan_schema.transaction_id
+
+        self.log_info("Starting Scanning", transaction_id)
+
         if not self.simulation_mode:
             eth_start_result, pv_start_result, wib_start_result = NonBlockingFunction.await_all(
                 self.ethernet_200g.start(),
@@ -370,6 +374,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             )
             if eth_start_result == 1 or pv_start_result == 1 or wib_start_result == 1:
                 raise RuntimeError("Failed to start Ethernet, PV and/or WIB")
+            
+        self.log_info("Scan started", transaction_id)
 
     def _end_scan_controller_impl(
         self,
@@ -382,6 +388,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             transaction_id (:obj:`str`): The Transaction id from the command's input argument, can be none
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
         """
+        self.log_info("Ending Scan", transaction_id)
+
         if not self.simulation_mode:
             eth_stop_result, pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
                 self.ethernet_200g.stop(),
@@ -390,6 +398,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             )
             if eth_stop_result == 1 or pv_stop_result == 1 or wib_stop_result == 1:
                 raise RuntimeError("Failed to stop Ethernet, PV and/or WIB")
+
+        self.log_info("Scan ended", transaction_id)
 
     def _update_subarray_membership(
         self,
@@ -472,6 +482,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         if headrooms is None:
             headrooms = [3.0]
+
+        self.log_info("Received Command AutoSetFilterGains", transaction_id)
+            
         try:
             if (num_headrooms := len(headrooms)) not in [1, self._num_fs]:
                 self._set_task_callback(
@@ -555,7 +568,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self.vcc_gains = new_gains
             self.last_requested_headrooms = headrooms
 
-            self.log_info(f"Set Autofilter gains with headrooms {headrooms}", transaction_id)
+            self.log_info(f"Successfully set Autofilter gains with headrooms {headrooms}", transaction_id)
 
             self._set_task_callback(
                 task_callback,
