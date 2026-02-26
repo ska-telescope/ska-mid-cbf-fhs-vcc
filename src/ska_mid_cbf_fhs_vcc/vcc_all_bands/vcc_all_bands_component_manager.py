@@ -374,7 +374,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             )
             if eth_start_result == 1 or pv_start_result == 1 or wib_start_result == 1:
                 raise RuntimeError("Failed to start Ethernet, PV and/or WIB")
-            
+
         self.log_info("Scan started", transaction_id)
 
     def _end_scan_controller_impl(
@@ -484,7 +484,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             headrooms = [3.0]
 
         self.log_info("Received Command AutoSetFilterGains", transaction_id)
-            
+
         try:
             if (num_headrooms := len(headrooms)) not in [1, self._num_fs]:
                 self._set_task_callback(
