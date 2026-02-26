@@ -2728,14 +2728,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.2.8"
+version = "0.2.9+dev.c0b9b1275"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<4.0"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.2.8-py3-none-any.whl", hash = "sha256:a6899726e4c9b70fefe9ac4b8670cc1ec0911207cf64dee4818dff69e21f6177"},
-    {file = "ska_mid_cbf_fhs_common-0.2.8.tar.gz", hash = "sha256:34b3ffc0258746dd969f77b5397c159a2bac6026434c35d55540e55cbd9f3d71"},
+    {file = "ska_mid_cbf_fhs_common-0.2.9+dev.c0b9b1275-py3-none-any.whl", hash = "sha256:7f274a72dc44163ddde609aa568b0bdc32199b76f96825eab7cbcfac422f3123"},
+    {file = "ska_mid_cbf_fhs_common-0.2.9+dev.c0b9b1275.tar.gz", hash = "sha256:f1399078831921553120ebb648618157cee38bfe73dde69b335e1d2f83e18302"},
 ]
 
 [package.dependencies]
@@ -2756,8 +2756,8 @@ typing-extensions = ">=4.8.0,<5.0.0"
 
 [package.source]
 type = "legacy"
-url = "https://artefact.skao.int/repository/pypi-internal/simple"
-reference = "ska-nexus"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "ska-ser-log-transactions"
@@ -3528,4 +3528,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "a7828c9c465c4c16c866f1d029980ba8bf621b571bc3756a1c4acf7c4ca5c3be"
+content-hash = "622c45c5fb315182a47d8d785d6cd17bbcb121510683ab73b9d2d3de358555b1"
