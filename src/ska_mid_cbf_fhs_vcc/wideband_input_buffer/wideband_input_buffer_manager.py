@@ -66,6 +66,12 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         self.expected_sample_rate = config.expected_sample_rate
         return super().configure(config)
 
+    def deconfigure(self, config: WidebandInputBufferConfig | None = None) -> int:
+        """Deconfigure the Wideband Input Buffer."""
+        if config is None:
+            return super().recover()
+        return super().deconfigure(config)
+
     @non_blocking
     def start(self) -> int:
         return super().start()
