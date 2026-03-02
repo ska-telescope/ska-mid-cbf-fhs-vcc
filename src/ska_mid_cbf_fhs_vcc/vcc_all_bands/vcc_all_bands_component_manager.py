@@ -621,6 +621,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self._fsps = []
 
     def _deconfigure_all_ip_blocks(self, transaction_id: Optional[str] = None) -> None:
+        """Deconfigure all ip blocks"""
         # VCC123 Channelizer Deconfiguration
         b123_vcc_deconfigure_result = self.b123_vcc.deconfigure()
         if b123_vcc_deconfigure_result == 1:
