@@ -250,6 +250,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             )
             if result == 1:
                 self.log_error("Configuration of Wideband Frequency Shifter failed.", transaction_id)
+                self._reset()
                 raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
 
             # FSS Configuration
@@ -263,6 +264,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             if result == 1:
                 self.log_error("Configuration of FS Selection failed.", transaction_id)
+                self._reset()
                 raise RuntimeError("Configuration of FS Selection failed.")
 
             # WIB Configuration
@@ -278,6 +280,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             if result == 1:
                 self.log_error("Configuration of WIB failed.", transaction_id)
+                self._reset()
                 raise RuntimeError("Configuration of WIB failed.")
 
             self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
@@ -302,6 +305,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error(f"Configuration of {band_group.value} Wideband Power Meter failed.", transaction_id)
+                    self._reset()
                     raise RuntimeError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
 
             # Post-channelizer WPM Configuration
@@ -326,6 +330,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error(f"Configuration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                    self._reset()
                     raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
 
             # VCC Stream Merge Configuration
@@ -346,6 +351,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
+                    self._reset()
                     raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
         self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
