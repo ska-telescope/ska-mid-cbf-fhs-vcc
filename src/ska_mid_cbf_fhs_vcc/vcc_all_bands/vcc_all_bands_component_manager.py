@@ -670,3 +670,54 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 raise RuntimeError("Deconfiguration of VCC Stream Merge failed.")
 
         self.log_info("Sucessfully deconfigured all IP Blocks", transaction_id)
+
+    def _recover_all_ip_blocks(self, transaction_id: Optional[str] = None) -> None:
+        """Call recover method of all ip blocks"""
+        # VCC123 Channelizer Recovery
+        b123_vcc_recover_result = self.b123_vcc.recover()
+        if b123_vcc_recover_result == 1:
+            self.log_error("Recovery of VCC123 Channelizer failed.", transaction_id)
+            raise RuntimeError("Recovery of VCC123 failed.")
+
+        # WFS Recovery
+        wfs_recovery_result = self.wideband_frequency_shifter.recover()
+        if wfs_recovery_result == 1:
+            self.log_error("Recovery of Wideband Frequency Shifter failed.", transaction_id)
+            raise RuntimeError("Recovery of Wideband Frequency Shifter failed.")
+
+        # FSS Recovery
+        fss_recovery_result = self.frequency_slice_selection.recover()
+        if fss_recovery_result == 1:
+            self.log_error("Recovery of FS Selection failed.", transaction_id)
+            raise RuntimeError("Recovery of FS Selection failed.")
+
+        # WIB Recovery
+        wib_recover_result = self.wideband_input_buffer.recover()
+        if wib_recover_result == 1:
+            self.log_error("Recovery of WIB failed.", transaction_id)
+            raise RuntimeError("Recovery of WIB failed.")
+
+        # Pre-channelizer WPM Recovery
+        for band_group in VCCBandGroup:
+            pre_channelizer_wpm_recover_result = self.wideband_power_meters[band_group].recover()
+            if pre_channelizer_wpm_recover_result == 1:
+                self.log_error(f"Recovery of {band_group.value} Wideband Power Meter failed.", transaction_id)
+                raise RuntimeError(f"Recovery of {band_group.value} Wideband Power Meter failed.")
+
+        # Post-channelizer WPM Recovery
+        if self._fs_lanes:
+            for config in self._fs_lanes:
+                fs_id = int(config.fs_id)
+                post_channelizer_wpm_recover_result = self.wideband_power_meters[fs_id].recover()
+                if post_channelizer_wpm_recover_result == 1:
+                    self.log_error(f"Recovery of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                    raise RuntimeError(f"Recovery of FS {fs_id} Wideband Power Meter failed.")
+
+        # VCC Stream Merge Recovery
+        for i in range(1, 3):
+            vcc_stream_merge_recover_result = self.vcc_stream_merges[i].recover()
+            if vcc_stream_merge_recover_result == 1:
+                self.log_error("Recovery of VCC Stream Merge failed.", transaction_id)
+                raise RuntimeError("Recovery of VCC Stream Merge failed.")
+
+        self.log_info("Sucessfully Recovered all IP Blocks", transaction_id)
