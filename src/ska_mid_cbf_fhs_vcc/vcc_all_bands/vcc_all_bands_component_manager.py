@@ -236,6 +236,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 if result == 1:
                     self.log_error("Configuration of VCC123 Channelizer failed.", transaction_id)
                     self._reset()
+                    self._deconfigure_all_ip_blocks(transaction_id)
                     raise RuntimeError("Configuration of VCC123 failed.")
 
             else:
@@ -250,6 +251,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             )
             if result == 1:
                 self.log_error("Configuration of Wideband Frequency Shifter failed.", transaction_id)
+                self._reset()
+                self._deconfigure_all_ip_blocks(transaction_id)
                 raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
 
             # FSS Configuration
@@ -263,6 +266,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             if result == 1:
                 self.log_error("Configuration of FS Selection failed.", transaction_id)
+                self._reset()
+                self._deconfigure_all_ip_blocks(transaction_id)
                 raise RuntimeError("Configuration of FS Selection failed.")
 
             # WIB Configuration
@@ -278,6 +283,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             if result == 1:
                 self.log_error("Configuration of WIB failed.", transaction_id)
+                self._reset()
+                self._deconfigure_all_ip_blocks(transaction_id)
                 raise RuntimeError("Configuration of WIB failed.")
 
             self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
@@ -302,6 +309,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error(f"Configuration of {band_group.value} Wideband Power Meter failed.", transaction_id)
+                    self._reset()
+                    self._deconfigure_all_ip_blocks(transaction_id)
                     raise RuntimeError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
 
             # Post-channelizer WPM Configuration
@@ -326,6 +335,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error(f"Configuration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                    self._reset()
+                    self._deconfigure_all_ip_blocks(transaction_id)
                     raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
 
             # VCC Stream Merge Configuration
@@ -346,6 +357,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
+                    self._reset()
+                    self._deconfigure_all_ip_blocks(transaction_id)
                     raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
         self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
@@ -606,3 +619,105 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self._sample_rate = 0
         self._samples_per_frame = 0
         self._fsps = []
+
+    def _deconfigure_all_ip_blocks(self, transaction_id: Optional[str] = None) -> None:
+        """Deconfigure all ip blocks"""
+        # VCC123 Channelizer Deconfiguration
+        b123_vcc_deconfigure_result = self.b123_vcc.deconfigure()
+        if b123_vcc_deconfigure_result == 1:
+            self.log_error("Deconfiguration of VCC123 Channelizer failed.", transaction_id)
+            raise RuntimeError("Deconfiguration of VCC123 failed.")
+
+        # WFS Deconfiguration
+        wfs_deconfigure_result = self.wideband_frequency_shifter.deconfigure()
+        if wfs_deconfigure_result == 1:
+            self.log_error("Deconfiguration of Wideband Frequency Shifter failed.", transaction_id)
+            raise RuntimeError("Deconfiguration of Wideband Frequency Shifter failed.")
+
+        # FSS Deconfiguration
+        fss_deconfigure_result = self.frequency_slice_selection.deconfigure()
+        if fss_deconfigure_result == 1:
+            self.log_error("Deconfiguration of FS Selection failed.", transaction_id)
+            raise RuntimeError("Deconfiguration of FS Selection failed.")
+
+        # WIB Deconfiguration
+        wib_deconfigure_result = self.wideband_input_buffer.deconfigure()
+        if wib_deconfigure_result == 1:
+            self.log_error("Deconfiguration of WIB failed.", transaction_id)
+            raise RuntimeError("Deconfiguration of WIB failed.")
+
+        # Pre-channelizer WPM Deconfiguration
+        for band_group in VCCBandGroup:
+            pre_channelizer_wpm_deconfiguration_result = self.wideband_power_meters[band_group].deconfigure()
+            if pre_channelizer_wpm_deconfiguration_result == 1:
+                self.log_error(f"Deconfiguration of {band_group.value} Wideband Power Meter failed.", transaction_id)
+                raise RuntimeError(f"Deconfiguration of {band_group.value} Wideband Power Meter failed.")
+
+        # Post-channelizer WPM Deconfiguration
+        if self._fs_lanes:
+            for config in self._fs_lanes:
+                fs_id = int(config.fs_id)
+                post_channelizer_wpm_deconfiguration_result = self.wideband_power_meters[fs_id].deconfigure()
+                if post_channelizer_wpm_deconfiguration_result == 1:
+                    self.log_error(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                    raise RuntimeError(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.")
+
+        # VCC Stream Merge Deconfiguration
+        for i in range(1, 3):
+            vcc_stream_merge_deconfiguration_result = self.vcc_stream_merges[i].deconfigure()
+            if vcc_stream_merge_deconfiguration_result == 1:
+                self.log_error("Deconfiguration of VCC Stream Merge failed.", transaction_id)
+                raise RuntimeError("Deconfiguration of VCC Stream Merge failed.")
+
+        self.log_info("Sucessfully deconfigured all IP Blocks", transaction_id)
+
+    def _recover_all_ip_blocks(self, transaction_id: Optional[str] = None) -> None:
+        """Call recover method of all ip blocks"""
+        # VCC123 Channelizer Recovery
+        b123_vcc_recover_result = self.b123_vcc.recover()
+        if b123_vcc_recover_result == 1:
+            self.log_error("Recovery of VCC123 Channelizer failed.", transaction_id)
+            raise RuntimeError("Recovery of VCC123 failed.")
+
+        # WFS Recovery
+        wfs_recovery_result = self.wideband_frequency_shifter.recover()
+        if wfs_recovery_result == 1:
+            self.log_error("Recovery of Wideband Frequency Shifter failed.", transaction_id)
+            raise RuntimeError("Recovery of Wideband Frequency Shifter failed.")
+
+        # FSS Recovery
+        fss_recovery_result = self.frequency_slice_selection.recover()
+        if fss_recovery_result == 1:
+            self.log_error("Recovery of FS Selection failed.", transaction_id)
+            raise RuntimeError("Recovery of FS Selection failed.")
+
+        # WIB Recovery
+        wib_recover_result = self.wideband_input_buffer.recover()
+        if wib_recover_result == 1:
+            self.log_error("Recovery of WIB failed.", transaction_id)
+            raise RuntimeError("Recovery of WIB failed.")
+
+        # Pre-channelizer WPM Recovery
+        for band_group in VCCBandGroup:
+            pre_channelizer_wpm_recover_result = self.wideband_power_meters[band_group].recover()
+            if pre_channelizer_wpm_recover_result == 1:
+                self.log_error(f"Recovery of {band_group.value} Wideband Power Meter failed.", transaction_id)
+                raise RuntimeError(f"Recovery of {band_group.value} Wideband Power Meter failed.")
+
+        # Post-channelizer WPM Recovery
+        if self._fs_lanes:
+            for config in self._fs_lanes:
+                fs_id = int(config.fs_id)
+                post_channelizer_wpm_recover_result = self.wideband_power_meters[fs_id].recover()
+                if post_channelizer_wpm_recover_result == 1:
+                    self.log_error(f"Recovery of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                    raise RuntimeError(f"Recovery of FS {fs_id} Wideband Power Meter failed.")
+
+        # VCC Stream Merge Recovery
+        for i in range(1, 3):
+            vcc_stream_merge_recover_result = self.vcc_stream_merges[i].recover()
+            if vcc_stream_merge_recover_result == 1:
+                self.log_error("Recovery of VCC Stream Merge failed.", transaction_id)
+                raise RuntimeError("Recovery of VCC Stream Merge failed.")
+
+        self.log_info("Sucessfully Recovered all IP Blocks", transaction_id)
