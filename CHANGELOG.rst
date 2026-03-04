@@ -12,6 +12,11 @@ UNRELEASED CHANGES
 * CIP-4496: Updates to Wideband Input Buffer manager to support emulator changes
 * CIP-4382: Upgrade ska-tango-base to version 1.3.2, disable PV if bitstream download disabled
 
+0.3.4
+*****
+* CIP-5256: Bring back functionality for GoToIdle to deconfigure all ip block managers and for ObsReset
+  to recover all ip block managers. This functionality was accidentally removed in a previous refactor.
+
 0.3.3
 ******
 * transaction id has been added to the AutoSetFilterGains command in this repository and
