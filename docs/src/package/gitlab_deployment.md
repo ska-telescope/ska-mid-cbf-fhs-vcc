@@ -20,7 +20,7 @@ Follow the [Minikube Setup](./minikube_setup.md) instructions first to get a clu
 1. Clone the repository from gitlab and navigate inside it
 
 ```
-https://gitlab.com/ska-telescope/ska-mid-cbf-fhs-vcc
+https://gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 
 cd ska-mid-cbf-fhs-vcc
 ```
@@ -78,12 +78,12 @@ For more information regarding boogie please see its gitlab page: [Boogie](https
 
 To test locally with a custom branch in ska-mid-cbf-bitstreams, add the following configuration to values.yaml:
 ```yaml
-gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams/-/archive/<branch_name>/ska-mid-cbf-bitstreams-<branch_name>.tar.gz?path=raw/ska-mid-cbf-<bitstream_id>"
+gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf/infra/ska-mid-cbf-bitstreams/-/archive/<branch_name>/ska-mid-cbf-bitstreams-<branch_name>.tar.gz?path=raw/ska-mid-cbf-<bitstream_id>"
 ```
 
 For example:
 ```yaml
-gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams/-/archive/cip-1234/ska-mid-cbf-bitstreams-cip-1234.tar.gz?path=raw/ska-mid-cbf-agilex-vcc"
+gitlab_bitstream_url_override: "https://gitlab.com/ska-telescope/ska-mid-cbf/infra/ska-mid-cbf-bitstreams/-/archive/cip-1234/ska-mid-cbf-bitstreams-cip-1234.tar.gz?path=raw/ska-mid-cbf-agilex-vcc"
 ```
 
-You can find this URL by navigating to the bitstream repo on GitLab (https://gitlab.com/ska-telescope/ska-mid-cbf-bitstreams), navigating into your branch, and then into the raw/ska-mid-cbf-<bitstream_id> folder. Then click the "Code" dropdown, and copy the "tar.gz" link under "Download this directory". Alternatively, you can just copy the above example and substitute in your branch name and bitstream ID.
+You can find this URL by navigating to the bitstream repo on GitLab (https://gitlab.com/ska-telescope/ska-mid-cbf/infra/ska-mid-cbf-bitstreams), navigating into your branch, and then into the raw/ska-mid-cbf-<bitstream_id> folder. Then click the "Code" dropdown, and copy the "tar.gz" link under "Download this directory". Alternatively, you can just copy the above example and substitute in your branch name and bitstream ID.

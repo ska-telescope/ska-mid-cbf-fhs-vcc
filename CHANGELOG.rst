@@ -8,13 +8,17 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.6
+*****
+* CIP-5329: Upgrade to ska-tango-base v1.4.2 via ska-mid-cbf-fhs-common v0.2.11
+
 0.3.5
 *****
 * CIP-4349: tested UpdateSubarrayMembership command pushing subarrayID change events in standalone simulation
 * CIP-2768: Use dataclass for VCC controller config 
 * CIP-4496: Updates to Wideband Input Buffer manager to support emulator changes
 * CIP-4382: Upgrade ska-tango-base to version 1.3.2, disable PV if bitstream download disabled
-* CIP-5329: Upgrade to ska-tango-base v1.4.2 via ska-mid-cbf-fhs-common v0.2.11
+* CIP-5371: Fixed linkage urls caused due to gitlab repository migrations
 
 0.3.4
 *****
