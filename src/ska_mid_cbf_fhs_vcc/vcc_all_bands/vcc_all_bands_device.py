@@ -149,19 +149,21 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         return [[result_code], [command_id]]
 
     @command(
-        dtype_in=(float,),
+        dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
         doc_in=(
+            "String containing JSON following the AutoSetFliterGains schema."
             "Requested RFI Headroom, in decibels (dB). "
             "Must be a list containing either a single value to apply to all frequency slices, "
             "or a value per frequency slice to be applied separately."
         ),
     )
-    def AutoSetFilterGains(self: VCCAllBandsController, headroom: list[float] | None = None) -> DevVarLongStringArrayType:
+    def AutoSetFilterGains(self: VCCAllBandsController, auto_set_filter_gains_schema: str | None = None) -> DevVarLongStringArrayType:
         """Tango command to start a scan operation.
 
         Args:
-            headroom (:obj:`list[float]`): Requested RFI headroom, in decibels (dB).
+            auto_set_filter_gains_schema (:obj:`str`): JSON String following the auto set filter gains command schema
+                Requested RFI headroom, in decibels (dB).
                 Must be a list containing either a single value to apply to all frequency slices,
                 or a value per frequency slice to be applied separately.
 
@@ -169,12 +171,10 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
             message indicating status. The message is for information purpose only.
         """
-        if headroom is None:
-            headroom = [3.0]
         command_handler = self.get_command_object(command_name="AutoSetFilterGains")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=headroom)
+        result_code, command_id = command_handler(argin=auto_set_filter_gains_schema)
         return [[result_code], [command_id]]
 
 

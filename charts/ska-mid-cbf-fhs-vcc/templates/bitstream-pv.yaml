@@ -1,3 +1,4 @@
+{{- if .Values.bitstreamDownloadJob.enabled }}
 {{- $labels := coalesce .Values.global.labels .Values.labels "label:none" }}
 {{- $annotations := coalesce .Values.global.annotations .Values.annotations }}
 
@@ -20,3 +21,4 @@ spec:
   resources:
     requests:
       storage: "1Gi"
+{{- end }}

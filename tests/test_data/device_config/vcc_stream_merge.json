@@ -65,5 +65,6 @@
       "vcc_id": 1,
       "fs_id": 13
     }
-  ]
+  ],
+  "transaction_id": "TEST_VCC_STREAM_MERGE"
 }

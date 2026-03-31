@@ -10,6 +10,26 @@ UNRELEASED CHANGES
 * CIP-4349: tested UpdateSubarrayMembership command pushing subarrayID change events in standalone simulation
 * CIP-2768: Use dataclass for VCC controller config 
 * CIP-4496: Updates to Wideband Input Buffer manager to support emulator changes
+* CIP-4382: Upgrade ska-tango-base to version 1.3.2, disable PV if bitstream download disabled
+* CIP-5371: Fixed linkage urls caused due to gitlab repository migrations
+
+0.3.4
+*****
+* CIP-5256: Bring back functionality for GoToIdle to deconfigure all ip block managers and for ObsReset
+  to recover all ip block managers. This functionality was accidentally removed in a previous refactor.
+
+0.3.3
+******
+* transaction id has been added to the AutoSetFilterGains command in this repository and
+  ConfigureScan, Scan, EndScan, GoToIdle, and ObsReset commands in the common repository as an input field,
+  leading to the following changes in command input parameters:
+    ConfigureScan: Remains the same
+    Scan: int to str
+    EndScan: void to str
+    GoToIdle: void to str
+    ObsReset: void to str
+    AutoSetFilterGains: list[float] to str
+  This repository has been updated to use the new command input parameters from common
 
 0.3.2
 ******

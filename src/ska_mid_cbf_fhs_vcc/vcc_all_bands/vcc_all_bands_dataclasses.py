@@ -1,3 +1,5 @@
+from typing import Optional
+
 from dataclasses_json import DataClassJsonMixin
 from pydantic.dataclasses import dataclass
 from ska_mid_cbf_fhs_common import FhsControllerBaseConfig
@@ -39,3 +41,12 @@ class VCCAllBandsConfigureScanConfig(FhsControllerBaseConfig, DataClassJsonMixin
     fs_lanes: list[VCCAllBandsConfigureScanFSLaneConfig]
     frequency_band_offset_stream_2: int = 0
     band_5_tuning: float = 0.0
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsAutoSetFilterGainsSchema(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands AutoSetFilterGains input parameter."""
+
+    headrooms: Optional[list[float]] = None
+    transaction_id: Optional[str] = None

@@ -1,5 +1,6 @@
 {
   "expected_sample_rate": 3960000000,
   "noise_diode_transition_holdoff_seconds": 1.0,
-  "expected_dish_band": 1
+  "expected_dish_band": 1,
+  "transaction_id": "TEST_WIDEBAND_INPUT_BUFFER"
 }

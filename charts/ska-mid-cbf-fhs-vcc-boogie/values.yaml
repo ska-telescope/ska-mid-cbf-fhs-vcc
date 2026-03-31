@@ -5,7 +5,7 @@ image:
   pullPolicy: Always
   repository: registry.gitlab.com
   image: ska-telescope/ska-tango-images/ska-tango-images-tango-boogie
-  tag: 0.2.3
+  tag: 0.2.7
 
 service:
   type: ClusterIP

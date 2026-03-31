@@ -2,7 +2,7 @@
 
 ## Add a new document
 - clone the repo from 
-	- https://gitlab.com/ska-telescope/ska-mid-cbf-fhs-vcc
+	- https://gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 
 - create new folder in ska-mid-cbf-fhs-vcc/docs
     - eg: ska-mid-cbf-fhs-vcc/docs/api

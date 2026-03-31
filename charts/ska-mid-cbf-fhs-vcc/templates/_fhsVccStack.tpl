@@ -3,6 +3,7 @@
 {{- $fhsVccUnit := .fhsVccUnit -}}
 {{- $serverInstances := .serverInstances -}}
 {{- $deviceCommand := .deviceCommand -}}
+{{- $pvEnabled := .pvEnabled -}}
 name: fhsvcc
 function: fhsvcc
 domain: sensing
@@ -33,10 +34,12 @@ image:
   tag: "{{.Values.midcbf.image.tag}}"
   pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
 
+{{- if $pvEnabled }}
 volume:
   existingClaimName: "fhs-vcc-bitstream-pv"
   mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
+{{- end }}
 
 {{- if $fhsVccUnit.toleration }}
 tolerations:

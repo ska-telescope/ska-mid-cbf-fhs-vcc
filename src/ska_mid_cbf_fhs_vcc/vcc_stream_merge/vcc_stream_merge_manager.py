@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 
 import numpy as np
 from dataclasses_json import DataClassJsonMixin
@@ -28,6 +29,7 @@ class VCCStreamMergeStatus(DataClassJsonMixin):
 
 @dataclass
 class VCCStreamMergeConfigureArgin(DataClassJsonMixin):
+    transaction_id: Optional[str] = None
     fs_lane_configs: list[VCCStreamMergeConfig] = field(default_factory=lambda: [])
 
 

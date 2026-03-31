@@ -23,6 +23,6 @@ ska-tango-base:
     use_pv: false
 
 ska-mid-cbf-fhs-vcc-boogie:
-  enabled: false
+  enabled: true
   boogie:
     tango_host: *tango_host
