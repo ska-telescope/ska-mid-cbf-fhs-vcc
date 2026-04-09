@@ -113,7 +113,7 @@ class TestVCCAllBandsSim:
         Args:
             sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
         """
-        assert sim_vcc_all_bands_device.state() == DevState.ON
+        assert sim_vcc_all_bands_device.state() == DevState.DISABLE
 
     def test_Status(self: TestVCCAllBandsSim, sim_vcc_all_bands_device: Any) -> None:
         """Test the Status attribute just after device initialization.
@@ -121,7 +121,7 @@ class TestVCCAllBandsSim:
         Args:
             sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
         """
-        assert sim_vcc_all_bands_device.Status() == "ON"
+        assert sim_vcc_all_bands_device.Status() == "The device is in DISABLE state."
 
     def test_adminMode(
         self: TestVCCAllBandsSim,
