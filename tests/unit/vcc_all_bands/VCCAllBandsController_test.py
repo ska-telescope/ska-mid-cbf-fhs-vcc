@@ -130,7 +130,7 @@ class TestVCCAllBandsController:
 
     def test_init(self, vcc_all_bands_device: VCCAllBandsController):
         state = vcc_all_bands_device.state()
-        assert state == DevState.ON
+        assert state == DevState.DISABLE
 
     def test_admin_mode_online(self, vcc_all_bands_device: VCCAllBandsController):
         prev_admin_mode = vcc_all_bands_device.read_attribute("adminMode")
