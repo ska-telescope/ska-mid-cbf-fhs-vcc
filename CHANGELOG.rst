@@ -8,6 +8,11 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.6
+*****
+* CIP-5457: Updated bitstream pv to share common name between vcc / fsp
+
+
 0.3.5
 *****
 * CIP-4349: tested UpdateSubarrayMembership command pushing subarrayID change events in standalone simulation
