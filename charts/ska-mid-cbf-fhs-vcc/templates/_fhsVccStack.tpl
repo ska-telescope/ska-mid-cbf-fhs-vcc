@@ -36,7 +36,7 @@ image:
 
 {{- if $pvEnabled }}
 volume:
-  existingClaimName: "fhs-vcc-bitstream-pv"
+  existingClaimName: "fhs-bitstream-pv"
   mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
 {{- end }}

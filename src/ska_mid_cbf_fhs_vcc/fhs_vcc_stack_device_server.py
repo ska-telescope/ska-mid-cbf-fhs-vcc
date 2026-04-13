@@ -9,7 +9,7 @@ __all__ = ["main"]
 
 def main(args=None, **kwargs):  # noqa: E302
     # Call the kubectl command and wait until the bitstreams have been successfully downloaded
-    wait_for_job_completion("bitstream-download-job")
+    wait_for_job_completion("fhs-vcc-bitstream-download-job")
 
     return run(
         classes=(VCCAllBandsController,),

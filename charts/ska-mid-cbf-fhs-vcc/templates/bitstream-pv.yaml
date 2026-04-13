@@ -6,7 +6,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: fhs-vcc-bitstream-pv
+  name: fhs-bitstream-pv
   namespace: {{ .Release.Namespace }}
   labels:
 {{ toYaml $labels | indent 4 }}
