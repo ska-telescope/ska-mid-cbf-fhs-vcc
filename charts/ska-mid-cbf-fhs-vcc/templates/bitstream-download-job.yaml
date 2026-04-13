@@ -2,12 +2,12 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: bitstream-download-job
+  name: fhs-vcc-bitstream-download-job
 spec:
   template:
     spec:
       containers:
-        - name: bitstream-download-job
+        - name: fhs-vcc-bitstream-download-job
           image: alpine:latest
           command: ["sh", "-c"]
           args:
@@ -35,5 +35,5 @@ spec:
       volumes:
         - name: bitstream-pv
           persistentVolumeClaim:
-            claimName: fhs-vcc-bitstream-pv
+            claimName: fhs-bitstream-pv
 {{- end }}
