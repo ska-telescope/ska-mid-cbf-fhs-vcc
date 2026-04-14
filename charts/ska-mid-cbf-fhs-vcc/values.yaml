@@ -95,7 +95,7 @@ properties:
   bitstreamPath: "/app/mnt/bitstream"
   bitstreamId: "agilex-vcc"
   bitstreamVersion: "0.1.2"
-  emulatorId: "vcc-emulator-{{.deviceId}}"
+  emulatorId: "fhs-vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
   firmwareIpBlockId: ""
 
