@@ -1,4 +1,6 @@
 {{- if .Values.bitstreamDownloadJob.enabled }}
+{{- if not (lookup "v1" "PersistentVolumeClaim" .Release.Namespace "fhs-bitstream-pv") -}}
+
 {{- $labels := coalesce .Values.global.labels .Values.labels "label:none" }}
 {{- $annotations := coalesce .Values.global.annotations .Values.annotations }}
 
@@ -21,4 +23,5 @@ spec:
   resources:
     requests:
       storage: "1Gi"
+{{- end }}
 {{- end }}
