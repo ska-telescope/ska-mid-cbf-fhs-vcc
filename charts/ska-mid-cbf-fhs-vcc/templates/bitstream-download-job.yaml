@@ -35,5 +35,5 @@ spec:
       volumes:
         - name: bitstream-pv
           persistentVolumeClaim:
-            claimName: fhs-bitstream-pv
+            claimName: fhs-vcc-bitstream-pv
 {{- end }}
