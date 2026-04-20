@@ -9,7 +9,7 @@ from typing import Any, Callable, Optional
 
 from ska_control_model import ResultCode, TaskStatus
 from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, WidebandPowerMeterConfig, WidebandPowerMeterManager, calculate_gain_multiplier
-from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_base_dataclasses import FhsControllerBaseScanSchema
+from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_base_dataclasses import FhsControllerBaseGoToIdleSchema, FhsControllerBaseScanSchema
 from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
 
@@ -620,8 +620,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self._samples_per_frame = 0
         self._fsps = []
 
-    def _deconfigure_all_ip_blocks(self, transaction_id: Optional[str] = None) -> None:
+    def _deconfigure_all_ip_blocks(self, go_to_idle_schema: FhsControllerBaseGoToIdleSchema) -> None:
         """Deconfigure all ip blocks"""
+        transaction_id = go_to_idle_schema.transaction_id
+
         # VCC123 Channelizer Deconfiguration
         b123_vcc_deconfigure_result = self.b123_vcc.deconfigure()
         if b123_vcc_deconfigure_result == 1:
