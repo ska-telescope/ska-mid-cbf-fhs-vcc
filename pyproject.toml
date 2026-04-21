@@ -34,7 +34,7 @@ debugpy = "^1.8.5"
 # Official tagged release from CAR
 # ska-mid-cbf-fhs-common = { version = "0.2.12", source = "ska-nexus" }
 # Commit hash version from Gitlab
-ska-mid-cbf-fhs-common = { version = "0.2.12+dev.c53f97ada", source = "gitlab-fhs-common" }
+ska-mid-cbf-fhs-common = { version = "0.2.12+dev.c3b0163b5", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 

@@ -103,12 +103,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.input_sample_rate: int = 0
 
-        self._fsps = []
-        self._maximum_fsps = 10
 
         # vcc channels * number of polarizations
         self._num_fs = 0
         self._num_vcc_gains = 0
+
+        self._fs_lanes = []
 
         self.vcc_gains: list[float] = []
         self.last_requested_headrooms: list[float] = []
@@ -204,6 +204,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         transaction_id = configuration.transaction_id
         self.log_info(f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}", transaction_id)
 
+        # Only used if the configuration fails and go to idle deconfigure needs to be called
+        # It is being initialised here so we dont need to initialise it in every if failed block
+        failure_go_to_idle_schema = FhsControllerBaseGoToIdleSchema(subarray_id=self.subarray_id, transaction_id=transaction_id)
+
         match self.frequency_band:
             case FrequencyBandEnum._1 | FrequencyBandEnum._2:
                 self._num_fs = 10
@@ -235,8 +239,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
                 if result == 1:
                     self.log_error("Configuration of VCC123 Channelizer failed.", transaction_id)
+                    self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                     self._reset()
-                    self._go_to_idle_deconfigure(transaction_id)
                     raise RuntimeError("Configuration of VCC123 failed.")
 
             else:
@@ -251,8 +255,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             )
             if result == 1:
                 self.log_error("Configuration of Wideband Frequency Shifter failed.", transaction_id)
+                self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                 self._reset()
-                self._go_to_idle_deconfigure(transaction_id)
                 raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
 
             # FSS Configuration
@@ -266,8 +270,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             if result == 1:
                 self.log_error("Configuration of FS Selection failed.", transaction_id)
+                self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                 self._reset()
-                self._go_to_idle_deconfigure(transaction_id)
                 raise RuntimeError("Configuration of FS Selection failed.")
 
             # WIB Configuration
@@ -283,8 +287,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             if result == 1:
                 self.log_error("Configuration of WIB failed.", transaction_id)
+                self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                 self._reset()
-                self._go_to_idle_deconfigure(transaction_id)
                 raise RuntimeError("Configuration of WIB failed.")
 
             self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
@@ -309,8 +313,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error(f"Configuration of {band_group.value} Wideband Power Meter failed.", transaction_id)
+                    self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                     self._reset()
-                    self._go_to_idle_deconfigure(transaction_id)
                     raise RuntimeError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
 
             # Post-channelizer WPM Configuration
@@ -335,8 +339,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error(f"Configuration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                    self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                     self._reset()
-                    self._go_to_idle_deconfigure(transaction_id)
                     raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
 
             # VCC Stream Merge Configuration
@@ -357,8 +361,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
+                    self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                     self._reset()
-                    self._go_to_idle_deconfigure(transaction_id)
                     raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
         self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
@@ -618,7 +622,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.frequency_band_offset = [0, 0]
         self._sample_rate = 0
         self._samples_per_frame = 0
-        self._fsps = []
+        self._fs_lanes = []
 
     def _go_to_idle_deconfigure(self, go_to_idle_schema: FhsControllerBaseGoToIdleSchema) -> None:
         """Deconfigure all ip blocks"""
@@ -656,13 +660,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 raise RuntimeError(f"Deconfiguration of {band_group.value} Wideband Power Meter failed.")
 
         # Post-channelizer WPM Deconfiguration
-        if self._fs_lanes:
-            for config in self._fs_lanes:
-                fs_id = int(config.fs_id)
-                post_channelizer_wpm_deconfiguration_result = self.wideband_power_meters[fs_id].deconfigure()
-                if post_channelizer_wpm_deconfiguration_result == 1:
-                    self.log_error(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
-                    raise RuntimeError(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.")
+        for config in self._fs_lanes:
+            fs_id = int(config.fs_id)
+            post_channelizer_wpm_deconfiguration_result = self.wideband_power_meters[fs_id].deconfigure()
+            if post_channelizer_wpm_deconfiguration_result == 1:
+                self.log_error(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                raise RuntimeError(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.")
 
         # VCC Stream Merge Deconfiguration
         for i in range(1, 3):
@@ -707,13 +710,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 raise RuntimeError(f"Recovery of {band_group.value} Wideband Power Meter failed.")
 
         # Post-channelizer WPM Recovery
-        if self._fs_lanes:
-            for config in self._fs_lanes:
-                fs_id = int(config.fs_id)
-                post_channelizer_wpm_recover_result = self.wideband_power_meters[fs_id].recover()
-                if post_channelizer_wpm_recover_result == 1:
-                    self.log_error(f"Recovery of FS {fs_id} Wideband Power Meter failed.", transaction_id)
-                    raise RuntimeError(f"Recovery of FS {fs_id} Wideband Power Meter failed.")
+        for config in self._fs_lanes:
+            fs_id = int(config.fs_id)
+            post_channelizer_wpm_recover_result = self.wideband_power_meters[fs_id].recover()
+            if post_channelizer_wpm_recover_result == 1:
+                self.log_error(f"Recovery of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                raise RuntimeError(f"Recovery of FS {fs_id} Wideband Power Meter failed.")
 
         # VCC Stream Merge Recovery
         for i in range(1, 3):
