@@ -103,7 +103,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.input_sample_rate: int = 0
 
-
         # vcc channels * number of polarizations
         self._num_fs = 0
         self._num_vcc_gains = 0
