@@ -236,7 +236,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 if result == 1:
                     self.log_error("Configuration of VCC123 Channelizer failed.", transaction_id)
                     self._reset()
-                    self._deconfigure_all_ip_blocks(transaction_id)
+                    self._go_to_idle_deconfigure(transaction_id)
                     raise RuntimeError("Configuration of VCC123 failed.")
 
             else:
@@ -252,7 +252,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             if result == 1:
                 self.log_error("Configuration of Wideband Frequency Shifter failed.", transaction_id)
                 self._reset()
-                self._deconfigure_all_ip_blocks(transaction_id)
+                self._go_to_idle_deconfigure(transaction_id)
                 raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
 
             # FSS Configuration
@@ -267,7 +267,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             if result == 1:
                 self.log_error("Configuration of FS Selection failed.", transaction_id)
                 self._reset()
-                self._deconfigure_all_ip_blocks(transaction_id)
+                self._go_to_idle_deconfigure(transaction_id)
                 raise RuntimeError("Configuration of FS Selection failed.")
 
             # WIB Configuration
@@ -284,7 +284,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             if result == 1:
                 self.log_error("Configuration of WIB failed.", transaction_id)
                 self._reset()
-                self._deconfigure_all_ip_blocks(transaction_id)
+                self._go_to_idle_deconfigure(transaction_id)
                 raise RuntimeError("Configuration of WIB failed.")
 
             self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
@@ -310,7 +310,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 if result == 1:
                     self.log_error(f"Configuration of {band_group.value} Wideband Power Meter failed.", transaction_id)
                     self._reset()
-                    self._deconfigure_all_ip_blocks(transaction_id)
+                    self._go_to_idle_deconfigure(transaction_id)
                     raise RuntimeError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
 
             # Post-channelizer WPM Configuration
@@ -336,7 +336,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 if result == 1:
                     self.log_error(f"Configuration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
                     self._reset()
-                    self._deconfigure_all_ip_blocks(transaction_id)
+                    self._go_to_idle_deconfigure(transaction_id)
                     raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
 
             # VCC Stream Merge Configuration
@@ -358,7 +358,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 if result == 1:
                     self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
                     self._reset()
-                    self._deconfigure_all_ip_blocks(transaction_id)
+                    self._go_to_idle_deconfigure(transaction_id)
                     raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
         self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
@@ -620,7 +620,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self._samples_per_frame = 0
         self._fsps = []
 
-    def _deconfigure_all_ip_blocks(self, go_to_idle_schema: FhsControllerBaseGoToIdleSchema) -> None:
+    def _go_to_idle_deconfigure(self, go_to_idle_schema: FhsControllerBaseGoToIdleSchema) -> None:
         """Deconfigure all ip blocks"""
         transaction_id = go_to_idle_schema.transaction_id
 
