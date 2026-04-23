@@ -357,6 +357,25 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             is_cmd_allowed=self.is_obs_reset_allowed,
         )
 
+    def abort_commands(
+        self,
+        task_callback: TaskCallbackType | None = None,
+    ) -> tuple[TaskStatus, str]:
+        """
+        Run a task to abort all commands and stop any started IP blocks.
+
+        Args:
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to pass to the superclass
+                to be run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
+        task_status, msg = super().abort_commands(task_callback)
+        self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
+        return task_status, msg
+
     def _configure_scan(
         self,
         argin: str,
@@ -370,19 +389,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
         try:
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_INVOKED)
-            task_callback(status=TaskStatus.IN_PROGRESS)
-            config_dict = json.loads(argin)
-            transaction_id = config_dict.get("transaction_id", None)
-            jsonschema.validate(config_dict, self.config_schema)
-            configuration = self.config_dataclass.from_dict(config_dict)
-            if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
-                return
-
-            self._configure_scan_controller_impl(configuration, task_callback)
-
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
+            super()._configure_scan(argin, task_callback, task_abort_event)
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
-            return
         except StateModelError as ex:
             self.log_error("Attempted to call ConfigureScan command from an incorrect state", transaction_id)
             self.logger.exception(ex)
@@ -408,24 +416,93 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 textwrap.shorten(f"An unexpected exception occurred during ConfigureScan: {ex}", width=400),
             )
 
-    def abort_commands(
+    def _scan(
         self,
-        task_callback: TaskCallbackType | None = None,
-    ) -> tuple[TaskStatus, str]:
+        argin: str,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """Wrapper for the Scan command implementation for all controllers,
+        to handle task management as well as error handling.
         """
-        Run a task to abort all commands and stop any started IP blocks.
+        transaction_id = None
 
-        Args:
-            task_callback (:obj:`Optional[Callable]`, optional): A callback to pass to the superclass
-                to be run when the task status changes. Default is None.
+        try:
+            super()._scan(argin, task_callback, task_abort_event)
+        except StateModelError as ex:
+            self.log_error("Attempted to call Scan command from an incorrect state", transaction_id)
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call Scan command from an incorrect state",
+            )
+        except Exception as ex:
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during Scan: {ex}", width=400),
+            )
 
-        Returns:
-            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+    def _end_scan(
+        self,
+        transaction_id: Optional[str] = None,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """Wrapper for the EndScan command implementation for all controllers,
+        to handle task management as well as error handling.
         """
-        self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
-        task_status, msg = super().abort_commands(task_callback)
-        self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
-        return task_status, msg
+        try:
+            super()._end_scan(transaction_id, task_callback, task_abort_event)
+        except StateModelError as ex:
+            self.log_error("Attempted to call EndScan command from an incorrect state", transaction_id)
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call EndScan command from an incorrect state",
+            )
+        except Exception as ex:
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during EndScan: {ex}", width=400),
+            )
+
+    def _go_to_idle(
+        self,
+        argin: str = None,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """GoToIdle command implementation for all controllers."""
+        try:
+            super()._go_to_idle(argin, task_callback, task_abort_event)
+            return
+        except StateModelError as ex:
+            self.log_error("Attempted to call EndScan command from an incorrect state")
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call EndScan command from an incorrect state",
+            )
+        except Exception as ex:
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during GoToIdle: {ex}", width=400),
+            )
 
     def _obs_reset(
         self,
@@ -1034,3 +1111,25 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 raise RuntimeError("Recovery of VCC Stream Merge failed.")
 
         self.log_info("Sucessfully Recovered all IP Blocks", transaction_id)
+
+    def _obs_command_with_callback(
+        self,
+        *args,
+        command_thread: Callable[[Any], None],
+        hook: str,
+        **kwargs,
+    ):
+        """Wrap command thread with ObsStateModel-driving callbacks.
+
+        Args:
+            *args (:obj:`Any`): Any arbitrary positional arguments to pass to the _obs_command_running_callback function.
+            command_thread (:obj:`Callable[[Any], None]`): actual command thread to be executed
+            hook (:obj:`str`): hook for state machine action
+            **kwargs (:obj:`Any`): Any arbitrary keyword arguments to pass to the _obs_command_running_callback function.
+        """
+        if self._obs_command_running_callback is not None:
+            self._obs_command_running_callback(hook=hook, running=True)
+            command_thread(*args, **kwargs)
+            self._obs_command_running_callback(hook=hook, running=False)
+        else:
+            command_thread(*args, **kwargs)
