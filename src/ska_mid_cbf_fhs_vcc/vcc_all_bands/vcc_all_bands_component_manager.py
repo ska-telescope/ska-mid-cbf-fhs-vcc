@@ -370,7 +370,17 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
         try:
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_INVOKED)
-            super()._configure_scan(argin, task_callback, task_abort_event)
+            task_callback(status=TaskStatus.IN_PROGRESS)
+            config_dict = json.loads(argin)
+            transaction_id = config_dict.get("transaction_id", None)
+            jsonschema.validate(config_dict, self.config_schema)
+            configuration = self.config_dataclass.from_dict(config_dict)
+            if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
+                return
+
+            self._configure_scan_controller_impl(configuration, task_callback)
+
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
             return
         except StateModelError as ex:
@@ -414,80 +424,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
         task_status, msg = super().abort_commands(task_callback)
-
-        stop_result = self._stop_ip_blocks()
-
-        if stop_result == 1:
-            task_status = TaskStatus.FAILED
-            msg = "Failed to stop one or more IP blocks; " + msg
-
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
         return task_status, msg
-
-    def _scan(
-        self,
-        argin: str,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-    ) -> None:
-        """Wrapper for the Scan command implementation for all controllers,
-        to handle task and ObsState management as well as error handling.
-        """
-        transaction_id = None
-
-        try:
-            super()._scan(argin, task_callback, task_abort_event)
-        except StateModelError as ex:
-            self.log_error("Attempted to call Scan command from an incorrect state", transaction_id)
-            self.logger.exception(ex)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call Scan command from an incorrect state",
-            )
-
-    def _end_scan(
-        self,
-        transaction_id: Optional[str] = None,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-    ) -> None:
-        """Wrapper for the EndScan command implementation for all controllers,
-        to handle task and ObsState management as well as error handling.
-        """
-        try:
-            super()._end_scan(transaction_id, task_callback, task_abort_event)
-        except StateModelError as ex:
-            self.log_error("Attempted to call EndScan command from an incorrect state", transaction_id)
-            self.logger.exception(ex)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call EndScan command from an incorrect state",
-            )
-
-    # A replacement for unconfigure
-    def _go_to_idle(
-        self,
-        argin: str = None,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-    ) -> None:
-        """GoToIdle command implementation for all controllers."""
-        transaction_id = None
-
-        try:
-            super()._go_to_idle(argin, task_callback, task_abort_event)
-        except StateModelError as ex:
-            self.log_error(f"Attempted to call command from an incorrect state: {repr(ex)}", transaction_id)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call GoToIdle command from an incorrect state",
-            )
 
     def _obs_reset(
         self,
