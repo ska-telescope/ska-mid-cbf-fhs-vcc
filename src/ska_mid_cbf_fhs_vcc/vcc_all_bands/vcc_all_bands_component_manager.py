@@ -487,13 +487,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             super()._go_to_idle(argin, task_callback, task_abort_event)
             return
         except StateModelError as ex:
-            self.log_error("Attempted to call EndScan command from an incorrect state")
+            self.log_error("Attempted to call GoToIdle command from an incorrect state")
             self.logger.exception(ex)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.REJECTED,
-                "Attempted to call EndScan command from an incorrect state",
+                "Attempted to call GoToIdle command from an incorrect state",
             )
         except Exception as ex:
             self.logger.exception(ex)
