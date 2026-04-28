@@ -1,17 +1,24 @@
 from __future__ import annotations
 
 import copy
+import functools
 import json
+import logging
 import textwrap
 from math import isnan
 from threading import Event
 from typing import Any, Callable, Optional
 
-from ska_control_model import ResultCode, TaskStatus
+import jsonschema
+from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
+from ska_control_model.faults import StateModelError
 from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, WidebandPowerMeterConfig, WidebandPowerMeterManager, calculate_gain_multiplier
-from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_base_dataclasses import FhsControllerBaseScanSchema
+from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_base_dataclasses import FhsControllerBaseGoToIdleSchema, FhsControllerBaseScanSchema
 from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
+from ska_mid_cbf_fhs_common.state_model.fhs_obs_state import FhsObsStateMachine
+from ska_tango_base.base.base_component_manager import TaskCallbackType
+from ska_tango_base.obs import ObsDeviceComponentManager
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
     B123VccOsppfbChannelizerConfigureArgin,
@@ -27,7 +34,7 @@ from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_m
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
 
 
-class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
+class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceComponentManager):
     """Component manager for the VCC All Bands Controller device."""
 
     subarray_id: int
@@ -89,6 +96,63 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         """The ConfigureScan input dataclass for the VCC All Bands Controller."""
         return VCCAllBandsConfigureScanConfig
 
+    def __init__(
+        self,
+        *args: Any,
+        device,
+        logger: logging.Logger,
+        simulation_mode: SimulationMode = SimulationMode.FALSE,
+        attr_change_callback: Callable[[str, Any], None] | None = None,
+        attr_archive_callback: Callable[[str, Any], None] | None = None,
+        health_state_callback: Callable[[HealthState], None] | None = None,
+        obs_state_action_callback: Callable[[str], None] | None = None,
+        obs_command_running_callback: Callable[[str, bool], None] | None = None,
+        emulation_mode: bool = False,
+        create_log_file: bool = True,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Args:
+            *args (:obj:`Any`): Any arbitrary positional arguments to pass to the superclass constructor.
+            device (:obj:`FhsBaseDevice`): A reference to the controller device instance.
+            logger (:obj:`logging.Logger`): A logger instance to be used by this component manager.
+            simulation_mode (:obj:`SimulationMode`, optional): Whether the controller is deployed
+                in simulation mode (SimulationMode.TRUE) or not (SimulationMode.FALSE).
+                Default is SimulationMode.FALSE.
+            attr_change_callback (:obj:`Callable[[str, Any], None] | None`, optional): Callback that is called when
+                an attribute change event occurs. Default is None.
+            attr_archive_callback (:obj:`Callable[[str, Any], None] | None`, optional): Callback that is called when
+                an attribute archive event occurs. Default is None.
+            health_state_callback (:obj:`Callable[[HealthState], None] | None`, optional): Callback that is called when
+                a HealthState change occurs. Default is None.
+            obs_state_action_callback (:obj:`Callable[[str, bool], None] | None`, optional): Callback that is called when
+                the controller's observation state changes. Default is None.
+            obs_command_running_callback (:obj:`Callable[[str, bool], None] | None`, optional): Callback that is called when
+                an observing command starts running. Default is None.
+            emulation_mode (:obj:`bool`, optional): Whether the controller is deployed
+                in emulation mode or not. Default is False.
+            create_log_file (:obj:`bool`, optional): Whether or not to create a log file for this controller. Default is True.
+            **kwargs (:obj:`Any`): Any arbitrary keyword arguments to pass to the superclass init method.
+        """
+        super().__init__(
+            *args,
+            device=device,
+            logger=logger,
+            simulation_mode=simulation_mode,
+            attr_change_callback=attr_change_callback,
+            attr_archive_callback=attr_archive_callback,
+            health_state_callback=health_state_callback,
+            emulation_mode=emulation_mode,
+            create_log_file=create_log_file,
+            **kwargs,
+        )
+
+        self.obs_state = ObsState.IDLE
+        """:obj:`ObsState`: The current observation state of this controller."""
+
+        self._obs_state_action_callback = obs_state_action_callback if obs_state_action_callback is not None else self._default_callback
+        self._obs_command_running_callback = obs_command_running_callback if obs_command_running_callback is not None else self._default_callback
+
     def _controller_specific_setup(self) -> None:
         """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
         self._vcc_id = self.device.device_id
@@ -103,12 +167,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.input_sample_rate: int = 0
 
-        self._fsps = []
-        self._maximum_fsps = 10
-
         # vcc channels * number of polarizations
         self._num_fs = 0
         self._num_vcc_gains = 0
+
+        self._fs_lanes = []
 
         self.vcc_gains: list[float] = []
         self.last_requested_headrooms: list[float] = []
@@ -159,6 +222,329 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             task_callback=task_callback,
         )
 
+    def is_allowed(self, error_msg: str, obs_states: list[ObsState]) -> bool:
+        """Determine whether the current ObsState is in the provided list of states,
+        and log a warning message if not.
+
+        Returns:
+            :obj:`bool`: True if the current ObsState is in the list provided, False otherwise.
+        """
+        result = True
+
+        if self.obs_state not in obs_states:
+            self.logger.warning(error_msg)
+            result = False
+
+        return result
+
+    def is_go_to_idle_allowed(self) -> bool:
+        """Determine whether the GoToIdle command is allowed from the current ObsState.
+
+        Returns:
+            :obj:`bool`: True if the GoToIdle command is allowed, False otherwise.
+        """
+        self.logger.debug("Checking if gotoidle is allowed...")
+        error_msg = f"go_to_idle not allowed in ObsState {self.obs_state}; " "must be in ObsState.READY"
+
+        return self.is_allowed(error_msg, [ObsState.READY])
+
+    def is_obs_reset_allowed(self) -> bool:
+        """Determine whether the ObsReset command is allowed from the current ObsState.
+
+        Returns:
+            :obj:`bool`: True if the ObsReset command is allowed, False otherwise.
+        """
+        self.logger.debug("Checking if ObsReset is allowed...")
+        error_msg = f"ObsReset not allowed in ObsState {self.obs_state}; \
+            must be in ObsState.FAULT or ObsState.ABORTED"
+
+        return self.is_allowed(error_msg, [ObsState.FAULT, ObsState.ABORTED])
+
+    def scan(self, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the Scan command implementation.
+
+        Args:
+            argin (:obj:`str`): The scan schema JSON string from the command's input argument.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="start",
+                command_thread=self._scan,
+            ),
+            args=[argin],
+            task_callback=task_callback,
+        )
+
+    def end_scan(
+        self,
+        argin: Optional[str] = None,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the EndScan command implementation.
+
+        Args:
+            argin (:obj:`str`): The Transaction id from the command's input argument, can be none
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="stop",
+                command_thread=self._end_scan,
+            ),
+            args=[argin],
+            task_callback=task_callback,
+        )
+
+    def go_to_idle(
+        self,
+        argin: str,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the GoToIdle command implementation.
+
+        Args:
+            argin (:obj:`str`): The go_to_idle schema JSON string from the command's input argument.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="deconfigure",
+                command_thread=self._go_to_idle,
+            ),
+            args=[argin],
+            task_callback=task_callback,
+            is_cmd_allowed=self.is_go_to_idle_allowed,
+        )
+
+    def obs_reset(
+        self,
+        argin: Optional[str] = None,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the ObsReset command implementation.
+
+        Args:
+            argin (:obj:`str`): The Transaction id from the command's input argument, can be none
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=functools.partial(
+                self._obs_command_with_callback,
+                hook="obsreset",
+                command_thread=functools.partial(
+                    self._obs_reset,
+                    from_state=self.obs_state,
+                ),
+            ),
+            args=[argin],
+            task_callback=task_callback,
+            is_cmd_allowed=self.is_obs_reset_allowed,
+        )
+
+    def abort_commands(
+        self,
+        task_callback: TaskCallbackType | None = None,
+    ) -> tuple[TaskStatus, str]:
+        """
+        Run a task to abort all commands and stop any started IP blocks.
+
+        Args:
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to pass to the superclass
+                to be run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
+        task_status, msg = super().abort_commands(task_callback)
+        self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
+        return task_status, msg
+
+    def _configure_scan(
+        self,
+        argin: str,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """Wrapper for the ConfigureScan command implementation for all controllers,
+        to handle task and ObsState management as well as error handling.
+        """
+        transaction_id = None
+
+        try:
+            self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_INVOKED)
+            super()._configure_scan(argin, task_callback, task_abort_event)
+            self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
+        except StateModelError as ex:
+            self.log_error("Attempted to call ConfigureScan command from an incorrect state", transaction_id)
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ConfigureScan command from an incorrect state",
+            )
+        except jsonschema.ValidationError as ex:
+            self.log_error("Invalid json provided for ConfigureScan", transaction_id)
+            self.logger.exception(ex)
+            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan")
+        except Exception as ex:
+            self.logger.exception(ex)
+            self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+            self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during ConfigureScan: {ex}", width=400),
+            )
+
+    def _scan(
+        self,
+        argin: str,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """Wrapper for the Scan command implementation for all controllers,
+        to handle task management as well as error handling.
+        """
+        transaction_id = None
+
+        try:
+            super()._scan(argin, task_callback, task_abort_event)
+        except StateModelError as ex:
+            self.log_error("Attempted to call Scan command from an incorrect state", transaction_id)
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call Scan command from an incorrect state",
+            )
+        except Exception as ex:
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during Scan: {ex}", width=400),
+            )
+
+    def _end_scan(
+        self,
+        transaction_id: Optional[str] = None,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """Wrapper for the EndScan command implementation for all controllers,
+        to handle task management as well as error handling.
+        """
+        try:
+            super()._end_scan(transaction_id, task_callback, task_abort_event)
+        except StateModelError as ex:
+            self.log_error("Attempted to call EndScan command from an incorrect state", transaction_id)
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call EndScan command from an incorrect state",
+            )
+        except Exception as ex:
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during EndScan: {ex}", width=400),
+            )
+
+    def _go_to_idle(
+        self,
+        argin: str = None,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """GoToIdle command implementation for all controllers."""
+        try:
+            super()._go_to_idle(argin, task_callback, task_abort_event)
+            return
+        except StateModelError as ex:
+            self.log_error("Attempted to call GoToIdle command from an incorrect state")
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call GoToIdle command from an incorrect state",
+            )
+        except Exception as ex:
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during GoToIdle: {ex}", width=400),
+            )
+
+    def _obs_reset(
+        self,
+        transaction_id: Optional[str] = None,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+        from_state=ObsState.ABORTED,
+    ) -> None:
+        """ObsReset command implementation for all controllers."""
+        try:
+            task_callback(status=TaskStatus.IN_PROGRESS)
+            self.log_info("Received Command ObsReset", transaction_id)
+            if self.task_abort_event_is_set("ObsReset", task_callback, task_abort_event):
+                return
+
+            # If in FAULT state, devices may still be running, so make sure they are stopped
+            if from_state is ObsState.FAULT:
+                self._stop_ip_blocks()
+
+            self._reset()
+            self._recover_all_ip_blocks(transaction_id)
+            self.log_info("Command ObsReset Successful", transaction_id)
+
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ObsReset completed OK")
+            return
+        except StateModelError as ex:
+            self.log_error(f"Attempted to call command from an incorrect state: {repr(ex)}", transaction_id)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.REJECTED,
+                "Attempted to call ObsReset command from an incorrect state",
+            )
+        except Exception as ex:
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during ObsReset: {ex}", width=400),
+            )
+
     def auto_set_filter_gains(
         self: VCCAllBandsComponentManager,
         argin: str,
@@ -204,6 +590,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         transaction_id = configuration.transaction_id
         self.log_info(f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}", transaction_id)
 
+        # Only used if the configuration fails and go to idle deconfigure needs to be called
+        # It is being initialised here so we dont need to initialise it in every if failed block
+        failure_go_to_idle_schema = FhsControllerBaseGoToIdleSchema(subarray_id=self.subarray_id, transaction_id=transaction_id)
+
         match self.frequency_band:
             case FrequencyBandEnum._1 | FrequencyBandEnum._2:
                 self._num_fs = 10
@@ -235,8 +625,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
                 if result == 1:
                     self.log_error("Configuration of VCC123 Channelizer failed.", transaction_id)
+                    self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                     self._reset()
-                    self._deconfigure_all_ip_blocks(transaction_id)
                     raise RuntimeError("Configuration of VCC123 failed.")
 
             else:
@@ -251,8 +641,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             )
             if result == 1:
                 self.log_error("Configuration of Wideband Frequency Shifter failed.", transaction_id)
+                self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                 self._reset()
-                self._deconfigure_all_ip_blocks(transaction_id)
                 raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
 
             # FSS Configuration
@@ -266,8 +656,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             if result == 1:
                 self.log_error("Configuration of FS Selection failed.", transaction_id)
+                self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                 self._reset()
-                self._deconfigure_all_ip_blocks(transaction_id)
                 raise RuntimeError("Configuration of FS Selection failed.")
 
             # WIB Configuration
@@ -283,8 +673,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             if result == 1:
                 self.log_error("Configuration of WIB failed.", transaction_id)
+                self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                 self._reset()
-                self._deconfigure_all_ip_blocks(transaction_id)
                 raise RuntimeError("Configuration of WIB failed.")
 
             self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
@@ -309,8 +699,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error(f"Configuration of {band_group.value} Wideband Power Meter failed.", transaction_id)
+                    self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                     self._reset()
-                    self._deconfigure_all_ip_blocks(transaction_id)
                     raise RuntimeError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
 
             # Post-channelizer WPM Configuration
@@ -335,8 +725,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error(f"Configuration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                    self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                     self._reset()
-                    self._deconfigure_all_ip_blocks(transaction_id)
                     raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
 
             # VCC Stream Merge Configuration
@@ -357,8 +747,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 )
                 if result == 1:
                     self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
+                    self._go_to_idle_deconfigure(go_to_idle_schema=failure_go_to_idle_schema)
                     self._reset()
-                    self._deconfigure_all_ip_blocks(transaction_id)
                     raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
         self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
@@ -618,10 +1008,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.frequency_band_offset = [0, 0]
         self._sample_rate = 0
         self._samples_per_frame = 0
-        self._fsps = []
+        self._fs_lanes = []
 
-    def _deconfigure_all_ip_blocks(self, transaction_id: Optional[str] = None) -> None:
+    def _go_to_idle_deconfigure(self, go_to_idle_schema: FhsControllerBaseGoToIdleSchema) -> None:
         """Deconfigure all ip blocks"""
+        transaction_id = go_to_idle_schema.transaction_id
+
         # VCC123 Channelizer Deconfiguration
         b123_vcc_deconfigure_result = self.b123_vcc.deconfigure()
         if b123_vcc_deconfigure_result == 1:
@@ -654,13 +1046,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 raise RuntimeError(f"Deconfiguration of {band_group.value} Wideband Power Meter failed.")
 
         # Post-channelizer WPM Deconfiguration
-        if self._fs_lanes:
-            for config in self._fs_lanes:
-                fs_id = int(config.fs_id)
-                post_channelizer_wpm_deconfiguration_result = self.wideband_power_meters[fs_id].deconfigure()
-                if post_channelizer_wpm_deconfiguration_result == 1:
-                    self.log_error(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
-                    raise RuntimeError(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.")
+        for config in self._fs_lanes:
+            fs_id = int(config.fs_id)
+            post_channelizer_wpm_deconfiguration_result = self.wideband_power_meters[fs_id].deconfigure()
+            if post_channelizer_wpm_deconfiguration_result == 1:
+                self.log_error(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                raise RuntimeError(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.")
 
         # VCC Stream Merge Deconfiguration
         for i in range(1, 3):
@@ -705,13 +1096,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 raise RuntimeError(f"Recovery of {band_group.value} Wideband Power Meter failed.")
 
         # Post-channelizer WPM Recovery
-        if self._fs_lanes:
-            for config in self._fs_lanes:
-                fs_id = int(config.fs_id)
-                post_channelizer_wpm_recover_result = self.wideband_power_meters[fs_id].recover()
-                if post_channelizer_wpm_recover_result == 1:
-                    self.log_error(f"Recovery of FS {fs_id} Wideband Power Meter failed.", transaction_id)
-                    raise RuntimeError(f"Recovery of FS {fs_id} Wideband Power Meter failed.")
+        for config in self._fs_lanes:
+            fs_id = int(config.fs_id)
+            post_channelizer_wpm_recover_result = self.wideband_power_meters[fs_id].recover()
+            if post_channelizer_wpm_recover_result == 1:
+                self.log_error(f"Recovery of FS {fs_id} Wideband Power Meter failed.", transaction_id)
+                raise RuntimeError(f"Recovery of FS {fs_id} Wideband Power Meter failed.")
 
         # VCC Stream Merge Recovery
         for i in range(1, 3):
@@ -721,3 +1111,25 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 raise RuntimeError("Recovery of VCC Stream Merge failed.")
 
         self.log_info("Sucessfully Recovered all IP Blocks", transaction_id)
+
+    def _obs_command_with_callback(
+        self,
+        *args,
+        command_thread: Callable[[Any], None],
+        hook: str,
+        **kwargs,
+    ):
+        """Wrap command thread with ObsStateModel-driving callbacks.
+
+        Args:
+            *args (:obj:`Any`): Any arbitrary positional arguments to pass to the _obs_command_running_callback function.
+            command_thread (:obj:`Callable[[Any], None]`): actual command thread to be executed
+            hook (:obj:`str`): hook for state machine action
+            **kwargs (:obj:`Any`): Any arbitrary keyword arguments to pass to the _obs_command_running_callback function.
+        """
+        if self._obs_command_running_callback is not None:
+            self._obs_command_running_callback(hook=hook, running=True)
+            command_thread(*args, **kwargs)
+            self._obs_command_running_callback(hook=hook, running=False)
+        else:
+            command_thread(*args, **kwargs)

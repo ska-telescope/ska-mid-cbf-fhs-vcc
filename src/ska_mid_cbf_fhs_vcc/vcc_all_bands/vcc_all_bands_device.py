@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import tango
+from ska_control_model import ObsState
 from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
+from ska_mid_cbf_fhs_common.state_model.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
+from ska_tango_base import SKAObsDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command
 
@@ -9,7 +12,10 @@ from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VCCAllBandsComponentManager
 
 
-class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]):
+class VCCAllBandsController(
+    FhsControllerBaseDevice[VCCAllBandsComponentManager],
+    SKAObsDevice,
+):
     """Tango device class for the VCC All Bands Controller."""
 
     def set_local_change_events(self) -> None:
@@ -176,6 +182,85 @@ class VCCAllBandsController(FhsControllerBaseDevice[VCCAllBandsComponentManager]
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=auto_set_filter_gains_schema)
         return [[result_code], [command_id]]
+
+    def init_device(self) -> None:
+        """Initialize the Tango device after startup."""
+        super().init_device()
+        self._update_obs_state(ObsState.IDLE)
+
+    def create_component_manager(self) -> VCCAllBandsComponentManager:
+        """Instantiate the component manager for this device.
+
+        Returns:
+            :obj:`FhsControllerComponentManagerT`: The instantiated component manager.
+        """
+        return self.component_manager_class(
+            device=self,
+            logger=self.logger,
+            attr_change_callback=self.push_change_event,
+            attr_archive_callback=self.push_archive_event,
+            health_state_callback=self._update_health_state,
+            communication_state_callback=self._communication_state_changed,
+            obs_command_running_callback=self._obs_command_running,
+            component_state_callback=self._component_state_changed,
+            obs_state_action_callback=self._obs_state_action,
+            simulation_mode=self.simulation_mode,
+            emulation_mode=self.emulation_mode,
+        )
+
+    def reset_obs_state(self):
+        """Set the ObsState of the device back to IDLE."""
+        if self._obs_state in [ObsState.FAULT, ObsState.ABORTED]:
+            self.obs_state_model.perform_action(FhsObsStateMachine.GO_TO_IDLE)
+
+    def _init_state_model(self) -> None:
+        """Set up the state model for the device."""
+        super()._init_state_model()
+
+        # supplying the reduced observing state machine defined above
+        self.obs_state_model = FhsObsStateModel(
+            logger=self.logger,
+            callback=self._update_obs_state,
+            state_machine_factory=FhsObsStateMachine,
+        )
+
+    def _obs_command_running(self, hook: str, running: bool) -> None:
+        """
+        Callback provided to component manager to drive the obs state model into
+        transitioning states during the relevant command's submitted thread.
+
+        Args:
+            hook (:obj:`str`): the observing command-specific hook
+            running (:obj:`bool`): True when thread begins, False when thread completes
+        """
+        action = "invoked" if running else "completed"
+        self.logger.info(f"Changing ObsState from running command, calling: {hook}_{action} ")
+        self.obs_state_model.perform_action(f"{hook}_{action}")
+
+    def _obs_state_action(self, action: str) -> None:
+        """Perform an action on the ObsState model."""
+        self.obs_state_model.perform_action(action)
+
+    def _update_obs_state(self, obs_state: ObsState) -> None:
+        """
+        Perform Tango operations in response to a change in obsState within the state machine.
+
+        This helper method is passed to the observation state model as a
+        callback, so that the model can trigger actions in the Tango
+        device.
+
+        Overridden here to supply new ObsState value to component manager property
+
+        Args:
+            obs_state (:obj:`ObsState`): the new obs_state value
+        """
+        self.logger.debug(f"ObsState updating to {ObsState(obs_state).name}")
+
+        super()._update_obs_state(obs_state=obs_state)
+
+        # set the obstate in the component_manager
+        if hasattr(self, "component_manager"):
+            self.component_manager.obs_state = obs_state
 
 
 if __name__ == "__main__":

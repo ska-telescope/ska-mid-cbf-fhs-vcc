@@ -8,10 +8,14 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.7
+*****
+* CIP-5511: Move Obs state machine checks into VCC from common. This is required as FSP controller does not require a state machine
+  Change gotoidle deconfigure's input parameters to be go to idle schema instead of transaction id
+
 0.3.6
 *****
 * CIP-5457: Updated bitstream pv to share common name between vcc / fsp
-
 
 0.3.5
 *****

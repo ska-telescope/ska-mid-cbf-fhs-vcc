@@ -247,7 +247,7 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_device.ConfigureScan("test")
         )
         assert result_code == ResultCode.QUEUED
-        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle("")
+        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle(json.dumps({"subarray_id": 1, "transaction_id": "TEST_GO_TO_IDLE"}))
         assert result_code == ResultCode.QUEUED
         expected_events = [
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
@@ -335,7 +335,7 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_device.ConfigureScan("test")
         )
         assert result_code == ResultCode.QUEUED
-        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle("")
+        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle(json.dumps({"subarray_id": 1, "transaction_id": "TEST_GO_TO_IDLE"}))
         assert result_code == ResultCode.QUEUED
         expected_events = [
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 3),
@@ -938,7 +938,7 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_device.ConfigureScan("test")
         )
         assert result_code == ResultCode.QUEUED
-        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle("")
+        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle(json.dumps({"subarray_id": 1, "transaction_id": "TEST_GO_TO_IDLE"}))
         assert result_code == ResultCode.QUEUED
         expected_events = [
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
@@ -1024,7 +1024,7 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_device.ConfigureScan("test")
         )
         assert result_code == ResultCode.QUEUED
-        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle("")
+        [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle(json.dumps({"subarray_id": 1, "transaction_id": "TEST_GO_TO_IDLE"}))
         assert result_code == ResultCode.QUEUED
         expected_events = [
             ("obsState", ObsState.CONFIGURING, ObsState.IDLE, 1),
