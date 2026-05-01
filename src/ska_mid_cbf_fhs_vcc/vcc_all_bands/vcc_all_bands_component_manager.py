@@ -151,6 +151,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             **kwargs,
         )
 
+        self.log_info(f"Buffer: {self.long_running_command_result_buffer.transaction_id_to_command_result_map}")
+        self.log_info(f"Buffer Size: {self.long_running_command_result_buffer.max_size}")
+
         self.obs_state = ObsState.IDLE
         """:obj:`ObsState`: The current observation state of this controller."""
 
