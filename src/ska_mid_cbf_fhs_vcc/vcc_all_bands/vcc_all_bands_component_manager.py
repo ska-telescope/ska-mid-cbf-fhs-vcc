@@ -397,7 +397,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             super()._configure_scan(argin, task_callback, task_abort_event)
             self._obs_state_action_callback(FhsObsStateMachine.CONFIGURE_COMPLETED)
         except StateModelError as ex:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURE_SCAN, None)
+            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
             self.log_error("Attempted to call ConfigureScan command from an incorrect state", transaction_id)
             self.logger.exception(ex)
             self._set_task_callback(
@@ -407,19 +407,19 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 "Attempted to call ConfigureScan command from an incorrect state",
             )
             self.long_running_command_result_buffer.insert(
-                command_type=CommandType.CONFIGURE_SCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id
+                command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id
             )
         except jsonschema.ValidationError as ex:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURE_SCAN, None)
+            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
             self.log_error("Invalid json provided for ConfigureScan", transaction_id)
             self.logger.exception(ex)
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan")
             self.long_running_command_result_buffer.insert(
-                command_type=CommandType.CONFIGURE_SCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id
+                command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id
             )
         except Exception as ex:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURE_SCAN, None)
+            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
             self.logger.exception(ex)
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
             self._obs_state_action_callback(FhsObsStateMachine.GO_TO_IDLE)
@@ -429,12 +429,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 ResultCode.FAILED,
                 textwrap.shorten(f"An unexpected exception occurred during ConfigureScan: {ex}", width=400),
             )
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.CONFIGURE_SCAN, result_code=ResultCode.FAILED, transaction_id=transaction_id
-            )
+            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.FAILED, transaction_id=transaction_id)
         finally:
             # Reset the ID so it's not used in a different Command call
-            self.transaction_ids_per_command[CommandType.CONFIGURE_SCAN] = None
+            self.transaction_ids_per_command[CommandType.CONFIGURESCAN] = None
 
     def _scan(
         self,
@@ -492,7 +490,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 ResultCode.REJECTED,
                 "Attempted to call EndScan command from an incorrect state",
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.END_SCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.ENDSCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id)
         except Exception as ex:
             self.logger.exception(ex)
             self._set_task_callback(
@@ -501,10 +499,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 ResultCode.FAILED,
                 textwrap.shorten(f"An unexpected exception occurred during EndScan: {ex}", width=400),
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.END_SCAN, result_code=ResultCode.FAILED, transaction_id=transaction_id)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.ENDSCAN, result_code=ResultCode.FAILED, transaction_id=transaction_id)
         finally:
             # Reset the ID so it's not used in a different Command call
-            self.transaction_ids_per_command[CommandType.END_SCAN] = None
+            self.transaction_ids_per_command[CommandType.ENDSCAN] = None
 
     def _go_to_idle(
         self,
@@ -516,7 +514,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         try:
             super()._go_to_idle(argin, task_callback, task_abort_event)
         except StateModelError as ex:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.GO_TO_IDLE, None)
+            transaction_id = self.transaction_ids_per_command.get(CommandType.GOTOIDLE, None)
             self.log_error("Attempted to call GoToIdle command from an incorrect state", transaction_id)
             self.logger.exception(ex)
             self._set_task_callback(
@@ -525,9 +523,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 ResultCode.REJECTED,
                 "Attempted to call GoToIdle command from an incorrect state",
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.GO_TO_IDLE, result_code=ResultCode.REJECTED, transaction_id=transaction_id)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.GOTOIDLE, result_code=ResultCode.REJECTED, transaction_id=transaction_id)
         except Exception as ex:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.GO_TO_IDLE, None)
+            transaction_id = self.transaction_ids_per_command.get(CommandType.GOTOIDLE, None)
             self.logger.exception(ex)
             self._set_task_callback(
                 task_callback,
@@ -535,10 +533,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 ResultCode.FAILED,
                 textwrap.shorten(f"An unexpected exception occurred during GoToIdle: {ex}", width=400),
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.GO_TO_IDLE, result_code=ResultCode.FAILED, transaction_id=transaction_id)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.GOTOIDLE, result_code=ResultCode.FAILED, transaction_id=transaction_id)
         finally:
             # Reset the ID so it's not used in a different Command call
-            self.transaction_ids_per_command[CommandType.GO_TO_IDLE] = None
+            self.transaction_ids_per_command[CommandType.GOTOIDLE] = None
 
     def _obs_reset(
         self,
@@ -563,7 +561,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             self.log_info("Command ObsReset Successful", transaction_id)
 
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ObsReset completed OK")
-            self.long_running_command_result_buffer.insert(command_type=CommandType.OBS_RESET, result_code=ResultCode.OK, transaction_id=transaction_id)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.OBSRESET, result_code=ResultCode.OK, transaction_id=transaction_id)
             return
         except StateModelError as ex:
             self.log_error(f"Attempted to call command from an incorrect state: {repr(ex)}", transaction_id)
@@ -573,7 +571,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 ResultCode.REJECTED,
                 "Attempted to call ObsReset command from an incorrect state",
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.OBS_RESET, result_code=ResultCode.REJECTED, transaction_id=transaction_id)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.OBSRESET, result_code=ResultCode.REJECTED, transaction_id=transaction_id)
         except Exception as ex:
             self.logger.exception(ex)
             self._set_task_callback(
@@ -582,10 +580,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 ResultCode.FAILED,
                 textwrap.shorten(f"An unexpected exception occurred during ObsReset: {ex}", width=400),
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.OBS_RESET, result_code=ResultCode.FAILED, transaction_id=transaction_id)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.OBSRESET, result_code=ResultCode.FAILED, transaction_id=transaction_id)
         finally:
             # Reset the ID so it's not used in a different Command call
-            self.transaction_ids_per_command[CommandType.OBS_RESET] = None
+            self.transaction_ids_per_command[CommandType.OBSRESET] = None
 
     def auto_set_filter_gains(
         self: VCCAllBandsComponentManager,
@@ -629,7 +627,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         self.frequency_band_offset[0] = configuration.frequency_band_offset_stream_1
         self.frequency_band_offset[1] = configuration.frequency_band_offset_stream_2
 
-        transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURE_SCAN, None)
+        transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
 
         self.log_info(f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}", transaction_id)
 
@@ -832,7 +830,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         Args:
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
         """
-        transaction_id = self.transaction_ids_per_command.get(CommandType.END_SCAN, None)
+        transaction_id = self.transaction_ids_per_command.get(CommandType.ENDSCAN, None)
         self.log_info("Ending Scan", transaction_id)
 
         if not self.simulation_mode:
@@ -1073,7 +1071,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
     def _go_to_idle_deconfigure(self, go_to_idle_schema: FhsControllerBaseGoToIdleSchema) -> None:
         """Deconfigure all ip blocks"""
-        transaction_id = self.transaction_ids_per_command.get(CommandType.GO_TO_IDLE, None)
+        transaction_id = self.transaction_ids_per_command.get(CommandType.GOTOIDLE, None)
 
         # VCC123 Channelizer Deconfiguration
         b123_vcc_deconfigure_result = self.b123_vcc.deconfigure()
@@ -1125,7 +1123,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
     def _recover_all_ip_blocks(self) -> None:
         """Call recover method of all ip blocks"""
-        transaction_id = self.transaction_ids_per_command.get(CommandType.OBS_RESET, None)
+        transaction_id = self.transaction_ids_per_command.get(CommandType.OBSRESET, None)
 
         # VCC123 Channelizer Recovery
         b123_vcc_recover_result = self.b123_vcc.recover()
