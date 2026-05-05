@@ -917,7 +917,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             if argin:
                 auto_set_filter_gains_schema_dict = json.loads(argin)
                 transaction_id = auto_set_filter_gains_schema_dict.get("transaction_id", None)
-                self.transaction_ids_per_command[CommandType.AUTO_SET_FILTER_GAINS] = transaction_id
+                self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = transaction_id
                 auto_set_filter_gains_schema = VCCAllBandsAutoSetFilterGainsSchema.from_dict(auto_set_filter_gains_schema_dict)
                 headrooms = auto_set_filter_gains_schema.headrooms
 
@@ -931,7 +931,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                     f"Cannot auto-set gains as the input headroom {headrooms} is invalid.",
                 )
                 self.long_running_command_result_buffer.insert(
-                    command_type=CommandType.AUTO_SET_FILTER_GAINS, result_code=ResultCode.REJECTED, transaction_id=transaction_id
+                    command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.REJECTED, transaction_id=transaction_id
                 )
                 return
 
@@ -949,7 +949,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                         (f"Failed to auto-set gains: Failed to retrieve status from the FS {i + 1} power meter."),
                     )
                     self.long_running_command_result_buffer.insert(
-                        command_type=CommandType.AUTO_SET_FILTER_GAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+                        command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
                     )
                     return
                 measured_power_pol_x = status.avg_power_pol_x
@@ -964,7 +964,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                             (f"Failed to auto-set gains: The FS {i + 1} power meter failed to provide a valid power measurement for polarization {pol}."),
                         )
                         self.long_running_command_result_buffer.insert(
-                            command_type=CommandType.AUTO_SET_FILTER_GAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+                            command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
                         )
                         return
 
@@ -1000,7 +1000,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                         "Failed to auto-set gains: failed to reconfigure VCC123 Channelizer with new gain values.",
                     )
                     self.long_running_command_result_buffer.insert(
-                        command_type=CommandType.AUTO_SET_FILTER_GAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+                        command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
                     )
                     return
 
@@ -1013,7 +1013,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                     "Failed to auto-set gains: currently selected frequency band is not supported.",
                 )
                 self.long_running_command_result_buffer.insert(
-                    command_type=CommandType.AUTO_SET_FILTER_GAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+                    command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
                 )
                 return
             # Update vccGains and publish change
@@ -1029,10 +1029,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 "AutoSetFilterGains completed OK",
             )
             self.long_running_command_result_buffer.insert(
-                command_type=CommandType.AUTO_SET_FILTER_GAINS, result_code=ResultCode.OK, transaction_id=transaction_id
+                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.OK, transaction_id=transaction_id
             )
         except Exception as ex:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.AUTO_SET_FILTER_GAINS, None)
+            transaction_id = self.transaction_ids_per_command.get(CommandType.AUTOSETFILTERGAINS, None)
             self.logger.exception(ex)
             self._set_task_callback(
                 task_callback,
@@ -1041,11 +1041,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 textwrap.shorten(f"An unexpected exception occurred during AutoSetFilterGains: {ex}", width=400),
             )
             self.long_running_command_result_buffer.insert(
-                command_type=CommandType.AUTO_SET_FILTER_GAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
             )
         finally:
             # Reset the ID so it's not used in a different Command call
-            self.transaction_ids_per_command[CommandType.AUTO_SET_FILTER_GAINS] = None
+            self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = None
 
     def _stop_ip_blocks(self) -> int:
         """Stop all IP blocks."""

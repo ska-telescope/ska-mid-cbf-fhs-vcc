@@ -10,9 +10,12 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict, is_dataclass
 from functools import partial
-from typing import Any
+from typing import Any, Optional
 
+from ska_control_model import ResultCode
+from ska_mid_cbf_fhs_common.helpers.long_running_command_result_buffer import LongRunningCommandResult, LongRunningCommandResultBuffer
 from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, SimModeObsCMBase
 from tango.server import run
 
@@ -130,6 +133,32 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
         self.obs_reset = partial(self.sim_command, command_name="ObsReset")
         self.update_subarray_membership = partial(self.sim_command, command_name="UpdateSubarrayMembership")
         self.auto_set_filter_gains = partial(self.sim_command, command_name="AutoSetFilterGains")
+
+        self.long_running_command_result_buffer = LongRunningCommandResultBuffer(max_size=1000)
+
+    def get_long_running_command_result(self, transaction_id: Optional[str] = None) -> tuple[ResultCode, dict[str, LongRunningCommandResult | None]]:
+        """Fetch the result(s) for the LRC with the specified transaction_id.
+        If the provided transaction_id is None, fetch all the stored results.
+        This is the implementation for the GetLongRunningCommandResult command.
+
+        Args:
+            transaction_id (:obj:`str`): The transaction_id of the LRC.
+
+        Returns:
+            :obj:`tuple[ResultCode, dict[str, LongRunningCommandResult | None]]`: The Tango result code, and a dictionary containing
+            the result(s) of the LRCs.
+        """
+        search_result_found, search_result = self.long_running_command_result_buffer.search(transaction_id=transaction_id)
+        if search_result_found:
+            command_result_code = ResultCode.OK
+        else:
+            command_result_code = ResultCode.UNKNOWN
+
+        for transaction_id, lrc_result in search_result.items():
+            if is_dataclass(lrc_result):
+                search_result[transaction_id] = asdict(lrc_result)
+
+        return command_result_code, search_result
 
     @property
     def expected_dish_id(self: SimVCCAllBandsCM) -> str:
