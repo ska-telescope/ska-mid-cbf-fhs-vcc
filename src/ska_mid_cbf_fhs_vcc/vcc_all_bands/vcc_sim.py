@@ -127,12 +127,12 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
                 },
             }
         )
-        self.configure_scan = partial(self.sim_command, command_name="ConfigureScan")
-        self.scan = partial(self.sim_command, command_name="Scan")
-        self.end_scan = partial(self.sim_command, command_name="EndScan")
-        self.obs_reset = partial(self.sim_command, command_name="ObsReset")
-        self.update_subarray_membership = partial(self.sim_command, command_name="UpdateSubarrayMembership")
-        self.auto_set_filter_gains = partial(self.sim_command, command_name="AutoSetFilterGains")
+        self.configure_scan = partial(self.sim_command, command_name="ConfigureScan", transaction_id="TEST_CS")
+        self.scan = partial(self.sim_command, command_name="Scan", transaction_id="TEST_S")
+        self.end_scan = partial(self.sim_command, command_name="EndScan", transaction_id="TEST_ES")
+        self.obs_reset = partial(self.sim_command, command_name="ObsReset", transaction_id="TEST_OBS")
+        self.update_subarray_membership = partial(self.sim_command, command_name="UpdateSubarrayMembership", transaction_id="TEST_USM")
+        self.auto_set_filter_gains = partial(self.sim_command, command_name="AutoSetFilterGains", transaction_id="TEST_ASFG")
 
         self.long_running_command_result_buffer = LongRunningCommandResultBuffer(max_size=1000)
 
