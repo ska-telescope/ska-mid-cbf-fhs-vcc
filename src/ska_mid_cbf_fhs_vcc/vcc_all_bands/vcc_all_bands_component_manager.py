@@ -12,12 +12,12 @@ from typing import Any, Callable, Optional
 import jsonschema
 from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
+from ska_mid_cbf_common.enums.command_type import CommandType
 from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, WidebandPowerMeterConfig, WidebandPowerMeterManager, calculate_gain_multiplier
 from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_base_dataclasses import FhsControllerBaseGoToIdleSchema, FhsControllerBaseScanSchema
 from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
 from ska_mid_cbf_fhs_common.helpers.constants import LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE
-from ska_mid_cbf_common.enums.command_type import CommandType
 from ska_mid_cbf_fhs_common.state_model.fhs_obs_state import FhsObsStateMachine
 from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_base.obs import ObsDeviceComponentManager
