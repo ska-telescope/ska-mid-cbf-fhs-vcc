@@ -2932,14 +2932,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-common"
-version = "0.0.2+dev.cceab91c9"
+version = "0.0.2+dev.ce6bfce6f"
 description = "SKA Mid.CBF Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_common-0.0.2+dev.cceab91c9-py3-none-any.whl", hash = "sha256:001a8f5bc298fb299b180aa4f3e83bd28128a5abeb097b9b0c982b8d0a691569"},
-    {file = "ska_mid_cbf_common-0.0.2+dev.cceab91c9.tar.gz", hash = "sha256:6f2567e78aab78840b2d21c81b948029fde360739cd19f649f8bc552becdd9df"},
+    {file = "ska_mid_cbf_common-0.0.2+dev.ce6bfce6f-py3-none-any.whl", hash = "sha256:74ebcecb4b9560d5562d12b4aa7ae3d8af3ea26366cf699a2114f2086d49b199"},
+    {file = "ska_mid_cbf_common-0.0.2+dev.ce6bfce6f.tar.gz", hash = "sha256:9855d42117f1e6290f936d8d1ae4c323ef147f940b0a5f7912d9cf713dc7382d"},
 ]
 
 [package.dependencies]
@@ -2960,14 +2960,14 @@ reference = "gitlab-mid-cbf-common"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.2.13+dev.ce07cbf57"
+version = "0.2.13+dev.c0125a919"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.2.13+dev.ce07cbf57-py3-none-any.whl", hash = "sha256:efa262635ab787667b80b4622d6e54ad60ed6c77b99bd7797b2e83eef079c99a"},
-    {file = "ska_mid_cbf_fhs_common-0.2.13+dev.ce07cbf57.tar.gz", hash = "sha256:7bad017d711c45d68accfdcf5d53a76365108b8f322f34b78923ee490c0b31ae"},
+    {file = "ska_mid_cbf_fhs_common-0.2.13+dev.c0125a919-py3-none-any.whl", hash = "sha256:ec47da7f11f0b721046c96f8b66bd91a01b2de2d79ca700acd485bbe5a7dffd7"},
+    {file = "ska_mid_cbf_fhs_common-0.2.13+dev.c0125a919.tar.gz", hash = "sha256:b18994e3f60227568dbaa1727a3cb1347185bba7c06173c9020cab78d29c26ed"},
 ]
 
 [package.dependencies]
@@ -2978,7 +2978,7 @@ polling2 = ">=0.5.0,<0.6.0"
 pydantic = "2.9.2"
 pyyaml = ">=6.0.1,<7.0.0"
 requests = ">=2.32.3,<3.0.0"
-ska-mid-cbf-common = "0.0.2+dev.cceab91c9"
+ska-mid-cbf-common = "0.0.2+dev.ce6bfce6f"
 ska-ser-log-transactions = ">=0.2.2+ae0f5c92,<0.3.0"
 ska-tango-base = "1.4.2"
 ska-tango-testing = "0.9.0"
@@ -3783,4 +3783,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "8bfe0a3389f40d7a584d7f10b569017e971cba22eee256768d366a13339f3825"
+content-hash = "4e9b2c6a0967bab622ab9bce14071cdcc02b94d13650e4f5827e20a7743185dc"
