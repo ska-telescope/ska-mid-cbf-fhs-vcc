@@ -7,6 +7,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 UNRELEASED CHANGES
 ******************
+* CIP-5555: Update deployment to use dict of available bitstreams + per-unit selection from the dict
 
 0.3.7
 *****
