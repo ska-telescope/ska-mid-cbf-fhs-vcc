@@ -241,7 +241,7 @@ vccAllBandsDevice:
         - "{{ .fpgaNum }}"
     - name: long_running_command_result_buffer_max_size
       values:
-        - "3"
+        - "100"
 
 # the number of VCCUnit stacks to deploy
 numVccUnits: 2
