@@ -93,8 +93,11 @@ properties:
   emulationMode: "{{ .unitEmulationMode }}"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
-  bitstreamId: "agilex-vcc"
-  bitstreamVersion: "0.1.2"
+  bitstreams:
+    vcc:
+      id: "agilex-vcc"
+      version: "0.1.2"
+  bitstreamKey: "vcc"
   emulatorId: "fhs-vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
   firmwareIpBlockId: ""
@@ -246,11 +249,13 @@ numVccUnits: 2
 # the top-level stacks, one for every device id. optionally override any property defined in `properties` (if it hasn't been overridden at the device level)
 VCCUnits:
   - unitNum: 1
+    bitstreamKey: "vcc"
     emulationMode: "0"
     networkSwitchId: "127.0.0.1"
     bmcEndpointIp: "127.0.1.1"
     instancesRange: [1, 6]
   - unitNum: 2
+    bitstreamKey: "vcc"
     emulationMode: "0"
     networkSwitchId: "127.0.0.2"
     bmcEndpointIp: "127.0.1.2"
