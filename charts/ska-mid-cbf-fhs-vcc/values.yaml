@@ -63,6 +63,9 @@ bitstreamMountPath: "/app/mnt/bitstream"
 bitstreamDownloadJob:
   enabled: True
 
+bitstreamPv:
+  enabled: True
+
 pvStorageClass: nfss1
 
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
