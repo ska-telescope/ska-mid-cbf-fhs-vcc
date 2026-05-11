@@ -56,9 +56,23 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
       - name: {{ tpl $device.path $scope }}
         properties:
           {{- range $name, $default := $globalProperties }}
+          {{- if eq $name "bitstreamKey"}}
+          {{- $bitstream := get $globalProperties.bitstreams ((get $fhsVccUnit $name) | default $default) }}
+          - name: "bitstream_id"
+            values:
+            - {{ $bitstream.id }}
+          - name: "bitstream_version"
+            values:
+            - {{ $bitstream.version }}
+          {{- else }}
           - name: {{ snakecase $name }}
             values:
-            - "{{ tpl ((get $device $name) | default $default) $scope }}"
+            {{- if eq $name "bitstreams"}}
+            - {{ ((get $fhsVccUnit $name) | default $default) | toJson | quote }}
+            {{- else }}
+            - {{ tpl ((get $fhsVccUnit $name) | default $default) $scope | quote }}
+            {{- end }}
+          {{- end }}
           {{- end }}
           {{- range $index, $property := $device.properties }}
           - name: {{ $property.name }}

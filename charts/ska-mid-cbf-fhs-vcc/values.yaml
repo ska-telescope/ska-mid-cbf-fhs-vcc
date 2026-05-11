@@ -63,6 +63,9 @@ bitstreamMountPath: "/app/mnt/bitstream"
 bitstreamDownloadJob:
   enabled: True
 
+bitstreamPv:
+  enabled: True
+
 pvStorageClass: nfss1
 
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
@@ -93,8 +96,11 @@ properties:
   emulationMode: "{{ .unitEmulationMode }}"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   bitstreamPath: "/app/mnt/bitstream"
-  bitstreamId: "agilex-vcc"
-  bitstreamVersion: "0.1.2"
+  bitstreams:
+    vcc:
+      id: "agilex-vcc"
+      version: "0.1.2"
+  bitstreamKey: "vcc"
   emulatorId: "fhs-vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
   firmwareIpBlockId: ""
