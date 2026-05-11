@@ -2932,14 +2932,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-common"
-version = "0.0.3+dev.ce1a5f369"
+version = "0.0.3"
 description = "SKA Mid.CBF Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_common-0.0.3+dev.ce1a5f369-py3-none-any.whl", hash = "sha256:5465db7ab597bf7e0d250e480cfef4e9064ed5cf5e57ac69937d1dbf483e861c"},
-    {file = "ska_mid_cbf_common-0.0.3+dev.ce1a5f369.tar.gz", hash = "sha256:49378386915a3dc44efb707aedc6d571a0209c77f3e91d009886a796590fa7ed"},
+    {file = "ska_mid_cbf_common-0.0.3-py3-none-any.whl", hash = "sha256:7bf782fc9137330c1d7ab9ff5f58ce42a6854b89f11e4f11eeff32fa0a01bca4"},
+    {file = "ska_mid_cbf_common-0.0.3.tar.gz", hash = "sha256:a7ddff2b5940719ca3d4de3117a8e716d69483021a86f44f14f849f41718fbfa"},
 ]
 
 [package.dependencies]
@@ -2950,12 +2950,13 @@ scipy = "1.13.0"
 ska-schemas = "1.37.1"
 ska-tango-base = "1.4.2"
 ska-tango-testing = "0.9.0"
+ska-telmodel = "1.33.0"
 typing-extensions = ">=4.8.0,<5.0.0"
 
 [package.source]
 type = "legacy"
-url = "https://gitlab.com/api/v4/projects/75387241/packages/pypi/simple"
-reference = "gitlab-mid-cbf-common"
+url = "https://artefact.skao.int/repository/pypi-internal/simple"
+reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
@@ -3782,4 +3783,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "f151378caa9bf5afa5702253d25353e624508c6540cf2f47add58cfa8358f966"
+content-hash = "a43499dd11b6de303a1445f270dc61b81b52e3c0f8fdd07354026557e26a15f4"

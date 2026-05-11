@@ -37,6 +37,12 @@ debugpy = "^1.8.5"
 ska-mid-cbf-fhs-common = { version = "0.2.13+dev.c4edea1e6", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
+# Official tagged release from CAR
+ska-mid-cbf-common = { version = "0.0.3", source = "ska-nexus" }
+# Commit hash version from Gitlab
+# ska-mid-cbf-common = { version = "0.0.2+dev.c0642f5d5", source = "gitlab-mid-cbf-common" }
+# Local repository
+# ska-mid-cbf-common = { path = "../ska-mid-cbf-common", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest-pydocstyle = "2.3.2"
