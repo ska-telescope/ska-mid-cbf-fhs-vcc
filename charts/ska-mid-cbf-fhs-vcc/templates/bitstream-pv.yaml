@@ -1,4 +1,4 @@
-{{- if .Values.bitstreamDownloadJob.enabled }}
+{{- if .Values.bitstreamPv.enabled }}
 {{- $labels := coalesce .Values.global.labels .Values.labels "label:none" }}
 {{- $annotations := coalesce .Values.global.annotations .Values.annotations }}
 
