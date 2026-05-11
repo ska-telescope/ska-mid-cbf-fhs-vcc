@@ -2932,14 +2932,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-common"
-version = "0.0.2+dev.c0642f5d5"
+version = "0.0.3+dev.ce1a5f369"
 description = "SKA Mid.CBF Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_common-0.0.2+dev.c0642f5d5-py3-none-any.whl", hash = "sha256:5b118ee4b28214f6cc1a869c96bc07c7ee74471665c3ce228f5415dde2036f14"},
-    {file = "ska_mid_cbf_common-0.0.2+dev.c0642f5d5.tar.gz", hash = "sha256:f8a1dca88a9fef3f5743fb9c7bf898d4b95f1d13cef20125f177b9b442acfd02"},
+    {file = "ska_mid_cbf_common-0.0.3+dev.ce1a5f369-py3-none-any.whl", hash = "sha256:5465db7ab597bf7e0d250e480cfef4e9064ed5cf5e57ac69937d1dbf483e861c"},
+    {file = "ska_mid_cbf_common-0.0.3+dev.ce1a5f369.tar.gz", hash = "sha256:49378386915a3dc44efb707aedc6d571a0209c77f3e91d009886a796590fa7ed"},
 ]
 
 [package.dependencies]
@@ -2950,7 +2950,6 @@ scipy = "1.13.0"
 ska-schemas = "1.37.1"
 ska-tango-base = "1.4.2"
 ska-tango-testing = "0.9.0"
-ska-telmodel = "1.33.0"
 typing-extensions = ">=4.8.0,<5.0.0"
 
 [package.source]
@@ -2960,14 +2959,14 @@ reference = "gitlab-mid-cbf-common"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.2.13+dev.ce57a1abd"
+version = "0.2.13+dev.c4edea1e6"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.2.13+dev.ce57a1abd-py3-none-any.whl", hash = "sha256:2baed2637969d9ce639fa7f337e42423e9e1d4b502c7ccf6fce9b448fd261f8b"},
-    {file = "ska_mid_cbf_fhs_common-0.2.13+dev.ce57a1abd.tar.gz", hash = "sha256:bbfbdf374ed3d142f93199da4338cce3f05cad8f34a0aabdfd9b88971a0168cc"},
+    {file = "ska_mid_cbf_fhs_common-0.2.13+dev.c4edea1e6-py3-none-any.whl", hash = "sha256:08783a751103eb0aa0d8ca252ba3888776ca74946ce1a4cdbd09c5eb1c2d4223"},
+    {file = "ska_mid_cbf_fhs_common-0.2.13+dev.c4edea1e6.tar.gz", hash = "sha256:9887277290a265eb3d732af7470fdf74105e8d1626441f791dbaa107c476b4db"},
 ]
 
 [package.dependencies]
@@ -2978,7 +2977,7 @@ polling2 = ">=0.5.0,<0.6.0"
 pydantic = "2.9.2"
 pyyaml = ">=6.0.1,<7.0.0"
 requests = ">=2.32.3,<3.0.0"
-ska-mid-cbf-common = "0.0.2+dev.c0642f5d5"
+ska-mid-cbf-common = "0.0.3"
 ska-ser-log-transactions = ">=0.2.2+ae0f5c92,<0.3.0"
 ska-tango-base = "1.4.2"
 ska-tango-testing = "0.9.0"
@@ -3783,4 +3782,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "568cc5ef6dfc291c3b4f7ea6cc62bfac37cfc5d38bd4ce559755153d0c5666ff"
+content-hash = "f151378caa9bf5afa5702253d25353e624508c6540cf2f47add58cfa8358f966"
