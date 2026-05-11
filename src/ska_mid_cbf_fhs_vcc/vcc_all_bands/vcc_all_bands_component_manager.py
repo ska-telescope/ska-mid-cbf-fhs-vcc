@@ -14,7 +14,11 @@ from ska_control_model import CommunicationStatus, HealthState, ObsState, Result
 from ska_control_model.faults import StateModelError
 from ska_mid_cbf_common.enums.command_type import CommandType
 from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, WidebandPowerMeterConfig, WidebandPowerMeterManager, calculate_gain_multiplier
-from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_base_dataclasses import FhsControllerBaseGoToIdleSchema, FhsControllerBaseScanSchema
+from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_base_dataclasses import (
+    FhsControllerBaseEndScanSchema,
+    FhsControllerBaseGoToIdleSchema,
+    FhsControllerBaseScanSchema,
+)
 from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
 from ska_mid_cbf_fhs_common.helpers.constants import LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE
@@ -823,6 +827,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
     def _end_scan_controller_impl(
         self,
+        end_scan_schema: FhsControllerBaseEndScanSchema,
         task_callback: Optional[Callable] = None,
     ) -> None:
         """VCC-specific implementation for the EndScan command.
