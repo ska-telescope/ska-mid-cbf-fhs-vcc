@@ -2921,14 +2921,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.2.15+dev.c649f9ecb"
+version = "0.2.16"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.2.15+dev.c649f9ecb-py3-none-any.whl", hash = "sha256:7a09cdcee62185a95fe3b2e7c8d07ce4bf01b9b3ccdce4ef259ab99ac60daa4f"},
-    {file = "ska_mid_cbf_fhs_common-0.2.15+dev.c649f9ecb.tar.gz", hash = "sha256:5b807db363d5a0a6dddae564b3f69d10f1bd089e12a776d472cf60ad44704d52"},
+    {file = "ska_mid_cbf_fhs_common-0.2.16-py3-none-any.whl", hash = "sha256:3592aaa1e3dcd7eec6e73b62aef2299b11d88b1d61c4f4db0eccdd6042836fd9"},
+    {file = "ska_mid_cbf_fhs_common-0.2.16.tar.gz", hash = "sha256:9272b96f5a6b6c2bf31e53f7055ad50e9f209cb9b676fa7d182265385f2c12ad"},
 ]
 
 [package.dependencies]
@@ -2948,8 +2948,8 @@ typing-extensions = ">=4.8.0,<5.0.0"
 
 [package.source]
 type = "legacy"
-url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
-reference = "gitlab-fhs-common"
+url = "https://artefact.skao.int/repository/pypi-internal/simple"
+reference = "ska-nexus"
 
 [[package]]
 name = "ska-schemas"
@@ -3701,4 +3701,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "c2530754200f47c6dac8291c1905cc2642560f654418ffb2620c34f1cc5a07ef"
+content-hash = "b7e61c7705fb3b98e4ae414b674770d096e41f452b5d175aeaf016d341c978ed"
