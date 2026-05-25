@@ -1,3 +1,4 @@
+from dataclasses import field
 from typing import Optional
 
 from dataclasses_json import DataClassJsonMixin
@@ -48,5 +49,5 @@ class VCCAllBandsConfigureScanConfig(FhsControllerBaseConfig, DataClassJsonMixin
 class VCCAllBandsAutoSetFilterGainsSchema(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands AutoSetFilterGains input parameter."""
 
-    headrooms: Optional[list[float]] = None
+    headrooms: Optional[list[float]] = field(default_factory=lambda: [3.0])
     transaction_id: Optional[str] = None

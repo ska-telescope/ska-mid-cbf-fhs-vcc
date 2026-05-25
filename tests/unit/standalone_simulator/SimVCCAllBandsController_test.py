@@ -66,6 +66,7 @@ class TestVCCAllBandsSim:
             b5b_wideband_power_meter_fqdn="test/b5bwpm/1",
             fs_wideband_power_meter_fqdn="test/fs<multiplicity>wpm/1",
             vcc_stream_merge_fqdn="test/vcc-stream-merge<multiplicity>/1",
+            long_running_command_result_buffer_max_size=100,
         )
 
         with harness as test_context:
