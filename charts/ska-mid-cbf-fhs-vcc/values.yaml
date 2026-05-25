@@ -31,7 +31,7 @@ midcbf:
   image:
     registry: docker.io/library
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.3.7
+    tag: 0.3.8
     pullPolicy: IfNotPresent
 
 resources:
@@ -245,6 +245,9 @@ vccAllBandsDevice:
     - name: fpga_number
       values:
         - "{{ .fpgaNum }}"
+    - name: long_running_command_result_buffer_max_size
+      values:
+        - "100"
 
 # the number of VCCUnit stacks to deploy
 numVccUnits: 2

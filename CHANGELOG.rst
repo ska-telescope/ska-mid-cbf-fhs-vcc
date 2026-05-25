@@ -7,8 +7,15 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 UNRELEASED CHANGES
 ******************
-* CIP-5555
 
+0.3.8
+*****
+* CIP-5784: Add new transitions for end scan and scan command failures to go back to the previous state instead of incorrectly transitioning to the next state
+* CIP-5553: Add LongRunningCommandResultBuffer and add transaction_id_per_command dictionary to VCC All bands component manager
+* CIP-5574:
+  * Create new schema for End Scan command and update its usage
+  * Update scan command schema to include subarray id
+* CIP-5555:
   * Update deployment to use dict of available bitstreams + per-unit selection from the dict
   * Allow enabling/disabling bitstream PV in values.yaml
 
