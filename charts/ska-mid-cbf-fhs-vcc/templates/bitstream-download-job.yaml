@@ -25,26 +25,35 @@ spec:
       containers:
         - name: fhs-vcc-bitstream-download-job
           image: alpine:latest
-          command: ["sh", "-c"]
+          command: ["sh", "-ec"]
           args:
             - |
-              apk add --no-cache curl tar && \
+              apk add --no-cache curl tar
               {{ range $index, $bitstream := values $.Values.properties.bitstreams -}}
-              BITSTREAM_ID={{ $bitstream.id }} && \
-              BITSTREAM_VER={{ $bitstream.version }} && \
-              BITSTREAM_SUBPATH=$BITSTREAM_ID/$BITSTREAM_VER && \
-              TARBALL="ska-mid-cbf-$BITSTREAM_ID-$BITSTREAM_VER.tar.gz" && \
-              if [ ! -d {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH ]; then \
-                echo "Downloading bitstream $BITSTREAM_SUBPATH" && \
-                curl -f -L -o /tmp/$TARBALL {{ if $bitstream.gitlab_bitstream_url_override -}} {{ $bitstream.gitlab_bitstream_url_override }} {{- else -}} https://artefact.skao.int/repository/raw-internal/$TARBALL {{- end }} || \
-                echo "Could not locate tarball: $TARBALL" ; \
-                if [ -f /tmp/$TARBALL ]; then \
-                  mkdir -p {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH && \
-                  tar xvzf /tmp/$TARBALL -C {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH {{ if $bitstream.gitlab_bitstream_url_override -}} --strip-components=3 {{- end }} ; \
-                fi ; \
+              BITSTREAM_ID={{ $bitstream.id }}
+              BITSTREAM_VER={{ $bitstream.version }}
+              BITSTREAM_SUBPATH=$BITSTREAM_ID/$BITSTREAM_VER
+              PACKAGE="ska-mid-cbf-${BITSTREAM_ID}"
+              TARBALL="${PACKAGE}-${BITSTREAM_VER}.tar.gz"
+              BAR_URL="{{ $.Values.bar.url }}"
+              echo "BAR_URL=$BAR_URL"
+              echo "BAR_API_TOKEN=$BAR_API_TOKEN"
+              if [ -n "$BAR_API_TOKEN" ]; then
+                download_url="${BAR_URL}/${PACKAGE}/versions/${BITSTREAM_VER}/assets/${TARBALL}?format=raw"
+                echo "download_url = $download_url"
+                curl -v -H "Authorization: Bearer ${BAR_API_TOKEN}" "${download_url}"
+              fi
+              if [ ! -d {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH ]; then
+                echo "Downloading bitstream $BITSTREAM_SUBPATH"
+                curl -f -L -o /tmp/$TARBALL {{ if $bitstream.gitlab_bitstream_url_override -}} {{ $bitstream.gitlab_bitstream_url_override }} {{- else -}} https://artefact.skao.int/repository/raw-internal/$TARBALL {{- end }} ||
+                echo "Could not locate tarball: $TARBALL" ;
+                if [ -f /tmp/$TARBALL ]; then
+                  mkdir -p {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH
+                  tar xvzf /tmp/$TARBALL -C {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH {{ if $bitstream.gitlab_bitstream_url_override -}} --strip-components=3 {{- end }} ;
+                fi ;
               else \
-                echo "Bitstream $BITSTREAM_SUBPATH has already been downloaded (probably by another download job)." ; \
-              fi && \
+                echo "Bitstream $BITSTREAM_SUBPATH has already been downloaded (probably by another download job)." ;
+              fi
               {{ end -}}
               find {{ $.Values.bitstreamMountPath }}
               tail -f /dev/null
