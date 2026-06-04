@@ -18,7 +18,7 @@ CLUSTER_DOMAIN ?= cluster.local
 FHS_SERVER_ID ?= fhs01
 CONFIG_LOCATION ?= /app/mnt/lowLevelConfigMap
 
-HELM_RELEASE ?= test##H ELM_RELEASE is the release that all Kubernetes resources will be labelled with
+HELM_RELEASE ?= test## HELM_RELEASE is the release that all Kubernetes resources will be labelled with
 
 OCI_IMAGES = ska-mid-cbf-fhs-vcc
 OCI_IMAGES_TO_PUBLISH ?= $(OCI_IMAGES)
@@ -36,15 +36,15 @@ CI_REGISTRY ?= gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-
 CI_PROJECT_DIR ?= .
 
 KUBE_CONFIG_BASE64 ?=  ## base64 encoded kubectl credentials for KUBECONFIG
-KUBECONFIG ?= /etc/deploy/config ## KUBECONFIG location
+KUBECONFIG ?= /etc/deploy/config## KUBECONFIG location
 
 # this assumes host and talon board 1g ethernet is on the 192.168 subnet
 #HOST_IP = $(shell ip a 2> /dev/null | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | grep 192.168) 
 JIVE ?= false# Enable jive
 TARANTA ?= false# Enable Taranta
-MINIKUBE ?= false ## Minikube or not
-K3D ?= false ## K3D or not
-EXPOSE_All_DS ?= true ## Expose All Tango Services to the external network (enable Loadbalancer service)
+MINIKUBE ?= false## Minikube or not
+K3D ?= false## K3D or not
+EXPOSE_All_DS ?= true## Expose All Tango Services to the external network (enable Loadbalancer service)
 SKA_TANGO_OPERATOR ?= false
 ITANGO_ENABLED ?= true## ITango enabled in ska-tango-base
 
