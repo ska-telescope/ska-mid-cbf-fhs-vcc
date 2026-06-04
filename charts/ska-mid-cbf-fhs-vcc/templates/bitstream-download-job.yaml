@@ -1,4 +1,20 @@
 {{- if .Values.bitstreamDownloadJob.enabled }}
+
+{{- if .Values.bar.secret.vault.enabled }}
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: ska-mid-cbf-fhs-vcc-bar-secret
+spec:
+  type: kv-v2
+  mount: {{ .Values.bar.secret.vault.mount }}
+  path: {{ .Values.bar.secret.vault.secretPath }}
+  destination:
+    name: ska-mid-cbf-fhs-vcc-bar-secret
+    create: true
+---
+{{- end }}
+
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -31,6 +47,15 @@ spec:
               fi && \
               {{ end -}}
               find {{ $.Values.bitstreamMountPath }}
+              tail -f /dev/null
+          env:
+          - name: BAR_URL
+            value: {{ .Values.bar.url | quote }}
+          - name: BAR_API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "ska-mid-cbf-fhs-vcc-bar-secret" . }}
+                key: BAR_API_TOKEN
           volumeMounts:
             - name: bitstream-pv
               mountPath: {{ .Values.bitstreamMountPath }}
