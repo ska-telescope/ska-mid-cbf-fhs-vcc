@@ -66,6 +66,12 @@ PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=standard
 endif
 endif
 
+# a portion of the BAR_URL from which to retrieve the RAW binary artefacts from
+# (NOT the full URL for downloading the raw binaries from)
+BAR_URL := https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/artefacts
+# set BAR_API_TOKEN as an environmental variable via command line if testing locally
+# get the value from Vault
+BAR_API_TOKEN ?=
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set global.k3d=$(K3D) \
@@ -80,6 +86,10 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.namespace=$(KUBE_NAMESPACE) \
 	${TARANTA_PARAMS} \
 	${PV_STORAGE_PARAM}
+
+ifeq ($(MINIKUBE),true)
+K8S_CHART_PARAMS += --set bar.secret.bar_api_token="$(BAR_API_TOKEN)"
+endif
 
 # shared lint config file var definitions
 LINTCFG_DIR = tools/ska-mid-cbf-linter
@@ -140,8 +150,17 @@ k8s-pre-install-chart:
 
 k8s-deploy:
 	make k8s-install-chart MINIKUBE=$(MINIKUBE) DEV=$(DEV) BOOGIE=$(BOOGIE)
+	@if [ "$(MINIKUBE)" = "true" ]; then make k8s-create-bar-secret BAR_API_TOKEN=$(BAR_API_TOKEN); fi
 	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to be ready..."
 	@time kubectl wait pod --selector=app=ska-mid-cbf-fhs-vcc --for=condition=ready --timeout=15m0s --namespace $(KUBE_NAMESPACE)
+
+k8s-create-bar-secret:
+	@if [ -z "$(BAR_API_TOKEN)" ]; then \
+		echo "ERROR: The required environmental variable BAR_API_TOKEN has not been set)"; \
+		exit 1; \
+	fi
+	@echo "Creating secret for bar token"
+	@kubectl create secret generic ska-mid-cbf-fhs-vcc-bar-secret --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
 
 k8s-deploy-dev: MINIKUBE=true
 k8s-deploy-dev: CLUSTER_DOMAIN=cluster.local
@@ -152,6 +171,7 @@ k8s-destroy:
 	make k8s-uninstall-chart
 	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to terminate..."
 	@time kubectl wait pod --all --for=delete --timeout=5m0s --namespace $(KUBE_NAMESPACE)
+	make k8s-delete-namespace
 
 build-and-deploy:
 	make oci-build-all && make k8s-deploy-dev
