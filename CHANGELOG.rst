@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.9
+*****
+* CIP-5528: Moved LRC results buffer into base simulator class
+
 0.3.8
 *****
 * CIP-5784: Add new transitions for end scan and scan command failures to go back to the previous state instead of incorrectly transitioning to the next state

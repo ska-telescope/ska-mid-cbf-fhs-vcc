@@ -17,7 +17,7 @@ class TestWidebandInputBuffer:
             bitstream_version="n/a",
             firmware_ip_block_id="n/a",
             health_monitor_poll_interval=1,
-            update_health_state_callback=lambda _: None,
+            update_health_state_callback=lambda *_: None,
             create_log_file=False,
         )
         yield manager
