@@ -10,14 +10,13 @@
 
 from __future__ import annotations
 
-import json
 from functools import partial
 from typing import Any
 
 from ska_control_model import HealthState
 from ska_mid_cbf_fhs_common.helpers.long_running_command_result_buffer import LongRunningCommandResultBuffer
 from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, SimModeObsCMBase
-from tango.server import attribute, run
+from tango.server import run
 
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
@@ -174,78 +173,8 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
 
 
 class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
-    # the below simOverrides attribute overrides the methods declared in
-    # FhsSimMode from FHS Common.
-    # These overrides are required to simulate attribute change event pushing,
-    # which cannot be done using the base simOverrides from FhsSimMode because
-    # it does not have access to the change callbacks that are only available with
-    # FSPCorrController.
-    # Note: Changing FhsSimMode's constructor to pass on the callbacks won't work
-    # as it causes issues with Boost template matching and throws errors
-    @attribute(
-        dtype=str,
-        doc="Attribute value overrides (JSON dict)",
-    )  # type: ignore[misc]
-    def simOverrides(self) -> str:
-        """Read the current override configuration.
-
-        Returns:
-            :obj:`str`: JSON-encoded dictionary
-        """
-        return json.dumps(
-            {
-                "attributes": self.component_manager.attribute_overrides_queue_dict.get_all_overrides(),
-                "commands": self.component_manager.command_overrides_queue_dict.get_all_overrides(),
-            }
-        )
-
-    @simOverrides.write  # type: ignore[no-redef, misc]
-    def simOverrides(self, value_str: str) -> None:
-        """Write new override configuration. Uses `pydantic.v1.utils.deep_update` to
-        only update behaviour specified in the provided dictionary.
-
-        Args:
-            value_str (:obj:`str`): JSON-encoded dict of overrides
-        """
-        if not self.simulation_mode:
-            self.logger.error("Cannot override device behaviour in SimulationMode.FALSE.")
-            return
-
-        self.logger.info(f"Received new value for simOverrides: {value_str}")
-
-        try:
-            value_dict = json.loads(value_str)
-        except json.JSONDecodeError as je:
-            self.logger.error(f"{je}")
-            return
-
-        if "commands" in value_dict:
-            value = value_dict["commands"]
-            self.component_manager.command_overrides_queue_dict.update_all(value_dict["commands"])
-        else:
-            self.logger.info("No command overrides provided")
-
-        if "attributes" in value_dict:
-            for attr_name, value in value_dict["attributes"].items():
-                # Convert to enum value if enum attribute
-                if attr_name in self.component_manager.enum_attrs and isinstance(value, str):
-                    value = self.component_manager.enum_attrs[attr_name][value]
-
-                if isinstance(value, dict):
-                    value = json.dumps(value)
-
-                # Update attribute if value has changed
-                if self.component_manager.attribute_overrides_queue_dict.peek(attr_name) != value:
-                    self.component_manager.attribute_overrides_queue_dict.update(attr_name, value)
-                    if attr_name in VCC_SIM_CHANGE_EVENT_ATTRS:
-                        self.logger.info(f"simOverride: Pushed attribute change for {attr_name} : {value}")
-                        self.push_change_event(attr_name, value)
-                    if attr_name in VCC_SIM_ARCHIVE_EVENT_ATTRS:
-                        self.logger.info(f"simOverride: Pushed attribute archive for {attr_name} : {value}")
-                        self.push_archive_event(attr_name, value)
-
-        else:
-            self.logger.info("No attribute overrides provided")
+    change_event_attributes = VCC_SIM_CHANGE_EVENT_ATTRS
+    archive_event_attributes = VCC_SIM_ARCHIVE_EVENT_ATTRS
 
     def create_component_manager(self: SimVCCAllBandsController) -> SimVCCAllBandsCM:
         return SimVCCAllBandsCM(

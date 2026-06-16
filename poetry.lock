@@ -718,14 +718,14 @@ reference = "gitlab-fhs-common"
 
 [[package]]
 name = "filelock"
-version = "3.29.3"
+version = "3.29.4"
 description = "A platform independent file lock."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "filelock-3.29.3-py3-none-any.whl", hash = "sha256:e58333029cc9b925f39aad59b1d8f0a1ad836af4e60d7217f4a4dba87461261d"},
-    {file = "filelock-3.29.3.tar.gz", hash = "sha256:7fc1b3f39cf172fd8203812043c57b8a65aef9969f38b6704f628b881f761a84"},
+    {file = "filelock-3.29.4-py3-none-any.whl", hash = "sha256:dac1648087d5115554850d113e7dd8c83ab2d38e3435dde2d4f163847e57b767"},
+    {file = "filelock-3.29.4.tar.gz", hash = "sha256:10cdb3656fc44541cdf30652a93fb10ec6b05325620eb316bd26893e4201538a"},
 ]
 
 [package.source]
@@ -3240,14 +3240,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.2.19"
+version = "0.2.19+dev.cd0af47b7"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.2.19-py3-none-any.whl", hash = "sha256:b3d24138742a96ec8c04320db45b7b859d22cd0ad08ff0d05c1543be5ee10f84"},
-    {file = "ska_mid_cbf_fhs_common-0.2.19.tar.gz", hash = "sha256:bf80de9dd29ad13988e18deb279db49052011c5b070ef48f7a184e90311044eb"},
+    {file = "ska_mid_cbf_fhs_common-0.2.19+dev.cd0af47b7-py3-none-any.whl", hash = "sha256:d7f7daf6ae8bbd725d5bbb93b062ad67ed64b39978a2d366d24976155257f23c"},
+    {file = "ska_mid_cbf_fhs_common-0.2.19+dev.cd0af47b7.tar.gz", hash = "sha256:fc288312d28d414c9eeb969ee81dcf19923af224f62f68baaefaec6f2af3072f"},
 ]
 
 [package.dependencies]
@@ -3267,8 +3267,8 @@ typing-extensions = ">=4.8.0,<5.0.0"
 
 [package.source]
 type = "legacy"
-url = "https://artefact.skao.int/repository/pypi-internal/simple"
-reference = "ska-nexus"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
 
 [[package]]
 name = "ska-schemas"
@@ -3333,14 +3333,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-ser-skuid"
-version = "6.0.0+dev.c92edbce1"
+version = "6.0.0"
 description = "Library that generates IDs for the SKA project"
 optional = false
 python-versions = ">=3.10, <4"
 groups = ["main"]
 files = [
-    {file = "ska_ser_skuid-6.0.0+dev.c92edbce1-py3-none-any.whl", hash = "sha256:e5b8c25c887240d0d348c6e20447383735f2b998cc744699b0ba3c7cb91174de"},
-    {file = "ska_ser_skuid-6.0.0+dev.c92edbce1.tar.gz", hash = "sha256:9d2d65070527fbbd5c540e1c203ca8507d10f2399f914ea88bcf03cba19ba361"},
+    {file = "ska_ser_skuid-6.0.0-py3-none-any.whl", hash = "sha256:7c394bb9d6fba3687883822554c63ffd6710459ba10f6b95b88661eaaef2b125"},
+    {file = "ska_ser_skuid-6.0.0.tar.gz", hash = "sha256:5806b2e296db627070a409127a95b4e28a0df6ea60676843f7f1d4ff04897e15"},
 ]
 
 [package.dependencies]
@@ -4060,4 +4060,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "53dcd2b81cf2b0f94850b4b296b6f7307e53e60fc29686dc301c07acbdfa2d35"
+content-hash = "9f4f1bdd5ccb56600c1a894bd89684de21f6529553ad33c95ca57ae6201a1c4d"
