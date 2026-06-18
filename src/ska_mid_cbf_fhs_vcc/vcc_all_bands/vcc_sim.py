@@ -142,6 +142,7 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
 
     @property
     def _health_state(self: SimVCCAllBandsCM) -> HealthState:
+        self.logger.error(self.attribute_overrides_queue_dict)
         return self.get_attribute_override("healthState")
 
     @property
@@ -224,7 +225,7 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
             self.component_manager.command_overrides_queue_dict.update_all(value_dict["commands"])
         else:
             self.logger.info("No command overrides provided")
-
+        self.logger.error(f"Attribute override Dict Before pushing: {self.component_manager.attribute_overrides_queue_dict.queue_dict['healthState'].queue}")
         if "attributes" in value_dict:
             for attr_name, value in value_dict["attributes"].items():
                 # Convert to enum value if enum attribute
