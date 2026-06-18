@@ -36,17 +36,19 @@ spec:
               PACKAGE="ska-mid-cbf-${BITSTREAM_ID}"
               TARBALL="${PACKAGE}-${BITSTREAM_VER}.tar.gz"
               BAR_URL="{{ $.Values.bar.url }}"
-              echo "BAR_URL=$BAR_URL"
-              echo "BAR_API_TOKEN=$BAR_API_TOKEN"
               if [ -n "$BAR_API_TOKEN" ]; then
                 download_url="${BAR_URL}/${PACKAGE}/versions/${BITSTREAM_VER}/assets/${TARBALL}?format=raw"
                 echo "download_url = $download_url"
-                curl -v -H "Authorization: Bearer ${BAR_API_TOKEN}" "${download_url}"
               fi
+
               if [ ! -d {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH ]; then
                 echo "Downloading bitstream $BITSTREAM_SUBPATH"
-                curl -f -L -o /tmp/$TARBALL {{ if $bitstream.gitlab_bitstream_url_override -}} {{ $bitstream.gitlab_bitstream_url_override }} {{- else -}} https://artefact.skao.int/repository/raw-internal/$TARBALL {{- end }} ||
-                echo "Could not locate tarball: $TARBALL" ;
+                {{- if $bitstream.gitlab_bitstream_url_override }}
+                  curl -f -L -o /tmp/$TARBALL {{ $bitstream.gitlab_bitstream_url_override }}
+                {{- else }}
+                  curl -f -L -o /tmp/$TARBALL -H "Authorization: Bearer ${BAR_API_TOKEN}" "${download_url}"
+                {{- end }}
+
                 if [ -f /tmp/$TARBALL ]; then
                   mkdir -p {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH
                   tar xvzf /tmp/$TARBALL -C {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH {{ if $bitstream.gitlab_bitstream_url_override -}} --strip-components=3 {{- end }} ;
@@ -55,7 +57,6 @@ spec:
                 echo "Bitstream $BITSTREAM_SUBPATH has already been downloaded (probably by another download job)." ;
               fi
               {{ end -}}
-              find {{ $.Values.bitstreamMountPath }}
               tail -f /dev/null
           env:
           - name: BAR_URL
