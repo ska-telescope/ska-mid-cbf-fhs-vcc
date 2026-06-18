@@ -30,33 +30,40 @@ spec:
             - |
               apk add --no-cache curl tar
               {{ range $index, $bitstream := values $.Values.properties.bitstreams -}}
+              {{- $gitlab_url := $bitstream.gitlab_bitstream_url_override }}
               BITSTREAM_ID={{ $bitstream.id }}
               BITSTREAM_VER={{ $bitstream.version }}
               BITSTREAM_SUBPATH=$BITSTREAM_ID/$BITSTREAM_VER
               PACKAGE="ska-mid-cbf-${BITSTREAM_ID}"
               TARBALL="${PACKAGE}-${BITSTREAM_VER}.tar.gz"
               BAR_URL="{{ $.Values.bar.url }}"
-              if [ -n "$BAR_API_TOKEN" ]; then
-                download_url="${BAR_URL}/${PACKAGE}/versions/${BITSTREAM_VER}/assets/${TARBALL}?format=raw"
-                echo "download_url = $download_url"
-              fi
+              TARGET_DIR="{{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH"
 
-              if [ ! -d {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH ]; then
+              {{- if not $gitlab_url }}
+              if [ -z "$BAR_API_TOKEN" ]; then
+                echo "ERROR: BAR_API_TOKEN is a required environmental variable to download bitstream from BAR"
+                exit 1
+              fi
+              download_url="${BAR_URL}/${PACKAGE}/versions/${BITSTREAM_VER}/assets/${TARBALL}?format=raw"
+              echo "download_url = $download_url"
+
+              if [ ! -d "$TARGET_DIR" ]; then
                 echo "Downloading bitstream $BITSTREAM_SUBPATH"
-                {{- if $bitstream.gitlab_bitstream_url_override }}
-                  curl -f -L -o /tmp/$TARBALL {{ $bitstream.gitlab_bitstream_url_override }}
+                {{- if $gitlab_url }}
+                  curl -f -L -o "/tmp/${TARBALL}" "{{ $gitlab_url }}"
                 {{- else }}
-                  curl -f -L -o /tmp/$TARBALL -H "Authorization: Bearer ${BAR_API_TOKEN}" "${download_url}"
+                  curl -f -L -o "/tmp/${TARBALL}" -H "Authorization: Bearer ${BAR_API_TOKEN}" "${download_url}"
                 {{- end }}
 
-                if [ -f /tmp/$TARBALL ]; then
-                  mkdir -p {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH
-                  tar xvzf /tmp/$TARBALL -C {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH {{ if $bitstream.gitlab_bitstream_url_override -}} --strip-components=3 {{- end }} ;
+                if [ -f "/tmp/${TARBALL}" ]; then
+                  mkdir -p "$TARGET_DIR"
+                  tar xvzf "/tmp/${TARBALL}" -C "$TARGET_DIR" {{ if $gitlab_url -}} --strip-components=3 {{- end }} ;
                 fi ;
               else \
                 echo "Bitstream $BITSTREAM_SUBPATH has already been downloaded (probably by another download job)." ;
               fi
               {{ end -}}
+              find {{ $.Values.bitstreamMountPath }}
               tail -f /dev/null
           env:
           - name: BAR_URL
