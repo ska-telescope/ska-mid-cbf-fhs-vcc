@@ -183,6 +183,20 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
     # FSPCorrController.
     # Note: Changing FhsSimMode's constructor to pass on the callbacks won't work
     # as it causes issues with Boost template matching and throws errors
+
+    def set_local_change_events(self) -> None:
+        super().set_local_change_events()
+        self.set_change_event("healthState", True)
+        self.set_archive_event("healthState", True)
+
+    @attribute(dtype=HealthState, abs_change=1)
+    def healthState(self) -> HealthState:
+        """
+        Overrides the signal healthState attribute for a simulate value
+        """
+
+        return self.component_manager._health_state
+
     @attribute(
         dtype=str,
         doc="Attribute value overrides (JSON dict)",
@@ -225,7 +239,9 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
             self.component_manager.command_overrides_queue_dict.update_all(value_dict["commands"])
         else:
             self.logger.info("No command overrides provided")
-        self.logger.error(f"Attribute override Dict Before pushing: {self.component_manager.attribute_overrides_queue_dict.queue_dict['healthState'].queue}")
+        self.logger.error(
+            f"Attribute override Dict Before pushing: {self.component_manager.attribute_overrides_queue_dict.queue_dict['healthState'].queue} for value dict:{value_dict}"
+        )
         if "attributes" in value_dict:
             for attr_name, value in value_dict["attributes"].items():
                 # Convert to enum value if enum attribute
