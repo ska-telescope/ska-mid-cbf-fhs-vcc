@@ -64,13 +64,13 @@ spec:
               find {{ $.Values.bitstreamMountPath }}
               tail -f /dev/null
           env:
-          - name: BAR_URL
-            value: {{ .Values.bar.url | quote }}
-          - name: BAR_API_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "ska-mid-cbf-fhs-vcc-bar-secret" . }}
-                key: BAR_API_TOKEN
+            - name: BAR_URL
+              value: {{ .Values.bar.url | quote }}
+            - name: BAR_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ska-mid-cbf-fhs-vcc-bar-secret" . }}
+                  key: BAR_API_TOKEN
           volumeMounts:
             - name: bitstream-pv
               mountPath: {{ .Values.bitstreamMountPath }}
