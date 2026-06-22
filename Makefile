@@ -91,6 +91,10 @@ ifeq ($(MINIKUBE),true)
 K8S_CHART_PARAMS += --set bar.secret.bar_api_token="$(BAR_API_TOKEN)"
 endif
 
+ifeq ($(MINIKUBE),false)
+K8S_CHART_PARAMS += --set bar.secret.vault.enabled="true"
+endif
+
 # shared lint config file var definitions
 LINTCFG_DIR = tools/ska-mid-cbf-linter
 PYLINT_CONFIG_FILE = $(LINTCFG_DIR)/.pylintrc
