@@ -92,7 +92,7 @@ K8S_CHART_PARAMS += --set bar.secret.bar_api_token="$(BAR_API_TOKEN)"
 endif
 
 ifeq ($(MINIKUBE),false)
-K8S_CHART_PARAMS += --set bar.secret.vault.enabled="true"
+K8S_CHART_PARAMS += --set bar.secret.vault.enabled=true
 endif
 
 # shared lint config file var definitions
