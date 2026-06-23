@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.12
+******
+* Revert boogie image version to 0.2.7 due to a discovered breaking issue in 0.2.8
+
 0.3.11
 ******
 * Fetch tango boogie image from harbor instead of gitlab + update version
