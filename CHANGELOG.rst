@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.11
+******
+* Fetch tango boogie image from harbor instead of gitlab + update version
+
 0.3.10
 ******
 * CIP-5078: Enable HealthState for VCC All Bands Simulation
