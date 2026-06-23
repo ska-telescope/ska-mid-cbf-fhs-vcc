@@ -5,7 +5,7 @@ image:
   pullPolicy: Always
   repository: harbor.skao.int/production
   image: ska-tango-images-tango-boogie
-  tag: 0.2.8
+  tag: 0.2.7
 
 service:
   type: ClusterIP
