@@ -35,9 +35,11 @@ VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
 
 # Add any attributes that are configured for change/archive events to these sets
 VCC_SIM_CHANGE_EVENT_ATTRS = {
+    "healthState",  # healthState updated here on top of sim base for unit tests
     "subarrayID",
 }
 VCC_SIM_ARCHIVE_EVENT_ATTRS = {
+    "healthState",  # healthState updated here on top of sim base for unit tests
     "subarrayID",
 }
 
