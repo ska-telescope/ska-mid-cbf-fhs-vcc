@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.11
+******
+* CIP-5528: Move simOverrides push events into base simulator mixin
+
 0.3.10
 ******
 * CIP-5078: Enable HealthState for VCC All Bands Simulation

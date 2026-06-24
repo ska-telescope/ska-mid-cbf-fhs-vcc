@@ -171,7 +171,7 @@ class TestVCCAllBandsSim:
             ("inputSampleRate", 1),
             ("frequencyBandOffset", 2 * [1]),
             ("subarrayID", 1),
-            ("healthState", HealthState.OK)
+            ("healthState", HealthState.FAILED)
         ],
     )
     def test_attribute_overrides(
@@ -181,7 +181,6 @@ class TestVCCAllBandsSim:
         attribute_new_value: Any,
     ) -> None:
         """Test overriding attributes"""
-        attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
 
         # Override attribute with new value
         sim_vcc_all_bands_device.simOverrides = json.dumps(

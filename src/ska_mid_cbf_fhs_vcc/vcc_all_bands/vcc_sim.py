@@ -13,8 +13,6 @@ from __future__ import annotations
 from functools import partial
 from typing import Any
 
-from ska_control_model import HealthState
-from ska_mid_cbf_fhs_common.helpers.long_running_command_result_buffer import LongRunningCommandResultBuffer
 from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, SimModeObsCMBase
 from tango.server import run
 
@@ -27,7 +25,6 @@ __all__ = ["SimVCCAllBandsCM", "SimVCCAllBandsController"]
 # Default simulator attribute return values are initialized with this dict
 VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
     "expectedDishId": "",
-    "healthState": HealthState.OK,
     "requestedRFIHeadroom": [0],
     "vccGains": [0],
     "frequencyBand": FrequencyBandEnum._1,
@@ -39,11 +36,9 @@ VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
 # Add any attributes that are configured for change/archive events to these sets
 VCC_SIM_CHANGE_EVENT_ATTRS = {
     "subarrayID",
-    "healthState",
 }
 VCC_SIM_ARCHIVE_EVENT_ATTRS = {
     "subarrayID",
-    "healthState",
 }
 
 
@@ -62,8 +57,6 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
         super().__init__(*args, **kwargs)
 
         # Setup attribute read overrides
-
-        self.enum_attrs.update({"healthState": HealthState})
         self.enum_attrs.update({"frequencyBand": FrequencyBandEnum})
         self.attribute_overrides.update(VCC_SIM_DEFAULT_ATTRIBUTE_VALUES)
         self._change_event_attrs = VCC_SIM_CHANGE_EVENT_ATTRS
@@ -137,11 +130,6 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
         self.obs_reset = partial(self.sim_command, command_name="ObsReset", transaction_id="TEST_OBS")
         self.update_subarray_membership = partial(self.sim_command, command_name="UpdateSubarrayMembership", transaction_id="TEST_USM")
         self.auto_set_filter_gains = partial(self.sim_command, command_name="AutoSetFilterGains", transaction_id="TEST_ASFG")
-        self.long_running_command_result_buffer = LongRunningCommandResultBuffer(max_size=1000)
-
-    @property
-    def _health_state(self: SimVCCAllBandsCM) -> HealthState:
-        return self.get_attribute_override("healthState")
 
     @property
     def expected_dish_id(self: SimVCCAllBandsCM) -> str:
@@ -175,6 +163,10 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
 class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
     change_event_attributes = VCC_SIM_CHANGE_EVENT_ATTRS
     archive_event_attributes = VCC_SIM_ARCHIVE_EVENT_ATTRS
+
+    def read_healthState(self):
+        """Re-direct the BaseInterface healthState read to the simulator mixin to use override values."""
+        return FhsObsSimMode.read_healthState(self)
 
     def create_component_manager(self: SimVCCAllBandsController) -> SimVCCAllBandsCM:
         return SimVCCAllBandsCM(
