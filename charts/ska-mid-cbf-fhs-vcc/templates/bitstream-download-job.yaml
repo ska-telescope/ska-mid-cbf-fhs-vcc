@@ -12,7 +12,13 @@ spec:
   destination:
     name: ska-mid-cbf-fhs-vcc-bar-secret
     create: true
----
+    overwrite: true
+    transformation:
+      excludeRaw: true
+      includes:
+      {{- range .Values.bar.secret.vault.secretKeys }}
+        - {{ . }}
+      {{- end }}
 {{- end }}
 
 apiVersion: batch/v1
