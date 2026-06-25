@@ -18,7 +18,7 @@ from typing import Any
 
 import pytest
 from assertpy import assert_that
-from ska_control_model import AdminMode, ObsState, ResultCode
+from ska_control_model import AdminMode, HealthState, ObsState, ResultCode
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim import SimVCCAllBandsController, VCC_SIM_DEFAULT_ATTRIBUTE_VALUES
 from ska_tango_testing.integration import TangoEventTracer
 from tango import DevState
@@ -171,6 +171,7 @@ class TestVCCAllBandsSim:
             ("inputSampleRate", 1),
             ("frequencyBandOffset", 2 * [1]),
             ("subarrayID", 1),
+            ("healthState", HealthState.OK)
         ],
     )
     def test_attribute_overrides(
