@@ -51,7 +51,7 @@ spec:
                 exit 1
               fi
               download_url="${BAR_URL}/${PACKAGE}/versions/${BITSTREAM_VER}/assets/${TARBALL}?format=raw"
-              echo "download_url = $download_url"
+              echo "BAR download_url = ${download_url}"
               {{- end}}
               if [ ! -d "$TARGET_DIR" ]; then
                 echo "Downloading bitstream $BITSTREAM_SUBPATH"
@@ -69,7 +69,6 @@ spec:
               fi
               {{ end -}}
               find {{ $.Values.bitstreamMountPath }}
-              tail -f /dev/null
           env:
             - name: BAR_URL
               value: {{ .Values.bar.url | quote }}
