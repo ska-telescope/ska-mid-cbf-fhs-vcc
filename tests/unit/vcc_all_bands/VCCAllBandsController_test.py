@@ -129,31 +129,25 @@ class TestVCCAllBandsController:
             yield test_context
 
     def test_init(self, vcc_all_bands_device: VCCAllBandsController):
-        state = vcc_all_bands_device.state()
-        assert state == DevState.DISABLE
+        assert vcc_all_bands_device.state() == DevState.ON
 
     def test_admin_mode_online(self, vcc_all_bands_device: VCCAllBandsController):
-        prev_admin_mode = vcc_all_bands_device.read_attribute("adminMode")
+        assert vcc_all_bands_device.adminMode == AdminMode.ONLINE
 
-        assert prev_admin_mode.value == AdminMode.OFFLINE.value
-
-        vcc_all_bands_device.write_attribute("adminMode", 0)
-
-        admin_mode = vcc_all_bands_device.read_attribute("adminMode")
-
-        assert admin_mode.value == AdminMode.ONLINE.value
-
-    def test_admin_mode_offline(self, vcc_all_bands_device: VCCAllBandsController):
-        self.test_admin_mode_online(vcc_all_bands_device)
-        prev_admin_mode = vcc_all_bands_device.read_attribute("adminMode")
-
-        assert prev_admin_mode.value == AdminMode.ONLINE.value
-
-        vcc_all_bands_device.write_attribute("adminMode", 1)
-
-        admin_mode = vcc_all_bands_device.read_attribute("adminMode")
-
-        assert admin_mode.value == AdminMode.OFFLINE.value
+    def test_admin_mode_offline(
+        self,
+        vcc_all_bands_device: VCCAllBandsController,
+        vcc_all_bands_event_tracer: TangoEventTracer,
+    ):
+        vcc_all_bands_device.adminMode = AdminMode.OFFLINE
+        assert_that(vcc_all_bands_event_tracer).within_timeout(
+            EVENT_TIMEOUT
+        ).has_change_event_occurred(
+            device_name=vcc_all_bands_device,
+            attribute_name="adminMode",
+            attribute_value=AdminMode.OFFLINE,
+            previous_value=AdminMode.ONLINE,
+        )
 
     @pytest.mark.parametrize(
         ("current_subarray", "new_subarray", "expected_result"),
@@ -545,8 +539,6 @@ class TestVCCAllBandsController:
         headrooms = headroom_dict.get("headrooms")
         with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
             config_json = f.read()
-
-        vcc_all_bands_device.write_attribute("adminMode", 0)
 
         vcc_all_bands_device.command_inout("ConfigureScan", config_json)
             

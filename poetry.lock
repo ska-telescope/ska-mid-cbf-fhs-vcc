@@ -3565,14 +3565,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.3.1+dev.c4344e9db"
+version = "0.3.1+dev.c20185384"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.3.1+dev.c4344e9db-py3-none-any.whl", hash = "sha256:dbc6fb2792d4b0ca46d83bb6f9b1d74eb356ec740954a40eb0c7f89aa1e603b0"},
-    {file = "ska_mid_cbf_fhs_common-0.3.1+dev.c4344e9db.tar.gz", hash = "sha256:df5eff3afe829617aa9e57464fc39063b2a1449a72d7c0e913ea793c09fb71ff"},
+    {file = "ska_mid_cbf_fhs_common-0.3.1+dev.c20185384-py3-none-any.whl", hash = "sha256:8215901cc530c7a7f68753b6e01912ab2f29366a89195b9da4a2ff7220bf2ee5"},
+    {file = "ska_mid_cbf_fhs_common-0.3.1+dev.c20185384.tar.gz", hash = "sha256:e9dc7e2868378ae50a835467ee79bbeac32d2c3e16c3af88e0dbf71a34bcf89c"},
 ]
 
 [package.dependencies]
@@ -3593,6 +3593,7 @@ ska-ser-log-transactions = ">=0.2.2+ae0f5c92,<0.3.0"
 ska-tango-base = "1.4.2"
 ska-tango-testing = "0.9.0"
 ska-telmodel = "1.33.0"
+tenacity = ">=9.1.4,<10.0.0"
 typing-extensions = ">=4.8.0,<5.0.0"
 
 [package.source]
@@ -4227,6 +4228,27 @@ url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
 reference = "gitlab-fhs-common"
 
 [[package]]
+name = "tenacity"
+version = "9.1.4"
+description = "Retry code until it succeeds"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "tenacity-9.1.4-py3-none-any.whl", hash = "sha256:6095a360c919085f28c6527de529e76a06ad89b23659fa881ae0649b867a9d55"},
+    {file = "tenacity-9.1.4.tar.gz", hash = "sha256:adb31d4c263f2bd041081ab33b498309a57c77f9acf2db65aadf0898179cf93a"},
+]
+
+[package.extras]
+doc = ["reno", "sphinx"]
+test = ["pytest", "tornado (>=4.5)", "typeguard"]
+
+[package.source]
+type = "legacy"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
+
+[[package]]
 name = "tomli"
 version = "2.4.1"
 description = "A lil' TOML parser"
@@ -4467,4 +4489,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "ee3e7e300a72193dbceb57eb4709f8b210dc0acfc5b72932778892d71a87ea80"
+content-hash = "b4b466505e6791332fdbce337cb07ad762549af81c0a071bc4b7ce244bc2b236"
