@@ -13,8 +13,8 @@ from __future__ import annotations
 from functools import partial
 from typing import Any
 
-from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, SimModeObsCMBase
-from tango.server import run
+from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, HealthState, SimModeObsCMBase
+from tango.server import attribute, run
 
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
@@ -169,6 +169,20 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
     def read_healthState(self):
         """Re-direct the BaseInterface healthState read to the simulator mixin to use override values."""
         return FhsObsSimMode.read_healthState(self)
+
+    @attribute(
+        dtype=HealthState,
+        description="Read the current HealthState override of the simulator.",
+    )  # type: ignore[misc]
+    def healthState(self) -> HealthState:
+        """
+        Read the current healthState override.
+        This attribute is common to all devices inheriting BaseInterface, so overridden
+        in the base simulator classes for simplicity.
+
+        :return: HealthState value
+        """
+        return self.read_healthState()
 
     def create_component_manager(self: SimVCCAllBandsController) -> SimVCCAllBandsCM:
         return SimVCCAllBandsCM(
