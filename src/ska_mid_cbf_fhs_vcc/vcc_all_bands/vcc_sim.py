@@ -14,7 +14,7 @@ from functools import partial
 from typing import Any
 
 from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, HealthState, SimModeObsCMBase
-from tango.server import attribute, run
+from tango.server import run
 
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
@@ -168,22 +168,9 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
     change_event_attributes = VCC_SIM_CHANGE_EVENT_ATTRS
     archive_event_attributes = VCC_SIM_ARCHIVE_EVENT_ATTRS
 
-    def set_local_change_events(self) -> None:
-        super().set_local_change_events()
-        self.set_change_event("healthState", True)
-        self.set_archive_event("healthState", True)
-
     def read_healthState(self):
         """Re-direct the BaseInterface healthState read to the simulator mixin to use override values."""
-        return FhsObsSimMode.read_healthState(self)
-
-    @attribute(dtype=HealthState, abs_change=1)
-    def healthState(self) -> HealthState:
-        """
-        Overrides the signal healthState attribute for a simulate value
-        """
-
-        return self.read_healthState()
+        return self.component_manager.attribute_overrides_queue_dict.get("healthState")
 
     def create_component_manager(self: SimVCCAllBandsController) -> SimVCCAllBandsCM:
         return SimVCCAllBandsCM(
