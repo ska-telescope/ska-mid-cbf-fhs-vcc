@@ -10,7 +10,8 @@ UNRELEASED CHANGES
 
 0.3.13
 ******
-* CIP-5528: Move simOverrides push events into base simulator mixin
+* CIP-5528: Make simulator healthState sticky and push override events
+            Auto-set adminMode to ONLINE via FhsBaseDevice
 
 0.3.12
 ******
