@@ -13,6 +13,7 @@ from __future__ import annotations
 from functools import partial
 from typing import Any
 
+from ska_control_model import HealthState
 from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, SimModeObsCMBase
 from tango.server import run
 
@@ -24,6 +25,7 @@ __all__ = ["SimVCCAllBandsCM", "SimVCCAllBandsController"]
 
 # Default simulator attribute return values are initialized with this dict
 VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
+    "healthState": HealthState.OK,  # healthState updated here on top of sim base for unit tests
     "expectedDishId": "",
     "requestedRFIHeadroom": [0],
     "vccGains": [0],
@@ -166,9 +168,13 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
     change_event_attributes = VCC_SIM_CHANGE_EVENT_ATTRS
     archive_event_attributes = VCC_SIM_ARCHIVE_EVENT_ATTRS
 
-    def read_healthState(self):
-        """Re-direct the BaseInterface healthState read to the simulator mixin to use override values."""
-        return FhsObsSimMode.read_healthState(self)
+    def read_healthState(self) -> HealthState:
+        """
+        Read the latest healthState override.
+
+        :return HealthState:
+        """
+        return self.component_manager.attribute_overrides_queue_dict.peek("healthState")
 
     def create_component_manager(self: SimVCCAllBandsController) -> SimVCCAllBandsCM:
         return SimVCCAllBandsCM(

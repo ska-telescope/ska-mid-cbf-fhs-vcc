@@ -125,6 +125,30 @@ class TestVCCAllBandsSim:
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
         assert getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
 
+    def test_healthState_override(
+        self: TestVCCAllBandsSim,
+        sim_vcc_all_bands_device: Any,
+    ) -> None:
+        """Test overriding attributes"""
+        assert sim_vcc_all_bands_device.healthState == HealthState.OK
+
+        # Override healthState with new value
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "attributes": {
+                    "healthState": HealthState.FAILED,
+                }
+            }
+        )
+
+        # Check value changes, and is not reset when read successively
+        assert sim_vcc_all_bands_device.healthState == HealthState.FAILED
+        assert sim_vcc_all_bands_device.healthState == HealthState.FAILED
+
+        # Check value can be reset to default by reading simOverrides
+        _ = sim_vcc_all_bands_device.simOverrides
+        assert sim_vcc_all_bands_device.healthState == HealthState.OK
+
     @pytest.mark.parametrize(
         "attribute_name, attribute_new_value",
         [
@@ -135,7 +159,6 @@ class TestVCCAllBandsSim:
             ("inputSampleRate", 1),
             ("frequencyBandOffset", 2 * [1]),
             ("subarrayID", 1),
-            ("healthState", HealthState.FAILED)
         ],
     )
     def test_attribute_overrides(
