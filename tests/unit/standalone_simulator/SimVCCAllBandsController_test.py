@@ -128,6 +128,8 @@ class TestVCCAllBandsSim:
     def test_healthState_override(
         self: TestVCCAllBandsSim,
         sim_vcc_all_bands_device: Any,
+        sim_vcc_all_bands_event_tracer: TangoEventTracer,
+        event_timeout: int,
     ) -> None:
         """Test overriding attributes"""
         assert sim_vcc_all_bands_device.healthState == HealthState.OK
@@ -141,7 +143,17 @@ class TestVCCAllBandsSim:
             }
         )
 
-        # Check value changes, and is not reset when read successively
+        # Check event
+        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+            event_timeout
+        ).has_change_event_occurred(
+            device_name=sim_vcc_all_bands_device,
+            attribute_name="healthState",
+            attribute_value=HealthState.FAILED,
+            previous_value=HealthState.OK,
+        )
+
+        # Check value change is not reset when read successively
         assert sim_vcc_all_bands_device.healthState == HealthState.FAILED
         assert sim_vcc_all_bands_device.healthState == HealthState.FAILED
 
