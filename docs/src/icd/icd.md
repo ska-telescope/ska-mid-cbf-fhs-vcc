@@ -190,7 +190,8 @@ n/a
 n/a
 
 ### `ConfigureVCCBITE()`
-#### Parameters
+#### Parameters  
+
 | Name                              | Type   | Description                                                                                                                                                       | Required / Optional | Range / Constraints |
 |-----------------------------------|--------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|----------------------|
 | `dish_id`                         | string | Identifier of the dish that this VCC belongs to.                                                                                                                  | **Required**        | `MKT000‑MKT063` or `SKA001‑SKA133` |
@@ -208,15 +209,15 @@ n/a
 | `noise_info.Y.seed`               | uint32 | RNG seed for the Y‑polarisation noise.                                                                                                                            | **Required**        | ≥ 0 |
 | `noise_info.Y.standardDeviation`  | double | Std‑dev of the Y‑polarisation noise.                                                                                                                              | **Required**        | 0 ≤ σ ≤ 0.144337 |
 | `noise_info.Y.mean`               | double | Mean of the Y‑polarisation noise.                                                                                                                                 | **Required**        | –1 ≤ μ ≤ 1 |
-| `noise_diode`                     | object | Configuration of the built‑in noise‑diode test pattern.                                                                                                            | **Required**        | – |
-| `noise_diode.dwell_time_us`       | uint32 | Dwell time of each diode state (µs).                                                                                                                               | **Required**        | ≥ 0 |
-| `noise_diode.nd_pattern_type`    | string | Pattern type – e.g. `random`, `periodic`, etc.                                                                                                                    | **Required**        | non‑empty |
-| `noise_diode.X.seed`              | uint32 | RNG seed for X‑polarisation diode noise.                                                                                                                          | **Required**        | ≥ 0 |
-| `noise_diode.X.standardDeviation` | double | Std‑dev for X‑polarisation diode noise.                                                                                                                          | **Required**        | 0 ≤ σ ≤ 0.144337 |
-| `noise_diode.X.mean`              | double | Mean for X‑polarisation diode noise.                                                                                                                              | **Required**        | –1 ≤ μ ≤ 1 |
-| `noise_diode.Y.seed`              | uint32 | RNG seed for Y‑polarisation diode noise.                                                                                                                          | **Required**        | ≥ 0 |
-| `noise_diode.Y.standardDeviation` | double | Std‑dev for Y‑polarisation diode noise.                                                                                                                          | **Required**        | 0 ≤ σ ≤ 0.144337 |
-| `noise_diode.Y.mean`              | double | Mean for Y‑polarisation diode noise.                                                                                                                              | **Required**        | –1 ≤ μ ≤ 1 |
+| **`noise_diode`**                 | **object** | **Configuration of the built‑in noise‑diode test pattern.** *(now optional)*                                                                                       | ***Optional***      | – |
+| `noise_diode.dwell_time_us`       | uint32 | Dwell time of each diode state (µs).                                                                                                                               | **Required if `noise_diode` present** | ≥ 0 |
+| `noise_diode.nd_pattern_type`    | string | Pattern type – e.g. `random`, `periodic`, etc.                                                                                                                    | **Required if `noise_diode` present** | non‑empty |
+| `noise_diode.X.seed`              | uint32 | RNG seed for X‑polarisation diode noise.                                                                                                                          | **Required if `noise_diode` present** | ≥ 0 |
+| `noise_diode.X.standardDeviation` | double | Std‑dev for X‑polarisation diode noise.                                                                                                                          | **Required if `noise_diode` present** | 0 ≤ σ ≤ 0.144337 |
+| `noise_diode.X.mean`              | double | Mean for X‑polarisation diode noise.                                                                                                                              | **Required if `noise_diode` present** | –1 ≤ μ ≤ 1 |
+| `noise_diode.Y.seed`              | uint32 | RNG seed for Y‑polarisation diode noise.                                                                                                                          | **Required if `noise_diode` present** | ≥ 0 |
+| `noise_diode.Y.standardDeviation` | double | Std‑dev for Y‑polarisation diode noise.                                                                                                                          | **Required if `noise_diode` present** | 0 ≤ σ ≤ 0.144337 |
+| `noise_diode.Y.mean`              | double | Mean for Y‑polarisation diode noise.                                                                                                                              | **Required if `noise_diode` present** | –1 ≤ μ ≤ 1 |
 | `correlation`                     | object | Optional polarisation‑coupling and timing‑offset settings.                                                                                                        | *Optional*          | – |
 | `correlation.pol_coupling_rho`   | double | Polarisation coupling coefficient (ρ).                                                                                                                            | *Optional*          | –1 ≤ ρ ≤ 1 |
 | `correlation.pol_Y_1_sample_delay`| bool  | If **true**, Y‑polarisation is delayed by one sample relative to X.                                                                                               | *Optional*          | true / false |
