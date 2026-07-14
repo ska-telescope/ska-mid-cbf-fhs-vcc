@@ -7,6 +7,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 UNRELEASED CHANGES
 ******************
+* CIP-5856: Switch to downloading bitstream from BAR instead of CAR
 
 0.3.13
 ******

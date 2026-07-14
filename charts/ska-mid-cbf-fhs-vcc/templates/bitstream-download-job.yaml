@@ -1,4 +1,27 @@
 {{- if .Values.bitstreamDownloadJob.enabled }}
+
+{{- if .Values.bar.secret.vault.enabled }}
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: ska-mid-cbf-fhs-vcc-bar-secret
+spec:
+  type: kv-v2
+  mount: {{ .Values.bar.secret.vault.mount }}
+  path: {{ .Values.bar.secret.vault.secretPath }}
+  destination:
+    name: ska-mid-cbf-fhs-vcc-bar-secret
+    create: true
+    overwrite: true
+    transformation:
+      excludeRaw: true
+      includes:
+      {{- range .Values.bar.secret.vault.secretKeys }}
+        - {{ . }}
+      {{- end }}
+---
+{{- end }}
+
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -9,28 +32,54 @@ spec:
       containers:
         - name: fhs-vcc-bitstream-download-job
           image: alpine:latest
-          command: ["sh", "-c"]
+          command: ["sh", "-ec"]
           args:
             - |
-              apk add --no-cache curl tar && \
+              apk add --no-cache curl tar
               {{ range $index, $bitstream := values $.Values.properties.bitstreams -}}
-              BITSTREAM_ID={{ $bitstream.id }} && \
-              BITSTREAM_VER={{ $bitstream.version }} && \
-              BITSTREAM_SUBPATH=$BITSTREAM_ID/$BITSTREAM_VER && \
-              TARBALL="ska-mid-cbf-$BITSTREAM_ID-$BITSTREAM_VER.tar.gz" && \
-              if [ ! -d {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH ]; then \
-                echo "Downloading bitstream $BITSTREAM_SUBPATH" && \
-                curl -f -L -o /tmp/$TARBALL {{ if $bitstream.gitlab_bitstream_url_override -}} {{ $bitstream.gitlab_bitstream_url_override }} {{- else -}} https://artefact.skao.int/repository/raw-internal/$TARBALL {{- end }} || \
-                echo "Could not locate tarball: $TARBALL" ; \
-                if [ -f /tmp/$TARBALL ]; then \
-                  mkdir -p {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH && \
-                  tar xvzf /tmp/$TARBALL -C {{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH {{ if $bitstream.gitlab_bitstream_url_override -}} --strip-components=3 {{- end }} ; \
-                fi ; \
-              else \
-                echo "Bitstream $BITSTREAM_SUBPATH has already been downloaded (probably by another download job)." ; \
-              fi && \
+              {{- $GITLAB_DOWNLOAD_URL := $bitstream.gitlab_bitstream_url_override }}
+              BITSTREAM_ID={{ $bitstream.id }}
+              BITSTREAM_VER={{ $bitstream.version }}
+              BITSTREAM_SUBPATH=$BITSTREAM_ID/$BITSTREAM_VER
+              PACKAGE="ska-mid-cbf-${BITSTREAM_ID}"
+              TARBALL="${PACKAGE}-${BITSTREAM_VER}.tar.gz"
+              BAR_URL="{{ $.Values.bar.url }}"
+              TARGET_DIR="{{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH"
+              {{- if not $GITLAB_DOWNLOAD_URL }}
+              if [ -z "$BAR_API_TOKEN" ]; then
+                echo "ERROR: BAR_API_TOKEN is a required environmental variable to download bitstream from BAR"
+                exit 1
+              fi
+              BAR_DOWNLOAD_URL="${BAR_URL}/${PACKAGE}/versions/${BITSTREAM_VER}/assets/${TARBALL}?format=raw"
+              {{- end}}
+              if [ ! -d "$TARGET_DIR" ]; then
+                MSG="Downloading bitstream $BITSTREAM_SUBPATH from"
+                {{- if $GITLAB_DOWNLOAD_URL }}
+                  MSG="$MSG Gitlab: {{ $GITLAB_DOWNLOAD_URL }}"
+                  echo "$MSG"
+                  curl -f -L -o "/tmp/${TARBALL}" "{{ $GITLAB_DOWNLOAD_URL }}"
+                {{- else }}
+                  MSG="$MSG BAR: $BAR_DOWNLOAD_URL"
+                  echo "$MSG"
+                  curl -f -L -o "/tmp/${TARBALL}" -H "Authorization: Bearer ${BAR_API_TOKEN}" "${BAR_DOWNLOAD_URL}"
+                {{- end }}
+                if [ -f "/tmp/${TARBALL}" ]; then
+                  mkdir -p "$TARGET_DIR"
+                  tar xvzf "/tmp/${TARBALL}" -C "$TARGET_DIR" {{ if $GITLAB_DOWNLOAD_URL -}} --strip-components=3 {{- end }}
+                fi
+              else
+                echo "Bitstream $BITSTREAM_SUBPATH has already been downloaded (probably by another download job)."
+              fi
               {{ end -}}
               find {{ $.Values.bitstreamMountPath }}
+          env:
+            - name: BAR_URL
+              value: {{ .Values.bar.url | quote }}
+            - name: BAR_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ska-mid-cbf-fhs-vcc-bar-secret" . }}
+                  key: BAR_API_TOKEN
           volumeMounts:
             - name: bitstream-pv
               mountPath: {{ .Values.bitstreamMountPath }}

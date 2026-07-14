@@ -27,9 +27,21 @@ global:
       tag: 1.5.13
       pullPolicy: IfNotPresent
 
+bar:
+  url: "https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/artefacts"
+  secret:
+    # bar_api_token needs to be populated if vault.enabled: false; otherwise it is extracted from Vault
+    bar_api_token: ""
+    vault:
+      enabled: false
+      mount: psi-mid
+      secretPath: production/bar-api-token
+      secretKeys:
+        - "BAR_API_TOKEN"
+
 midcbf:
   image:
-    registry: docker.io/library
+    registry: harbor.skao.int/production
     image: ska-mid-cbf-fhs-vcc
     tag: 0.3.13
     pullPolicy: IfNotPresent
@@ -99,7 +111,7 @@ properties:
   bitstreams:
     vcc:
       id: "agilex-vcc"
-      version: "0.1.2"
+      version: "1.0.3"
   bitstreamKey: "vcc"
   emulatorId: "fhs-vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
