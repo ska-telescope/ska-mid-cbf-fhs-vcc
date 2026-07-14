@@ -7,7 +7,12 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 UNRELEASED CHANGES
 ******************
+
+0.3.13
+******
 * CIP-5856: Switch to downloading bitstream from BAR instead of CAR
+* CIP-5528: Make simulator healthState sticky and push override events
+            Auto-set adminMode to ONLINE via FhsBaseDevice
 
 0.3.12
 ******
