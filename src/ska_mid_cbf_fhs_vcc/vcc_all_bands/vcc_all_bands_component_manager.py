@@ -34,6 +34,7 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_man
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.utils.admin_online import VccAdminOnline
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsAutoSetFilterGainsSchema, VCCAllBandsConfigureScanConfig
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
@@ -163,8 +164,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         self._obs_state_action_callback = obs_state_action_callback if obs_state_action_callback is not None else self._default_callback
         self._obs_command_running_callback = obs_command_running_callback if obs_command_running_callback is not None else self._default_callback
 
-    def _controller_specific_setup(self) -> None:
+    def _device_specific_setup(self) -> None:
         """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
+        self.admin_mode_online_check = VccAdminOnline(
+            logger=self.logger,
+            simulation_mode=self.simulation_mode,
+        )
+
         self._vcc_id = self.device.device_id
         self._config_id = ""
         self._scan_id = 0

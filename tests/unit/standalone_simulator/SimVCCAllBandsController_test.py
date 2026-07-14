@@ -72,49 +72,13 @@ class TestVCCAllBandsSim:
         with harness as test_context:
             yield test_context
 
-    def device_online_and_on(
-        self: TestVCCAllBandsSim,
-        sim_vcc_all_bands_device: Any,
-        sim_vcc_all_bands_event_tracer: TangoEventTracer,
-        event_timeout: int,
-    ) -> bool:
-        """Helper function that starts up and turns on the DUT.
-
-        Args:
-            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
-            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer for the device under test.
-
-        Returns:
-            :obj:`bool`: True if AdminMode was successfuly set ONLINE, False otherwise.
-        """
-        # Set a given device to AdminMode.ONLINE and DevState.ON
-        sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
-
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
-            attribute_name="adminMode",
-            attribute_value=AdminMode.ONLINE,
-        )
-
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
-            attribute_name="state",
-            attribute_value=DevState.ON,
-        )
-
-        return sim_vcc_all_bands_device.adminMode == AdminMode.ONLINE
-
     def test_State(self: TestVCCAllBandsSim, sim_vcc_all_bands_device: Any) -> None:
         """Test the State attribute just after device initialization.
 
         Args:
             sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
         """
-        assert sim_vcc_all_bands_device.state() == DevState.DISABLE
+        assert sim_vcc_all_bands_device.state() == DevState.ON
 
     def test_Status(self: TestVCCAllBandsSim, sim_vcc_all_bands_device: Any) -> None:
         """Test the Status attribute just after device initialization.
@@ -122,7 +86,7 @@ class TestVCCAllBandsSim:
         Args:
             sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
         """
-        assert sim_vcc_all_bands_device.Status() == "The device is in DISABLE state."
+        assert sim_vcc_all_bands_device.Status() == "The device is in ON state."
 
     def test_adminMode(
         self: TestVCCAllBandsSim,
@@ -133,7 +97,7 @@ class TestVCCAllBandsSim:
         Args:
             sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
         """
-        assert sim_vcc_all_bands_device.adminMode == AdminMode.OFFLINE
+        assert sim_vcc_all_bands_device.adminMode == AdminMode.ONLINE
 
     @pytest.mark.parametrize(
         "attribute_name",
@@ -161,6 +125,42 @@ class TestVCCAllBandsSim:
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
         assert getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
 
+    def test_healthState_override(
+        self: TestVCCAllBandsSim,
+        sim_vcc_all_bands_device: Any,
+        sim_vcc_all_bands_event_tracer: TangoEventTracer,
+        event_timeout: int,
+    ) -> None:
+        """Test overriding attributes"""
+        assert sim_vcc_all_bands_device.healthState == HealthState.OK
+
+        # Override healthState with new value
+        sim_vcc_all_bands_device.simOverrides = json.dumps(
+            {
+                "attributes": {
+                    "healthState": HealthState.FAILED,
+                }
+            }
+        )
+
+        # Check event
+        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+            event_timeout
+        ).has_change_event_occurred(
+            device_name=sim_vcc_all_bands_device,
+            attribute_name="healthState",
+            attribute_value=HealthState.FAILED,
+            previous_value=HealthState.OK,
+        )
+
+        # Check value change is not reset when read successively
+        assert sim_vcc_all_bands_device.healthState == HealthState.FAILED
+        assert sim_vcc_all_bands_device.healthState == HealthState.FAILED
+
+        # Check value can be reset to default by reading simOverrides
+        _ = sim_vcc_all_bands_device.simOverrides
+        assert sim_vcc_all_bands_device.healthState == HealthState.OK
+
     @pytest.mark.parametrize(
         "attribute_name, attribute_new_value",
         [
@@ -171,7 +171,6 @@ class TestVCCAllBandsSim:
             ("inputSampleRate", 1),
             ("frequencyBandOffset", 2 * [1]),
             ("subarrayID", 1),
-            ("healthState", HealthState.OK)
         ],
     )
     def test_attribute_overrides(
@@ -181,7 +180,6 @@ class TestVCCAllBandsSim:
         attribute_new_value: Any,
     ) -> None:
         """Test overriding attributes"""
-        attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
 
         # Override attribute with new value
         sim_vcc_all_bands_device.simOverrides = json.dumps(
@@ -218,20 +216,6 @@ class TestVCCAllBandsSim:
         """
         # Store original override values to reset later
         original_overrides = sim_vcc_all_bands_device.simOverrides
-
-        # Set sim_vcc_all_bands_device ONLINE
-        sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
-
-        # Check event
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
-            attribute_name="adminMode",
-            attribute_value=AdminMode.ONLINE,
-            previous_value=AdminMode.OFFLINE,
-            min_n_events=1,
-        )
 
         # sim_vcc_all_bands_device pushes attribute events if value changes
         old_sub_id = sim_vcc_all_bands_device.subarrayID
@@ -376,25 +360,6 @@ class TestVCCAllBandsSim:
                 min_n_events=n,
             )
 
-        # Set sim_vcc_all_bands_device OFFLINE
-        sim_vcc_all_bands_device.adminMode = AdminMode.OFFLINE
-
-        expected_events = [
-            ("adminMode", AdminMode.OFFLINE, AdminMode.ONLINE, 1),
-        ]
-
-        # Check events
-        for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
-                attribute_name=name,
-                attribute_value=value,
-                previous_value=previous,
-                min_n_events=n,
-            )
-
     def test_scan(
         self: TestVCCAllBandsSim,
         sim_vcc_all_bands_device: Any,
@@ -408,19 +373,6 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
                 events from the device under test.
         """
-        # Set sim_vcc_all_bands_device ONLINE
-        sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
-        
-        # Check event
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
-            attribute_name="adminMode",
-            attribute_value=AdminMode.ONLINE,
-            previous_value=AdminMode.OFFLINE,
-            min_n_events=1,
-        )
 
         # Set to READY obsState
         [[result_code], [configure_scan_command_id]] = sim_vcc_all_bands_device.ConfigureScan("")
@@ -486,7 +438,18 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
                 events from the device under test.
         """
+
         # Test command not allowed in AdminMode.OFFLINE
+        sim_vcc_all_bands_device.adminMode = AdminMode.OFFLINE
+        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
+            event_timeout
+        ).has_change_event_occurred(
+            device_name=sim_vcc_all_bands_device,
+            attribute_name="adminMode",
+            attribute_value=AdminMode.OFFLINE,
+            previous_value=AdminMode.ONLINE,
+        )
+
         [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
             command_name, command_param
         )
@@ -551,17 +514,6 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
                 events from the device under test.
         """
-        # Set device ONLINE
-        sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
-            attribute_name="adminMode",
-            attribute_value=AdminMode.ONLINE,
-            previous_value=AdminMode.OFFLINE,
-            min_n_events=1,
-        )
 
         # Test command in allowed states
         for obs_state in allowed_obs_states:
@@ -618,17 +570,6 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
                 events from the device under test.
         """
-        # Set device ONLINE
-        sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
-            attribute_name="adminMode",
-            attribute_value=AdminMode.ONLINE,
-            previous_value=AdminMode.OFFLINE,
-            min_n_events=1,
-        )
 
         assert sim_vcc_all_bands_device.subarrayID == 0
 
@@ -696,17 +637,6 @@ class TestVCCAllBandsSim:
             sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
                 events from the device under test.
         """
-        # Set device ONLINE
-        sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
-            attribute_name="adminMode",
-            attribute_value=AdminMode.ONLINE,
-            previous_value=AdminMode.OFFLINE,
-            min_n_events=1,
-        )
 
         # Override command to fail
         sim_vcc_all_bands_device.simOverrides = json.dumps(
@@ -878,19 +808,6 @@ class TestVCCAllBandsSim:
                     },
                 }
             }
-        )
-        # Set sim_vcc_all_bands_device ONLINE
-        sim_vcc_all_bands_device.adminMode = AdminMode.ONLINE
-
-        # Check event
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
-            attribute_name="adminMode",
-            attribute_value=AdminMode.ONLINE,
-            previous_value=AdminMode.OFFLINE,
-            min_n_events=1,
         )
 
         # sim_vcc_all_bands_device pushes attribute events if value changes
