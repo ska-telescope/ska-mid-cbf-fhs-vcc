@@ -33,7 +33,7 @@ bar:
     # bar_api_token needs to be populated if vault.enabled: false; otherwise it is extracted from Vault
     bar_api_token: ""
     vault:
-      enabled: false
+      enabled: true
       mount: psi-mid
       secretPath: production/bar-api-token
       secretKeys:

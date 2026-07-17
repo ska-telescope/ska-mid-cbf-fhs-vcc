@@ -88,11 +88,8 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	${PV_STORAGE_PARAM}
 
 ifeq ($(MINIKUBE),true)
-K8S_CHART_PARAMS += --set ska-mid-cbf-fhs-vcc.bar.secret.bar_api_token="$(BAR_API_TOKEN)"
-endif
-
-ifeq ($(MINIKUBE),false)
-K8S_CHART_PARAMS += --set ska-mid-cbf-fhs-vcc.bar.secret.vault.enabled=true
+K8S_CHART_PARAMS += --set ska-mid-cbf-fhs-vcc.bar.secret.bar_api_token="$(BAR_API_TOKEN)" \
+	--set ska-mid-cbf-fhs-vcc.bar.secret.vault.enabled=false
 endif
 
 # shared lint config file var definitions
