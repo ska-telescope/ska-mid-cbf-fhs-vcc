@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ska_mid_cbf_fhs_vcc import release
 import tango
 from ska_control_model import ObsState
 from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
@@ -186,6 +187,12 @@ class VCCAllBandsController(
     def init_device(self) -> None:
         """Initialize the Tango device after startup."""
         super().init_device()
+
+        self._version_id = release.VERSION
+        self._build_state = (
+            f"{release.NAME}, {release.VERSION}, {release.DESCRIPTION}"
+        )
+
         self._update_obs_state(ObsState.IDLE)
 
     def create_component_manager(self) -> VCCAllBandsComponentManager:
