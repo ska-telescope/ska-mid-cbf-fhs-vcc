@@ -124,7 +124,7 @@ devices: []
 # the VCCAllBandsController device
 vccAllBandsDevice:
   name: "VCCAllBandsController"
-  path: "fhs/vcc-all-bands/{{.deviceId000}}"
+  path: "mid-cbf/fhs-vcc-all-bands/{{.deviceId000}}"
   properties:
     - name: logging_level
       values:
