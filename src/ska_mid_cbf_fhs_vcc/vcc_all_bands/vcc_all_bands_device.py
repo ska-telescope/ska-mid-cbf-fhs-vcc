@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_vcc import release
+from ska_mid_cbf_fhs_vcc import release as release_info
 import tango
 from ska_control_model import ObsState
 from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
@@ -188,9 +188,9 @@ class VCCAllBandsController(
         """Initialize the Tango device after startup."""
         super().init_device()
 
-        self._version_id = release.VERSION
+        self._version_id = release_info.VERSION
         self._build_state = (
-            f"{release.NAME}, {release.VERSION}, {release.DESCRIPTION}"
+            f"{release_info.NAME}, {release_info.VERSION}, {release_info.DESCRIPTION}"
         )
 
         self._update_obs_state(ObsState.IDLE)
