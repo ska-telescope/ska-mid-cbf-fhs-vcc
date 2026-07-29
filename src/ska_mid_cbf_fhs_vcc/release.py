@@ -10,7 +10,7 @@
 
 
 NAME = "ska_mid_cbf_fhs_vcc"
-VERSION = 0.3.14
+VERSION = "0.3.14"
 VERSION_INFO = VERSION.split(".")
 DESCRIPTION = "Mid.CBF VCC Software."
 URL = "https://gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc"
