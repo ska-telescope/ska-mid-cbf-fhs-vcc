@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from ska_mid_cbf_fhs_vcc import release as release_info
 import tango
 from ska_control_model import ObsState
 from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
@@ -9,6 +8,7 @@ from ska_tango_base import SKAObsDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command
 
+from ska_mid_cbf_fhs_vcc import release as release_info
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VCCAllBandsComponentManager
 
@@ -189,9 +189,7 @@ class VCCAllBandsController(
         super().init_device()
 
         self._version_id = release_info.VERSION
-        self._build_state = (
-            f"{release_info.NAME}, {release_info.VERSION}, {release_info.DESCRIPTION}"
-        )
+        self._build_state = f"{release_info.NAME}, {release_info.VERSION}, {release_info.DESCRIPTION}"
 
         self._update_obs_state(ObsState.IDLE)
 
