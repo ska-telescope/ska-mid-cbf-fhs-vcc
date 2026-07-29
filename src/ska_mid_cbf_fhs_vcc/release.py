@@ -8,7 +8,6 @@
 """Release information for SKA Mid.CBF fhs-vcc Python Package."""
 
 
-
 NAME = "ska_mid_cbf_fhs_vcc"
 VERSION = "0.3.14"
 VERSION_INFO = VERSION.split(".")
