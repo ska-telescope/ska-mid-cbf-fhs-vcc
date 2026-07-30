@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.15
+******
+* CIP-6276: Update FQDN name
+
 0.3.14
 *******
 * CIP-6277: updated version reporting
