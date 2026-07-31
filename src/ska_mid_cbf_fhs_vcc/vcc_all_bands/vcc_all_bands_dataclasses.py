@@ -96,7 +96,7 @@ class VCCAllBandsConfigureVCCBiteReceiverInfoConfig(DataClassJsonMixin):
 class VCCAllBandsConfigureVCCBiteReceiversConfig(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureVCCBite Receievers parameter."""
 
-    gen_receiver_noise: False
+    gen_receiver_noise: bool
     receiver_info: list[VCCAllBandsConfigureVCCBiteReceiverInfoConfig]
 
 
