@@ -35,7 +35,10 @@ from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, 
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.utils.admin_online import VccAdminOnline
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsAutoSetFilterGainsSchema, VCCAllBandsConfigureScanConfig
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (  # VCCAllBandsConfigureVCCBiteSchema,
+    VCCAllBandsAutoSetFilterGainsSchema,
+    VCCAllBandsConfigureScanConfig,
+)
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
@@ -327,6 +330,26 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             args=[argin],
             task_callback=task_callback,
             is_cmd_allowed=self.is_obs_reset_allowed,
+        )
+
+    def configure_vcc_bite(
+        self,
+        argin: Optional[str] = None,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the ConfigureVCCBite command implementation.
+
+        Args:
+            argin (:obj:`str`): The configure_vcc_bite_schema schema JSON string from the command's input argument.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=self._configure_vcc_bite,
+            args=[argin],
+            task_callback=task_callback,
         )
 
     def abort_commands(
@@ -1020,6 +1043,50 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         finally:
             # Reset the ID so it's not used in a different Command call
             self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = None
+
+    def _configure_vcc_bite(
+        self,
+        argin: str,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """ConfigureVCCBite command implementation for VCC All bands controller,
+        to handle task management as well as error handling.
+        """
+        try:
+            transaction_id = None
+
+            configure_vcc_bite_schema_dict = json.loads(argin)
+            transaction_id = configure_vcc_bite_schema_dict.get("transaction_id", None)
+            self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
+            # configure_vcc_bite_schema = VCCAllBandsConfigureVCCBiteSchema.from_dict(configure_vcc_bite_schema_dict)
+
+            self.log_info("Received Command ConfigureVCCBite", transaction_id)
+
+            # TODO: Add Command logic
+
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.OK,
+                "ConfigureVCCBite completed OK",
+            )
+            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id)
+        except Exception as ex:
+            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during ConfigureVCCBite: {ex}", width=400),
+            )
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
+            )
+        finally:
+            # Reset the ID so it's not used in a different Command call
+            self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = None
 
     def _stop_ip_blocks(self) -> int:
         """Stop all IP blocks."""

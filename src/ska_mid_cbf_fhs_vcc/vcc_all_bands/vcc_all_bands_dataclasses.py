@@ -51,3 +51,99 @@ class VCCAllBandsAutoSetFilterGainsSchema(DataClassJsonMixin):
 
     headrooms: Optional[list[float]] = field(default_factory=lambda: [3.0])
     transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig(DataClassJsonMixin):
+    # TODO: Fill in the docstring here
+    """"""
+
+    seed: int
+    noise_std: int
+    noise_mean: int
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteNoiseInfoConfig(DataClassJsonMixin):
+    # TODO: Fill in the docstring here
+    """"""
+
+    pol_x: VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig
+    pol_y: VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteNoiseDiodeConfig(DataClassJsonMixin):
+    # TODO: Fill in the docstring here
+    """"""
+
+    dwell_time_us: int
+    nd_pattern_type: str
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteReceiverInfoConfig(DataClassJsonMixin):
+    # TODO: Fill in the docstring here
+    """"""
+
+    dish_id: str
+    k_offset: int
+    noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig
+    noise_diode: VCCAllBandsConfigureVCCBiteNoiseDiodeConfig
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteReceiversConfig(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands ConfigureVCCBite Receievers parameter."""
+
+    gen_receiver_noise: False
+    receiver_info: list[VCCAllBandsConfigureVCCBiteReceiverInfoConfig]
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteSourcesConfig(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands ConfigureVCCBite Sources parameter."""
+
+    select: bool
+    source_id: int
+    noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig
+    pol_coupling_rho: float
+    pol_y_1_sample_delay: bool
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig(DataClassJsonMixin):
+    # TODO: Fill in the docstring here
+    """"""
+
+    frequency: int
+    scale: int
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteRfiConfig(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands ConfigureVCCBite RFI parameter."""
+
+    description: str
+    select: bool
+    rfi_id: int
+    pol_x: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig
+    pol_y: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteSchema(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands ConfigureVCCBite input parameter."""
+
+    receievers: VCCAllBandsConfigureVCCBiteReceiversConfig
+    sources: VCCAllBandsConfigureVCCBiteSourcesConfig
+    rfi: VCCAllBandsConfigureVCCBiteRfiConfig
+    utc_start_time: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsDeconfigureVCCBiteSchema(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands DeconfigureVCCBite input parameter."""
+
+    transaction_id: Optional[str] = None
