@@ -35,10 +35,12 @@ from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, 
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.utils.admin_online import VccAdminOnline
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (  # VCCAllBandsConfigureVCCBiteSchema,
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (
     VCCAllBandsAutoSetFilterGainsSchema,
     VCCAllBandsConfigureScanConfig,
+    VCCAllBandsConfigureVCCBiteSchema,
 )
+from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
@@ -95,6 +97,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
     wideband_power_meters: dict[VCCBandGroup | int, WidebandPowerMeterManager]
     """:obj:`dict[VCCBandGroup | int, WidebandPowerMeterManager]`: Dictionary containing the IP block managers
     for all Wideband Power Meters, mapped by either band group (B123, etc) or FS index (1 to 26)."""
+
+    vcc_bite_manager: VCCBiteManager
+    """:obj:`VCCBiteManager`: The manager object for VCC Bite"""
 
     @property
     def config_schema(self) -> dict[str, Any]:
@@ -166,6 +171,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
         self._obs_state_action_callback = obs_state_action_callback if obs_state_action_callback is not None else self._default_callback
         self._obs_command_running_callback = obs_command_running_callback if obs_command_running_callback is not None else self._default_callback
+
+        self.vcc_bite_manager = VCCBiteManager(logger=logger)
 
     def _device_specific_setup(self) -> None:
         """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
@@ -1058,8 +1065,15 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
             configure_vcc_bite_schema_dict = json.loads(argin)
             transaction_id = configure_vcc_bite_schema_dict.get("transaction_id", None)
+
+            if self.expected_dish_id is None:
+                # TODO: Properly handle this case. Basically force that dish id is not None
+                return
+
             self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
-            # configure_vcc_bite_schema = VCCAllBandsConfigureVCCBiteSchema.from_dict(configure_vcc_bite_schema_dict)
+            configure_vcc_bite_schema = VCCAllBandsConfigureVCCBiteSchema.from_dict(configure_vcc_bite_schema_dict)
+
+            self.vcc_bite_manager.configure(config=configure_vcc_bite_schema)
 
             self.log_info("Received Command ConfigureVCCBite", transaction_id)
 

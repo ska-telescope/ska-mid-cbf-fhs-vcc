@@ -92,38 +92,115 @@ class VCCBiteManager:
     def __init__(self, logger: logging.Logger, simulation_mode: SimulationMode = SimulationMode.TRUE, gprc_driver_info: dict[str, GRPCInfo] = None):
         self._simulation_mode = simulation_mode
         self.logger = logger
+        self._vcc_source_select_apis: list[BaseSimulatorApi] | list[FirmwareApi] = []
+        self._vcc_bite_apis: list[BaseSimulatorApi] | list[FirmwareApi] = []
+        self._vcc_bite_tone_gen_apis: list[BaseSimulatorApi] | list[FirmwareApi] = []
+        self._gaussian_noise_driver_x_apis: list[BaseSimulatorApi] | list[FirmwareApi] = []
+        self._noise_diode_driver_x_apis: list[BaseSimulatorApi] | list[FirmwareApi] = []
+        self._gaussian_noise_driver_y_apis: list[BaseSimulatorApi] | list[FirmwareApi] = []
+        self._noise_diode_driver_y_apis: list[BaseSimulatorApi] | list[FirmwareApi] = []
+        self._polarization_coupler_api: BaseSimulatorApi | FirmwareApi | None = None
+        self._spfrx_packetizer_api: BaseSimulatorApi | FirmwareApi | None = None
 
         if self._simulation_mode == SimulationMode.TRUE:
-            self._vcc_source_select_api = BaseSimulatorApi("vcc_source_select", self.logger)
-            self._vcc_bite_api = BaseSimulatorApi("vcc_bite", self.logger)
-            self._vcc_bite_tone_gen_api = BaseSimulatorApi("vcc_bite_tone_gen", self.logger)
-            self._gaussian_noise_driver_api = BaseSimulatorApi("gaussian_noise_driver", self.logger)
-        # Firmware Mode
+            for i in range(0, 3):
+                self._vcc_source_select_apis.append(BaseSimulatorApi(f"{i}_source_select", self.logger))
+                self._vcc_bite_apis.append(BaseSimulatorApi(f"{i}_bite_control", self.logger))
+                self._vcc_bite_tone_gen_apis.append(BaseSimulatorApi(f"{i}_bite_tone_gen", self.logger))
+                self._gaussian_noise_driver_x_apis.append(BaseSimulatorApi(f"{i}_bite_noise_gen_polX", self.logger))
+                self._gaussian_noise_driver_y_apis.append(BaseSimulatorApi(f"{i}_bite_noise_gen_polY", self.logger))
+                self._noise_diode_driver_x_apis.append(BaseSimulatorApi(f"{i}_bite_noise_diode_polX", self.logger))
+                self._noise_diode_driver_y_apis.append(BaseSimulatorApi(f"{i}_bite_noise_diode_polY", self.logger))
+
+            self._polarization_coupler_api = BaseSimulatorApi("polarization_coupler", self.logger)
+            self._spfrx_packetizer_api = BaseSimulatorApi("spfrx_packetizer", self.logger)
         else:
-            vcc_source_select_grpc_info = gprc_driver_info.get("vcc_source_select", None)
-            vcc_bite_grpc_info = gprc_driver_info.get("vcc_bite", None)
-            vcc_bite_tone_gen_grpc_info = gprc_driver_info.get("vcc_bite_tone_gen", None)
-            gaussian_noise_driver_grpc_info = gprc_driver_info.get("gaussian_noise_driver", None)
-
-            if any(
-                grpc_info is None
-                for grpc_info in [vcc_source_select_grpc_info, vcc_bite_grpc_info, vcc_bite_tone_gen_grpc_info, gaussian_noise_driver_grpc_info]
-            ):
-                raise RuntimeError("One or more Firmware GRPC Infos not provided to VCCBiteManager when running in Firmware mode")
-
-            # TODO: Figure out GRPC info field classes and addresses
-            # TODO: These will likely not be configurable through deployment and will be static proto files in generated folder.
-            # TODO: Temporarily using grpc_driver_info dict until correct design is clear, will eventually remoce
-            self._vcc_source_select_api = FirmwareApi("vcc_source_select", self.logger, vcc_source_select_grpc_info, "localhost", "50051")
-            self._vcc_bite_api = FirmwareApi("vcc_source_select", self.logger, vcc_bite_grpc_info, "localhost", "50051")
-            self._vcc_bite_tone_gen_api = FirmwareApi("vcc_source_select", self.logger, vcc_bite_tone_gen_grpc_info, "localhost", "50051")
-            self._gaussian_noise_driver_api = FirmwareApi("vcc_source_select", self.logger, gaussian_noise_driver_grpc_info, "localhost", "50051")
+            # Firmware Mode
+            # TODO: Initialise all driver apis as FirmwareAPIs with proper grpc info fields
+            return
 
     def configure(self, config: VCCAllBandsConfigureVCCBiteSchema) -> int:
         """Configure the VCC Bite."""
         result = 0
 
-        # TODO: Add configure functionality
+        # VCC Source Select Config
+        vcc_source_select_config = VCCSourceSelectApiConfig(
+            source_select=VCCSourceSelectSource.VCC_BITE,
+            # TODO: Fix this default value and get from config
+            test_select=True,
+        )
+        for api in self._vcc_source_select_apis:
+            api.configure(config=vcc_source_select_config)
+
+        # VCC Bite Config
+        vcc_bite_config = VCCBiteApiConfig(
+            band=config.band,
+            start_time=config.utc_start_time,
+            sample_rate=config.receiver.dish_sample_rate_Mhz,
+            # TODO: Remove speed eventually
+            speed=1,
+        )
+        for api in self._vcc_bite_apis:
+            api.configure(config=vcc_bite_config)
+
+        # VCC Bite Tone Gen Config
+        vcc_bite_tone_gen_config = VCCBiteToneGenApiConfig(
+            sample_rate=config.receiver.dish_sample_rate_Mhz,
+            # TODO: Figure out the driver situations and add the y ones
+            frequency=config.rfi.pol_x.frequency,
+            magnitude=config.rfi.pol_x.scale,
+            band=config.band,
+        )
+        for api in self._vcc_bite_tone_gen_apis:
+            api.configure(vcc_bite_tone_gen_config)
+
+        # Gaussian Noise Driver Config
+        gaussian_noise_driver_x_config = GaussianNoiseDriverApiConfig(
+            seed=config.source.noise_info.pol_x.seed,
+            mean=config.source.noise_info.pol_x.noise_mean,
+            std_dev=config.source.noise_info.pol_x.noise_std,
+        )
+        for api in self._gaussian_noise_driver_x_apis:
+            api.configure(gaussian_noise_driver_x_config)
+        gaussian_noise_driver_y_config = GaussianNoiseDriverApiConfig(
+            seed=config.source.noise_info.pol_y.seed,
+            mean=config.source.noise_info.pol_y.noise_mean,
+            std_dev=config.source.noise_info.pol_y.noise_std,
+        )
+        for api in self._gaussian_noise_driver_y_apis:
+            api.configure(gaussian_noise_driver_y_config)
+
+        # Noise Diode config
+        noise_diode_x_config = NoiseDiodeApiConfig(
+            # TODO: switching_period=
+            switching_period=0.0,
+            seed=config.source.noise_info.pol_x.seed,
+            std_dev=config.source.noise_info.pol_x.noise_std,
+        )
+        for api in self._noise_diode_driver_x_apis:
+            api.configure(noise_diode_x_config)
+        noise_diode_y_config = NoiseDiodeApiConfig(
+            # TODO: switching_period=
+            switching_period=0.0,
+            seed=config.source.noise_info.pol_y.seed,
+            std_dev=config.source.noise_info.pol_y.noise_std,
+        )
+        for api in self._noise_diode_driver_y_apis:
+            api.configure(noise_diode_y_config)
+
+        # Polarization Coupler Config
+        polarization_coupler_config = PolarizationCouplerApiConfig(
+            # TODO: Confirm if these fields are correct. They are different from the ones on NRC gitlab
+            # TODO: NRC gitlab has delay_enable: bool, correlation_coefficient: float
+            # TODO: Confirm if they are the same but just with differnt names
+            pol_coupling_rho=config.source.pol_coupling_rho,
+            pol_y_1_sample_delay=config.source.pol_y_1_sample_delay,
+        )
+        self._polarization_coupler_api.configure(config=polarization_coupler_config)
+
+        # TODO: Spfrx Packetizer Config
+        # spfrx_packetizer_config = SPFRxPacketizerApiConfig()
+        # self._spfrx_packetizer_api.configure(config=spfrx_packetizer_config)
 
         return result
 

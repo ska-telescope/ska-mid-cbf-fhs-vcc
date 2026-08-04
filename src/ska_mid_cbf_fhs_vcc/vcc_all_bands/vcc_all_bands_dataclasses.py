@@ -78,34 +78,23 @@ class VCCAllBandsConfigureVCCBiteNoiseDiodeConfig(DataClassJsonMixin):
     """"""
 
     dwell_time_us: int
-    nd_pattern_type: str
+    random_pattern_seed: int
+    on_state_scaling_factor: float
 
 
 @dataclass
-class VCCAllBandsConfigureVCCBiteReceiverInfoConfig(DataClassJsonMixin):
-    # TODO: Fill in the docstring here
-    """"""
+class VCCAllBandsConfigureVCCBiteReceiverConfig(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands ConfigureVCCBite Receiever parameter."""
 
     dish_id: str
-    k_offset: int
-    noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig
+    dish_sample_rate_Mhz: int  # pylint: disable=invalid-name
     noise_diode: VCCAllBandsConfigureVCCBiteNoiseDiodeConfig
 
 
 @dataclass
-class VCCAllBandsConfigureVCCBiteReceiversConfig(DataClassJsonMixin):
-    """Dataclass representing the VCC All Bands ConfigureVCCBite Receievers parameter."""
-
-    gen_receiver_noise: bool
-    receiver_info: list[VCCAllBandsConfigureVCCBiteReceiverInfoConfig]
-
-
-@dataclass
-class VCCAllBandsConfigureVCCBiteSourcesConfig(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteSourceConfig(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureVCCBite Sources parameter."""
 
-    select: bool
-    source_id: int
     noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig
     pol_coupling_rho: float
     pol_y_1_sample_delay: bool
@@ -124,9 +113,6 @@ class VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig(DataClassJsonMixin):
 class VCCAllBandsConfigureVCCBiteRfiConfig(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureVCCBite RFI parameter."""
 
-    description: str
-    select: bool
-    rfi_id: int
     pol_x: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig
     pol_y: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig
 
@@ -135,10 +121,11 @@ class VCCAllBandsConfigureVCCBiteRfiConfig(DataClassJsonMixin):
 class VCCAllBandsConfigureVCCBiteSchema(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureVCCBite input parameter."""
 
-    receievers: VCCAllBandsConfigureVCCBiteReceiversConfig
-    sources: VCCAllBandsConfigureVCCBiteSourcesConfig
+    receiver: VCCAllBandsConfigureVCCBiteReceiverConfig
+    source: VCCAllBandsConfigureVCCBiteSourceConfig
     rfi: VCCAllBandsConfigureVCCBiteRfiConfig
     utc_start_time: int
+    band: int
     transaction_id: Optional[str] = None
 
 
