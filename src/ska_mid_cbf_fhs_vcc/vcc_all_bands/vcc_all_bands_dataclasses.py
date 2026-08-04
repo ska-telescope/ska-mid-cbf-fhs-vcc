@@ -87,7 +87,7 @@ class VCCAllBandsConfigureVCCBiteReceiverConfig(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureVCCBite Receiever parameter."""
 
     dish_id: str
-    dish_sample_rate_Mhz: int  # pylint: disable=invalid-name
+    dish_sample_rate_MHz: int  # pylint: disable=invalid-name
     noise_diode: VCCAllBandsConfigureVCCBiteNoiseDiodeConfig
 
 
@@ -97,7 +97,7 @@ class VCCAllBandsConfigureVCCBiteSourceConfig(DataClassJsonMixin):
 
     noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig
     pol_coupling_rho: float
-    pol_y_1_sample_delay: bool
+    pol_Y_1_sample_delay: bool  # pylint: disable=invalid-name
 
 
 @dataclass
@@ -123,7 +123,7 @@ class VCCAllBandsConfigureVCCBiteSchema(DataClassJsonMixin):
 
     receiver: VCCAllBandsConfigureVCCBiteReceiverConfig
     source: VCCAllBandsConfigureVCCBiteSourceConfig
-    rfi: VCCAllBandsConfigureVCCBiteRfiConfig
+    rfi: list[VCCAllBandsConfigureVCCBiteRfiConfig]
     utc_start_time: int
     band: int
     transaction_id: Optional[str] = None

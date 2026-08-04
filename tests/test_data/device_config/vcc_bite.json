@@ -1,0 +1,41 @@
+{   
+    "receiver": {
+        "dish_id":"SKA123",
+        "dish_sample_rate_MHz": 3960,
+        "noise_diode":{
+            "dwell_time_us": 5,
+            "random_pattern_seed":103,
+            "on_state_scaling_factor":1.02
+        }
+    },
+    "source":{
+        "noise_info":{
+            "pol_x":{        
+                "seed":1001,
+                "noise_std":32767,
+                "noise_mean":0
+            },
+            "pol_y":{        
+                "seed":1001,
+                "noise_std":32767,
+                "noise_mean":0
+            }
+        },
+        "pol_coupling_rho": 0.4,
+        "pol_Y_1_sample_delay": true
+    },            
+    "rfi": [
+        {
+            "pol_x": {
+                "frequency": 100e6,
+                "scale": 0.0025
+            },
+            "pol_y": {
+                "frequency": 100e6,
+                "scale": 0.0025
+            }
+        }
+    ],
+    "utc_start_time": 123000,
+    "band": 1  
+}
