@@ -130,7 +130,10 @@ class VCCBiteManager:
             test_select=True,
         )
         for api in self._vcc_source_select_apis:
-            api.configure(config=vcc_source_select_config)
+            result = api.configure(config=vcc_source_select_config)
+            if result == 1:
+                self.logger.error("Could not configure VCC Source Select")
+                return result
 
         # VCC Bite Config
         vcc_bite_config = VCCBiteApiConfig(
@@ -141,7 +144,10 @@ class VCCBiteManager:
             speed=1,
         )
         for api in self._vcc_bite_apis:
-            api.configure(config=vcc_bite_config)
+            result = api.configure(config=vcc_bite_config)
+            if result == 1:
+                self.logger.error("Could not configure VCC Bite")
+                return result
 
         # VCC Bite Tone Gen Config
         vcc_bite_tone_gen_config = VCCBiteToneGenApiConfig(
@@ -152,7 +158,10 @@ class VCCBiteManager:
             band=config.band,
         )
         for api in self._vcc_bite_tone_gen_apis:
-            api.configure(vcc_bite_tone_gen_config)
+            result = api.configure(vcc_bite_tone_gen_config)
+            if result == 1:
+                self.logger.error("Could not configure VCC Bite Tone Gen")
+                return result
 
         # Gaussian Noise Driver Config
         gaussian_noise_driver_x_config = GaussianNoiseDriverApiConfig(
@@ -161,14 +170,20 @@ class VCCBiteManager:
             std_dev=config.source.noise_info.pol_x.noise_std,
         )
         for api in self._gaussian_noise_driver_x_apis:
-            api.configure(gaussian_noise_driver_x_config)
+            result = api.configure(gaussian_noise_driver_x_config)
+            if result == 1:
+                self.logger.error("Could not configure Gaussian Noise Driver X")
+                return result
         gaussian_noise_driver_y_config = GaussianNoiseDriverApiConfig(
             seed=config.source.noise_info.pol_y.seed,
             mean=config.source.noise_info.pol_y.noise_mean,
             std_dev=config.source.noise_info.pol_y.noise_std,
         )
         for api in self._gaussian_noise_driver_y_apis:
-            api.configure(gaussian_noise_driver_y_config)
+            result = api.configure(gaussian_noise_driver_y_config)
+            if result == 1:
+                self.logger.error("Could not configure Gaussian Noise Driver Y")
+                return result
 
         # Noise Diode config
         noise_diode_x_config = NoiseDiodeApiConfig(
@@ -178,7 +193,10 @@ class VCCBiteManager:
             std_dev=config.source.noise_info.pol_x.noise_std,
         )
         for api in self._noise_diode_driver_x_apis:
-            api.configure(noise_diode_x_config)
+            result = api.configure(noise_diode_x_config)
+            if result == 1:
+                self.logger.error("Could not configure Noise Diode X")
+                return result
         noise_diode_y_config = NoiseDiodeApiConfig(
             # TODO: switching_period=
             switching_period=0.0,
@@ -186,7 +204,10 @@ class VCCBiteManager:
             std_dev=config.source.noise_info.pol_y.noise_std,
         )
         for api in self._noise_diode_driver_y_apis:
-            api.configure(noise_diode_y_config)
+            result = api.configure(noise_diode_y_config)
+            if result == 1:
+                self.logger.error("Could not configure Noise Diode Y")
+                return result
 
         # Polarization Coupler Config
         polarization_coupler_config = PolarizationCouplerApiConfig(
@@ -196,7 +217,10 @@ class VCCBiteManager:
             pol_coupling_rho=config.source.pol_coupling_rho,
             pol_y_1_sample_delay=config.source.pol_y_1_sample_delay,
         )
-        self._polarization_coupler_api.configure(config=polarization_coupler_config)
+        result = self._polarization_coupler_api.configure(config=polarization_coupler_config)
+        if result == 1:
+            self.logger.error("Could not configure Polarization Coupler")
+            return result
 
         # TODO: Spfrx Packetizer Config
         # spfrx_packetizer_config = SPFRxPacketizerApiConfig()
@@ -208,7 +232,59 @@ class VCCBiteManager:
         """Deconfigure the VCC Bite."""
         result = 0
 
-        # TODO: Add deconfigure functionality
+        # VCC Source Select
+        for api in self._vcc_source_select_apis:
+            result = api.deconfigure(config=config)
+            if result == 1:
+                self.logger.error("Could not deconfigure VCC Source Select")
+                return result
+
+        # VCC Bite
+        for api in self._vcc_bite_apis:
+            result = api.deconfigure(config=config)
+            if result == 1:
+                self.logger.error("Could not deconfigure VCC Bite")
+                return result
+
+        # VCC Bite Tone Gen
+        for api in self._vcc_bite_tone_gen_apis:
+            result = api.deconfigure(config=config)
+            if result == 1:
+                self.logger.error("Could not deconfigure VCC Bite Tone Gen")
+                return result
+
+        # Gaussian Noise Driver
+        for api in self._gaussian_noise_driver_x_apis:
+            result = api.deconfigure(config=config)
+            if result == 1:
+                self.logger.error("Could not deconfigure Gaussian Noise Driver X")
+                return result
+        for api in self._gaussian_noise_driver_y_apis:
+            result = api.deconfigure(config=config)
+            if result == 1:
+                self.logger.error("Could not deconfigure Gaussian Noise Driver Y")
+                return result
+
+        # Noise Diode config
+        for api in self._noise_diode_driver_x_apis:
+            result = api.deconfigure(config=config)
+            if result == 1:
+                self.logger.error("Could not deconfigure Noise Diode X")
+                return result
+        for api in self._noise_diode_driver_y_apis:
+            result = api.deconfigure(config=config)
+            if result == 1:
+                self.logger.error("Could not deconfigure Noise Diode Y")
+                return result
+
+        # Polarization Coupler Config
+        result = self._polarization_coupler_api.deconfigure(config=config)
+        if result == 1:
+            self.logger.error("Could not deconfigure Polarization Coupler")
+            return result
+
+        # TODO: Spfrx Packetizer Config
+        # self._spfrx_packetizer_api.deconfigure(config=config)
 
         return result
 
