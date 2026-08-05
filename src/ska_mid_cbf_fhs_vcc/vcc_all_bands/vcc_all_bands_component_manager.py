@@ -39,6 +39,7 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (
     VCCAllBandsAutoSetFilterGainsSchema,
     VCCAllBandsConfigureScanConfig,
     VCCAllBandsConfigureVCCBiteSchema,
+    VCCAllBandsDeconfigureVCCBiteSchema,
 )
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
@@ -355,6 +356,26 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """
         return self.submit_task(
             func=self._configure_vcc_bite,
+            args=[argin],
+            task_callback=task_callback,
+        )
+
+    def deconfigure_vcc_bite(
+        self,
+        argin: Optional[str] = None,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the DeconfigureVCCBite command implementation.
+
+        Args:
+            argin (:obj:`str`): The deconfigure_vcc_bite_schema schema JSON string from the command's input argument.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=self._deconfigure_vcc_bite,
             args=[argin],
             task_callback=task_callback,
         )
@@ -1065,19 +1086,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
             configure_vcc_bite_schema_dict = json.loads(argin)
             transaction_id = configure_vcc_bite_schema_dict.get("transaction_id", None)
-
-            if self.expected_dish_id is None:
-                # TODO: Properly handle this case. Basically force that dish id is not None
-                return
-
             self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
             configure_vcc_bite_schema = VCCAllBandsConfigureVCCBiteSchema.from_dict(configure_vcc_bite_schema_dict)
 
-            self.vcc_bite_manager.configure(config=configure_vcc_bite_schema)
-
             self.log_info("Received Command ConfigureVCCBite", transaction_id)
 
-            # TODO: Add Command logic
+            self.vcc_bite_manager.configure(config=configure_vcc_bite_schema)
 
             self._set_task_callback(
                 task_callback,
@@ -1101,6 +1115,52 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         finally:
             # Reset the ID so it's not used in a different Command call
             self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = None
+
+    def _deconfigure_vcc_bite(
+        self,
+        argin: str,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """DeconfigureVCCBite command implementation for VCC All bands controller,
+        to handle task management as well as error handling.
+        """
+        try:
+            transaction_id = None
+
+            deconfigure_vcc_bite_schema_dict = json.loads(argin)
+            transaction_id = deconfigure_vcc_bite_schema_dict.get("transaction_id", None)
+            self.transaction_ids_per_command[CommandType.DECONFIGUREVCCBITE] = transaction_id
+            deconfigure_vcc_bite_schema = VCCAllBandsDeconfigureVCCBiteSchema.from_dict(deconfigure_vcc_bite_schema_dict)
+
+            self.log_info("Received Command DeconfigureVCCBite", transaction_id)
+
+            self.vcc_bite_manager.deconfigure(config=deconfigure_vcc_bite_schema)
+
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.OK,
+                "DeconfigureVCCBite completed OK",
+            )
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id
+            )
+        except Exception as ex:
+            transaction_id = self.transaction_ids_per_command.get(CommandType.DECONFIGUREVCCBITE, None)
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during DeconfigureVCCBite: {ex}", width=400),
+            )
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
+            )
+        finally:
+            # Reset the ID so it's not used in a different Command call
+            self.transaction_ids_per_command[CommandType.DECONFIGUREVCCBITE] = None
 
     def _stop_ip_blocks(self) -> int:
         """Stop all IP blocks."""
