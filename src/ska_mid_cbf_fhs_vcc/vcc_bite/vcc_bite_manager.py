@@ -7,7 +7,15 @@ from ska_control_model import SimulationMode
 from ska_mid_cbf_fhs_common.services.api.firmware_api import FirmwareApi
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteSchema, VCCAllBandsDeconfigureVCCBiteSchema
-from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_simulator import VCCBiteSimulator
+from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_simulator import (
+    GaussianNoiseDriverSimulator,
+    NoiseDiodeSimulator,
+    PolarizationCouplerSimulator,
+    SPFRxPacketizerSimulator,
+    VCCBiteSimulator,
+    VCCBiteToneGenSimulator,
+    VCCSourceSelectSimulator,
+)
 
 
 class VCCSourceSelectSource(IntEnum):
@@ -161,28 +169,28 @@ class VCCBiteManager:
     def __init__(self, logger: logging.Logger, simulation_mode: SimulationMode = SimulationMode.TRUE):
         self._simulation_mode = simulation_mode
         self.logger = logger
-        self._vcc_source_select_apis: list[VCCBiteSimulator] | list[FirmwareApi] = []
+        self._vcc_source_select_apis: list[VCCSourceSelectSimulator] | list[FirmwareApi] = []
         self._vcc_bite_apis: list[VCCBiteSimulator] | list[FirmwareApi] = []
-        self._vcc_bite_tone_gen_apis: list[VCCBiteSimulator] | list[FirmwareApi] = []
-        self._gaussian_noise_driver_x_apis: list[VCCBiteSimulator] | list[FirmwareApi] = []
-        self._noise_diode_driver_x_apis: list[VCCBiteSimulator] | list[FirmwareApi] = []
-        self._gaussian_noise_driver_y_apis: list[VCCBiteSimulator] | list[FirmwareApi] = []
-        self._noise_diode_driver_y_apis: list[VCCBiteSimulator] | list[FirmwareApi] = []
-        self._polarization_coupler_api: VCCBiteSimulator | FirmwareApi | None = None
-        self._spfrx_packetizer_api: VCCBiteSimulator | FirmwareApi | None = None
+        self._vcc_bite_tone_gen_apis: list[VCCBiteToneGenSimulator] | list[FirmwareApi] = []
+        self._gaussian_noise_driver_x_apis: list[GaussianNoiseDriverSimulator] | list[FirmwareApi] = []
+        self._noise_diode_driver_x_apis: list[NoiseDiodeSimulator] | list[FirmwareApi] = []
+        self._gaussian_noise_driver_y_apis: list[GaussianNoiseDriverSimulator] | list[FirmwareApi] = []
+        self._noise_diode_driver_y_apis: list[NoiseDiodeSimulator] | list[FirmwareApi] = []
+        self._polarization_coupler_api: PolarizationCouplerSimulator | FirmwareApi | None = None
+        self._spfrx_packetizer_api: SPFRxPacketizerSimulator | FirmwareApi | None = None
 
         if self._simulation_mode == SimulationMode.TRUE:
             for i in range(0, 3):
-                self._vcc_source_select_apis.append(VCCBiteSimulator(f"{i}_source_select", self.logger))
+                self._vcc_source_select_apis.append(VCCSourceSelectSimulator(f"{i}_source_select", self.logger))
                 self._vcc_bite_apis.append(VCCBiteSimulator(f"{i}_bite_control", self.logger))
-                self._vcc_bite_tone_gen_apis.append(VCCBiteSimulator(f"{i}_bite_tone_gen", self.logger))
-                self._gaussian_noise_driver_x_apis.append(VCCBiteSimulator(f"{i}_bite_noise_gen_polX", self.logger))
-                self._gaussian_noise_driver_y_apis.append(VCCBiteSimulator(f"{i}_bite_noise_gen_polY", self.logger))
-                self._noise_diode_driver_x_apis.append(VCCBiteSimulator(f"{i}_bite_noise_diode_polX", self.logger))
-                self._noise_diode_driver_y_apis.append(VCCBiteSimulator(f"{i}_bite_noise_diode_polY", self.logger))
+                self._vcc_bite_tone_gen_apis.append(VCCBiteToneGenSimulator(f"{i}_bite_tone_gen", self.logger))
+                self._gaussian_noise_driver_x_apis.append(GaussianNoiseDriverSimulator(f"{i}_bite_noise_gen_polX", self.logger))
+                self._gaussian_noise_driver_y_apis.append(GaussianNoiseDriverSimulator(f"{i}_bite_noise_gen_polY", self.logger))
+                self._noise_diode_driver_x_apis.append(NoiseDiodeSimulator(f"{i}_bite_noise_diode_polX", self.logger))
+                self._noise_diode_driver_y_apis.append(NoiseDiodeSimulator(f"{i}_bite_noise_diode_polY", self.logger))
 
-            self._polarization_coupler_api = VCCBiteSimulator("polarization_coupler", self.logger)
-            self._spfrx_packetizer_api = VCCBiteSimulator("spfrx_packetizer", self.logger)
+            self._polarization_coupler_api = PolarizationCouplerSimulator("polarization_coupler", self.logger)
+            self._spfrx_packetizer_api = SPFRxPacketizerSimulator("spfrx_packetizer", self.logger)
         else:
             # Firmware Mode
             # TODO: Initialise all driver apis as FirmwareAPIs with proper grpc info fields

@@ -42,7 +42,7 @@ class TestVCCBite:
         result = vcc_bite.stop()
         assert result == 0, f"Expected return code 0, got {result}"
 
-    # def test_status(self, vcc_bite: VCCBiteManager):
-    #     """Test the status method of the VCC Bite."""
-    #     result = vcc_bite.status(clear=False)
-    #     assert result is not None, f"Expected valid return value, got {result}"
+    def test_status(self, vcc_bite: VCCBiteManager):
+        """Test the status method of the VCC Bite."""
+        result = vcc_bite.status(clear=False)
+        assert result is not None, f"Expected valid return value, got {result}"
