@@ -243,24 +243,64 @@ class VCCBiteManagerSimulator(BaseSimulatorApi):
                         "std_dev": 0.0
                     }
                 ],
-                "polarization_coupler": {
-                    "pol_coupling_rho": 0.0,
-                    "pol_Y_1_sample_delay": false
-                },
-                "spfrx_packetizer": {
-                    "running": false,
-                    "fifo_overflow_error": 0,
-                    "local_mac": 0,
-                    "remote_mac": 0,
-                    "ethertype": 0,
-                    "dish_id": 0,
-                    "hw_src_id": 0,
-                    "band": 0,
-                    "sample_rate": 0,
-                    "sample_rate_b": 0,
-                    "noise_diode_rising_holdoff": 0.0,
-                    "noise_diode_rising_holdoff_b": 0.0
-                }
+                "polarization_coupler": [
+                    {
+                        "pol_coupling_rho": 0.0,
+                        "pol_Y_1_sample_delay": false
+                    },
+                    {
+                        "pol_coupling_rho": 0.0,
+                        "pol_Y_1_sample_delay": false
+                    },
+                    {
+                        "pol_coupling_rho": 0.0,
+                        "pol_Y_1_sample_delay": false
+                    }
+                ],
+                "spfrx_packetizer": [
+                    {
+                        "running": false,
+                        "fifo_overflow_error": 0,
+                        "local_mac": 0,
+                        "remote_mac": 0,
+                        "ethertype": 0,
+                        "dish_id": 0,
+                        "hw_src_id": 0,
+                        "band": 0,
+                        "sample_rate": 0,
+                        "sample_rate_b": 0,
+                        "noise_diode_rising_holdoff": 0.0,
+                        "noise_diode_rising_holdoff_b": 0.0
+                    },
+                    {
+                        "running": false,
+                        "fifo_overflow_error": 0,
+                        "local_mac": 0,
+                        "remote_mac": 0,
+                        "ethertype": 0,
+                        "dish_id": 0,
+                        "hw_src_id": 0,
+                        "band": 0,
+                        "sample_rate": 0,
+                        "sample_rate_b": 0,
+                        "noise_diode_rising_holdoff": 0.0,
+                        "noise_diode_rising_holdoff_b": 0.0
+                    },
+                    {
+                        "running": false,
+                        "fifo_overflow_error": 0,
+                        "local_mac": 0,
+                        "remote_mac": 0,
+                        "ethertype": 0,
+                        "dish_id": 0,
+                        "hw_src_id": 0,
+                        "band": 0,
+                        "sample_rate": 0,
+                        "sample_rate_b": 0,
+                        "noise_diode_rising_holdoff": 0.0,
+                        "noise_diode_rising_holdoff_b": 0.0
+                    }
+                ]
             }
             """
         )
