@@ -18,7 +18,7 @@ from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_simulator import (
 )
 
 
-class VCCSourceSelectSource(IntEnum):
+class VCCSourceSelect(IntEnum):
     ETHERNET_200GB = 0
     VCC_BITE = 1
     ARKVILLE_PCIE = 2
@@ -27,7 +27,7 @@ class VCCSourceSelectSource(IntEnum):
 
 @dataclass
 class VCCSourceSelectApiConfig(DataClassJsonMixin):
-    source_select: VCCSourceSelectSource
+    source_select: VCCSourceSelect
     test_select: bool
 
 
@@ -202,7 +202,7 @@ class VCCBiteManager:
 
         # VCC Source Select Config
         vcc_source_select_config = VCCSourceSelectApiConfig(
-            source_select=VCCSourceSelectSource.VCC_BITE,
+            source_select=VCCSourceSelect.VCC_BITE,
             # TODO: Fix this default value and get from config
             test_select=True,
         )

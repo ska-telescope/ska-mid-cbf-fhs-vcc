@@ -41,7 +41,7 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (
     VCCAllBandsConfigureVCCBiteSchema,
     VCCAllBandsDeconfigureVCCBiteSchema,
 )
-from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager
+from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager, VCCSourceSelect
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
@@ -101,6 +101,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
     vcc_bite_manager: VCCBiteManager
     """:obj:`VCCBiteManager`: The manager object for VCC Bite"""
+
+    vcc_source_select: VCCSourceSelect
+    """obj:`VCCSourceSelect`: The source of VCC data"""
 
     @property
     def config_schema(self) -> dict[str, Any]:
@@ -174,6 +177,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         self._obs_command_running_callback = obs_command_running_callback if obs_command_running_callback is not None else self._default_callback
 
         self.vcc_bite_manager = VCCBiteManager(logger=logger)
+        self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
     def _device_specific_setup(self) -> None:
         """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
@@ -1092,6 +1096,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             self.log_info("Received Command ConfigureVCCBite", transaction_id)
 
             self.vcc_bite_manager.configure(config=configure_vcc_bite_schema)
+            self.vcc_source_select = VCCSourceSelect.VCC_BITE
 
             self._set_task_callback(
                 task_callback,
@@ -1136,6 +1141,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             self.log_info("Received Command DeconfigureVCCBite", transaction_id)
 
             self.vcc_bite_manager.deconfigure(config=deconfigure_vcc_bite_schema)
+            self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
             self._set_task_callback(
                 task_callback,
