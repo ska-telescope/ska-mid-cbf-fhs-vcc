@@ -161,14 +161,14 @@ class VCCBiteManagerStatus(DataClassJsonMixin):
     bite_noise_gen_polY: list[GaussianNoiseDriverStatus]  # pylint: disable=invalid-name
     bite_noise_diode_polX: list[NoiseDiodeStatus]  # pylint: disable=invalid-name
     bite_noise_diode_polY: list[NoiseDiodeStatus]  # pylint: disable=invalid-name
-    polarization_coupler: PolarizationCouplerStatus
-    spfrx_packetizer: SPFRxPacketizerStatus
+    polarization_coupler: list[PolarizationCouplerStatus]
+    spfrx_packetizer: list[SPFRxPacketizerStatus]
 
 
 class VCCBiteManager:
     """VCC Bite manager."""
 
-    def __init__(self, logger: logging.Logger, simulation_mode: SimulationMode = SimulationMode.TRUE):
+    def __init__(self, logger: logging.Logger, simulation_mode: SimulationMode = SimulationMode.TRUE, card_name=""):
         self._simulation_mode = simulation_mode
         self.logger = logger
         self._vcc_source_select_apis: list[VCCSourceSelectSimulator] | list[FirmwareApi] = []
@@ -178,28 +178,27 @@ class VCCBiteManager:
         self._noise_diode_driver_x_apis: list[NoiseDiodeSimulator] | list[FirmwareApi] = []
         self._gaussian_noise_driver_y_apis: list[GaussianNoiseDriverSimulator] | list[FirmwareApi] = []
         self._noise_diode_driver_y_apis: list[NoiseDiodeSimulator] | list[FirmwareApi] = []
-        self._polarization_coupler_api: PolarizationCouplerSimulator | FirmwareApi | None = None
-        self._spfrx_packetizer_api: SPFRxPacketizerSimulator | FirmwareApi | None = None
+        self._polarization_coupler_apis: list[PolarizationCouplerSimulator] | list[FirmwareApi] = []
+        self._spfrx_packetizer_apis: list[SPFRxPacketizerSimulator] | list[FirmwareApi] = []
 
         if self._simulation_mode == SimulationMode.TRUE:
             for i in range(0, 3):
-                self._vcc_source_select_apis.append(VCCSourceSelectSimulator(f"{i}_source_select", self.logger))
-                self._vcc_bite_apis.append(VCCBiteSimulator(f"{i}_bite_control", self.logger))
-                self._vcc_bite_tone_gen_apis.append(VCCBiteToneGenSimulator(f"{i}_bite_tone_gen", self.logger))
-                self._gaussian_noise_driver_x_apis.append(GaussianNoiseDriverSimulator(f"{i}_bite_noise_gen_polX", self.logger))
-                self._gaussian_noise_driver_y_apis.append(GaussianNoiseDriverSimulator(f"{i}_bite_noise_gen_polY", self.logger))
-                self._noise_diode_driver_x_apis.append(NoiseDiodeSimulator(f"{i}_bite_noise_diode_polX", self.logger))
-                self._noise_diode_driver_y_apis.append(NoiseDiodeSimulator(f"{i}_bite_noise_diode_polY", self.logger))
-
-            self._polarization_coupler_api = PolarizationCouplerSimulator("polarization_coupler", self.logger)
-            self._spfrx_packetizer_api = SPFRxPacketizerSimulator("spfrx_packetizer", self.logger)
+                self._vcc_source_select_apis.append(VCCSourceSelectSimulator(f"{card_name}_receptor{i}_source_select", self.logger))
+                self._vcc_bite_apis.append(VCCBiteSimulator(f"{card_name}_receptor{i}_bite_control", self.logger))
+                self._vcc_bite_tone_gen_apis.append(VCCBiteToneGenSimulator(f"{card_name}_receptor{i}_bite_tone_gen", self.logger))
+                self._gaussian_noise_driver_x_apis.append(GaussianNoiseDriverSimulator(f"{card_name}_receptor{i}_bite_noise_gen_polX", self.logger))
+                self._gaussian_noise_driver_y_apis.append(GaussianNoiseDriverSimulator(f"{card_name}_receptor{i}_bite_noise_gen_polY", self.logger))
+                self._noise_diode_driver_x_apis.append(NoiseDiodeSimulator(f"{card_name}_receptor{i}_bite_noise_diode_polX", self.logger))
+                self._noise_diode_driver_y_apis.append(NoiseDiodeSimulator(f"{card_name}_receptor{i}_bite_noise_diode_polY", self.logger))
+                self._polarization_coupler_apis.append(PolarizationCouplerSimulator(f"{card_name}_receptor{i}_polarization_coupler", self.logger))
+                self._spfrx_packetizer_apis.append(SPFRxPacketizerSimulator(f"{card_name}_receptor{i}_spfrx_packetizer", self.logger))
         else:
             # Firmware Mode
             # TODO: Change grpc addresses to be deploy time constants instead of hardcoded values here
             for i in range(0, 3):
                 self._vcc_source_select_apis.append(
                     FirmwareApi(
-                        f"{i}_source_select",
+                        f"{card_name}_receptor{i}_source_select",
                         self.logger,
                         GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
                         "0.0.0.0",
@@ -208,7 +207,7 @@ class VCCBiteManager:
                 )
                 self._vcc_bite_apis.append(
                     FirmwareApi(
-                        f"{i}_bite_control",
+                        f"{card_name}_receptor{i}_bite_control",
                         self.logger,
                         GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
                         "0.0.0.0",
@@ -217,7 +216,7 @@ class VCCBiteManager:
                 )
                 self._vcc_bite_tone_gen_apis.append(
                     FirmwareApi(
-                        f"{i}_bite_tone_gen",
+                        f"{card_name}_receptor{i}_bite_tone_gen",
                         self.logger,
                         GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
                         "0.0.0.0",
@@ -226,7 +225,7 @@ class VCCBiteManager:
                 )
                 self._gaussian_noise_driver_x_apis.append(
                     FirmwareApi(
-                        f"{i}_bite_noise_gen_polX",
+                        f"{card_name}_receptor{i}_bite_noise_gen_polX",
                         self.logger,
                         GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
                         "0.0.0.0",
@@ -235,7 +234,7 @@ class VCCBiteManager:
                 )
                 self._gaussian_noise_driver_y_apis.append(
                     FirmwareApi(
-                        f"{i}_bite_noise_gen_polY",
+                        f"{card_name}_receptor{i}_bite_noise_gen_polY",
                         self.logger,
                         GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
                         "0.0.0.0",
@@ -244,7 +243,7 @@ class VCCBiteManager:
                 )
                 self._noise_diode_driver_x_apis.append(
                     FirmwareApi(
-                        f"{i}_bite_noise_diode_polX",
+                        f"{card_name}_receptor{i}_bite_noise_diode_polX",
                         self.logger,
                         GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
                         "0.0.0.0",
@@ -253,7 +252,7 @@ class VCCBiteManager:
                 )
                 self._noise_diode_driver_y_apis.append(
                     FirmwareApi(
-                        f"{i}_bite_noise_diode_polY",
+                        f"{card_name}_receptor{i}_bite_noise_diode_polY",
                         self.logger,
                         GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
                         "0.0.0.0",
@@ -261,13 +260,25 @@ class VCCBiteManager:
                     ),
                 )
 
-            self._polarization_coupler_api = FirmwareApi(
-                "polarization_coupler", self.logger, GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub), "0.0.0.0", "50051"
-            )
+                self._polarization_coupler_apis.append(
+                    FirmwareApi(
+                        f"{card_name}_receptor{i}_polarization_coupler",
+                        self.logger,
+                        GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
+                        "0.0.0.0",
+                        "50051",
+                    )
+                )
 
-            self._spfrx_packetizer_api = FirmwareApi(
-                "spfrx_packetizer", self.logger, GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub), "0.0.0.0", "50051"
-            )
+                self._spfrx_packetizer_api.append(
+                    FirmwareApi(
+                        f"{card_name}_receptor{i}_spfrx_packetizer",
+                        self.logger,
+                        GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
+                        "0.0.0.0",
+                        "50051",
+                    )
+                )
 
     def configure(self, config: VCCAllBandsConfigureVCCBiteSchema) -> int:
         """Configure the VCC Bite."""
@@ -367,10 +378,11 @@ class VCCBiteManager:
             pol_coupling_rho=config.source.pol_coupling_rho,
             pol_Y_1_sample_delay=config.source.pol_Y_1_sample_delay,
         )
-        result = self._polarization_coupler_api.configure(config=polarization_coupler_config)
-        if result == 1:
-            self.logger.error("Could not configure Polarization Coupler")
-            return result
+        for api in self._polarization_coupler_apis:
+            result = api.configure(config=polarization_coupler_config)
+            if result == 1:
+                self.logger.error("Could not configure Polarization Coupler")
+                return result
 
         # TODO: Spfrx Packetizer Config
         # spfrx_packetizer_config = SPFRxPacketizerApiConfig()
@@ -431,10 +443,11 @@ class VCCBiteManager:
                 return result
 
         # Polarization Coupler
-        result = self._polarization_coupler_api.deconfigure(config=config)
-        if result == 1:
-            self.logger.error("Could not deconfigure Polarization Coupler")
-            return result
+        for api in self._polarization_coupler_apis:
+            result = api.deconfigure(config=config)
+            if result == 1:
+                self.logger.error("Could not deconfigure Polarization Coupler")
+                return result
 
         # TODO: Spfrx Packetizer
         # self._spfrx_packetizer_api.deconfigure(config=config)
@@ -491,10 +504,11 @@ class VCCBiteManager:
                 return result
 
         # Polarization Coupler
-        result = self._polarization_coupler_api.start()
-        if result == 1:
-            self.logger.error("Could not start Polarization Coupler")
-            return result
+        for api in self._polarization_coupler_apis:
+            result = api.start()
+            if result == 1:
+                self.logger.error("Could not start Polarization Coupler")
+                return result
 
         # TODO: Spfrx Packetizer
         # self._spfrx_packetizer_api.start()
@@ -551,10 +565,11 @@ class VCCBiteManager:
                 return result
 
         # Polarization Coupler
-        result = self._polarization_coupler_api.stop()
-        if result == 1:
-            self.logger.error("Could not stop Polarization Coupler")
-            return result
+        for api in self._polarization_coupler_apis:
+            result = api.stop()
+            if result == 1:
+                self.logger.error("Could not stop Polarization Coupler")
+                return result
 
         # TODO: Spfrx Packetizer
         # self._spfrx_packetizer_api.stop()
@@ -623,18 +638,22 @@ class VCCBiteManager:
             noise_diode_driver_y_statuses.append(NoiseDiodeStatus.from_dict(status))
 
         # Polarization Coupler
-        polarization_coupler_status = self._polarization_coupler_api.status(clear=clear)
-        if polarization_coupler_status is None:
-            self.logger.error("Could not get status from Polarization Coupler")
-            return polarization_coupler_status
-        polarization_coupler_status = PolarizationCouplerStatus.from_dict(polarization_coupler_status)
+        polarization_coupler_statuses = []
+        for api in self._polarization_coupler_apis:
+            status = api.status(clear=clear)
+            if status is None:
+                self.logger.error("Could not get status from Polarization Coupler")
+                return status
+            polarization_coupler_statuses.append(PolarizationCouplerStatus.from_dict(status))
 
         # TODO: Spfrx Packetizer
-        spfrx_packetizer_status = self._spfrx_packetizer_api.status(clear=clear)
-        if spfrx_packetizer_status is None:
-            self.logger.error("Could not get status from SPFRx Packetizer")
-            return spfrx_packetizer_status
-        spfrx_packetizer_status = SPFRxPacketizerStatus.from_dict(spfrx_packetizer_status)
+        spfrx_packetizer_statuses = []
+        for api in self._spfrx_packetizer_apis:
+            status = api.status(clear=clear)
+            if status is None:
+                self.logger.error("Could not get status from SPFRx Packetizer")
+                return status
+            spfrx_packetizer_statuses.append(SPFRxPacketizerStatus.from_dict(status))
 
         return VCCBiteManagerStatus(
             source_select=vcc_source_select_statuses,
@@ -644,6 +663,6 @@ class VCCBiteManager:
             bite_noise_gen_polY=gaussian_noise_driver_y_statuses,
             bite_noise_diode_polX=noise_diode_driver_x_statuses,
             bite_noise_diode_polY=noise_diode_driver_y_statuses,
-            polarization_coupler=polarization_coupler_status,
-            spfrx_packetizer=spfrx_packetizer_status,
+            polarization_coupler=polarization_coupler_statuses,
+            spfrx_packetizer=spfrx_packetizer_statuses,
         )
