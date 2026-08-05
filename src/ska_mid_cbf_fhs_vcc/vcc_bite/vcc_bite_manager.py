@@ -5,6 +5,8 @@ from enum import IntEnum
 from dataclasses_json import DataClassJsonMixin
 from ska_control_model import SimulationMode
 from ska_mid_cbf_fhs_common.services.api.firmware_api import FirmwareApi
+from ska_mid_cbf_fhs_common.services.grpc.grpc_client import GRPCInfo
+from ska_mid_cbf_fhs_vcc_grpc_controller.generated import vcc_drivers_pb2, vcc_drivers_pb2_grpc
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteSchema, VCCAllBandsDeconfigureVCCBiteSchema
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_simulator import (
@@ -43,7 +45,7 @@ class VCCBiteApiConfig(DataClassJsonMixin):
 class VCCBiteToneGenApiConfig(DataClassJsonMixin):
     sample_rate: int
     frequency: int
-    magnitude: int
+    magnitude: float
     band: int
 
 
@@ -103,7 +105,7 @@ class VCCBiteStatus(DataClassJsonMixin):
 class VCCBiteToneGenStatus(DataClassJsonMixin):
     sample_rate: int
     frequency: int
-    magnitude: int
+    magnitude: float
     band: int
 
 
@@ -193,8 +195,79 @@ class VCCBiteManager:
             self._spfrx_packetizer_api = SPFRxPacketizerSimulator("spfrx_packetizer", self.logger)
         else:
             # Firmware Mode
-            # TODO: Initialise all driver apis as FirmwareAPIs with proper grpc info fields
-            return
+            # TODO: Change grpc addresses to be deploy time constants instead of hardcoded values here
+            for i in range(0, 3):
+                self._vcc_source_select_apis.append(
+                    FirmwareApi(
+                        f"{i}_source_select",
+                        self.logger,
+                        GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
+                        "0.0.0.0",
+                        "50051",
+                    )
+                )
+                self._vcc_bite_apis.append(
+                    FirmwareApi(
+                        f"{i}_bite_control",
+                        self.logger,
+                        GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
+                        "0.0.0.0",
+                        "50051",
+                    ),
+                )
+                self._vcc_bite_tone_gen_apis.append(
+                    FirmwareApi(
+                        f"{i}_bite_tone_gen",
+                        self.logger,
+                        GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
+                        "0.0.0.0",
+                        "50051",
+                    ),
+                )
+                self._gaussian_noise_driver_x_apis.append(
+                    FirmwareApi(
+                        f"{i}_bite_noise_gen_polX",
+                        self.logger,
+                        GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
+                        "0.0.0.0",
+                        "50051",
+                    ),
+                )
+                self._gaussian_noise_driver_y_apis.append(
+                    FirmwareApi(
+                        f"{i}_bite_noise_gen_polY",
+                        self.logger,
+                        GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
+                        "0.0.0.0",
+                        "50051",
+                    ),
+                )
+                self._noise_diode_driver_x_apis.append(
+                    FirmwareApi(
+                        f"{i}_bite_noise_diode_polX",
+                        self.logger,
+                        GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
+                        "0.0.0.0",
+                        "50051",
+                    ),
+                )
+                self._noise_diode_driver_y_apis.append(
+                    FirmwareApi(
+                        f"{i}_bite_noise_diode_polY",
+                        self.logger,
+                        GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub),
+                        "0.0.0.0",
+                        "50051",
+                    ),
+                )
+
+            self._polarization_coupler_api = FirmwareApi(
+                "polarization_coupler", self.logger, GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub), "0.0.0.0", "50051"
+            )
+
+            self._spfrx_packetizer_api = FirmwareApi(
+                "spfrx_packetizer", self.logger, GRPCInfo(vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_drivers_pb2_grpc.VccFpgaDriverStub), "0.0.0.0", "50051"
+            )
 
     def configure(self, config: VCCAllBandsConfigureVCCBiteSchema) -> int:
         """Configure the VCC Bite."""

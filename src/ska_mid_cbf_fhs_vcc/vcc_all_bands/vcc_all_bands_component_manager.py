@@ -34,6 +34,7 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_man
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_vcc_byte import vcc_all_bands_configure_vcc_bite_schema
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.utils.admin_online import VccAdminOnline
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (
     VCCAllBandsAutoSetFilterGainsSchema,
@@ -1091,6 +1092,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             configure_vcc_bite_schema_dict = json.loads(argin)
             transaction_id = configure_vcc_bite_schema_dict.get("transaction_id", None)
             self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
+            jsonschema.validate(
+                configure_vcc_bite_schema_dict,
+                vcc_all_bands_configure_vcc_bite_schema,
+            )
             configure_vcc_bite_schema = VCCAllBandsConfigureVCCBiteSchema.from_dict(configure_vcc_bite_schema_dict)
 
             self.log_info("Received Command ConfigureVCCBite", transaction_id)
@@ -1105,6 +1110,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 "ConfigureVCCBite completed OK",
             )
             self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id)
+        except jsonschema.ValidationError as ex:
+            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
+            self.log_error("Invalid json provided for ConfigureVCCBite", transaction_id)
+            self.logger.exception(ex)
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureVCCBite")
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.REJECTED, transaction_id=transaction_id
+            )
         except Exception as ex:
             transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
             self.logger.exception(ex)

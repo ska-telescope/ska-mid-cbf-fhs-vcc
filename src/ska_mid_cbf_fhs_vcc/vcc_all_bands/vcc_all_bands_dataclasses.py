@@ -89,6 +89,7 @@ class VCCAllBandsConfigureVCCBiteReceiverConfig(DataClassJsonMixin):
     dish_id: str
     dish_sample_rate_MHz: int  # pylint: disable=invalid-name
     noise_diode: VCCAllBandsConfigureVCCBiteNoiseDiodeConfig
+    noise_info: Optional[VCCAllBandsConfigureVCCBiteNoiseInfoConfig] = None
 
 
 @dataclass
@@ -106,7 +107,7 @@ class VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig(DataClassJsonMixin):
     """"""
 
     frequency: int
-    scale: int
+    scale: float
 
 
 @dataclass
@@ -114,7 +115,8 @@ class VCCAllBandsConfigureVCCBiteRfiConfig(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureVCCBite RFI parameter."""
 
     pol_x: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig
-    pol_y: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig
+    # TODO: pol_y is probably used in case there is an x and y bite tone gen
+    pol_y: Optional[VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig] = None
 
 
 @dataclass
