@@ -51,6 +51,25 @@ include:
   - project: 'ska-telescope/templates-repository'
     file: 'gitlab-ci/includes/finaliser.gitlab-ci.yml'
 
+docs_build:
+  before_script:
+    - '[ -f .make/python.mk ] || (echo "File python.mk not included in Makefile; exit 1")'
+    - 'make help | grep python-test'
+    - poetry config virtualenvs.in-project true
+    - echo "python-build Setting.. poetry config virtualenvs.create true"
+    - poetry config virtualenvs.create true
+    - |
+      if [[ -f pyproject.toml ]]; then
+        echo "python-test: Installing with poetry";
+        poetry env use python3.12;
+        time poetry install;
+      else
+        if  [[ -f requirements.txt ]]; then
+          echo "python-test: Installing with pip";
+          time pip3 install -r requirements.txt;
+        fi;
+      fi;
+
 python-test:
   before_script:
     - '[ -f .make/python.mk ] || (echo "File python.mk not included in Makefile; exit 1")'
