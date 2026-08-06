@@ -30,7 +30,7 @@ WORKDIR /build
 # `--only main` to avoid installing dev dependencies.  This option is not
 # available for pip.
 COPY pyproject.toml poetry.lock* ./
-
+RUN poetry env use python3.12
 RUN poetry install --only main --no-root
 
 # The README.md here must match the `tool.poetry.readme` key in the
