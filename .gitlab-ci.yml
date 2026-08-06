@@ -52,6 +52,9 @@ include:
     file: 'gitlab-ci/includes/finaliser.gitlab-ci.yml'
 
 docs-build:
+  image: "$BASE_IMAGE"
+  variables:
+    PYTHON_RUNNER: "poetry run python -m "
   before_script:
     - '[ -f .make/python.mk ] || (echo "File python.mk not included in Makefile; exit 1")'
     - 'make help | grep python-test'
