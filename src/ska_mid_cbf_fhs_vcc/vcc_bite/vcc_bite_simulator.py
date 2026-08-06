@@ -74,6 +74,7 @@ class NoiseDiodeSimulator(BaseSimulatorApi):
         return json.loads(
             """
             {
+                "sample_rate": 0,
                 "switching_period": 0.0,
                 "seed": 0,
                 "std_dev": 0.0
@@ -87,8 +88,8 @@ class PolarizationCouplerSimulator(BaseSimulatorApi):
         return json.loads(
             """
             {
-                "pol_coupling_rho": 0.0,
-                "pol_Y_1_sample_delay": false
+                "correlation_coefficient": 0.0,
+                "delay_enable": false
             }
             """
         )
@@ -211,16 +212,19 @@ class VCCBiteManagerSimulator(BaseSimulatorApi):
                 ],
                 "bite_noise_diode_polX": [
                     {
+                        "sample_rate": 0,
                         "switching_period": 0.0,
                         "seed": 0,
                         "std_dev": 0.0
                     },
                     {
+                        "sample_rate": 0,
                         "switching_period": 0.0,
                         "seed": 0,
                         "std_dev": 0.0
                     },
                     {
+                        "sample_rate": 0,
                         "switching_period": 0.0,
                         "seed": 0,
                         "std_dev": 0.0
@@ -228,16 +232,19 @@ class VCCBiteManagerSimulator(BaseSimulatorApi):
                 ],
                 "bite_noise_diode_polY": [
                     {
+                        "sample_rate": 0,
                         "switching_period": 0.0,
                         "seed": 0,
                         "std_dev": 0.0
                     },
                     {
+                        "sample_rate": 0,
                         "switching_period": 0.0,
                         "seed": 0,
                         "std_dev": 0.0
                     },
                     {
+                        "sample_rate": 0,
                         "switching_period": 0.0,
                         "seed": 0,
                         "std_dev": 0.0
@@ -245,16 +252,16 @@ class VCCBiteManagerSimulator(BaseSimulatorApi):
                 ],
                 "polarization_coupler": [
                     {
-                        "pol_coupling_rho": 0.0,
-                        "pol_Y_1_sample_delay": false
+                        "correlation_coefficient": 0.0,
+                        "delay_enable": false
                     },
                     {
-                        "pol_coupling_rho": 0.0,
-                        "pol_Y_1_sample_delay": false
+                        "correlation_coefficient": 0.0,
+                        "delay_enable": false
                     },
                     {
-                        "pol_coupling_rho": 0.0,
-                        "pol_Y_1_sample_delay": false
+                        "correlation_coefficient": 0.0,
+                        "delay_enable": false
                     }
                 ],
                 "spfrx_packetizer": [

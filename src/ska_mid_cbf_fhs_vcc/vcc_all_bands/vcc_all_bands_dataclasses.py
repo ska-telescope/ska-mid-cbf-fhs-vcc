@@ -55,8 +55,7 @@ class VCCAllBandsAutoSetFilterGainsSchema(DataClassJsonMixin):
 
 @dataclass
 class VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig(DataClassJsonMixin):
-    # TODO: Fill in the docstring here
-    """"""
+    """Dataclass representing Polarity config for Noise Info field in VCC Bite Config"""
 
     seed: int
     noise_std: int
@@ -65,8 +64,7 @@ class VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig(DataClassJsonMixin):
 
 @dataclass
 class VCCAllBandsConfigureVCCBiteNoiseInfoConfig(DataClassJsonMixin):
-    # TODO: Fill in the docstring here
-    """"""
+    """Dataclass representing Noise Info config in VCC Bite Config"""
 
     pol_x: VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig
     pol_y: VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig
@@ -74,8 +72,7 @@ class VCCAllBandsConfigureVCCBiteNoiseInfoConfig(DataClassJsonMixin):
 
 @dataclass
 class VCCAllBandsConfigureVCCBiteNoiseDiodeConfig(DataClassJsonMixin):
-    # TODO: Fill in the docstring here
-    """"""
+    """Dataclass representing Noise Duide config in VCC Bite Config"""
 
     dwell_time_us: int
     random_pattern_seed: int
@@ -103,8 +100,7 @@ class VCCAllBandsConfigureVCCBiteSourceConfig(DataClassJsonMixin):
 
 @dataclass
 class VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig(DataClassJsonMixin):
-    # TODO: Fill in the docstring here
-    """"""
+    """Dataclass representing Polarity config for RFI in VCC Bite Config"""
 
     frequency: int
     scale: float
@@ -115,7 +111,9 @@ class VCCAllBandsConfigureVCCBiteRfiConfig(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureVCCBite RFI parameter."""
 
     pol_x: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig
-    # TODO: pol_y is probably used in case there is an x and y bite tone gen
+    # TODO: pol_y is currently not used even if provided.
+    # It should used in case there is an x and y bite tone gen driver,
+    # but currently there is a single driver so pol_y is ignored
     pol_y: Optional[VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig] = None
 
 
