@@ -8,9 +8,9 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
-0.3.14
+0.4.0
 ******
-* CIP-6242: Use new Redis-based emulator status cache for status() API calls in emulation mode
+* CIP-6242: Use new Redis-based emulator status cache for status() API calls in emulation mode. The minimum compatible emulator version is 0.13.0.
 
 0.3.13
 ******
