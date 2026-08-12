@@ -160,3 +160,10 @@ In addition for the VCC-PSS stage of the bitstream, the APIs for the blocks in t
 Finally for the VCC-PSS-TB stage of the bitstream, the APIs for the blocks in the top two thirds of the image will exist, adding
 
 * Transient Buffer Requantization
+
+.. toctree::
+  :maxdepth: 3
+  :caption: Design
+
+  design/design
+  

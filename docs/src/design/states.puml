@@ -1,0 +1,54 @@
+@startuml
+
+' !theme crt-green
+
+<style>
+  element {
+    BackGroundColor: #fdfca2;
+  }
+
+  arrow {
+    LineColor: #Black;
+    FontColor: #Black;
+  }
+</style>
+
+title VCC All Bands Observing States
+
+' Ref ska-mid-cbf-fhs-common/src/ska_mid_cbf_fhs_common/enums/fhs_state.py:
+' https://developer.skao.int/projects/ska-control-model/en/latest/obs_state.html
+
+' EMPTY: the subarray is unresourced
+' RESOURCING: the subarray is performing a resourcing operation
+' IDLE: the subarray is resourced but unconfigured
+' CONFIGURING: the subarray is performing a configuring operation
+' READY: the subarray is resourced and configured
+' SCANNING: the subarray is scanning
+' ABORTING: the subarray is aborting
+' ABORTED: the subarray has aborted
+' RESETTING: the subarray is resetting from an ABORTED or FAULT state back to IDLE
+' RESTARTING: the subarray is restarting from an ABORTED or FAULT state back to EMPTY
+' FAULT: the subarray has encountered a observation fault.
+
+' IDLE, READY, SCANNING, ABORTED, FAULT
+
+state IDLE: resourced but unconfigured\n\nRef: SKA Control Model
+state READY: resourced and configured\n\nRef: SKA Control Model
+state SCANNING: 
+state SCAN_PENDING #LightSteelBlue:
+state ABORTED:
+state FAULT: ?
+
+[*]           -->       IDLE
+IDLE          -->       READY
+IDLE          -->       ABORTED : Abort()
+
+READY         -->       SCANNING
+READY         -->       ABORTED : Abort()
+
+SCANNING      -->       ABORTED : Abort()
+
+ABORTED       -->       IDLE : ObsReset()
+
+
+@enduml
