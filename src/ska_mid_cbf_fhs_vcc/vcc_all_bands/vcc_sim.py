@@ -69,10 +69,6 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
         # Setup LRC method simulation
         self.command_overrides.update(
             {
-                "Abort": {
-                    "invoked_action": "ABORT_INVOKED",
-                    "completed_action": "ABORT_COMPLETED",
-                },
                 "ConfigureScan": {
                     "allowed": True,
                     "allowed_states": ["ON"],
