@@ -264,3 +264,12 @@ Low-level driver failure: error configuring a IP block low-level device. Returns
 Server Error: unexpected error occured on server. Returns `ResultCode: FAILED, message: Failed to an unexpected exception during ConfigureVCCBite`
 
 All error responses include the optional `transaction_id` field (if it was supplied in the request) so the caller can correlate request and response.
+
+#### `DeconfigureVCCBite()`
+##### Parameters
+| Name                | Type                     | Description                                            | Range |
+|---------------------|--------------------------|--------------------------------------------------------|-------|
+| **transaction_id** *(optional)* | `string`                 | Optional identifier that will be used for tracing.                               |       |
+
+##### Returns
+Implmented as a LRC. Once the task has completed for a successful command completion, the command will return `ResultCode.OK` with message "DeconfigureVCCBite completed OK"
