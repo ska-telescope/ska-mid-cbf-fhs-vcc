@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from threading import Event
+
 import tango
-from ska_control_model import ObsState
+from ska_control_model import ObsState, ResultCode, TaskStatus
 from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
 from ska_mid_cbf_fhs_common.state_model.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
 from ska_tango_base import SKAObsDevice
@@ -40,6 +42,7 @@ class VCCAllBandsController(
             ("EndScan", "end_scan"),
             ("GoToIdle", "go_to_idle"),
             ("ObsReset", "obs_reset"),
+            ("Abort", "abort"),
             ("UpdateSubarrayMembership", "update_subarray_membership"),
             ("AutoSetFilterGains", "auto_set_filter_gains"),
         ]
@@ -183,6 +186,44 @@ class VCCAllBandsController(
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=auto_set_filter_gains_schema)
         return [[result_code], [command_id]]
+
+    def is_Abort_allowed(self: VCCAllBandsController) -> bool:
+        """Check if Abort is allowed."""
+        if self._obs_state not in [ObsState.IDLE, ObsState.READY, ObsState.SCANNING, ObsState.CONFIGURING, ObsState.RESETTING]:
+            return False
+        return True
+
+    @command(
+        dtype_in="DevString",
+        doc_in="JSON string conforming to the ska-mid-cbf-abort schema",
+        dtype_out="DevVarLongStringArray",
+        doc_out=("A tuple containing a return code and a string message " "indicating status. The message is for information purpose " "only."),
+    )
+    def Abort(self: VCCAllBandsController, argin: str) -> DevVarLongStringArrayType:
+        """
+        Abort the current observing process and move to ABORTED obsState.
+
+        Overrides base LRC mixin to trigger ObsState transitions and component
+        manager abort task.
+
+        :return: tuple containing a return code and a unique command identifier
+        """
+        # TODO: argin currently unused
+
+        # Trigger task executor shutdown before submitting component manager abort
+        # task to immediately clear out any tasks in progress.
+        abort_tasks_event = Event()
+        status, message = self.component_manager.abort_tasks(
+            task_callback=lambda status, result=None: (abort_tasks_event.set() if status is TaskStatus.COMPLETED else None)
+        )
+
+        # Abort command succeeds if the task executor is successfully shut down
+        # and restarted.
+        if status is not TaskStatus.IN_PROGRESS:
+            return ([ResultCode.FAILED], [message])
+        if not abort_tasks_event.wait(3):
+            return ([ResultCode.FAILED], ["Failed to shut down TaskExecutor"])
+        return ([ResultCode.OK], ["Abort command completed OK"])
 
     def init_device(self) -> None:
         """Initialize the Tango device after startup."""

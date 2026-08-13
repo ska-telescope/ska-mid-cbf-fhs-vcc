@@ -23,7 +23,6 @@ from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_compon
 from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
 from ska_mid_cbf_fhs_common.helpers.constants import LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE
 from ska_mid_cbf_fhs_common.state_model.fhs_obs_state import FhsObsStateMachine
-from ska_tango_base.base.base_component_manager import TaskCallbackType
 from ska_tango_base.obs import ObsDeviceComponentManager
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
@@ -309,7 +308,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """Submit the task to start running the ObsReset command implementation.
 
         Args:
-            argin (:obj:`str`): The Transaction id from the command's input argument, can be none
+            argin (:obj:`str`): The obs_reset schema JSON string from the command's input argument.
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
 
         Returns:
@@ -329,22 +328,22 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             is_cmd_allowed=self.is_obs_reset_allowed,
         )
 
-    def abort_commands(
+    def abort_tasks(
         self,
-        task_callback: TaskCallbackType | None = None,
+        task_callback: Optional[Callable] = None,
     ) -> tuple[TaskStatus, str]:
         """
         Run a task to abort all commands and stop any started IP blocks.
 
         Args:
             task_callback (:obj:`Optional[Callable]`, optional): A callback to pass to the superclass
-                to be run when the task status changes. Default is None.
+                to be run when the task status changes. Default is None. Default is None.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
         """
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_INVOKED)
-        task_status, msg = super().abort_commands(task_callback)
+        task_status, msg = super().abort_tasks(task_callback)
         self._obs_state_action_callback(FhsObsStateMachine.ABORT_COMPLETED)
         return task_status, msg
 
@@ -513,17 +512,21 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
     def _obs_reset(
         self,
-        transaction_id: Optional[str] = None,
+        argin: str = None,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[Event] = None,
         from_state=ObsState.ABORTED,
     ) -> None:
-        """ObsReset command implementation for all controllers."""
+        """ObsReset command implementation for VCC All Bands controllers."""
         try:
             task_callback(status=TaskStatus.IN_PROGRESS)
-            self.log_info("Received Command ObsReset", transaction_id)
             if self.task_abort_event_is_set("ObsReset", task_callback, task_abort_event):
                 return
+
+            obs_reset_schema_dict = json.loads(argin)
+            transaction_id = obs_reset_schema_dict.get("transaction_id", None)
+            self.transaction_ids_per_command[CommandType.OBSRESET] = transaction_id
+            self.log_info("Received Command ObsReset", transaction_id)
 
             # If in FAULT state, devices may still be running, so make sure they are stopped
             if from_state is ObsState.FAULT:
