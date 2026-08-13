@@ -32,23 +32,34 @@ title VCC All Bands Observing States
 
 ' IDLE, READY, SCANNING, ABORTED, FAULT
 
-state IDLE: resourced but unconfigured\n\nRef: SKA Control Model
+state IDLE: Not configured
 state READY: resourced and configured\n\nRef: SKA Control Model
 state SCANNING: 
 state SCAN_PENDING #LightSteelBlue:
 state ABORTED:
-state FAULT: ?
+state FAULT #LightGray: ???
 
-[*]           -->       IDLE
-IDLE          -->       READY
-IDLE          -->       ABORTED : Abort()
+[*]           -->     IDLE
+IDLE          -->     READY : ConfigureScan()
+IDLE          -->     ABORTED : Abort()
 
-READY         -->       SCANNING
-READY         -->       ABORTED : Abort()
+READY         -->     SCAN_PENDING : Scan(...)
+READY         -->     IDLE : GoToIdle()
+READY         -->     ABORTED : Abort()
 
-SCANNING      -->       ABORTED : Abort()
+SCAN_PENDING  -->     SCANNING : Start time\nreached
+SCAN_PENDING  -->     IDLE : GoToIdle()
+SCAN_PENDING  -->     READY : EndScan()
+SCAN_PENDING  -->     SCAN_PENDING : EndScan(duration)
+SCAN_PENDING  -->     ABORTED : Abort()
 
-ABORTED       -->       IDLE : ObsReset()
+SCANNING      -->     READY : End time\nreached
+SCANNING      -->     IDLE : GoToIdle()
+SCANNING      -->     READY : EndScan()
+SCANNING      -->     SCANNING : EndScan(duration)
+SCANNING      -->     ABORTED : Abort()
+
+ABORTED       -->     IDLE : ObsReset()
 
 
 @enduml
