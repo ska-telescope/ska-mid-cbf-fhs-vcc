@@ -12,6 +12,14 @@ UNRELEASED CHANGES
 ******
 * CIP-6242: Use new Redis-based emulator status cache for status() API calls in emulation mode. The minimum compatible emulator version is 0.13.0.
 
+0.3.15
+******
+* CIP-6276: Update FQDN name
+
+0.3.14
+*******
+* CIP-6277: updated version reporting
+
 0.3.13
 ******
 * CIP-5856: Switch to downloading bitstream from BAR instead of CAR

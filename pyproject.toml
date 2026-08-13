@@ -33,12 +33,12 @@ typing-extensions = "^4.8.0"
 # Official tagged release from CAR
 # ska-mid-cbf-fhs-common = { version = "0.3.4", source = "ska-nexus" }
 # Commit hash version from Gitlab
-ska-mid-cbf-fhs-common = { version = "0.4.0+dev.c36bf278f", source = "gitlab-fhs-common" }
+ska-mid-cbf-fhs-common = { version = "0.4.0+dev.c293d96af", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 
 # Official tagged release from CAR
-ska-mid-cbf-common = { version = "0.1.1", source = "ska-nexus" }
+ska-mid-cbf-common = { version = "0.2.5", source = "ska-nexus" }
 # Commit hash version from Gitlab
 # ska-mid-cbf-common = { version = "0.0.2+dev.c0642f5d5", source = "gitlab-mid-cbf-common" }
 # Local repository
