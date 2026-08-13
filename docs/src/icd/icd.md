@@ -257,8 +257,6 @@ Implmented as a LRC. Once the task has completed for a successful command comple
 
 Bad Request: provided configuration does not match required JSON schema definition or input critieria for a specific band. Returns `ResultCode.REJECTED` and message: `Arg provided does not meet ConfigureVCCBite criteria: {reason}`
 
-State Model violation: there was an attempt to call a command that violates the current ObsState. Returns `ResultCode.REJECTED` and message `Attempted to call ConfigureVCCBite command from an incorrect state`
-
 Low-level driver failure: error configuring a IP block low-level device. Returns `ResultCode: REJECTED, message: Configuration of low-level driver: {driver name}`
 
 Server Error: unexpected error occured on server. Returns `ResultCode: FAILED, message: Failed to an unexpected exception during ConfigureVCCBite`
