@@ -31,7 +31,7 @@ typing-extensions = "^4.8.0"
 
 # Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
 # Official tagged release from CAR
-# ska-mid-cbf-fhs-common = { version = "0.3.4", source = "ska-nexus" }
+# ska-mid-cbf-fhs-common = { version = "0.3.6", source = "ska-nexus" }
 # Commit hash version from Gitlab
 ska-mid-cbf-fhs-common = { version = "0.4.0+dev.c293d96af", source = "gitlab-fhs-common" }
 # Local repository

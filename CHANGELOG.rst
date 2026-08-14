@@ -12,6 +12,10 @@ UNRELEASED CHANGES
 ******
 * CIP-6242: Use new Redis-based emulator status cache for status() API calls in emulation mode. The minimum compatible emulator version is 0.13.0.
 
+0.3.16
+******
+* CIP-5925: switch from using abort_commands to abort_tasks, ObsReset takes full JSON str input
+
 0.3.15
 ******
 * CIP-6276: Update FQDN name
