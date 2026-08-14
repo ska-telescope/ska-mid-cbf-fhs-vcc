@@ -1,8 +1,9 @@
-@startuml
+@startuml vcc-all-bands-controller-states
 
 ' !theme crt-green
 
 <style>
+stateDiagram {
   element {
     BackGroundColor: #fdfca2;
   }
@@ -11,9 +12,10 @@
     LineColor: #Black;
     FontColor: #Black;
   }
+}
 </style>
 
-title VCC All Bands Observing States
+title VCC All Bands Controller Observing States
 
 ' Ref ska-mid-cbf-fhs-common/src/ska_mid_cbf_fhs_common/enums/fhs_state.py:
 ' https://developer.skao.int/projects/ska-control-model/en/latest/obs_state.html
@@ -33,33 +35,33 @@ title VCC All Bands Observing States
 ' IDLE, READY, SCANNING, ABORTED, FAULT
 
 state IDLE: Not configured
-state READY: resourced and configured\n\nRef: SKA Control Model
+state READY: Configured
 state SCANNING: 
 state SCAN_PENDING #LightSteelBlue:
 state ABORTED:
 state FAULT #LightGray: ???
 
-[*]           -->     IDLE
-IDLE          -->     READY : ConfigureScan()
-IDLE          -->     ABORTED : Abort()
+[*]           -->         IDLE
+IDLE          -->         READY : ConfigureScan()
+IDLE          -[#red]->   ABORTED : <color:red>Abort()</color>
 
-READY         -->     SCAN_PENDING : Scan(...)
-READY         -->     IDLE : GoToIdle()
-READY         -->     ABORTED : Abort()
+READY         -->         SCAN_PENDING : Scan(...)
+READY         -->         IDLE : GoToIdle()
+READY         -[#red]->   ABORTED : <color:red>Abort()</color>
 
-SCAN_PENDING  -->     SCANNING : Start time\nreached
-SCAN_PENDING  -->     IDLE : GoToIdle()
-SCAN_PENDING  -->     READY : EndScan()
-SCAN_PENDING  -->     SCAN_PENDING : EndScan(duration)
-SCAN_PENDING  -->     ABORTED : Abort()
+SCAN_PENDING  -->         SCANNING : Start time\nreached
+SCAN_PENDING  -->         IDLE : GoToIdle()
+SCAN_PENDING  -->         READY : EndScan()
+SCAN_PENDING  -->         SCAN_PENDING : EndScan(duration)
+SCAN_PENDING  -[#red]->   ABORTED : <color:red>Abort()</color>
 
-SCANNING      -->     READY : End time\nreached
-SCANNING      -->     IDLE : GoToIdle()
-SCANNING      -->     READY : EndScan()
-SCANNING      -->     SCANNING : EndScan(duration)
-SCANNING      -->     ABORTED : Abort()
+SCANNING      -->         READY : End time\nreached
+SCANNING      -->         IDLE : GoToIdle()
+SCANNING      -->         READY : EndScan()
+SCANNING      -->         SCANNING : EndScan(duration)
+SCANNING      -[#red]->   ABORTED : <color:red>Abort()</color>
 
-ABORTED       -->     IDLE : ObsReset()
+ABORTED       -->         IDLE : ObsReset()
 
 
 @enduml

@@ -1,4 +1,5 @@
-Subarray States
----------------
+States
+------
 
 .. uml:: states.puml
+
