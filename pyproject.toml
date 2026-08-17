@@ -51,8 +51,8 @@ ska-mid-cbf-common = { version = "0.2.5", source = "ska-nexus" }
 # Local repository
 # ska-mid-cbf-common = { path = "../ska-mid-cbf-common", develop = true }
 
-# ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.3", source = "ska-nexus" }
-ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.3+dev.c023f5584", source = "gitlab-fhs-vcc-grpc-controller" }
+ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.4", source = "ska-nexus" }
+# ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.3+dev.c023f5584", source = "gitlab-fhs-vcc-grpc-controller" }
 jsonschema = "^4.26.0"
 
 [tool.poetry.group.dev.dependencies]

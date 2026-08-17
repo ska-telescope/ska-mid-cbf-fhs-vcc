@@ -3479,14 +3479,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-vcc-grpc-controller"
-version = "0.0.3+dev.c023f5584"
+version = "0.0.4"
 description = "SKA Mid.CBF FHS FSP gRPC Controller"
 optional = false
 python-versions = ">=3.12,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.3+dev.c023f5584-py3-none-any.whl", hash = "sha256:2391bcdf2757e8ca07142d40e582716a3f3731ec7ebca0b484f1af97d0c9f2f0"},
-    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.3+dev.c023f5584.tar.gz", hash = "sha256:ee3e4806f5939a3cfaa82ce92e5a650bf05d371c2759eada671b4a8c2c8357aa"},
+    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.4-py3-none-any.whl", hash = "sha256:52c4c973b0c8f263feaba038f4199d8f3ffba85cf063d9d010a9c5b821edb044"},
+    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.4.tar.gz", hash = "sha256:672d4dcb56c3239cded5d4c4473658491bbc7574a444a5b190f4ab716d9470c3"},
 ]
 
 [package.dependencies]
@@ -3508,8 +3508,8 @@ urllib3 = "2.7.0"
 
 [package.source]
 type = "legacy"
-url = "https://gitlab.com/api/v4/projects/81959427/packages/pypi/simple"
-reference = "gitlab-fhs-vcc-grpc-controller"
+url = "https://artefact.skao.int/repository/pypi-internal/simple"
+reference = "ska-nexus"
 
 [[package]]
 name = "ska-schemas"
@@ -4319,4 +4319,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.15"
-content-hash = "e9d063345711507b5b13625e40e7f64b80b9eebc2bcefa375ffc852ee1430a17"
+content-hash = "459aca26fd194b0e717dfdbf869d7dcca8488076e7afab23359bf2d3469bf7fb"
