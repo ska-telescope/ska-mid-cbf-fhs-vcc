@@ -8,9 +8,13 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
-0.3.16
+0.3.17
 ******
 * CIP-6288: Add VCC Bite functionality
+
+0.3.16
+******
+* CIP-5925: switch from using abort_commands to abort_tasks, ObsReset takes full JSON str input
 
 0.3.15
 ******
