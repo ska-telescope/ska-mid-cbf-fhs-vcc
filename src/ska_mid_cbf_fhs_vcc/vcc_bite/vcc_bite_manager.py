@@ -296,7 +296,7 @@ class VCCBiteManager:
         vcc_bite_config = VCCBiteApiConfig(
             band=config.band,
             start_time=config.utc_start_time,
-            sample_rate=config.receiver.dish_sample_rate_MHz,
+            sample_rate=config.receiver.dish_sample_rate_MHz * 10e6,
             # TODO: Remove speed eventually
             speed=1,
         )
@@ -308,7 +308,7 @@ class VCCBiteManager:
 
         # VCC Bite Tone Gen Config
         vcc_bite_tone_gen_config = VCCBiteToneGenApiConfig(
-            sample_rate=config.receiver.dish_sample_rate_MHz,
+            sample_rate=config.receiver.dish_sample_rate_MHz * 10e6,
             # TODO: If y driver is added, use the y values
             frequency=config.rfi[0].pol_x.frequency,
             magnitude=config.rfi[0].pol_x.scale,
@@ -344,9 +344,8 @@ class VCCBiteManager:
 
         # Noise Diode config
         noise_diode_x_config = NoiseDiodeApiConfig(
-            sample_rate=config.receiver.dish_sample_rate_MHz,
-            # TODO: switching_period=
-            switching_period=0.0,
+            sample_rate=config.receiver.dish_sample_rate_MHz * 10e6,
+            switching_period=config.receiver.noise_diode.dwell_time_us / 10e6,
             seed=config.source.noise_info.pol_x.seed,
             std_dev=config.source.noise_info.pol_x.noise_std,
         )
@@ -356,9 +355,8 @@ class VCCBiteManager:
                 self.logger.error("Could not configure Noise Diode X")
                 return result
         noise_diode_y_config = NoiseDiodeApiConfig(
-            sample_rate=config.receiver.dish_sample_rate_MHz,
-            # TODO: switching_period=
-            switching_period=0.0,
+            sample_rate=config.receiver.dish_sample_rate_MHz * 10e6,
+            switching_period=config.receiver.noise_diode.dwell_time_us / 10e6,
             seed=config.source.noise_info.pol_y.seed,
             std_dev=config.source.noise_info.pol_y.noise_std,
         )
@@ -388,8 +386,8 @@ class VCCBiteManager:
             dish_id=config.receiver.dish_id,
             hw_src_id=0,
             band=config.band,
-            sample_rate=config.receiver.dish_sample_rate_MHz,
-            sample_rate_b=config.receiver.dish_sample_rate_MHz,
+            sample_rate=config.receiver.dish_sample_rate_MHz * 10e6,
+            sample_rate_b=config.receiver.dish_sample_rate_MHz * 10e6,
             noise_diode_rising_holdoff=0.0,
             noise_diode_rising_holdoff_b=0.0,
         )

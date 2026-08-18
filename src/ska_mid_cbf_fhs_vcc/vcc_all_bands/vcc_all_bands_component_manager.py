@@ -1090,8 +1090,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         to handle task management as well as error handling.
         """
         try:
-            transaction_id = None
-
             configure_vcc_bite_schema_dict = json.loads(argin)
             transaction_id = configure_vcc_bite_schema_dict.get("transaction_id", None)
             self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
@@ -1147,8 +1145,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         to handle task management as well as error handling.
         """
         try:
-            transaction_id = None
-
             deconfigure_vcc_bite_schema_dict = json.loads(argin)
             transaction_id = deconfigure_vcc_bite_schema_dict.get("transaction_id", None)
             self.transaction_ids_per_command[CommandType.DECONFIGUREVCCBITE] = transaction_id
