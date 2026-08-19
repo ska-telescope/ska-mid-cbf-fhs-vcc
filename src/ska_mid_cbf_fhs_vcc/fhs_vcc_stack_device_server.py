@@ -36,6 +36,7 @@ def get_unit_num_from_hostname() -> str:
         )
     return match.group(1)
 
+
 def wait_for_job_completion(job_name) -> bool:
     cmd = ["kubectl", "wait", "--for=condition=complete", "--timeout=60s", f"job/{job_name}"]
 
