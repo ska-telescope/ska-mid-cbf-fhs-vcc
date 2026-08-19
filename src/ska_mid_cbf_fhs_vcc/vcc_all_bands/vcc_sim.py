@@ -26,6 +26,7 @@ __all__ = ["SimVCCAllBandsCM", "SimVCCAllBandsController"]
 # Default simulator attribute return values are initialized with this dict
 VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
     "healthState": HealthState.OK,  # healthState updated here on top of sim base for unit tests
+    "healthInfo": "",
     "expectedDishId": "",
     "requestedRFIHeadroom": [0],
     "vccGains": [0],
@@ -36,10 +37,7 @@ VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
 }
 
 # Add any attributes that are configured for change/archive events to these sets
-VCC_SIM_CHANGE_EVENT_ATTRS = {
-    "healthState",  # healthState updated here on top of sim base for unit tests
-    "subarrayID",
-}
+VCC_SIM_CHANGE_EVENT_ATTRS = {"healthState", "subarrayID", "healthInfo"}  # healthState updated here on top of sim base for unit tests
 VCC_SIM_ARCHIVE_EVENT_ATTRS = {
     "healthState",  # healthState updated here on top of sim base for unit tests
     "subarrayID",
@@ -158,6 +156,10 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
     @property
     def vcc_gains(self: SimVCCAllBandsCM) -> list[int]:
         return self.get_attribute_override("vccGains")
+
+    @property
+    def health_info(self: SimVCCAllBandsCM) -> str:
+        return self.get_attribute_override("healthInfo")
 
 
 class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
