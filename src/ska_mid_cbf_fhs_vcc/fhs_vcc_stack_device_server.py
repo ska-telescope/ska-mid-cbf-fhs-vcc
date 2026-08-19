@@ -13,7 +13,6 @@ HOST_NAME_PATTERN = re.compile(r"fhs-vcc-unit-(\d+)-\d+-vcc-\d+-\d+")
 
 
 def main(args=None, **kwargs):  # noqa: E302
-
     unit_num = get_unit_num_from_hostname()
     job_name = f"{JOB_NAME_PREFIX}-{unit_num}"
     # Call the kubectl command and wait until the bitstreams have been successfully downloaded
