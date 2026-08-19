@@ -21,12 +21,12 @@ spec:
       {{- end }}
 {{- end }}
 
-{{- range .Values.Units }}
+{{- range .Values.VCCUnits }}
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: fhs-vcc-bitstream-download-job-{{ .unitNum | toString}}
+  name: fhs-vcc-bitstream-download-job-vcc-unit-{{ .unitNum | toString}}
 spec:
   template:
     spec:
@@ -75,7 +75,7 @@ spec:
               find {{ $.Values.bitstreamMountPath }}
           env:
             - name: BAR_URL
-              value: {{ .Values.bar.url | quote }}
+              value: {{ $.Values.bar.url | quote }}
             - name: BAR_API_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -83,10 +83,11 @@ spec:
                   key: BAR_API_TOKEN
           volumeMounts:
             - name: bitstream-pv
-              mountPath: {{ .Values.bitstreamMountPath }}
+              mountPath: {{ $.Values.bitstreamMountPath }}
       restartPolicy: Never
       volumes:
         - name: bitstream-pv
           persistentVolumeClaim:
             claimName: fhs-bitstream-pv
+{{- end }}
 {{- end }}
