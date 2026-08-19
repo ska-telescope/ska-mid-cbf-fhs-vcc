@@ -1,7 +1,6 @@
 import os
 import re
 import subprocess
-import yaml
 
 from tango.server import run
 
@@ -11,6 +10,7 @@ __all__ = ["main"]
 
 JOB_NAME_PREFIX = "fhs-vcc-bitstream-download-job"
 HOST_NAME_PATTERN = re.compile(r"fhs-vcc-unit-(\d+)-\d+-vcc-\d+-\d+")
+
 
 def main(args=None, **kwargs):  # noqa: E302
 
@@ -25,13 +25,14 @@ def main(args=None, **kwargs):  # noqa: E302
         **kwargs,
     )
 
+
 def get_unit_num_from_hostname() -> str:
     hostname = os.environ.get("HOSTNAME", "")
     match = HOST_NAME_PATTERN.match(hostname)
     if not match:
         raise RuntimeError(
-        f"Could not determine unit group number from pod hostname '{hostname}'; "
-        f"expected format 'fhs-vcc-unit-<unitGroupNum>-<unitNum>-vcc-<num>-<ordinal>'"
+            f"Could not determine unit group number from pod hostname '{hostname}'; "
+            f"expected format 'fhs-vcc-unit-<unitGroupNum>-<unitNum>-vcc-<num>-<ordinal>'"
         )
     return match.group(1)
 
