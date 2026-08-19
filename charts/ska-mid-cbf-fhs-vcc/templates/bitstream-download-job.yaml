@@ -19,13 +19,14 @@ spec:
       {{- range .Values.bar.secret.vault.secretKeys }}
         - {{ . }}
       {{- end }}
----
 {{- end }}
 
+{{- range .Values.Units }}
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: fhs-vcc-bitstream-download-job
+  name: fhs-vcc-bitstream-download-job-{{ .unitNum | toString}}
 spec:
   template:
     spec:
@@ -70,7 +71,7 @@ spec:
               else
                 echo "Bitstream $BITSTREAM_SUBPATH has already been downloaded (probably by another download job)."
               fi
-              {{ end -}}
+              {{- end }}
               find {{ $.Values.bitstreamMountPath }}
           env:
             - name: BAR_URL
