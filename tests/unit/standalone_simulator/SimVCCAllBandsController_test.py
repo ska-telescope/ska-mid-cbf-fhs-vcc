@@ -16,6 +16,7 @@ import json
 import os
 from typing import Any
 
+import orjson
 import pytest
 from assertpy import assert_that
 from ska_control_model import AdminMode, HealthState, ObsState, ResultCode
@@ -124,6 +125,22 @@ class TestVCCAllBandsSim:
         """
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
         assert getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
+
+    def test_read_attribute_health_info(
+        self: TestVCCAllBandsSim,
+        sim_vcc_all_bands_device: Any,
+    ):
+        
+        """
+        Test checking if attributes returns the correct value
+        
+        HealthInfo is a special case where dumping the empty string will return a literal '""'
+
+        Args:
+            sim_fsp_corr_controller_device (:obj:`DeviceProxy`): Proxy to the device under test.
+        """
+        attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES["healthInfo"]
+        assert getattr(sim_vcc_all_bands_device, "healthInfo") == orjson.dumps(attribute_value).decode()
 
     def test_healthState_override(
         self: TestVCCAllBandsSim,
