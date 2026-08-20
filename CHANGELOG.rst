@@ -10,7 +10,7 @@ UNRELEASED CHANGES
 
 0.3.17
 ******
-* CIP-5845: Bump FHS Common for abstracted HealthInfo
+* CIP-5845: Bumped ska-mid-cbf-fhs-common to 0.3.7 for abstracted HealthInfo
 
 0.3.16
 ******
