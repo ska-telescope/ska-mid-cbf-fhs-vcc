@@ -8,7 +8,7 @@ vcc_all_bands_configure_vcc_bite_schema = {
             "type": "object",
             "properties": {
                 "dish_id": {"type": "string"},
-                "dish_sample_rate_MHz": {"type": "integer"},
+                "dish_sample_rate_Hz": {"type": "integer"},
                 "noise_diode": {
                     "type": "object",
                     "properties": {
@@ -42,7 +42,7 @@ vcc_all_bands_configure_vcc_bite_schema = {
                     },
                 },
             },
-            "required": ["dish_id", "dish_sample_rate_MHz", "noise_diode"],
+            "required": ["dish_id", "dish_sample_rate_Hz", "noise_diode"],
         },
         "source": {
             "type": "object",
