@@ -72,7 +72,7 @@ class VCCAllBandsConfigureVCCBiteNoiseInfoConfig(DataClassJsonMixin):
 
 @dataclass
 class VCCAllBandsConfigureVCCBiteNoiseDiodeConfig(DataClassJsonMixin):
-    """Dataclass representing Noise Duide config in VCC Bite Config"""
+    """Dataclass representing Noise Diode config in VCC Bite Config"""
 
     dwell_time_us: int
     random_pattern_seed: int
@@ -81,7 +81,7 @@ class VCCAllBandsConfigureVCCBiteNoiseDiodeConfig(DataClassJsonMixin):
 
 @dataclass
 class VCCAllBandsConfigureVCCBiteReceiverConfig(DataClassJsonMixin):
-    """Dataclass representing the VCC All Bands ConfigureVCCBite Receiever parameter."""
+    """Dataclass representing the VCC All Bands ConfigureVCCBite Receiver parameter."""
 
     dish_id: str
     dish_sample_rate_Hz: int  # pylint: disable=invalid-name
