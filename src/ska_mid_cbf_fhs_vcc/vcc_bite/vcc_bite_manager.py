@@ -345,7 +345,7 @@ class VCCBiteManager:
         # Noise Diode config
         noise_diode_x_config = NoiseDiodeApiConfig(
             sample_rate=config.receiver.dish_sample_rate_Hz,
-            switching_period=config.receiver.noise_diode.dwell_time_us / 10e6,
+            switching_period=config.receiver.noise_diode.dwell_time_us / 1e6,
             seed=config.source.noise_info.pol_x.seed,
             std_dev=config.source.noise_info.pol_x.noise_std,
         )
@@ -356,7 +356,7 @@ class VCCBiteManager:
                 return result
         noise_diode_y_config = NoiseDiodeApiConfig(
             sample_rate=config.receiver.dish_sample_rate_Hz,
-            switching_period=config.receiver.noise_diode.dwell_time_us / 10e6,
+            switching_period=config.receiver.noise_diode.dwell_time_us / 1e6,
             seed=config.source.noise_info.pol_y.seed,
             std_dev=config.source.noise_info.pol_y.noise_std,
         )
