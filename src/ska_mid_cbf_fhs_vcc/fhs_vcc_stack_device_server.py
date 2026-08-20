@@ -30,8 +30,8 @@ def get_unit_num_from_hostname() -> str:
     match = HOST_NAME_PATTERN.match(hostname)
     if not match:
         raise RuntimeError(
-            f"Could not determine unit group number from pod hostname '{hostname}'; "
-            f"expected format 'fhs-vcc-unit-<unitGroupNum>-<unitNum>-vcc-<num>-<ordinal>'"
+            f"Could not determine unitNum from pod's env var HOSTNAME: '{hostname}'. "
+            f"The expected format is 'fhs-vcc-unit-<unitNum>-<instance>-vcc-<num>-<ordinal>'"
         )
     return match.group(1)
 
