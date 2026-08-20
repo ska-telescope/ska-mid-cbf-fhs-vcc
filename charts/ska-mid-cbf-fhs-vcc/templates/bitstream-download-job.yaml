@@ -4,13 +4,13 @@
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultStaticSecret
 metadata:
-  name: ska-mid-cbf-fhs-vcc-bar-secret
+  name: {{ .Release.Name}}-fhs-vcc-bar-secret
 spec:
   type: kv-v2
   mount: {{ .Values.bar.secret.vault.mount }}
   path: {{ .Values.bar.secret.vault.secretPath }}
   destination:
-    name: ska-mid-cbf-fhs-vcc-bar-secret
+    name: {{ .Release.Name}}-fhs-vcc-bar-secret
     create: true
     overwrite: true
     transformation:
@@ -79,7 +79,7 @@ spec:
             - name: BAR_API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "ska-mid-cbf-fhs-vcc-bar-secret" . }}
+                  name: {{ include "ska-mid-cbf-fhs-vcc-bar-secret" $ }}
                   key: BAR_API_TOKEN
           volumeMounts:
             - name: bitstream-pv

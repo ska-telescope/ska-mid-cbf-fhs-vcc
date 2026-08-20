@@ -161,7 +161,7 @@ k8s-create-bar-secret:
 		exit 1; \
 	fi
 	@echo "Creating secret for bar token"
-	@kubectl create secret generic ska-mid-cbf-fhs-vcc-bar-secret --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
+	@kubectl create secret generic $(HELM_RELEASE)-fhs-vcc-bar-secret --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
 
 k8s-deploy-dev: MINIKUBE=true
 k8s-deploy-dev: CLUSTER_DOMAIN=cluster.local
