@@ -35,6 +35,7 @@ grpcio = "^1.62.0"
 grpcio-tools = "^1.62.0"
 protobuf = ">=6.33.0,<7.0.0"
 grpcio-health-checking = "^1.62.0"
+jsonschema = "^4.26.0"
 
 # Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
 # Official tagged release from CAR
@@ -51,9 +52,13 @@ ska-mid-cbf-common = { version = "0.2.7", source = "ska-nexus" }
 # Local repository
 # ska-mid-cbf-common = { path = "../ska-mid-cbf-common", develop = true }
 
+# Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
+# Official tagged release from CAR
 ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.4", source = "ska-nexus" }
+# Commit hash version from Gitlab
 # ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.3+dev.c023f5584", source = "gitlab-fhs-vcc-grpc-controller" }
-jsonschema = "^4.26.0"
+# Local repository
+# ska-mid-cbf-fhs-vcc-grpc-controller = { path = "../ska-mid-cbf-fhs-vcc-grpc-controller", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest-pydocstyle = "2.3.2"
