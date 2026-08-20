@@ -3382,14 +3382,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-common"
-version = "0.2.5"
+version = "0.2.7"
 description = "SKA Mid.CBF Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_common-0.2.5-py3-none-any.whl", hash = "sha256:887a51293b202fb2d3246daefbb8eb3053863cf5d479e5051e1659c7957ef4c7"},
-    {file = "ska_mid_cbf_common-0.2.5.tar.gz", hash = "sha256:f485b3c8169c9599de697027ffe627f184dabca2ad48c73dade1f54a9c23d520"},
+    {file = "ska_mid_cbf_common-0.2.7-py3-none-any.whl", hash = "sha256:7d47ef873de83afdb6ba1e2f2f73afab51110b5cd660482af485cde84c99663e"},
+    {file = "ska_mid_cbf_common-0.2.7.tar.gz", hash = "sha256:f8806cfe886893526078a4b550b9f83dd5280b40435403fa0b0e619acad40e33"},
 ]
 
 [package.dependencies]
@@ -3410,14 +3410,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.3.6"
+version = "0.3.8"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.3.6-py3-none-any.whl", hash = "sha256:67906ed2f3600978a2a5fb8e9967a6cc1a230dfdaad910613b7c8cee244ed75e"},
-    {file = "ska_mid_cbf_fhs_common-0.3.6.tar.gz", hash = "sha256:eeb0a3c3976ade035d8a908744f8794e59cac7b59ab00dbc380997912a0535a5"},
+    {file = "ska_mid_cbf_fhs_common-0.3.8-py3-none-any.whl", hash = "sha256:e0feac21210c9b73d63eb7169903133a67600980ec0121273d3f5e4569f760a3"},
+    {file = "ska_mid_cbf_fhs_common-0.3.8.tar.gz", hash = "sha256:4f10834ea5af5fe505eacfb6bd044c695964ebf4e644aa2cee266388820a7a71"},
 ]
 
 [package.dependencies]
@@ -3432,7 +3432,7 @@ scipy = [
     {version = ">=1.13.0", markers = "python_version < \"3.14\""},
     {version = ">=1.17.1", markers = "python_version >= \"3.14\""},
 ]
-ska-mid-cbf-common = "0.2.5"
+ska-mid-cbf-common = ">=0.2.7"
 ska-mid-cbf-fhs-fsp-grpc-controller = "0.0.3"
 ska-ser-log-transactions = "0.2.2"
 ska-tango-base = "1.4.2"
@@ -4319,4 +4319,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.15"
-content-hash = "459aca26fd194b0e717dfdbf869d7dcca8488076e7afab23359bf2d3469bf7fb"
+content-hash = "fd533ba0d31af9b789cad66ab41f4a27a1c0c92f6205e5dd352f938a3e711375"

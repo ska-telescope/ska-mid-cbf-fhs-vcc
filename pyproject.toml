@@ -38,14 +38,14 @@ grpcio-health-checking = "^1.62.0"
 
 # Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = { version = "0.3.6", source = "ska-nexus" }
+ska-mid-cbf-fhs-common = { version = "0.3.8", source = "ska-nexus" }
 # Commit hash version from Gitlab
 # ska-mid-cbf-fhs-common = { version = "0.3.6+dev.c4b15b5de", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 
 # Official tagged release from CAR
-ska-mid-cbf-common = { version = "0.2.5", source = "ska-nexus" }
+ska-mid-cbf-common = { version = "0.2.7", source = "ska-nexus" }
 # Commit hash version from Gitlab
 # ska-mid-cbf-common = { version = "0.2.5+dev.c45845b57", source = "gitlab-mid-cbf-common" }
 # Local repository
