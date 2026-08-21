@@ -1,7 +1,7 @@
 {   
     "receiver": {
         "dish_id":"SKA123",
-        "dish_sample_rate_Hz": 3960000000,
+        "dish_sample_rate": 3960000000,
         "noise_diode":{
             "dwell_time_us": 5,
             "random_pattern_seed":103,
