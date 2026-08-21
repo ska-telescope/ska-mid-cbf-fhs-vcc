@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.3.17"
+version = "0.3.18"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },
@@ -18,7 +18,7 @@ SimVCCAllBandsController = 'ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim:main'
 packages = [{ include = "ska_mid_cbf_fhs_vcc", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.15"
+python = ">=3.12,<3.15"
 mpmath = "^1.3.0"
 backoff = "^2.2.1"
 typing-extensions = "^4.8.0"
@@ -31,20 +31,34 @@ ska-telmodel = "1.33.0"
 polling2 = "^0.5.0"
 dataclasses-json = "^0.6.7"
 debugpy = "^1.8.5"
+grpcio = "^1.62.0"
+grpcio-tools = "^1.62.0"
+protobuf = ">=6.33.0,<7.0.0"
+grpcio-health-checking = "^1.62.0"
+jsonschema = "^4.26.0"
+
 # Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = { version = "0.3.7", source = "ska-nexus" }
+ska-mid-cbf-fhs-common = { version = "0.3.8", source = "ska-nexus" }
 # Commit hash version from Gitlab
 # ska-mid-cbf-fhs-common = { version = "0.3.5+dev.c1ca03be3", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 
 # Official tagged release from CAR
-ska-mid-cbf-common = { version = "0.2.5", source = "ska-nexus" }
+ska-mid-cbf-common = { version = "0.2.7", source = "ska-nexus" }
 # Commit hash version from Gitlab
-# ska-mid-cbf-common = { version = "0.0.2+dev.c0642f5d5", source = "gitlab-mid-cbf-common" }
+# ska-mid-cbf-common = { version = "0.2.5+dev.c45845b57", source = "gitlab-mid-cbf-common" }
 # Local repository
 # ska-mid-cbf-common = { path = "../ska-mid-cbf-common", develop = true }
+
+# Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
+# Official tagged release from CAR
+ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.4", source = "ska-nexus" }
+# Commit hash version from Gitlab
+# ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.3+dev.c023f5584", source = "gitlab-fhs-vcc-grpc-controller" }
+# Local repository
+# ska-mid-cbf-fhs-vcc-grpc-controller = { path = "../ska-mid-cbf-fhs-vcc-grpc-controller", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest-pydocstyle = "2.3.2"
@@ -88,6 +102,10 @@ url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
 [[tool.poetry.source]]
 name="gitlab-mid-cbf-common"
 url = "https://gitlab.com/api/v4/projects/75387241/packages/pypi/simple"
+
+[[tool.poetry.source]]
+name="gitlab-fhs-vcc-grpc-controller"
+url = "https://gitlab.com/api/v4/projects/81959427/packages/pypi/simple"
 
 [[tool.poetry.source]]
 name = "PyPI-public"

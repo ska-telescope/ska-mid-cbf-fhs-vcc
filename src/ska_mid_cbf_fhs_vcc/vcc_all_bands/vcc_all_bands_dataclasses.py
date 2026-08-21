@@ -51,3 +51,86 @@ class VCCAllBandsAutoSetFilterGainsSchema(DataClassJsonMixin):
 
     headrooms: Optional[list[float]] = field(default_factory=lambda: [3.0])
     transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig(DataClassJsonMixin):
+    """Dataclass representing Polarity config for Noise Info field in VCC Bite Config"""
+
+    seed: int
+    noise_std: int
+    noise_mean: int
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteNoiseInfoConfig(DataClassJsonMixin):
+    """Dataclass representing Noise Info config in VCC Bite Config"""
+
+    pol_x: VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig
+    pol_y: VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteNoiseDiodeConfig(DataClassJsonMixin):
+    """Dataclass representing Noise Diode config in VCC Bite Config"""
+
+    dwell_time_us: int
+    random_pattern_seed: int
+    on_state_scaling_factor: float
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteReceiverConfig(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands ConfigureVCCBite Receiver parameter."""
+
+    dish_id: str
+    dish_sample_rate: int  # pylint: disable=invalid-name
+    noise_diode: VCCAllBandsConfigureVCCBiteNoiseDiodeConfig
+    noise_info: Optional[VCCAllBandsConfigureVCCBiteNoiseInfoConfig] = None
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteSourceConfig(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands ConfigureVCCBite Sources parameter."""
+
+    noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig
+    pol_coupling_rho: float
+    pol_Y_1_sample_delay: bool  # pylint: disable=invalid-name
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig(DataClassJsonMixin):
+    """Dataclass representing Polarity config for RFI in VCC Bite Config"""
+
+    frequency: int
+    scale: float
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteRfiConfig(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands ConfigureVCCBite RFI parameter."""
+
+    pol_x: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig
+    # TODO: pol_y is currently not used even if provided.
+    # It should used in case there is an x and y bite tone gen driver,
+    # but currently there is a single driver so pol_y is ignored
+    pol_y: Optional[VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig] = None
+
+
+@dataclass
+class VCCAllBandsConfigureVCCBiteSchema(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands ConfigureVCCBite input parameter."""
+
+    receiver: VCCAllBandsConfigureVCCBiteReceiverConfig
+    source: VCCAllBandsConfigureVCCBiteSourceConfig
+    rfi: list[VCCAllBandsConfigureVCCBiteRfiConfig]
+    utc_start_time: int
+    band: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsDeconfigureVCCBiteSchema(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands DeconfigureVCCBite input parameter."""
+
+    transaction_id: Optional[str] = None
