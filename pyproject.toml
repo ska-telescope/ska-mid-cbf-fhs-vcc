@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.3.17"
+version = "0.3.18"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },
@@ -41,7 +41,7 @@ jsonschema = "^4.26.0"
 # Official tagged release from CAR
 ska-mid-cbf-fhs-common = { version = "0.3.8", source = "ska-nexus" }
 # Commit hash version from Gitlab
-# ska-mid-cbf-fhs-common = { version = "0.3.6+dev.c4b15b5de", source = "gitlab-fhs-common" }
+# ska-mid-cbf-fhs-common = { version = "0.3.5+dev.c1ca03be3", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 

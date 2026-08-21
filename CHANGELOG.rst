@@ -8,9 +8,13 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
-0.3.17
+0.3.18
 ******
 * CIP-6288: Add VCC Bite functionality
+
+0.3.17
+******
+* CIP-5845: Bumped ska-mid-cbf-fhs-common to 0.3.7 for abstracted HealthInfo
 
 0.3.16
 ******
