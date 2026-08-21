@@ -45,6 +45,8 @@ class VCCAllBandsController(
             ("Abort", "abort"),
             ("UpdateSubarrayMembership", "update_subarray_membership"),
             ("AutoSetFilterGains", "auto_set_filter_gains"),
+            ("ConfigureVCCBite", "configure_vcc_bite"),
+            ("DeconfigureVCCBite", "deconfigure_vcc_bite"),
         ]
 
     @attribute(
@@ -156,6 +158,48 @@ class VCCAllBandsController(
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=subarray_id)
+        return [[result_code], [command_id]]
+
+    @command(
+        dtype_in="DevString",
+        dtype_out="DevVarLongStringArray",
+        doc_in=("String containing JSON following the ConfigureVCCBite schema."),
+    )
+    def ConfigureVCCBite(self: VCCAllBandsController, configure_vcc_bite_schema: str | None = None) -> DevVarLongStringArrayType:
+        """Tango command to configure VCC Bite.
+
+        Args:
+            configure_vcc_bite_schema (:obj:`str`): JSON String following the ConfigureVCCBite command schema
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="ConfigureVCCBite")
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
+        result_code, command_id = command_handler(argin=configure_vcc_bite_schema)
+        return [[result_code], [command_id]]
+
+    @command(
+        dtype_in="DevString",
+        dtype_out="DevVarLongStringArray",
+        doc_in=("String containing JSON following the DeconfigureVCCBite schema."),
+    )
+    def DeconfigureVCCBite(self: VCCAllBandsController, deconfigure_vcc_bite_schema: str | None = None) -> DevVarLongStringArrayType:
+        """Tango command to deconfigure VCC Bite.
+
+        Args:
+            deconfigure_vcc_bite_schema (:obj:`str`): JSON String following the DeconfigureVCCBite command schema
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="DeconfigureVCCBite")
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
+        result_code, command_id = command_handler(argin=deconfigure_vcc_bite_schema)
         return [[result_code], [command_id]]
 
     @command(
