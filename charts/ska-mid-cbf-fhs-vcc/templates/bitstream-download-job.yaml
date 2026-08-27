@@ -1,26 +1,5 @@
 {{- if .Values.bitstreamDownloadJob.enabled }}
 
-{{- if .Values.bar.secret.vault.enabled }}
-apiVersion: secrets.hashicorp.com/v1beta1
-kind: VaultStaticSecret
-metadata:
-  name: {{ .Release.Name}}-fhs-vcc-bar-secret
-spec:
-  type: kv-v2
-  mount: {{ .Values.bar.secret.vault.mount }}
-  path: {{ .Values.bar.secret.vault.secretPath }}
-  destination:
-    name: {{ .Release.Name}}-fhs-vcc-bar-secret
-    create: true
-    overwrite: true
-    transformation:
-      excludeRaw: true
-      includes:
-      {{- range .Values.bar.secret.vault.secretKeys }}
-        - {{ . }}
-      {{- end }}
-{{- end }}
-
 {{- range .Values.VCCUnits }}
 ---
 apiVersion: batch/v1
@@ -44,7 +23,7 @@ spec:
               BITSTREAM_SUBPATH=$BITSTREAM_ID/$BITSTREAM_VER
               PACKAGE="ska-mid-cbf-${BITSTREAM_ID}"
               TARBALL="${PACKAGE}-${BITSTREAM_VER}.tar.gz"
-              BAR_URL="{{ $.Values.bar.url }}"
+              BAR_URL="{{ $.Values.global.bar.url }}"
               TARGET_DIR="{{ $.Values.bitstreamMountPath }}/$BITSTREAM_SUBPATH"
               {{- if not $GITLAB_DOWNLOAD_URL }}
               if [ -z "$BAR_API_TOKEN" ]; then
@@ -75,11 +54,11 @@ spec:
               find {{ $.Values.bitstreamMountPath }}
           env:
             - name: BAR_URL
-              value: {{ $.Values.bar.url | quote }}
+              value: {{ $.Values.global.bar.url | quote }}
             - name: BAR_API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "ska-mid-cbf-fhs-vcc-bar-secret" $ }}
+                  name: {{ include "fhs-bar-secret" $ }}
                   key: BAR_API_TOKEN
           volumeMounts:
             - name: bitstream-pv
