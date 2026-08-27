@@ -39,9 +39,9 @@ jsonschema = "^4.26.0"
 
 # Uncomment one of the below to get ska-mid-cbf-fhs-common from one of three sources:
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = { version = "0.3.8", source = "ska-nexus" }
+#ska-mid-cbf-fhs-common = { version = "0.3.8", source = "ska-nexus" }
 # Commit hash version from Gitlab
-# ska-mid-cbf-fhs-common = { version = "0.3.5+dev.c1ca03be3", source = "gitlab-fhs-common" }
+ska-mid-cbf-fhs-common = { version = "0.3.9+dev.ca6f77915", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 
