@@ -15,53 +15,19 @@ stateDiagram {
 }
 </style>
 
-title VCC All Bands Controller Observing States
+title VCC All Bands Controller States
 
-' Ref ska-mid-cbf-fhs-common/src/ska_mid_cbf_fhs_common/enums/fhs_state.py:
-' https://developer.skao.int/projects/ska-control-model/en/latest/obs_state.html
+state NOT_CONFIGURED
+state CONFIGURING
+state CONFIGURED
 
-' EMPTY: the subarray is unresourced
-' RESOURCING: the subarray is performing a resourcing operation
-' IDLE: the subarray is resourced but unconfigured
-' CONFIGURING: the subarray is performing a configuring operation
-' READY: the subarray is resourced and configured
-' SCANNING: the subarray is scanning
-' ABORTING: the subarray is aborting
-' ABORTED: the subarray has aborted
-' RESETTING: the subarray is resetting from an ABORTED or FAULT state back to IDLE
-' RESTARTING: the subarray is restarting from an ABORTED or FAULT state back to EMPTY
-' FAULT: the subarray has encountered a observation fault.
+[*]             -->         NOT_CONFIGURED
+NOT_CONFIGURED  -->         CONFIGURING : ConfigureScan()
 
-' IDLE, READY, SCANNING, ABORTED, FAULT
+CONFIGURING     -->         CONFIGURED : ConfigureScan()\nsuccessful
+CONFIGURING     -->         NOT_CONFIGURED : Abort()
 
-state IDLE: Not configured
-state READY: Configured
-state SCANNING: 
-state SCAN_PENDING #LightSteelBlue:
-state ABORTED:
-state FAULT #LightGray: ???
-
-[*]           -->         IDLE
-IDLE          -->         READY : ConfigureScan()
-IDLE          -[#red]->   ABORTED : <color:red>Abort()</color>
-
-READY         -->         SCAN_PENDING : Scan(...)
-READY         -->         IDLE : GoToIdle()
-READY         -[#red]->   ABORTED : <color:red>Abort()</color>
-
-SCAN_PENDING  -->         SCANNING : Start time\nreached
-SCAN_PENDING  -->         IDLE : GoToIdle()
-SCAN_PENDING  -->         READY : EndScan()
-SCAN_PENDING  -->         SCAN_PENDING : EndScan(duration)
-SCAN_PENDING  -[#red]->   ABORTED : <color:red>Abort()</color>
-
-SCANNING      -->         READY : End time\nreached
-SCANNING      -->         IDLE : GoToIdle()
-SCANNING      -->         READY : EndScan()
-SCANNING      -->         SCANNING : EndScan(duration)
-SCANNING      -[#red]->   ABORTED : <color:red>Abort()</color>
-
-ABORTED       -->         IDLE : ObsReset()
-
+CONFIGURED      -->         NOT_CONFIGURED : GoToIdle()
+CONFIGURED      -->         NOT_CONFIGURED : Abort()
 
 @enduml
