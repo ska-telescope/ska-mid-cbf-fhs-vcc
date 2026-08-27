@@ -10,7 +10,15 @@ UNRELEASED CHANGES
 
 0.4.0
 ******
-* CIP-6242: Use new Redis-based emulator status cache for status() API calls in emulation mode. The minimum compatible emulator version is 0.13.0.
+* CIP-6242: Use new Redis-based emulator status cache for status() API calls in emulation mode. The minimum compatible emulator version is 1.0.0.
+
+0.3.18
+******
+* CIP-6288: Add VCC Bite functionality
+
+0.3.17
+******
+* CIP-5845: Bumped ska-mid-cbf-fhs-common to 0.3.7 for abstracted HealthInfo
 
 0.3.16
 ******

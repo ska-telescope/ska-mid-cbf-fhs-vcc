@@ -1,4 +1,4 @@
-ARG BUILD_IMAGE=harbor.skao.int/production/ska-build-python:0.3.1
+ARG BUILD_IMAGE=harbor.skao.int/production/ska-build-python:1.0.0
 ARG BASE_IMAGE=harbor.skao.int/production/ska-tango-images-tango-python:0.3.0
 FROM $BUILD_IMAGE AS build
 
@@ -7,13 +7,7 @@ ENV VIRTUAL_ENV=/app \
     POETRY_VIRTUALENVS_IN_PROJECT=1
 
 
-RUN set -xe; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
-        python3-venv; \
-    python3 -m venv $VIRTUAL_ENV; \
-    mkdir /build; \
-    ln -s $VIRTUAL_ENV /build/.venv
+RUN python3.12 -m venv $VIRTUAL_ENV;
 
 ENV PATH=$VIRTUAL_ENV/bin:$PATH
 
@@ -30,7 +24,7 @@ WORKDIR /build
 # `--only main` to avoid installing dev dependencies.  This option is not
 # available for pip.
 COPY pyproject.toml poetry.lock* ./
-
+RUN poetry env use python3.12
 RUN poetry install --only main --no-root
 
 # The README.md here must match the `tool.poetry.readme` key in the
