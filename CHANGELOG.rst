@@ -14,6 +14,7 @@ UNRELEASED CHANGES
 
   * Update ska-mid-cbf-fhs-common to 0.3.9 for updated simulator behaviour
   * Dockerfile changes to get python 3.12 installed into the vcc container
+  * Add twine dependency 0.15.0
 
 0.3.18
 ******
