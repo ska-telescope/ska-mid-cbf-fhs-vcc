@@ -102,6 +102,7 @@ PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --rcfile=$(PYLINT_CONFIG_FILE)
 
 PYTHON_LINE_LENGTH = 160
 POETRY_PYTHON_RUNNER = poetry run python3.12 -m
+PYTHON_RUNNER = poetry run python3.12 -m
 
 LOCAL_PYTHON_RUNNER = poetry run python3 -m
 
