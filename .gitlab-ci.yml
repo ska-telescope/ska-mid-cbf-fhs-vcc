@@ -10,6 +10,7 @@ default:
 #   paths:
 
 stages:
+  - ci-init
   - lint
   - build
   - test
