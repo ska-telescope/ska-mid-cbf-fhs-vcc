@@ -103,3 +103,11 @@ python-lint:
           time pip3 install -r requirements.txt;
         fi;
       fi;
+
+python-build-for-development:
+  variables:
+    PYTHON_RUNNER: "poetry run "
+
+python-build-for-publication:
+  variables:
+    PYTHON_RUNNER: "poetry run "
