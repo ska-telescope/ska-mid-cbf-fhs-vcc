@@ -10,7 +10,10 @@ UNRELEASED CHANGES
 
 0.3.19
 ******
-* CIP-5560: Update ska-mid-cbf-fhs-common to 0.3.9 for updated simulator behaviour
+* CIP-5560: 
+
+  * Update ska-mid-cbf-fhs-common to 0.3.9 for updated simulator behaviour
+  * Dockerfile changes to get python 3.12 installed into the vcc container
 
 0.3.18
 ******
