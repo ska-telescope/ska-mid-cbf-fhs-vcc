@@ -1,5 +1,5 @@
-ARG BUILD_IMAGE=harbor.skao.int/production/ska-build-python:1.0.0
-ARG BASE_IMAGE=harbor.skao.int/production/ska-tango-images-tango-python:0.3.0
+ARG BUILD_IMAGE=harbor.skao.int/production/ska-build-python:1.0.1
+ARG BASE_IMAGE=harbor.skao.int/production/ska-python-py312:1.0.1
 FROM $BUILD_IMAGE AS build
 
 ENV VIRTUAL_ENV=/app \
