@@ -196,6 +196,33 @@ url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
 reference = "gitlab-fhs-common"
 
 [[package]]
+name = "build"
+version = "1.6.0"
+description = "A simple, correct Python build frontend"
+optional = false
+python-versions = ">= 3.10"
+groups = ["ci"]
+files = [
+    {file = "build-1.6.0-py3-none-any.whl", hash = "sha256:f7aaf1ebbb79178a02ba248bb524f2176b256017e17e8e4bd4289c7b38cc2bad"},
+    {file = "build-1.6.0.tar.gz", hash = "sha256:bd2c8afc603e7a2e0ce70e2ea85f0a6d02043bafbd307f5bada0f98669eca5af"},
+]
+
+[package.dependencies]
+colorama = {version = "*", markers = "os_name == \"nt\""}
+packaging = ">=24.0"
+pyproject_hooks = "*"
+
+[package.extras]
+keyring = ["keyring"]
+uv = ["uv (>=0.1.18)"]
+virtualenv = ["virtualenv (>=20.36.1)"]
+
+[package.source]
+type = "legacy"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
+
+[[package]]
 name = "certifi"
 version = "2026.5.20"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -425,12 +452,12 @@ version = "0.4.6"
 description = "Cross-platform colored terminal text."
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
-groups = ["main", "dev", "docs"]
+groups = ["main", "ci", "dev", "docs"]
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
-markers = {main = "platform_system == \"Windows\"", dev = "sys_platform == \"win32\" or platform_system == \"Windows\"", docs = "platform_system == \"Windows\" or sys_platform == \"win32\""}
+markers = {main = "platform_system == \"Windows\"", ci = "os_name == \"nt\"", dev = "sys_platform == \"win32\" or platform_system == \"Windows\"", docs = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 
 [package.source]
 type = "legacy"
@@ -1956,7 +1983,7 @@ version = "26.3"
 description = "Core utilities for Python packages"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "dev", "docs"]
+groups = ["main", "ci", "dev", "docs"]
 files = [
     {file = "packaging-26.3-py3-none-any.whl", hash = "sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"},
     {file = "packaging-26.3.tar.gz", hash = "sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79"},
@@ -2567,6 +2594,23 @@ files = [
 [package.dependencies]
 junit-xml-2 = "*"
 pylint = "*"
+
+[package.source]
+type = "legacy"
+url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
+reference = "gitlab-fhs-common"
+
+[[package]]
+name = "pyproject-hooks"
+version = "1.2.0"
+description = "Wrappers to call pyproject.toml-based build backend hooks."
+optional = false
+python-versions = ">=3.7"
+groups = ["ci"]
+files = [
+    {file = "pyproject_hooks-1.2.0-py3-none-any.whl", hash = "sha256:9e5c6bfa8dcc30091c74b0cf803c81fdd29d94f01992a7707bc97babb1141913"},
+    {file = "pyproject_hooks-1.2.0.tar.gz", hash = "sha256:1e859bd5c40fae9448642dd871adf459e5e2084186e8d2c2a79a824c970da1f8"},
+]
 
 [package.source]
 type = "legacy"
@@ -4461,4 +4505,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.15"
-content-hash = "00a89dc76f4503372edb7daa6b69d9f58730d3e016799ff4a217bf41e39c7acf"
+content-hash = "155ce5fb2f7a2e4fe5eb8114bcad19ad76da1ec2e2eec8a0cffb8bbf186dcf2c"
