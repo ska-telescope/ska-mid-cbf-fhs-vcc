@@ -10,7 +10,7 @@ UNRELEASED CHANGES
 
 0.3.20
 ******
-* CIP-5560: Add twine dependecy 0.15.0 to fixe pipeline
+* CIP-5560: Add twine dependecy 1.15.0 to fixe pipeline
 
 0.3.19
 ******
