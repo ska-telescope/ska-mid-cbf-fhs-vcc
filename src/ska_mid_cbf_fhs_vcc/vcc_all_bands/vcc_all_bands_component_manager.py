@@ -33,8 +33,15 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_man
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_vcc_byte import vcc_all_bands_configure_vcc_bite_schema
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.utils.admin_online import VccAdminOnline
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsAutoSetFilterGainsSchema, VCCAllBandsConfigureScanConfig
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (
+    VCCAllBandsAutoSetFilterGainsSchema,
+    VCCAllBandsConfigureScanConfig,
+    VCCAllBandsConfigureVCCBiteSchema,
+    VCCAllBandsDeconfigureVCCBiteSchema,
+)
+from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager, VCCSourceSelect
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
@@ -91,6 +98,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
     wideband_power_meters: dict[VCCBandGroup | int, WidebandPowerMeterManager]
     """:obj:`dict[VCCBandGroup | int, WidebandPowerMeterManager]`: Dictionary containing the IP block managers
     for all Wideband Power Meters, mapped by either band group (B123, etc) or FS index (1 to 26)."""
+
+    vcc_bite_manager: VCCBiteManager
+    """:obj:`VCCBiteManager`: The manager object for VCC Bite"""
+
+    vcc_source_select: VCCSourceSelect
+    """obj:`VCCSourceSelect`: The source of VCC data"""
 
     @property
     def config_schema(self) -> dict[str, Any]:
@@ -162,6 +175,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
         self._obs_state_action_callback = obs_state_action_callback if obs_state_action_callback is not None else self._default_callback
         self._obs_command_running_callback = obs_command_running_callback if obs_command_running_callback is not None else self._default_callback
+
+        self.vcc_bite_manager = VCCBiteManager(logger=logger)
+        self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
     def _device_specific_setup(self) -> None:
         """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
@@ -326,6 +342,46 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             args=[argin],
             task_callback=task_callback,
             is_cmd_allowed=self.is_obs_reset_allowed,
+        )
+
+    def configure_vcc_bite(
+        self,
+        argin: Optional[str] = None,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the ConfigureVCCBite command implementation.
+
+        Args:
+            argin (:obj:`str`): The configure_vcc_bite_schema schema JSON string from the command's input argument.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=self._configure_vcc_bite,
+            args=[argin],
+            task_callback=task_callback,
+        )
+
+    def deconfigure_vcc_bite(
+        self,
+        argin: Optional[str] = None,
+        task_callback: Optional[Callable] = None,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the DeconfigureVCCBite command implementation.
+
+        Args:
+            argin (:obj:`str`): The deconfigure_vcc_bite_schema schema JSON string from the command's input argument.
+            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=self._deconfigure_vcc_bite,
+            args=[argin],
+            task_callback=task_callback,
         )
 
     def abort_tasks(
@@ -1023,6 +1079,106 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         finally:
             # Reset the ID so it's not used in a different Command call
             self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = None
+
+    def _configure_vcc_bite(
+        self,
+        argin: str,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """ConfigureVCCBite command implementation for VCC All bands controller,
+        to handle task management as well as error handling.
+        """
+        try:
+            configure_vcc_bite_schema_dict = json.loads(argin)
+            transaction_id = configure_vcc_bite_schema_dict.get("transaction_id", None)
+            self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
+            jsonschema.validate(
+                configure_vcc_bite_schema_dict,
+                vcc_all_bands_configure_vcc_bite_schema,
+            )
+            configure_vcc_bite_schema = VCCAllBandsConfigureVCCBiteSchema.from_dict(configure_vcc_bite_schema_dict)
+
+            self.log_info("Received Command ConfigureVCCBite", transaction_id)
+
+            self.vcc_bite_manager.configure(config=configure_vcc_bite_schema)
+            self.vcc_source_select = VCCSourceSelect.VCC_BITE
+
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.OK,
+                "ConfigureVCCBite completed OK",
+            )
+            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id)
+        except jsonschema.ValidationError as ex:
+            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
+            self.log_error("Invalid json provided for ConfigureVCCBite", transaction_id)
+            self.logger.exception(ex)
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureVCCBite")
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.REJECTED, transaction_id=transaction_id
+            )
+        except Exception as ex:
+            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during ConfigureVCCBite: {ex}", width=400),
+            )
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
+            )
+        finally:
+            # Reset the ID so it's not used in a different Command call
+            self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = None
+
+    def _deconfigure_vcc_bite(
+        self,
+        argin: str,
+        task_callback: Optional[Callable] = None,
+        task_abort_event: Optional[Event] = None,
+    ) -> None:
+        """DeconfigureVCCBite command implementation for VCC All bands controller,
+        to handle task management as well as error handling.
+        """
+        try:
+            deconfigure_vcc_bite_schema_dict = json.loads(argin)
+            transaction_id = deconfigure_vcc_bite_schema_dict.get("transaction_id", None)
+            self.transaction_ids_per_command[CommandType.DECONFIGUREVCCBITE] = transaction_id
+            deconfigure_vcc_bite_schema = VCCAllBandsDeconfigureVCCBiteSchema.from_dict(deconfigure_vcc_bite_schema_dict)
+
+            self.log_info("Received Command DeconfigureVCCBite", transaction_id)
+
+            self.vcc_bite_manager.deconfigure(config=deconfigure_vcc_bite_schema)
+            self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
+
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.OK,
+                "DeconfigureVCCBite completed OK",
+            )
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id
+            )
+        except Exception as ex:
+            transaction_id = self.transaction_ids_per_command.get(CommandType.DECONFIGUREVCCBITE, None)
+            self.logger.exception(ex)
+            self._set_task_callback(
+                task_callback,
+                TaskStatus.COMPLETED,
+                ResultCode.FAILED,
+                textwrap.shorten(f"An unexpected exception occurred during DeconfigureVCCBite: {ex}", width=400),
+            )
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
+            )
+        finally:
+            # Reset the ID so it's not used in a different Command call
+            self.transaction_ids_per_command[CommandType.DECONFIGUREVCCBITE] = None
 
     def _stop_ip_blocks(self) -> int:
         """Stop all IP blocks."""

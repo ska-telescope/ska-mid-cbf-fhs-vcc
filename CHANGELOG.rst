@@ -8,6 +8,21 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.19
+******
+* CIP-5560: 
+
+  * Update ska-mid-cbf-fhs-common to 0.3.9 for updated simulator behaviour
+  * Dockerfile changes to get python 3.12 installed into the vcc container
+
+0.3.18
+******
+* CIP-6288: Add VCC Bite functionality
+
+0.3.17
+******
+* CIP-5845: Bumped ska-mid-cbf-fhs-common to 0.3.7 for abstracted HealthInfo
+
 0.3.16
 ******
 * CIP-5925: switch from using abort_commands to abort_tasks, ObsReset takes full JSON str input

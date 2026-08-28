@@ -44,7 +44,7 @@ midcbf:
   image:
     registry: harbor.skao.int/production
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.3.16
+    tag: 0.3.19
     pullPolicy: IfNotPresent
 
 resources:
