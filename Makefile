@@ -30,6 +30,7 @@ TANGO_DATABASE = tango-databaseds-$(HELM_RELEASE)
 TANGO_HOST = $(TANGO_DATABASE):10000## TANGO_HOST is an input!
 
 K8S_UMBRELLA_CHART_PATH ?= ./charts/ska-mid-cbf-umbrella
+VALUES_PATH = ./charts/ska-mid-cbf-fhs-vcc/values.yaml
 
 CI_REGISTRY ?= gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 
@@ -161,7 +162,8 @@ k8s-create-bar-secret:
 		exit 1; \
 	fi
 	@echo "Creating secret for bar token"
-	@kubectl create secret generic $(HELM_RELEASE)-fhs-bar-secret --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
+	$(eval UNIT_NUMS := $(shell yq '.VCCUnits[].unitNum' $(VALUES_PATH) | sort | paste -sd- -))
+	@kubectl create secret generic $(HELM_RELEASE)-bar-secret-fhs-vcc-unit-$(UNIT_NUMS) --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
 
 k8s-deploy-dev: MINIKUBE=true
 k8s-deploy-dev: CLUSTER_DOMAIN=cluster.local

@@ -11,19 +11,6 @@ global:
   sub-system:
     ska-tango-base:
       enabled: false
-  bar:
-    url: "https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/artefacts"
-    secret:
-      vault:
-        mount: psi-mid
-        secretPath: production/bar-api-token
-        secretKeys:
-          - "BAR_API_TOKEN"
-
-bar:
-  secret:
-    vault:
-      enabled: true
 
 ska-tango-base:
   vnc:

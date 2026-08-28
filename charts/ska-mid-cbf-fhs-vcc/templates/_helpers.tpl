@@ -101,7 +101,11 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
 {{- end -}}
 
 {{- define "fhs-bar-secret" -}}
-{{ .Release.Name}}-fhs-bar-secret
+{{- $unitNums := list }}
+{{- range .Values.VCCUnits }}
+  {{- $unitNums = append $unitNums (.unitNum | toString) }}
+{{- end -}}
+{{- .Release.Name }}-bar-secret-fhs-vcc-unit{{- range ($unitNums | sortAlpha) }}-{{ . }}{{- end }}
 {{- end -}}
 
 {{- define "fhs-bar-secret-manifest" -}}
