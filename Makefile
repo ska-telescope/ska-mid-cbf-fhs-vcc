@@ -89,8 +89,7 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	${PV_STORAGE_PARAM}
 
 ifeq ($(MINIKUBE),true)
-K8S_CHART_PARAMS += --set ska-mid-cbf-fhs-vcc.bar.secret.bar_api_token="$(BAR_API_TOKEN)" \
-	--set ska-mid-cbf-fhs-vcc.bar.secret.vault.enabled=false
+K8S_CHART_PARAMS += --set ska-mid-cbf-fhs-vcc.bar.secret.vault.enabled=false
 endif
 
 # shared lint config file var definitions
@@ -152,8 +151,8 @@ k8s-pre-install-chart:
 	rm -f charts/ska-mid-cbf-fhs-vcc/Chart.lock
 
 k8s-deploy:
+	@if [ "$(MINIKUBE)" = "true" ]; then make k8s-namespace; k8s-create-bar-secret BAR_API_TOKEN=$(BAR_API_TOKEN); fi
 	make k8s-install-chart MINIKUBE=$(MINIKUBE) DEV=$(DEV) BOOGIE=$(BOOGIE)
-	@if [ "$(MINIKUBE)" = "true" ]; then make k8s-create-bar-secret BAR_API_TOKEN=$(BAR_API_TOKEN); fi
 	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to be ready..."
 	@time kubectl wait pod --selector=app=ska-mid-cbf-fhs-vcc --for=condition=ready --timeout=15m0s --namespace $(KUBE_NAMESPACE)
 
