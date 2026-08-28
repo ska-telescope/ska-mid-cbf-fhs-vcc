@@ -41,6 +41,21 @@ get-version:
     reports:
       dotenv: build.env
 
+ci-base-image-build:
+  image: $SKA_K8S_TOOLS_BUILD_DEPLOY
+  stage: ci-init
+  tags:
+    - ${SKA_DEFAULT_RUNNER}
+  before_script:
+    - '[ -f .make/oci.mk ] || (echo "File oci.mk not included in Makefile; exit 1")'
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+    - mkdir -p build
+  script:
+    - make oci-build CAR_OCI_REGISTRY_HOST=${CI_REGISTRY}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} OCI_IMAGE=ska-mid-cbf-fhs-fsp-ci-base OCI_IMAGE_FILE_PATH=./ci.Dockerfile OCI_BUILD_ADDITIONAL_ARGS="--build-arg ci_poetry_version=$CI_POETRY_VERSION"
+  artifacts:
+    paths:
+      - build/
+
 # Include CI templates
 include:
 
