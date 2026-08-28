@@ -41,7 +41,7 @@ jsonschema = "^4.26.0"
 # Official tagged release from CAR
 #ska-mid-cbf-fhs-common = { version = "0.3.8", source = "ska-nexus" }
 # Commit hash version from Gitlab
-ska-mid-cbf-fhs-common = { version = "0.3.9+dev.ca6f77915", source = "gitlab-fhs-common" }
+ska-mid-cbf-fhs-common = { version = "0.3.9+dev.c41779761", source = "gitlab-fhs-common" }
 # Local repository
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", develop = true }
 
