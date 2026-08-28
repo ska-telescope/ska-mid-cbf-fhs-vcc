@@ -105,9 +105,42 @@ python-lint:
       fi;
 
 python-build-for-development:
+  image: "$BASE_IMAGE"
   variables:
     PYTHON_RUNNER: "poetry run "
+  needs:
+    - python-lint
+    - get-version
+  before_script:
+    - cd /ska-mid-cbf-fhs-vcc
+    - cat pyproject.toml
+    - poetry install --only ci
+  script:
+    - make python-build PYTHON_BUILD_TYPE="non_tag_pyproject"
+    - cp -r /ska-mid-cbf-fhs-vcc/dist/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 
 python-build-for-publication:
+  image: "$BASE_IMAGE"
   variables:
     PYTHON_RUNNER: "poetry run "
+  needs:
+    - python-lint
+    - get-version
+  before_script:
+    - cd /ska-mid-cbf-fhs-vcc
+    - poetry install --only ci
+  script:
+    - make python-build PYTHON_BUILD_TYPE="tag_pyproject"
+    - cp -r /ska-mid-cbf-fhs-vcc/dist/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
+
+python-publish-to-gitlab:
+  needs:
+    - job: python-build-for-development
+      optional: true
+    - job: python-build-for-publication
+      optional: true
+
+python-publish-to-car:
+  needs:
+    - python-test
+    - python-build-for-publication
