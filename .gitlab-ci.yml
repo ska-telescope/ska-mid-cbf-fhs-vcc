@@ -24,6 +24,22 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   MINIKUBE: "false"
 
+get-version:
+  image: $SKA_K8S_TOOLS_BUILD_DEPLOY
+  stage: ci-init
+  tags:
+    - ${SKA_DEFAULT_RUNNER}
+  script:
+    - REL_VERSION=$(awk -F= '/^release=/{print $2}' .release)
+    - DEV_VERSION="$REL_VERSION"-dev.c"$CI_COMMIT_SHORT_SHA"
+    - BASE_IMAGE="$BASE_IMAGE_URL":"$DEV_VERSION"
+    - echo "REL_VERSION=$REL_VERSION" >> build.env
+    - echo "DEV_VERSION=$DEV_VERSION" >> build.env
+    - echo "BASE_IMAGE=$BASE_IMAGE" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
 # Include CI templates
 include:
 
