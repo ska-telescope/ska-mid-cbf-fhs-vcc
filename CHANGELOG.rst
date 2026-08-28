@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.19
+******
+* CIP-5560: Update ska-mid-cbf-fhs-common to 0.3.9 for updated simulator behaviour
+
 0.3.18
 ******
 * CIP-6288: Add VCC Bite functionality
