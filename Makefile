@@ -30,7 +30,7 @@ TANGO_DATABASE = tango-databaseds-$(HELM_RELEASE)
 TANGO_HOST = $(TANGO_DATABASE):10000## TANGO_HOST is an input!
 
 K8S_UMBRELLA_CHART_PATH ?= ./charts/ska-mid-cbf-umbrella
-VALUES_PATH = ./charts/ska-mid-cbf-fhs-vcc/values.yaml
+VALUES_PATH ?= ./charts/ska-mid-cbf-fhs-vcc/values.yaml
 
 CI_REGISTRY ?= gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 
