@@ -101,5 +101,5 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
 {{- end -}}
 
 {{- define "fhs-bar-secret-name" -}}
-{{- printf "%s-bar-secret-fhs-vcc" .Release.Name -}}
+{{ .Release.Name }}-bar-secret-fhs-vcc
 {{- end -}}
