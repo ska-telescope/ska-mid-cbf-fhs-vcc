@@ -99,34 +99,3 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
 
   {{- toJson (dict "fpgaNum" $fpgaBoardNum) -}}
 {{- end -}}
-
-{{- define "fhs-bar-secret" -}}
-{{- $unitNums := list }}
-{{- range .Values.VCCUnits }}
-  {{- $unitNums = append $unitNums (.unitNum | toString) }}
-{{- end -}}
-{{- .Release.Name }}-bar-secret-fhs-vcc-unit{{- range ($unitNums | sortAlpha) }}-{{ . }}{{- end }}
-{{- end -}}
-
-{{- define "fhs-bar-secret-manifest" -}}
-{{- if .Values.bar.secret.vault.enabled }}
-apiVersion: secrets.hashicorp.com/v1beta1
-kind: VaultStaticSecret
-metadata:
-  name: {{ include "fhs-bar-secret" . }}
-spec:
-  type: kv-v2
-  mount: {{ .Values.global.bar.secret.vault.mount }}
-  path: {{ .Values.global.bar.secret.vault.secretPath }}
-  destination:
-    name: {{ include "fhs-bar-secret" . }}
-    create: true
-    overwrite: true
-    transformation:
-      excludeRaw: true
-      includes:
-      {{- range .Values.global.bar.secret.vault.secretKeys }}
-        - {{ . }}
-      {{- end }}
-{{- end }}
-{{- end -}}

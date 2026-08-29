@@ -30,7 +30,6 @@ TANGO_DATABASE = tango-databaseds-$(HELM_RELEASE)
 TANGO_HOST = $(TANGO_DATABASE):10000## TANGO_HOST is an input!
 
 K8S_UMBRELLA_CHART_PATH ?= ./charts/ska-mid-cbf-umbrella
-VALUES_PATH ?= ./charts/ska-mid-cbf-fhs-vcc/values.yaml
 
 CI_REGISTRY ?= gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 
@@ -73,6 +72,7 @@ BAR_URL := https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/ar
 # set BAR_API_TOKEN as an environmental variable via command line if testing locally
 # get the value from Vault
 BAR_API_TOKEN ?=
+BAR_SECRET_NAME=$(HELM_RELEASE)-bar-secret-fhs-vcc
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set global.k3d=$(K3D) \
@@ -151,7 +151,7 @@ k8s-pre-install-chart:
 	rm -f charts/ska-mid-cbf-fhs-vcc/Chart.lock
 
 k8s-deploy:
-	@if [ "$(MINIKUBE)" = "true" ]; then make k8s-namespace; k8s-create-bar-secret BAR_API_TOKEN=$(BAR_API_TOKEN); fi
+	@if [ "$(MINIKUBE)" = "true" ]; then make k8s-namespace; make k8s-create-bar-secret BAR_API_TOKEN=$(BAR_API_TOKEN); fi
 	make k8s-install-chart MINIKUBE=$(MINIKUBE) DEV=$(DEV) BOOGIE=$(BOOGIE)
 	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to be ready..."
 	@time kubectl wait pod --selector=app=ska-mid-cbf-fhs-vcc --for=condition=ready --timeout=15m0s --namespace $(KUBE_NAMESPACE)
@@ -162,8 +162,7 @@ k8s-create-bar-secret:
 		exit 1; \
 	fi
 	@echo "Creating secret for bar token"
-	$(eval UNIT_NUMS := $(shell yq '.VCCUnits[].unitNum' $(VALUES_PATH) | sort | paste -sd- -))
-	@kubectl create secret generic $(HELM_RELEASE)-bar-secret-fhs-vcc-unit-$(UNIT_NUMS) --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
+	@kubectl create secret generic $(BAR_SECRET_NAME) --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
 
 k8s-deploy-dev: MINIKUBE=true
 k8s-deploy-dev: CLUSTER_DOMAIN=cluster.local
