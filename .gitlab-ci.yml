@@ -118,7 +118,7 @@ python-lint:
     - ci-base-image-build
     - get-version
   before_script:
-    - cd /ska-mid-cbf-fhs-fsp
+    - cd /ska-mid-cbf-fhs-vcc
   after_script:
     - cp -r /ska-mid-cbf-fhs-vcc/build/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 
