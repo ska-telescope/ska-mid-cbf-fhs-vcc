@@ -111,34 +111,16 @@ python-test:
       fi;
 
 python-lint:
+  image: "$BASE_IMAGE"
+  variables:
+    PYTHON_RUNNER: "poetry run python -m "
+  needs:
+    - ci-base-image-build
+    - get-version
   before_script:
-    - '[ -f .make/python.mk ] || (echo "File python.mk not included in Makefile"; exit 1;)'
-    - 'make help | grep python-lint'
-    - poetry config virtualenvs.in-project true
-    - echo "python-build Setting.. poetry config virtualenvs.create true"
-    - poetry config virtualenvs.create true
-    - |
-      if [[ -f pyproject.toml ]]; then
-        if [[ -n $CI_POETRY_VERSION ]]; then
-          # Check installed Poetry version
-          CURRENT_POETRY_VERSION=$(poetry --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-          echo "python-lint: Installed Poetry version: $CURRENT_POETRY_VERSION, Required: $CI_POETRY_VERSION"
-          # Compare versions
-          if [[ $(printf '%s\n' "$CURRENT_POETRY_VERSION" "$CI_POETRY_VERSION" | sort -V | head -n1) != "$CI_POETRY_VERSION" ]]; then
-            echo "python-lint: Updating poetry to $CI_POETRY_VERSION";
-            pipx uninstall poetry && pipx install poetry==$CI_POETRY_VERSION;
-          fi;
-        fi;
-
-        echo "python-lint: Installing with poetry";
-        poetry env use python3.12;
-        time poetry install --all-extras;
-      else
-        if  [[ -f requirements.txt ]]; then
-          echo "python-lint: Installing with pip";
-          time pip3 install -r requirements.txt;
-        fi;
-      fi;
+    - cd /ska-mid-cbf-fhs-fsp
+  after_script:
+    - cp -r /ska-mid-cbf-fhs-vcc/build/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 
 python-build-for-development:
   image: "$BASE_IMAGE"
