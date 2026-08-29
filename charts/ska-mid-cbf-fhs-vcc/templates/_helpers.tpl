@@ -99,3 +99,7 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
 
   {{- toJson (dict "fpgaNum" $fpgaBoardNum) -}}
 {{- end -}}
+
+{{- define "fhs-bar-secret-name" -}}
+{{- printf "%s-bar-secret-fhs-vcc" .Release.Name -}}
+{{- end -}}
