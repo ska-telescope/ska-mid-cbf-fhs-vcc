@@ -5,7 +5,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: fhs-vcc-bitstream-download-job-vcc-unit-{{ .unitNum | toString}}
+  name: fhs-vcc-bitstream-download-job-vcc-unit-{{ .unitNum }}
 spec:
   template:
     spec:

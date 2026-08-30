@@ -30,6 +30,7 @@ global:
     url: "https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/artefacts"
     secret:
       vault:
+        enabled: true
         mount: psi-mid
         secretPath: production/bar-api-token
         secretKeys:
@@ -37,8 +38,7 @@ global:
 
 bar:
   secret:
-    vault:
-      enabled: true
+    create: true
 
 midcbf:
   image:
