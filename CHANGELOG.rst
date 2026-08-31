@@ -12,6 +12,17 @@ UNRELEASED CHANGES
 ******
 * CIP-6242: Use new Redis-based emulator status cache for status() API calls in emulation mode. The minimum compatible emulator version is 1.0.0.
 
+0.3.20
+******
+* CIP-5560: Update CI pipeline and dependencies to correctly use python3.12
+
+0.3.19
+******
+* CIP-5560: 
+
+  * Update ska-mid-cbf-fhs-common to 0.3.9 for updated simulator behaviour
+  * Dockerfile changes to get python 3.12 installed into the vcc container
+
 0.3.18
 ******
 * CIP-6288: Add VCC Bite functionality
