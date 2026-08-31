@@ -10,6 +10,7 @@ default:
 #   paths:
 
 stages:
+  - ci-init
   - lint
   - build
   - test
@@ -23,6 +24,41 @@ stages:
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   MINIKUBE: "false"
+  CI_POETRY_VERSION: "2.4.0"
+  BASE_IMAGE_URL: registry.gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc/ska-mid-cbf-fhs-vcc-ci-base
+  DOCS_PYTHON_RUNNER: "poetry run python -m "
+  DOCS_SPHINXBUILD: "poetry run python -m sphinx "
+
+get-version:
+  image: $SKA_K8S_TOOLS_BUILD_DEPLOY
+  stage: ci-init
+  tags:
+    - ${SKA_DEFAULT_RUNNER}
+  script:
+    - REL_VERSION=$(awk -F= '/^release=/{print $2}' .release)
+    - DEV_VERSION="$REL_VERSION"-dev.c"$CI_COMMIT_SHORT_SHA"
+    - BASE_IMAGE="$BASE_IMAGE_URL":"$DEV_VERSION"
+    - echo "REL_VERSION=$REL_VERSION" >> build.env
+    - echo "DEV_VERSION=$DEV_VERSION" >> build.env
+    - echo "BASE_IMAGE=$BASE_IMAGE" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
+ci-base-image-build:
+  image: $SKA_K8S_TOOLS_BUILD_DEPLOY
+  stage: ci-init
+  tags:
+    - ${SKA_DEFAULT_RUNNER}
+  before_script:
+    - '[ -f .make/oci.mk ] || (echo "File oci.mk not included in Makefile; exit 1")'
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+    - mkdir -p build
+  script:
+    - make oci-build CAR_OCI_REGISTRY_HOST=${CI_REGISTRY}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} OCI_IMAGE=ska-mid-cbf-fhs-vcc-ci-base OCI_IMAGE_FILE_PATH=./ci.Dockerfile OCI_BUILD_ADDITIONAL_ARGS="--build-arg ci_poetry_version=$CI_POETRY_VERSION"
+  artifacts:
+    paths:
+      - build/
 
 # Include CI templates
 include:
@@ -51,55 +87,81 @@ include:
   - project: 'ska-telescope/templates-repository'
     file: 'gitlab-ci/includes/finaliser.gitlab-ci.yml'
 
+python-test:
+  image: "$BASE_IMAGE"
+  variables:
+    PYTHON_RUNNER: "poetry run python -m "
+  needs:
+    - python-lint
+    - get-version
+  before_script:
+    - cd /ska-mid-cbf-fhs-vcc
+  after_script:
+    - cp -r /ska-mid-cbf-fhs-vcc/build/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
+
+python-lint:
+  image: "$BASE_IMAGE"
+  variables:
+    PYTHON_RUNNER: "poetry run python -m "
+  needs:
+    - ci-base-image-build
+    - get-version
+  before_script:
+    - cd /ska-mid-cbf-fhs-vcc
+  after_script:
+    - cp -r /ska-mid-cbf-fhs-vcc/build/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
+
 docs-build:
+  image: "$BASE_IMAGE"
+  variables:
+    PYTHON_RUNNER: "poetry run python -m "
+  needs:
+    - ci-base-image-build
+    - get-version
+  before_script:
+    - cd /ska-mid-cbf-fhs-vcc
+
+docs-build-rtd:
   rules:
     - when: never
 
-python-test:
+python-build-for-development:
+  image: "$BASE_IMAGE"
+  variables:
+    PYTHON_RUNNER: "poetry run "
+  needs:
+    - python-lint
+    - get-version
   before_script:
-    - '[ -f .make/python.mk ] || (echo "File python.mk not included in Makefile; exit 1")'
-    - 'make help | grep python-test'
-    - poetry config virtualenvs.in-project true
-    - echo "python-build Setting.. poetry config virtualenvs.create true"
-    - poetry config virtualenvs.create true
-    - |
-      if [[ -f pyproject.toml ]]; then
-        echo "python-test: Installing with poetry";
-        poetry env use python3.12;
-        time poetry install;
-      else
-        if  [[ -f requirements.txt ]]; then
-          echo "python-test: Installing with pip";
-          time pip3 install -r requirements.txt;
-        fi;
-      fi;
+    - cd /ska-mid-cbf-fhs-vcc
+    - cat pyproject.toml
+    - poetry install --only ci
+  script:
+    - make python-build PYTHON_BUILD_TYPE="non_tag_pyproject"
+    - cp -r /ska-mid-cbf-fhs-vcc/dist/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 
-python-lint:
+python-build-for-publication:
+  image: "$BASE_IMAGE"
+  variables:
+    PYTHON_RUNNER: "poetry run "
+  needs:
+    - python-lint
+    - get-version
   before_script:
-    - '[ -f .make/python.mk ] || (echo "File python.mk not included in Makefile"; exit 1;)'
-    - 'make help | grep python-lint'
-    - poetry config virtualenvs.in-project true
-    - echo "python-build Setting.. poetry config virtualenvs.create true"
-    - poetry config virtualenvs.create true
-    - |
-      if [[ -f pyproject.toml ]]; then
-        if [[ -n $CI_POETRY_VERSION ]]; then
-          # Check installed Poetry version
-          CURRENT_POETRY_VERSION=$(poetry --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-          echo "python-lint: Installed Poetry version: $CURRENT_POETRY_VERSION, Required: $CI_POETRY_VERSION"
-          # Compare versions
-          if [[ $(printf '%s\n' "$CURRENT_POETRY_VERSION" "$CI_POETRY_VERSION" | sort -V | head -n1) != "$CI_POETRY_VERSION" ]]; then
-            echo "python-lint: Updating poetry to $CI_POETRY_VERSION";
-            pipx uninstall poetry && pipx install poetry==$CI_POETRY_VERSION;
-          fi;
-        fi;
+    - cd /ska-mid-cbf-fhs-vcc
+    - poetry install --only ci
+  script:
+    - make python-build PYTHON_BUILD_TYPE="tag_pyproject"
+    - cp -r /ska-mid-cbf-fhs-vcc/dist/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 
-        echo "python-lint: Installing with poetry";
-        poetry env use python3.12;
-        time poetry install --all-extras;
-      else
-        if  [[ -f requirements.txt ]]; then
-          echo "python-lint: Installing with pip";
-          time pip3 install -r requirements.txt;
-        fi;
-      fi;
+python-publish-to-gitlab:
+  needs:
+    - job: python-build-for-development
+      optional: true
+    - job: python-build-for-publication
+      optional: true
+
+python-publish-to-car:
+  needs:
+    - python-test
+    - python-build-for-publication

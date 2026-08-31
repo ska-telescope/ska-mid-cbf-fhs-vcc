@@ -44,7 +44,7 @@ midcbf:
   image:
     registry: harbor.skao.int/production
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.3.19
+    tag: 0.4.0
     pullPolicy: IfNotPresent
 
 resources:
@@ -108,11 +108,13 @@ properties:
   simulationMode: "1"
   emulationMode: "{{ .unitEmulationMode }}"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
+  emulatorStatusCacheUrl: "status-cache-service.ska-mid-cbf-emulators.svc.cluster.local"
+  emulatorStatusCachePort: "6379"  # should rarely if ever need to change
   bitstreamPath: "/app/mnt/bitstream"
   bitstreams:
     vcc:
       id: "agilex-vcc"
-      version: "1.0.3"
+      version: "1.3.0"
   bitstreamKey: "vcc"
   emulatorId: "fhs-vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
