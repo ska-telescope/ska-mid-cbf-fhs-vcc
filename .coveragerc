@@ -1,0 +1,10 @@
+[run]
+omit =
+patch =
+    subprocess
+    fork
+    _exit
+
+[report]
+exclude_lines =
+    if TYPE_CHECKING:
