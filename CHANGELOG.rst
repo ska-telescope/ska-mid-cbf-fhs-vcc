@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.3.20
+******
+* CIP-5560: Update CI pipeline and dependencies to correctly use python3.12
+
 0.3.19
 ******
 * CIP-5560: 

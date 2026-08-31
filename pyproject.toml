@@ -79,6 +79,7 @@ flake8-annotations = "^3.0.1"
 flake8-import-conventions = "0.1.0"
 flake8-pep585 = "0.1.7"
 flake8-bugbear = "24.12.12"
+twine = "^1.15.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^8"
@@ -90,6 +91,10 @@ black = "^23.9.1"
 flake8 = "^6.1.0"
 sphinxcontrib-plantuml = "^0.26"
 sphinxcontrib-apidoc="^0.6.0"
+
+[tool.poetry.group.ci.dependencies]
+python = ">=3.12,<3.15"
+build = "^1.4.4"
 
 [[tool.poetry.source]]
 name = "ska-nexus"
