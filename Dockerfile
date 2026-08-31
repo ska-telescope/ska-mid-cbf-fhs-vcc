@@ -1,15 +1,45 @@
-ARG BUILD_IMAGE=harbor.skao.int/production/ska-build-python:1.0.1
-ARG BASE_IMAGE=harbor.skao.int/production/ska-python-py312:1.0.1
+ARG BUILD_IMAGE=harbor.skao.int/production/ska-build-python:0.3.3
+ARG BASE_IMAGE=harbor.skao.int/production/ska-tango-images-tango-python:0.4.1
 FROM $BUILD_IMAGE AS build
 
 ENV VIRTUAL_ENV=/app \
     POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=1
 
+# # ############################################
+# # # Python 3.14
+# # ############################################
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install python3.14-full -y --no-install-recommends && \
+    apt-get install python3.14-dev python3.14-venv -y --no-install-recommends && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.14 1 && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3.14 1
 
-RUN python3.12 -m venv $VIRTUAL_ENV;
+RUN python3.14 -m venv $VIRTUAL_ENV; \
+    mkdir /build; \
+    ln -s $VIRTUAL_ENV /build/.venv
 
 ENV PATH=$VIRTUAL_ENV/bin:$PATH
+
+RUN python3.14 -m ensurepip --upgrade && \
+    python3.14 -m pip install --upgrade pip && \
+    python3.14 -m pip install --upgrade setuptools && \
+    python3.14 -m pip install certifi
+
+ENV POETRY_HOME=/opt/poetry
+ENV POETRY_VERSION=2.4.0
+RUN mkdir -p $POETRY_HOME && curl -sSL https://raw.githubusercontent.com/python-poetry/install.python-poetry.org/main/install-poetry.py --output $POETRY_HOME/install-poetry.py
+RUN cd $POETRY_HOME && POETRY_VERSION=${POETRY_VERSION} python3.14 install-poetry.py --yes
+RUN ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
+ENV PATH /opt/poetry/bin:$PATH
+RUN ls -la ./
+
+ENV PIP_REQUESTS_TIMEOUT 30
+ENV POETRY_REQUESTS_TIMEOUT 30
 
 WORKDIR /build
 
@@ -24,8 +54,8 @@ WORKDIR /build
 # `--only main` to avoid installing dev dependencies.  This option is not
 # available for pip.
 COPY pyproject.toml poetry.lock* ./
-RUN poetry env use python3.12
-RUN poetry install --only main --no-root
+
+RUN poetry lock && poetry install --only main --no-root
 
 # The README.md here must match the `tool.poetry.readme` key in the
 # pyproject.toml otherwise the `pip install` step below will fail.
@@ -42,10 +72,36 @@ RUN pip uninstall -y pip
 
 FROM $BASE_IMAGE
 
+USER root
+
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install python3.14-full -y --no-install-recommends && \
+    apt-get install python3.14-dev python3.14-venv -y --no-install-recommends
+
+USER tango
+
 ENV VIRTUAL_ENV=/app
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY --from=build $VIRTUAL_ENV $VIRTUAL_ENV
+
+USER root
+
+RUN update-alternatives --install $VIRTUAL_ENV/bin/python3 python3 $VIRTUAL_ENV/bin/python3.14 1 && \
+    update-alternatives --install $VIRTUAL_ENV/bin/python python $VIRTUAL_ENV/bin/python3.14 1
+
+RUN python3.14 -m ensurepip --upgrade && \
+    python3.14 -m pip install --upgrade pip && \
+    python3.14 -m pip install --upgrade setuptools && \
+    python3.14 -m pip install certifi
+
+USER tango
+
+RUN python3.14 -m ensurepip
 
 LABEL int.skao.image.team=cipa-halifax \
       int.skao.image.authors="Jason Turner <jason.turner@mda.space>, Ben Herriott <ben.herriott@mda.space>, Justin Wamback <justin.wamback@mda.space>" \
@@ -69,3 +125,8 @@ RUN apt-get update && \
 RUN apt-get update && \
   apt-get install -y kubectl
 
+RUN python --version
+
+USER tango
+
+RUN python --version
