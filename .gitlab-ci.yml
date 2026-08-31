@@ -87,7 +87,7 @@ include:
   - project: 'ska-telescope/templates-repository'
     file: 'gitlab-ci/includes/finaliser.gitlab-ci.yml'
 
-docs-build:
+docs-build-rtd:
   rules:
     - when: never
 

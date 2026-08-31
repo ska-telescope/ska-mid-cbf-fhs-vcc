@@ -3307,14 +3307,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.4.0+dev.c5f23d596"
+version = "0.4.0"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.4.0+dev.c5f23d596-py3-none-any.whl", hash = "sha256:1dbfa1073b8af26c0aabec78fe6c7c3e50d447a239c7cf882607dfcfceaea7f4"},
-    {file = "ska_mid_cbf_fhs_common-0.4.0+dev.c5f23d596.tar.gz", hash = "sha256:69a1ea24803a1c128f72f8c9c6ed0ea0c5298a9f22d29c6f9033f81b298fd9cd"},
+    {file = "ska_mid_cbf_fhs_common-0.4.0-py3-none-any.whl", hash = "sha256:9935011e4d40b6a40e63dfb35db638b856e05f2fafefe5fb4ae846424721ccdd"},
+    {file = "ska_mid_cbf_fhs_common-0.4.0.tar.gz", hash = "sha256:b5726c4a8dababd57857e1232ba91fdf742d48356f2f77e8d278809d2ebaabcb"},
 ]
 
 [package.dependencies]
@@ -3340,8 +3340,8 @@ typing-extensions = ">=4.8.0,<5.0.0"
 
 [package.source]
 type = "legacy"
-url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple"
-reference = "gitlab-fhs-common"
+url = "https://artefact.skao.int/repository/pypi-internal/simple"
+reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-fsp-grpc-controller"
@@ -4271,4 +4271,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.15"
-content-hash = "5ae583fba6e1aef1097bcc7755cd6e3585859c57026056bbc2938e2c1d0da9d0"
+content-hash = "dffb7b18c14de746f1ab93d0df199d9e11f21cc8602b55ee6b8fe43d90bac6f6"
