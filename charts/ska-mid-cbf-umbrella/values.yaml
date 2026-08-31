@@ -26,8 +26,3 @@ ska-mid-cbf-fhs-vcc-boogie:
   enabled: true
   boogie:
     tango_host: *tango_host
-
-ska-mid-cbf-fhs-vcc:
-  bar:
-    secret:
-      create: false
