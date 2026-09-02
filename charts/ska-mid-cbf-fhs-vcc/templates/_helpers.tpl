@@ -101,9 +101,8 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
 {{- end -}}
 
 {{/* 
-  Helper: name of the secret that contains BAR_API_TOKEN
-  - shared between ska-mid-cbf-fhs-vcc chart and ska-mid-cbf-umbrella chart
+  Name of the secret that contains BAR_API_TOKEN
 */}}
-{{- define "fhs-bar-secret-name" -}}
+{{- define "fhs-vcc-bar-secret-name" -}}
 fhs-vcc-bar-secret
 {{- end -}}
