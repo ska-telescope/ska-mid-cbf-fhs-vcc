@@ -105,5 +105,5 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
   - shared between ska-mid-cbf-fhs-vcc chart and ska-mid-cbf-umbrella chart
 */}}
 {{- define "fhs-bar-secret-name" -}}
-{{ .Release.Name }}-bar-secret-fhs-vcc
+fhs-vcc-bar-secret
 {{- end -}}
