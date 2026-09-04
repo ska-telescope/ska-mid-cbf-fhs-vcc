@@ -2,6 +2,7 @@ import time
 import pytest
 from ska_control_model import HealthState
 
+from ska_mid_cbf_fhs_vcc.grpc.vcc_grpc_client import VccGrpcClient
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
 
 class TestWidebandInputBuffer:
@@ -19,6 +20,9 @@ class TestWidebandInputBuffer:
             health_monitor_poll_interval=1,
             update_health_state_callback=lambda *_: None,
             create_log_file=False,
+            firmware_api_class=VccGrpcClient,
+            grpc_host="0.0.0.0",
+            grpc_port="50051"
         )
         yield manager
         if manager.health_monitor.is_polling():

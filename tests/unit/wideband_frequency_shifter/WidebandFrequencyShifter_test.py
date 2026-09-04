@@ -1,4 +1,5 @@
 import pytest
+from ska_mid_cbf_fhs_vcc.grpc.vcc_grpc_client import VccGrpcClient
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
 
 
@@ -15,6 +16,9 @@ class TestWidebandFrequencyShifter:
             bitstream_version="n/a",
             firmware_ip_block_id="n/a",
             create_log_file=False,
+            firmware_api_class=VccGrpcClient,
+            grpc_host="0.0.0.0",
+            grpc_port="50051"
         )
         yield manager
 

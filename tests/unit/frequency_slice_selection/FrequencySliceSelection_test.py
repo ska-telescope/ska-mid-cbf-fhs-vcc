@@ -1,6 +1,7 @@
 import pytest
 
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_manager import FrequencySliceSelectionConfig, FrequencySliceSelectionManager
+from ska_mid_cbf_fhs_vcc.grpc.vcc_grpc_client import VccGrpcClient
 
 
 class TestFrequencySliceSelection:
@@ -16,6 +17,9 @@ class TestFrequencySliceSelection:
             bitstream_version="n/a",
             firmware_ip_block_id="n/a",
             create_log_file=False,
+            firmware_api_class=VccGrpcClient,
+            grpc_host="0.0.0.0",
+            grpc_port="50051"
         )
         yield manager
 

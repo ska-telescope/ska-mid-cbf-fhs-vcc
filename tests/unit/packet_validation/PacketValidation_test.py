@@ -1,5 +1,6 @@
 import pytest
 
+from ska_mid_cbf_fhs_vcc.grpc.vcc_grpc_client import VccGrpcClient
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 
 
@@ -14,8 +15,11 @@ class TestPacketValidation:
             bitstream_path="n/a",
             bitstream_id="n/a",
             bitstream_version="n/a",
-            firmware_ip_block_id="n/a",
+            firmware_ip_block_id="n/a",            firmware_api_class=VccGrpcClient,
+            grpc_host="0.0.0.0",
+            grpc_port="50051"
             create_log_file=False,
+
         )
         yield manager
 
