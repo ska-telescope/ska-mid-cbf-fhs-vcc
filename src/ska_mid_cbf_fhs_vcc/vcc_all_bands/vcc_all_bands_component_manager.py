@@ -30,6 +30,7 @@ from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer
     B123VccOsppfbChannelizerManager,
 )
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_manager import FrequencySliceSelectionConfig, FrequencySliceSelectionManager
+from ska_mid_cbf_fhs_vcc.grpc.vcc_grpc_client import VccGrpcClient
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
@@ -176,7 +177,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         self._obs_state_action_callback = obs_state_action_callback if obs_state_action_callback is not None else self._default_callback
         self._obs_command_running_callback = obs_command_running_callback if obs_command_running_callback is not None else self._default_callback
 
-        self.vcc_bite_manager = VCCBiteManager(logger=logger)
+        self.vcc_bite_manager = VCCBiteManager(logger=logger, grpc_host=self.device.grpc_host, grpc_port=self.device.grpc_port) #simulation_mode=(simulation_mode | emulation_mode))
         self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
     def _device_specific_setup(self) -> None:
@@ -210,16 +211,21 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
     def _init_ip_block_managers(self) -> list[BaseIPBlockManager]:
         """Instantiate all the IP block managers for the VCC controller."""
 
-        self.ethernet_200g = FtileEthernetManager(**self._ip_block_props("Ethernet200Gb", additional_props=["ethernet_mode"]))
-        self.b123_vcc = B123VccOsppfbChannelizerManager(**self._ip_block_props("B123VccOsppfbChannelizer"))
-        self.frequency_slice_selection = FrequencySliceSelectionManager(**self._ip_block_props("FrequencySliceSelection"))
-        self.packet_validation = PacketValidationManager(**self._ip_block_props("PacketValidation"))
-        self.wideband_frequency_shifter = WidebandFrequencyShifterManager(**self._ip_block_props("WidebandFrequencyShifter"))
-        self.wideband_input_buffer = WidebandInputBufferManager(**self._ip_block_props("WidebandInputBuffer"))
-        self.vcc_stream_merges: dict[int, VCCStreamMergeManager] = {i: VCCStreamMergeManager(**self._ip_block_props(f"VCCStreamMerge{i}")) for i in range(1, 3)}
+        self.ethernet_200g = FtileEthernetManager(firmware_api_class=VccGrpcClient, **self._ip_block_props("Ethernet200Gb", additional_props=["ethernet_mode"]))
+        self.b123_vcc = B123VccOsppfbChannelizerManager(firmware_api_class=VccGrpcClient, **self._ip_block_props("B123VccOsppfbChannelizer"))
+        self.frequency_slice_selection = FrequencySliceSelectionManager(firmware_api_class=VccGrpcClient, **self._ip_block_props("FrequencySliceSelection"))
+        self.packet_validation = PacketValidationManager(firmware_api_class=VccGrpcClient, **self._ip_block_props("PacketValidation"))
+        self.wideband_frequency_shifter = WidebandFrequencyShifterManager(firmware_api_class=VccGrpcClient, **self._ip_block_props("WidebandFrequencyShifter"))
+        self.wideband_input_buffer = WidebandInputBufferManager(firmware_api_class=VccGrpcClient, **self._ip_block_props("WidebandInputBuffer"))
+        self.vcc_stream_merges: dict[int, VCCStreamMergeManager] = {
+            i: VCCStreamMergeManager(firmware_api_class=VccGrpcClient, **self._ip_block_props(f"VCCStreamMerge{i}")) for i in range(1, 3)
+        }
         self.wideband_power_meters: dict[VCCBandGroup | int, WidebandPowerMeterManager] = {
-            **{band_group: WidebandPowerMeterManager(**self._ip_block_props(f"{band_group.value.upper()}WidebandPowerMeter")) for band_group in VCCBandGroup},
-            **{i: WidebandPowerMeterManager(**self._ip_block_props(f"FS{i}WidebandPowerMeter")) for i in range(1, 27)},
+            **{
+                band_group: WidebandPowerMeterManager(firmware_api_class=VccGrpcClient, **self._ip_block_props(f"{band_group.value.upper()}WidebandPowerMeter"))
+                for band_group in VCCBandGroup
+            },
+            **{i: WidebandPowerMeterManager(firmware_api_class=VccGrpcClient, **self._ip_block_props(f"FS{i}WidebandPowerMeter")) for i in range(1, 27)},
         }
 
         return [

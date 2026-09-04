@@ -41,7 +41,8 @@ bar:
 
 midcbf:
   image:
-    registry: harbor.skao.int/production
+    #registry: harbor.skao.int/production
+    registry: docker.io/library
     image: ska-mid-cbf-fhs-vcc
     tag: 0.4.1
     pullPolicy: IfNotPresent
@@ -104,7 +105,7 @@ properties:
   deviceId: "{{ .deviceId }}"
   deviceVersionNum: "0.0.1"
   deviceGitlabHash: "0"
-  simulationMode: "1"
+  simulationMode: "0"
   emulationMode: "{{ .unitEmulationMode }}"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
   emulatorStatusCacheUrl: "status-cache-service.ska-mid-cbf-emulators.svc.cluster.local"
@@ -135,118 +136,118 @@ vccAllBandsDevice:
       values:
         Ethernet200Gb:
           emulator_ip_block_id: "ethernet_200g"
-          firmware_ip_block_id: "eth200g_{{.receptorId}}"
+          firmware_ip_block_id: "t1389c0_eth200g_{{.receptorId}}_driver"
           ethernet_mode: "200GbE"
           health_monitor_poll_interval: "60"
         B123VccOsppfbChannelizer:
           emulator_ip_block_id: "b123vcc"
-          firmware_ip_block_id: "receptor{{.receptorId}}_band123_vcc"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_band123_vcc_driver"
         FrequencySliceSelection:
           emulator_ip_block_id: "fs_selection_26_2_1"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs_selector"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs_selector_driver"
         PacketValidation:
           emulator_ip_block_id: "vcc_pkt_filter"
-          firmware_ip_block_id: "packet_validation_unimplemented"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_packet_capture_driver"
         WidebandFrequencyShifter:
           emulator_ip_block_id: "wideband_frequency_shifter"
-          firmware_ip_block_id: "wideband_frequency_shifter_unimplemented"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_band123_frequency_shifter_driver"
         WidebandInputBuffer:
           emulator_ip_block_id: "wideband_input_buffer"
-          firmware_ip_block_id: "wideband_input_buffer_unimplemented"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_wideband_input_buffer_driver"
           health_monitor_poll_interval: "3"
         VCCStreamMerge1:
           emulator_ip_block_id: "fs1_vcc_stream_merge"
-          firmware_ip_block_id: "receptor{{.receptorId}}_vcc_stream_merge1"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs_packetizer_0_driver"
         VCCStreamMerge2:
           emulator_ip_block_id: "fs2_vcc_stream_merge"
-          firmware_ip_block_id: "receptor{{.receptorId}}_vcc_stream_merge2"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs_packetizer_1_driver"
         B123WidebandPowerMeter:
           emulator_ip_block_id: "b123_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_band123_wideband_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_band123_wideband_power_meter_driver"
         B45AWidebandPowerMeter:
           emulator_ip_block_id: "b45a_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_band45a_wideband_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_band45a_wideband_power_meter_driver"
         B5BWidebandPowerMeter:
           emulator_ip_block_id: "b5b_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_band5b_wideband_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_band5b_wideband_power_meter_driver"
         FS1WidebandPowerMeter:
           emulator_ip_block_id: "fs1_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs1_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs1_power_meter_driver"
         FS2WidebandPowerMeter:
           emulator_ip_block_id: "fs2_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs2_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs2_power_meter_driver"
         FS3WidebandPowerMeter:
           emulator_ip_block_id: "fs3_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs3_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs3_power_meter_driver"
         FS4WidebandPowerMeter:
           emulator_ip_block_id: "fs4_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs4_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs4_power_meter_driver"
         FS5WidebandPowerMeter:
           emulator_ip_block_id: "fs5_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs5_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs5_power_meter_driver"
         FS6WidebandPowerMeter:
           emulator_ip_block_id: "fs6_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs6_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs6_power_meter_driver"
         FS7WidebandPowerMeter:
           emulator_ip_block_id: "fs7_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs7_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs7_power_meter_driver"
         FS8WidebandPowerMeter:
           emulator_ip_block_id: "fs8_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs8_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs8_power_meter_driver"
         FS9WidebandPowerMeter:
           emulator_ip_block_id: "fs9_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs9_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs9_power_meter_driver"
         FS10WidebandPowerMeter:
           emulator_ip_block_id: "fs10_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs10_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs10_power_meter_driver"
         FS11WidebandPowerMeter:
           emulator_ip_block_id: "fs11_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs11_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs11_power_meter_driver"
         FS12WidebandPowerMeter:
           emulator_ip_block_id: "fs12_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs12_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs12_power_meter_driver"
         FS13WidebandPowerMeter:
           emulator_ip_block_id: "fs13_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs13_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs13_power_meter_driver"
         FS14WidebandPowerMeter:
           emulator_ip_block_id: "fs14_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs14_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs14_power_meter_driver"
         FS15WidebandPowerMeter:
           emulator_ip_block_id: "fs15_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs15_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs15_power_meter_driver"
         FS16WidebandPowerMeter:
           emulator_ip_block_id: "fs16_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs16_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs16_power_meter_driver"
         FS17WidebandPowerMeter:
           emulator_ip_block_id: "fs17_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs17_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs17_power_meter_driver"
         FS18WidebandPowerMeter:
           emulator_ip_block_id: "fs18_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs18_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs18_power_meter_driver"
         FS19WidebandPowerMeter:
           emulator_ip_block_id: "fs19_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs19_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs19_power_meter_driver"
         FS20WidebandPowerMeter:
           emulator_ip_block_id: "fs20_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs20_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs20_power_meter_driver"
         FS21WidebandPowerMeter:
           emulator_ip_block_id: "fs21_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs21_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs21_power_meter_driver"
         FS22WidebandPowerMeter:
           emulator_ip_block_id: "fs22_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs22_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs22_power_meter_driver"
         FS23WidebandPowerMeter:
           emulator_ip_block_id: "fs23_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs23_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs23_power_meter_driver"
         FS24WidebandPowerMeter:
           emulator_ip_block_id: "fs24_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs24_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs24_power_meter_driver"
         FS25WidebandPowerMeter:
           emulator_ip_block_id: "fs25_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs25_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs25_power_meter_driver"
         FS26WidebandPowerMeter:
           emulator_ip_block_id: "fs26_wideband_power_meter"
-          firmware_ip_block_id: "receptor{{.receptorId}}_fs26_power_meter"
+          firmware_ip_block_id: "t1389c0_receptor{{.receptorId}}_fs26_power_meter_driver"
     - name: network_switch_id
       values:
         - "{{ .networkSwitchId }}"
@@ -262,6 +263,15 @@ vccAllBandsDevice:
     - name: long_running_command_result_buffer_max_size
       values:
         - "100"
+    - name: grpc_host
+      values:
+        - "{{ .grpcHost }}"
+    - name: grpc_port
+      values:
+        - "{{ .grpcPort }}"
+    - name: fpga_card_id
+      values:
+        - "t1389c0"
 
 # the number of VCCUnit stacks to deploy
 numVccUnits: 2
@@ -285,3 +295,8 @@ VCCUnits:
 # set simulated to true to deploy VCCAllBandsController simulators
 standaloneSimulator: false
 simDeviceCommand: "SimVCCAllBandsController"
+
+
+vccGrpcController:
+  host: "192.168.49.1"
+  port: "50051"

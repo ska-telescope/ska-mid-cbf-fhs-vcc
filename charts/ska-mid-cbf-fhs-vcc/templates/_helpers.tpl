@@ -43,6 +43,8 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
 {{- $devices := index . 2 -}}
 {{- $globalProperties := index . 3 -}}
 {{- $instanceNum := index . 4 -}}
+{{- $grpcHost := index . 5 -}}
+{{- $grpcPort := index . 6 -}}
 {{- $deviceId := add $instanceNum (mul 6 (sub (int $fhsVccUnit.unitNum) 1)) -}}
 {{- $fpgaNum := fromJson (include "calculateFPGANum" (list $fhsVccUnit.unitNum $deviceId) | trim) -}}
 
@@ -52,7 +54,7 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
     - name: {{ $device.name }}
       devices:
       {{- range $multiplicity := (untilStep 1 ($device.multiplicity | int | default 1 | add1 | int ) 1) }}
-      {{- $scope := dict "deviceId" (int $deviceId) "deviceId000" (printf "%03d" (int $deviceId)) "receptorId" (mod (sub (int $deviceId) 1) 3) "unitEmulationMode" (printf "%s" $fhsVccUnit.emulationMode) "networkSwitchId" (printf "%s" $fhsVccUnit.networkSwitchId) "bmcEndpointIp" (printf "%s" $fhsVccUnit.bmcEndpointIp) "multiplicity" $multiplicity "unitNum" (printf "%d" (int $fhsVccUnit.unitNum)) "fpgaNum" (printf "%d" (int $fpgaNum.fpgaNum)) }}
+      {{- $scope := dict "deviceId" (int $deviceId) "deviceId000" (printf "%03d" (int $deviceId)) "receptorId" (mod (sub (int $deviceId) 1) 3) "unitEmulationMode" (printf "%s" $fhsVccUnit.emulationMode) "networkSwitchId" (printf "%s" $fhsVccUnit.networkSwitchId) "bmcEndpointIp" (printf "%s" $fhsVccUnit.bmcEndpointIp) "multiplicity" $multiplicity "unitNum" (printf "%d" (int $fhsVccUnit.unitNum)) "fpgaNum" (printf "%d" (int $fpgaNum.fpgaNum)) "grpcHost" $grpcHost "grpcPort" $grpcPort }}
       - name: {{ tpl $device.path $scope }}
         properties:
           {{- range $name, $default := $globalProperties }}

@@ -5,12 +5,6 @@ from ska_control_model import SimulationMode
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteSchema
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager
 
-import grpc
-from concurrent import futures
-from ska_mid_cbf_fhs_vcc_grpc_controller.driver_registry.driver_registry import DriverRegistry
-from ska_mid_cbf_fhs_vcc_grpc_controller.simulators.mock_driver_instantiator import MockDriverInstantiator
-from ska_mid_cbf_fhs_vcc_grpc_controller.services.vcc_driver_servicer import VccDriverServicer
-from ska_mid_cbf_fhs_vcc_grpc_controller.generated import vcc_drivers_pb2_grpc
 
 
 
@@ -22,6 +16,8 @@ class TestVCCBite:
         logger = logging.Logger("VCC Bite Logger")
         manager = VCCBiteManager(
             logger=logger,
+            grpc_host="0.0.0.0",
+            grpc_port="50051",
             simulation_mode=SimulationMode.TRUE,
         )
         yield manager
