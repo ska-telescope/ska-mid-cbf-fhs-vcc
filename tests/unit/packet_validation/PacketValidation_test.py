@@ -17,7 +17,7 @@ class TestPacketValidation:
             bitstream_version="n/a",
             firmware_ip_block_id="n/a",            firmware_api_class=VccGrpcClient,
             grpc_host="0.0.0.0",
-            grpc_port="50051"
+            grpc_port="50051",
             create_log_file=False,
 
         )
