@@ -10,7 +10,7 @@ Please see the [readthedocs](https://developer.skao.int/projects/ska-mid-cbf-fhs
 ```make oci-build```
 
 ### Loading the image into the aj kube cluster
-```kind load docker-image artefact.skao.int/ska-mid-cbf-sim-devices:0.0.1 --name <cluster-name>``` 
+```kind load docker-image artefact.skao.int/ska-mid-cbf-fhs-vcc:<tag> --name <cluster-name>``` 
 
 ### Installing the chart
 ```make k8s-install-chart MINIKUBE=true AJ_KUBE=true```
