@@ -178,8 +178,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         self._obs_command_running_callback = obs_command_running_callback if obs_command_running_callback is not None else self._default_callback
 
         self.vcc_bite_manager = VCCBiteManager(
-            logger=logger, grpc_host=self.device.grpc_host, grpc_port=self.device.grpc_port, simulation_mode=(simulation_mode | emulation_mode), card_name=self.device.fpga_card_id
-        ) 
+            logger=logger,
+            grpc_host=self.device.grpc_host,
+            grpc_port=self.device.grpc_port,
+            simulation_mode=(simulation_mode | emulation_mode),
+            card_name=self.device.fpga_card_id,
+        )
         self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
     def _device_specific_setup(self) -> None:

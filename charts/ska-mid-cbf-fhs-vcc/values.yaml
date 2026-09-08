@@ -42,7 +42,8 @@ bar:
 midcbf:
   image:
     #registry: harbor.skao.int/production
-    registry: docker.io/library
+    #registry: docker.io/library
+    registry: registry.gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
     image: ska-mid-cbf-fhs-vcc
     tag: 0.4.1
     pullPolicy: IfNotPresent
