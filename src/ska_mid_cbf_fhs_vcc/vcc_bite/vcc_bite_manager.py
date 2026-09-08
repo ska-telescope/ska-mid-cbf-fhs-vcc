@@ -285,7 +285,7 @@ class VCCBiteManager:
             test_select=True,
         )
         for api in self._vcc_source_select_apis:
-            result = api.configure(config=vcc_source_select_config)
+            result = api.configure(config=vcc_source_select_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure VCC Source Select")
                 return result
@@ -299,7 +299,7 @@ class VCCBiteManager:
             speed=1,
         )
         for api in self._vcc_bite_apis:
-            result = api.configure(config=vcc_bite_config)
+            result = api.configure(config=vcc_bite_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure VCC Bite")
                 return result
@@ -313,7 +313,7 @@ class VCCBiteManager:
             band=config.band,
         )
         for api in self._vcc_bite_tone_gen_apis:
-            result = api.configure(vcc_bite_tone_gen_config)
+            result = api.configure(vcc_bite_tone_gen_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure VCC Bite Tone Gen")
                 return result
@@ -325,7 +325,7 @@ class VCCBiteManager:
             std_dev=config.source.noise_info.pol_x.noise_std,
         )
         for api in self._gaussian_noise_driver_x_apis:
-            result = api.configure(gaussian_noise_driver_x_config)
+            result = api.configure(gaussian_noise_driver_x_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure Gaussian Noise Driver X")
                 return result
@@ -335,7 +335,7 @@ class VCCBiteManager:
             std_dev=config.source.noise_info.pol_y.noise_std,
         )
         for api in self._gaussian_noise_driver_y_apis:
-            result = api.configure(gaussian_noise_driver_y_config)
+            result = api.configure(gaussian_noise_driver_y_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure Gaussian Noise Driver Y")
                 return result
@@ -348,7 +348,7 @@ class VCCBiteManager:
             std_dev=config.source.noise_info.pol_x.noise_std,
         )
         for api in self._noise_diode_driver_x_apis:
-            result = api.configure(noise_diode_x_config)
+            result = api.configure(noise_diode_x_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure Noise Diode X")
                 return result
@@ -359,7 +359,7 @@ class VCCBiteManager:
             std_dev=config.source.noise_info.pol_y.noise_std,
         )
         for api in self._noise_diode_driver_y_apis:
-            result = api.configure(noise_diode_y_config)
+            result = api.configure(noise_diode_y_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure Noise Diode Y")
                 return result
@@ -370,7 +370,7 @@ class VCCBiteManager:
             delay_enable=config.source.pol_Y_1_sample_delay,
         )
         for api in self._polarization_coupler_apis:
-            result = api.configure(config=polarization_coupler_config)
+            result = api.configure(config=polarization_coupler_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure Polarization Coupler")
                 return result
@@ -381,7 +381,8 @@ class VCCBiteManager:
             local_mac=0x112233445566,
             remote_mac=0x778899AABBCC,
             ethertype=0xFEED,
-            dish_id=config.receiver.dish_id,
+            # dish_id=config.receiver.dish_id,
+            dish_id=1,
             hw_src_id=0,
             band=config.band,
             sample_rate=config.receiver.dish_sample_rate,
@@ -390,7 +391,7 @@ class VCCBiteManager:
             noise_diode_rising_holdoff_b=0.0,
         )
         for api in self._spfrx_packetizer_apis:
-            result = api.configure(config=spfrx_packetizer_config)
+            result = api.configure(config=spfrx_packetizer_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure SPFRx Packetizer")
                 return result

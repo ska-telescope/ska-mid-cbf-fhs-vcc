@@ -53,7 +53,7 @@ ska-mid-cbf-common = { version = ">=0.2.8", source = "ska-nexus" }
 # Official tagged release from CAR
 #ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.4", source = "ska-nexus" }
 # Commit hash version from Gitlab
-ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.4+dev.c854947ed", source = "gitlab-fhs-vcc-grpc-controller" }
+ska-mid-cbf-fhs-vcc-grpc-controller = { version = "0.0.4+dev.c5d49c743", source = "gitlab-fhs-vcc-grpc-controller" }
 # Local repository
 #ska-mid-cbf-fhs-vcc-grpc-controller = { path = "../ska-mid-cbf-fhs-vcc-grpc-controller", develop = true }
 

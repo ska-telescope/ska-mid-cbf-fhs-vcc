@@ -178,8 +178,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         self._obs_command_running_callback = obs_command_running_callback if obs_command_running_callback is not None else self._default_callback
 
         self.vcc_bite_manager = VCCBiteManager(
-            logger=logger, grpc_host=self.device.grpc_host, grpc_port=self.device.grpc_port
-        )  # simulation_mode=(simulation_mode | emulation_mode))
+            logger=logger, grpc_host=self.device.grpc_host, grpc_port=self.device.grpc_port, simulation_mode=(simulation_mode | emulation_mode), card_name=self.device.fpga_card_id
+        ) 
         self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
     def _device_specific_setup(self) -> None:
@@ -951,6 +951,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             task_abort_event (:obj:`Optional[Event]`, optional): An event representing whether or not the task has aborted.
                 Default is None.
         """
+        task_callback(status=TaskStatus.IN_PROGRESS)
+        if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
+            return
+
         try:
             headrooms = [3.0]
             transaction_id = None
@@ -1097,7 +1101,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """ConfigureVCCBite command implementation for VCC All bands controller,
         to handle task management as well as error handling.
         """
+        task_callback(status=TaskStatus.IN_PROGRESS)
+        if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
+            return
+
         try:
+
+            self.logger.info(f"::: CONFIGURING VCC BITE ::: {argin}")
+
             configure_vcc_bite_schema_dict = json.loads(argin)
             transaction_id = configure_vcc_bite_schema_dict.get("transaction_id", None)
             self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
@@ -1152,6 +1163,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """DeconfigureVCCBite command implementation for VCC All bands controller,
         to handle task management as well as error handling.
         """
+        task_callback(status=TaskStatus.IN_PROGRESS)
+        if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
+            return
+
         try:
             deconfigure_vcc_bite_schema_dict = json.loads(argin)
             transaction_id = deconfigure_vcc_bite_schema_dict.get("transaction_id", None)
