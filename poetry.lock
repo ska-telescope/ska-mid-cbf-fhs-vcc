@@ -3278,14 +3278,14 @@ reference = "gitlab-fhs-common"
 
 [[package]]
 name = "ska-mid-cbf-fhs-vcc-grpc-controller"
-version = "0.0.4+dev.c5d49c743"
+version = "0.0.4+dev.ccf829e83"
 description = "SKA Mid.CBF FHS FSP gRPC Controller"
 optional = false
 python-versions = ">=3.12,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.4+dev.c5d49c743-py3-none-any.whl", hash = "sha256:22fc4aafc993e33099b53428fd90a99d62287c5a6b785d1c608278df5d0b5ebf"},
-    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.4+dev.c5d49c743.tar.gz", hash = "sha256:ccf24815d3c6bad82f1b79338322f8166f757d72ec2bc9ec243c3b9ea1cbcc11"},
+    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.4+dev.ccf829e83-py3-none-any.whl", hash = "sha256:f96508df0ab8db7f7b65489a4b3b3f2b3f8fffaf16b23e8701a5fe3b703a5a41"},
+    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.4+dev.ccf829e83.tar.gz", hash = "sha256:99f3642c31b7a4a5371ae969e5c81e55d22cca48a409a4b342a45837b3d0c122"},
 ]
 
 [package.dependencies]
@@ -4155,4 +4155,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.15"
-content-hash = "2f91f5fe08cdd814bed8867109ac1e028558fa2d502e67fb9b224e7d6e9c4355"
+content-hash = "c98e28a69f07e9f35346f3f5bfe5ea9532488af5d4a20bad1f4b5702798a3754"
