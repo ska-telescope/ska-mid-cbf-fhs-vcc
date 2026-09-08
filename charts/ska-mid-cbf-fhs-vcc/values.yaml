@@ -79,6 +79,7 @@ bitstreamPv:
   enabled: True
 
 pvStorageClass: nfss1
+pvStorageAccess: "ReadWriteMany"
 
 # -------------------------------------------------DEVICE SERVER CONFIGURATION -------------------------------------------------
 
