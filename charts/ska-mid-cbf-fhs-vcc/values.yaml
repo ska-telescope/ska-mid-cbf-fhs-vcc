@@ -41,7 +41,7 @@ bar:
 
 midcbf:
   image:
-    registry: harbor.skao.int/production
+    registry: artefact.skao.int
     image: ska-mid-cbf-fhs-vcc
     tag: 0.4.1
     pullPolicy: IfNotPresent
