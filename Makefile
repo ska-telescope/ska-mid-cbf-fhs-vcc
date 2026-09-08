@@ -67,7 +67,7 @@ PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=standard
 endif
 endif
 
-ifeq ($AJ_KUBE),true)
+ifeq ($(AJ_KUBE),true)
 PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageAccess="ReadWriteOnce"
 endif
 
