@@ -34,7 +34,7 @@ from ska_mid_cbf_fhs_vcc.grpc.vcc_grpc_client import VccGrpcClient
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_vcc_byte import vcc_all_bands_configure_vcc_bite_schema
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_vcc_bite import vcc_all_bands_configure_vcc_bite_schema
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.utils.admin_online import VccAdminOnline
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (
     VCCAllBandsAutoSetFilterGainsSchema,
