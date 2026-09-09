@@ -7,7 +7,7 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsCo
 
 __all__ = ["main"]
 
-JOB_NAME_PREFIX = "fhs-vcc-bitstream-download-job"
+JOB_NAME_PREFIX = "fhs-vcc-bitstream-download-job-vcc-unit"
 
 
 def main(args=None, **kwargs):  # noqa: E302
