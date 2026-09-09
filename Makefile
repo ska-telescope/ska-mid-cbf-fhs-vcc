@@ -72,7 +72,7 @@ BAR_URL := https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/ar
 # set BAR_API_TOKEN as an environmental variable via command line if testing locally
 # get the value from Vault
 BAR_API_TOKEN ?=
-BAR_SECRET_NAME=fhs-vcc-bar-secret
+BAR_SECRET_NAME = fhs-vcc-bar-secret## DO NOT CHANGE needs to match the name in bar-secret.yaml
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set global.k3d=$(K3D) \
