@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.4.2
+*****
+* CIP-6279: update sim-device for ConfigureVCCBite and DeconfigureVCCBite
+
 0.4.1
 *****
 * Fix broken Dockerfile, now using python 3.14 everywhere.
