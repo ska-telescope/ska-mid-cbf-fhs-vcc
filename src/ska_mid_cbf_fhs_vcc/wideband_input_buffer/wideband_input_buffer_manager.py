@@ -22,21 +22,27 @@ class WidebandInputBufferConfig(DataClassJsonMixin):
 ##
 @dataclass
 class WidebandInputBufferStatus(DataClassJsonMixin):
-    buffer_overflow: bool
-    loss_of_signal: np.uint32
-    error: bool
+    receive_enable: bool
     packet_error: bool
-    packet_error_count: np.uint32
     packet_drop: bool
+    link_failure: bool
+    buffer_overflow: bool
+    error: bool
+    firmware_band: np.uint32
+    stream_rate: np.uint32
+    packet_rate: np.uint32
+    noise_diode_transition_holdoff_count: np.uint32
+    packet_error_count: np.uint32
     packet_drop_count: np.uint32
     loss_of_signal_seconds: np.uint32
-    meta_band_id: np.uint8
-    meta_dish_id: np.uint16
-    rx_sample_rate: np.uint32
+    meta_ethertype: np.uint32
+    meta_dish_id: np.uint32
+    meta_band_id: np.uint32
+    meta_utc_time_code: np.uint32
+    meta_transport_sample_rate: np.uint64
+    meta_hardware_source_id: np.uint64
     rx_packet_rate: np.uint32
-    meta_transport_sample_rate: np.uint32
-    link_failure: bool
-    expected_sample_rate: np.uint32
+    rx_sample_rate: np.uint32
 
 
 class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBufferConfig, WidebandInputBufferStatus]):
