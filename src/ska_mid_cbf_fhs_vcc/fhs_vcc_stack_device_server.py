@@ -7,12 +7,9 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsCo
 
 __all__ = ["main"]
 
-JOB_NAME_PREFIX = "fhs-vcc-bitstream-download-job-vcc-unit"
-
 
 def main(args=None, **kwargs):  # noqa: E302
-    unit_num = os.getenv("UNIT_NUM", "")
-    job_name = f"{JOB_NAME_PREFIX}-{unit_num}"
+    job_name = os.getenv("BITSTREAM_DOWNLOAD_JOB_NAME")
     # Call the kubectl command and wait until the bitstreams have been successfully downloaded
     wait_for_job_completion(job_name)
 

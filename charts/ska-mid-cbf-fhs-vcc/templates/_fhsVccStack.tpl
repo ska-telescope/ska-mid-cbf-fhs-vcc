@@ -29,8 +29,8 @@ server:
   instances:
     {{ $serverInstances }}
 environment_variables:
-- name: UNIT_NUM
-  value: "{{ $fhsVccUnit.unitNum }}"
+- name: BITSTREAM_DOWNLOAD_JOB_NAME
+  value: "fhs-vcc-bitstream-download-job-vcc-unit-{{ $fhsVccUnit.unitNum }}"
 image:
   registry: "{{.Values.midcbf.image.registry}}"
   image: "{{.Values.midcbf.image.image}}"
