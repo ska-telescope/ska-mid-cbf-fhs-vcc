@@ -25,8 +25,8 @@ vcc_all_bands_configure_vcc_bite_schema = {
                             "type": "object",
                             "properties": {
                                 "seed": {"type": "integer"},
-                                "noise_std": {"type": "integer"},
-                                "noise_mean": {"type": "integer"},
+                                "noise_std": {"type": "number"},
+                                "noise_mean": {"type": "number"},
                             },
                             "required": ["seed", "noise_std", "noise_mean"],
                         },
@@ -34,8 +34,8 @@ vcc_all_bands_configure_vcc_bite_schema = {
                             "type": "object",
                             "properties": {
                                 "seed": {"type": "integer"},
-                                "noise_std": {"type": "integer"},
-                                "noise_mean": {"type": "integer"},
+                                "noise_std": {"type": "number"},
+                                "noise_mean": {"type": "number"},
                             },
                             "required": ["seed", "noise_std", "noise_mean"],
                         },
@@ -54,8 +54,8 @@ vcc_all_bands_configure_vcc_bite_schema = {
                             "type": "object",
                             "properties": {
                                 "seed": {"type": "integer"},
-                                "noise_std": {"type": "integer"},
-                                "noise_mean": {"type": "integer"},
+                                "noise_std": {"type": "number"},
+                                "noise_mean": {"type": "number"},
                             },
                             "required": ["seed", "noise_std", "noise_mean"],
                         },
@@ -63,8 +63,8 @@ vcc_all_bands_configure_vcc_bite_schema = {
                             "type": "object",
                             "properties": {
                                 "seed": {"type": "integer"},
-                                "noise_std": {"type": "integer"},
-                                "noise_mean": {"type": "integer"},
+                                "noise_std": {"type": "number"},
+                                "noise_mean": {"type": "number"},
                             },
                             "required": ["seed", "noise_std", "noise_mean"],
                         },
