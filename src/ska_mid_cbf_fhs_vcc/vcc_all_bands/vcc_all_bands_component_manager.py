@@ -1124,8 +1124,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
             self.log_info("Received Command ConfigureVCCBite", transaction_id)
 
-            self.vcc_bite_manager.configure(config=configure_vcc_bite_schema)
             self.vcc_source_select = VCCSourceSelect.VCC_BITE
+
+            self.vcc_bite_manager.configure(config=configure_vcc_bite_schema)
+            self.vcc_bite_manager.start()
 
             self._set_task_callback(
                 task_callback,
@@ -1179,6 +1181,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
             self.log_info("Received Command DeconfigureVCCBite", transaction_id)
 
+            self.vcc_bite_manager.stop()
             self.vcc_bite_manager.deconfigure(config=deconfigure_vcc_bite_schema)
             self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 

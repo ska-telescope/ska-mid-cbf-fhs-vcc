@@ -396,9 +396,6 @@ class VCCBiteManager:
                 self.logger.error("Could not configure SPFRx Packetizer")
                 return result
 
-        # Configure then start the ip blocks
-        result = self.start()
-
         return result
 
     def deconfigure(self, config: VCCAllBandsDeconfigureVCCBiteSchema | None = None) -> int:
