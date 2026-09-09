@@ -1,5 +1,4 @@
 import os
-import re
 import subprocess
 
 from tango.server import run
