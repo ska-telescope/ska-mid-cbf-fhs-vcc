@@ -120,6 +120,20 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
                     "result_code": "OK",
                     "message": "AutoSetFilterGains completed OK",
                 },
+                "ConfigureVCCBite": {
+                    "allowed": True,
+                    "allowed_states": ["ON"],
+                    "allowed_obs_states": ["IDLE"],
+                    "result_code": "OK",
+                    "message": "ConfigureVCCBite completed OK",
+                },
+                "DeconfigureVCCBite": {
+                    "allowed": True,
+                    "allowed_states": ["ON"],
+                    "allowed_obs_states": ["IDLE"],
+                    "result_code": "OK",
+                    "message": "DeconfigureVCCBite completed OK",
+                },
             }
         )
         self.configure_scan = partial(self.sim_command, command_name="ConfigureScan", transaction_id="TEST_CS")
@@ -128,6 +142,8 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
         self.obs_reset = partial(self.sim_command, command_name="ObsReset", transaction_id="TEST_OBS")
         self.update_subarray_membership = partial(self.sim_command, command_name="UpdateSubarrayMembership", transaction_id="TEST_USM")
         self.auto_set_filter_gains = partial(self.sim_command, command_name="AutoSetFilterGains", transaction_id="TEST_ASFG")
+        self.configure_vcc_bite = partial(self.sim_command, command_name="ConfigureVCCBite", transaction_id="TEST_CVB")
+        self.deconfigure_vcc_bite = partial(self.sim_command, command_name="DeconfigureVCCBite", transaction_id="TEST_DVB")
 
     @property
     def expected_dish_id(self: SimVCCAllBandsCM) -> str:
