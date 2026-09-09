@@ -28,6 +28,9 @@ server:
   name: {{ $deviceCommand }}
   instances:
     {{ $serverInstances }}
+environment_variables:
+- name: UNIT_NUM
+  value: "{{ $fhsVccUnit.unitNum }}"
 image:
   registry: "{{.Values.midcbf.image.registry}}"
   image: "{{.Values.midcbf.image.image}}"
