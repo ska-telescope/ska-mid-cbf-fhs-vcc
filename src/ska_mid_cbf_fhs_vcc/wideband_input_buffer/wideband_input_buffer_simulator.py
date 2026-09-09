@@ -22,7 +22,6 @@ __all__ = ["WidebandInputBufferSimulator"]
 class WidebandInputBufferSimulator(BaseSimulatorApi):
     def __init__(self, ip_block_name: str, logger: Logger) -> None:
 
-
         self.status_str = """{
                 "receive_enable": true,
                 "packet_error": false,
