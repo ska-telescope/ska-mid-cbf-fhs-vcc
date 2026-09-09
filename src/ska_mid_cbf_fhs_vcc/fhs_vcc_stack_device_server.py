@@ -10,6 +10,7 @@ __all__ = ["main"]
 
 JOB_NAME_PREFIX = "fhs-vcc-bitstream-download-job"
 
+
 def main(args=None, **kwargs):  # noqa: E302
     unit_num = os.getenv("UNIT_NUM", "")
     job_name = f"{JOB_NAME_PREFIX}-{unit_num}"
