@@ -21,28 +21,39 @@ __all__ = ["WidebandInputBufferSimulator"]
 
 class WidebandInputBufferSimulator(BaseSimulatorApi):
     def __init__(self, ip_block_name: str, logger: Logger) -> None:
+
+
         self.status_str = """{
+                "receive_enable": true,
+                "packet_error": false,
+                "packet_drop": false,
                 "link_failure": false,
                 "buffer_overflow": false,
-                "loss_of_signal": 0,
                 "error": false,
-                "loss_of_signal_seconds": 0,
-                "meta_band_id": 1,
-                "meta_dish_id": 1,
-                "rx_sample_rate": 3960000000,
-                "meta_transport_sample_rate": 3960000000,
-                "packet_error": false,
+                "firmware_band": 1,
+                "stream_rate": 1500000,
+                "packet_rate": 1500000,
+                "noise_diode_transition_holdoff_count": 1,
                 "packet_error_count": 0,
-                "packet_drop": false,
                 "packet_drop_count": 0,
+                "loss_of_signal_seconds": 0,
+                "meta_ethertype": 1,
+                "meta_dish_id": 1,
+                "meta_band_id": 1,
+                "meta_utc_time_code": 0,
+                "meta_transport_sample_rate": 3960000000,
+                "meta_hardware_source_id": 0,
                 "rx_packet_rate": 1500000,
-                "expected_sample_rate": 3960000000
+                "rx_sample_rate": 3960000000
             }"""
 
         super().__init__(ip_block_name, logger)
 
     def status(self, clear: bool = False) -> dict:
-        return json.loads(self.status_str)
+        try:
+            return json.loads(self.status_str)
+        except Exception as ex:
+            self._logger.error(f"Unable to convert status to dict: {ex.with_traceback()}")
 
     def update_status(self, new_status: str):
         self.status_str = new_status

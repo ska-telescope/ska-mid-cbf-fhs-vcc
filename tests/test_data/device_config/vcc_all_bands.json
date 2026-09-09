@@ -1,7 +1,7 @@
 {
   "config_id": "1",
   "transaction_id": "TEST_VCC_ALL_BANDS_CONFIG",
-  "expected_dish_id": "1",
+  "expected_dish_id": "SKA123",
   "dish_sample_rate": 3960000000,
   "samples_per_frame": 18,
   "vcc_gain": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
