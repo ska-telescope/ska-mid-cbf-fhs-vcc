@@ -27,9 +27,9 @@ vcc_all_bands_configure_scan_schema = {
         "vcc_gain": {"type": "array", "items": {"type": "number"}},
         "noise_diode_transition_holdoff_seconds": {"type": "integer", "minimum": 0, "maximum": 65535},
         "band_5_tuning": {"type": "number"},
-        "b123_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
-        "b45a_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
-        "b5b_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
+        "b123_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "number"}, "flagging": {"type": "integer"}}},
+        "b45a_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "number"}, "flagging": {"type": "integer"}}},
+        "b5b_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "number"}, "flagging": {"type": "integer"}}},
         "fs_lanes": {
             "type": "array",
             "items": {
@@ -37,7 +37,7 @@ vcc_all_bands_configure_scan_schema = {
                 "properties": {
                     "vlan_id": {"type": "integer"},
                     "fs_id": {"type": "integer"},
-                    "averaging_time": {"type": "integer"},
+                    "averaging_time": {"type": "number"},
                     "flagging": {"type": "integer"},
                 },
                 "required": [

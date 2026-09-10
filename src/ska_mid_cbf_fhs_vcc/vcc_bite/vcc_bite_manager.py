@@ -42,7 +42,7 @@ class VCCBiteApiConfig(DataClassJsonMixin):
 @dataclass
 class VCCBiteToneGenApiConfig(DataClassJsonMixin):
     sample_rate: int
-    frequency: int
+    frequency: float
     magnitude: float
     band: int
 
@@ -99,7 +99,7 @@ class VCCBiteStatus(DataClassJsonMixin):
 @dataclass
 class VCCBiteToneGenStatus(DataClassJsonMixin):
     sample_rate: int
-    frequency: int
+    frequency: float
     magnitude: float
     band: int
 

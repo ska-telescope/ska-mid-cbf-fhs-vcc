@@ -83,12 +83,12 @@ vcc_all_bands_configure_vcc_bite_schema = {
                 "properties": {
                     "pol_x": {
                         "type": "object",
-                        "properties": {"frequency": {"type": "integer"}, "scale": {"type": "number"}},
+                        "properties": {"frequency": {"type": "number"}, "scale": {"type": "number"}},
                         "required": ["frequency", "scale"],
                     },
                     "pol_y": {
                         "type": "object",
-                        "properties": {"frequency": {"type": "integer"}, "scale": {"type": "number"}},
+                        "properties": {"frequency": {"type": "number"}, "scale": {"type": "number"}},
                         "required": ["frequency", "scale"],
                     },
                 },
