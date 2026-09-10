@@ -345,7 +345,7 @@ class VCCBiteManager:
             sample_rate=config.receiver.dish_sample_rate,
             switching_period=config.receiver.noise_diode.dwell_time_us / 1e6,
             seed=config.source.noise_info.pol_x.seed,
-            std_dev=config.source.noise_info.pol_x.noise_std,
+            std_dev=config.source.noise_info.pol_x.noise_std * config.receiver.noise_diode.on_state_scaling_factor,
         )
         for api in self._noise_diode_driver_x_apis:
             result = api.configure(noise_diode_x_config.to_dict())
@@ -356,7 +356,7 @@ class VCCBiteManager:
             sample_rate=config.receiver.dish_sample_rate,
             switching_period=config.receiver.noise_diode.dwell_time_us / 1e6,
             seed=config.source.noise_info.pol_y.seed,
-            std_dev=config.source.noise_info.pol_y.noise_std,
+            std_dev=config.source.noise_info.pol_y.noise_std * config.receiver.noise_diode.on_state_scaling_factor,
         )
         for api in self._noise_diode_driver_y_apis:
             result = api.configure(noise_diode_y_config.to_dict())
