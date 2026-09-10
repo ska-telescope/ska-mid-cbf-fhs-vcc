@@ -168,11 +168,14 @@ class VCCBiteManager:
         grpc_port: str,
         simulation_mode: SimulationMode = SimulationMode.TRUE,
         card_name="",
+        receptor_id="",
     ):
         self._simulation_mode = simulation_mode
         self.logger = logger
         self.grpc_host = grpc_host
         self.grpc_port = grpc_port
+        self.card_name = card_name
+        self.receptor_id = receptor_id
         self._vcc_source_select_apis: list[VCCSourceSelectSimulator] | list[VccGrpcClient] = []
         self._vcc_bite_apis: list[VCCBiteSimulator] | list[VccGrpcClient] = []
         self._vcc_bite_tone_gen_apis: list[VCCBiteToneGenSimulator] | list[VccGrpcClient] = []
@@ -184,95 +187,97 @@ class VCCBiteManager:
         self._spfrx_packetizer_apis: list[SPFRxPacketizerSimulator] | list[VccGrpcClient] = []
 
         if self._simulation_mode == SimulationMode.TRUE:
-            for i in range(0, 3):
-                self._vcc_source_select_apis.append(VCCSourceSelectSimulator(f"{card_name}_receptor{i}_source_select", self.logger))
-                self._vcc_bite_apis.append(VCCBiteSimulator(f"{card_name}_receptor{i}_bite_control", self.logger))
-                self._vcc_bite_tone_gen_apis.append(VCCBiteToneGenSimulator(f"{card_name}_receptor{i}_bite_tone_gen", self.logger))
-                self._gaussian_noise_driver_x_apis.append(GaussianNoiseDriverSimulator(f"{card_name}_receptor{i}_bite_noise_gen_polX", self.logger))
-                self._gaussian_noise_driver_y_apis.append(GaussianNoiseDriverSimulator(f"{card_name}_receptor{i}_bite_noise_gen_polY", self.logger))
-                self._noise_diode_driver_x_apis.append(NoiseDiodeSimulator(f"{card_name}_receptor{i}_bite_noise_diode_polX", self.logger))
-                self._noise_diode_driver_y_apis.append(NoiseDiodeSimulator(f"{card_name}_receptor{i}_bite_noise_diode_polY", self.logger))
-                self._polarization_coupler_apis.append(PolarizationCouplerSimulator(f"{card_name}_receptor{i}_polarization_coupler", self.logger))
-                self._spfrx_packetizer_apis.append(SPFRxPacketizerSimulator(f"{card_name}_receptor{i}_spfrx_packetizer", self.logger))
+            self._vcc_source_select_apis.append(VCCSourceSelectSimulator(f"{self.card_name}_receptor{self.receptor_id}_source_select", self.logger))
+            self._vcc_bite_apis.append(VCCBiteSimulator(f"{self.card_name}_receptor{self.receptor_id}_bite_control", self.logger))
+            self._vcc_bite_tone_gen_apis.append(VCCBiteToneGenSimulator(f"{self.card_name}_receptor{self.receptor_id}_bite_tone_gen", self.logger))
+            self._gaussian_noise_driver_x_apis.append(
+                GaussianNoiseDriverSimulator(f"{self.card_name}_receptor{self.receptor_id}_bite_noise_gen_polX", self.logger)
+            )
+            self._gaussian_noise_driver_y_apis.append(
+                GaussianNoiseDriverSimulator(f"{self.card_name}_receptor{self.receptor_id}_bite_noise_gen_polY", self.logger)
+            )
+            self._noise_diode_driver_x_apis.append(NoiseDiodeSimulator(f"{self.card_name}_receptor{self.receptor_id}_bite_noise_diode_polX", self.logger))
+            self._noise_diode_driver_y_apis.append(NoiseDiodeSimulator(f"{self.card_name}_receptor{self.receptor_id}_bite_noise_diode_polY", self.logger))
+            self._polarization_coupler_apis.append(
+                PolarizationCouplerSimulator(f"{self.card_name}_receptor{self.receptor_id}_polarization_coupler", self.logger)
+            )
+            self._spfrx_packetizer_apis.append(SPFRxPacketizerSimulator(f"{self.card_name}_receptor{self.receptor_id}_spfrx_packetizer", self.logger))
         else:
             # Firmware Mode
-            # TODO: Change grpc addresses to be deploy time constants instead of hardcoded values here
-            # TODO: Fix Firmware API base class in fhs-common to get this mode working
-            for i in range(0, 3):
-                self._vcc_source_select_apis.append(
-                    VccGrpcClient(
-                        f"{card_name}_receptor{i}_source_select_driver",
-                        self.logger,
-                        self.grpc_host,
-                        self.grpc_port,
-                    )
+            self._vcc_source_select_apis.append(
+                VccGrpcClient(
+                    f"{self.card_name}_receptor{self.receptor_id}_source_select_driver",
+                    self.logger,
+                    self.grpc_host,
+                    self.grpc_port,
                 )
-                self._vcc_bite_apis.append(
-                    VccGrpcClient(
-                        f"{card_name}_receptor{i}_bite_control_driver",
-                        self.logger,
-                        self.grpc_host,
-                        self.grpc_port,
-                    ),
-                )
-                self._vcc_bite_tone_gen_apis.append(
-                    VccGrpcClient(
-                        f"{card_name}_receptor{i}_bite_tone_gen_driver",
-                        self.logger,
-                        self.grpc_host,
-                        self.grpc_port,
-                    ),
-                )
-                self._gaussian_noise_driver_x_apis.append(
-                    VccGrpcClient(
-                        f"{card_name}_receptor{i}_bite_noise_gen_polX_driver",
-                        self.logger,
-                        self.grpc_host,
-                        self.grpc_port,
-                    ),
-                )
-                self._gaussian_noise_driver_y_apis.append(
-                    VccGrpcClient(
-                        f"{card_name}_receptor{i}_bite_noise_gen_polY_driver",
-                        self.logger,
-                        self.grpc_host,
-                        self.grpc_port,
-                    ),
-                )
-                self._noise_diode_driver_x_apis.append(
-                    VccGrpcClient(
-                        f"{card_name}_receptor{i}_bite_noise_diode_polX_driver",
-                        self.logger,
-                        self.grpc_host,
-                        self.grpc_port,
-                    ),
-                )
-                self._noise_diode_driver_y_apis.append(
-                    VccGrpcClient(
-                        f"{card_name}_receptor{i}_bite_noise_diode_polY_driver",
-                        self.logger,
-                        self.grpc_host,
-                        self.grpc_port,
-                    ),
-                )
+            )
+            self._vcc_bite_apis.append(
+                VccGrpcClient(
+                    f"{self.card_name}_receptor{self.receptor_id}_bite_control_driver",
+                    self.logger,
+                    self.grpc_host,
+                    self.grpc_port,
+                ),
+            )
+            self._vcc_bite_tone_gen_apis.append(
+                VccGrpcClient(
+                    f"{self.card_name}_receptor{self.receptor_id}_bite_tone_gen_driver",
+                    self.logger,
+                    self.grpc_host,
+                    self.grpc_port,
+                ),
+            )
+            self._gaussian_noise_driver_x_apis.append(
+                VccGrpcClient(
+                    f"{self.card_name}_receptor{self.receptor_id}_bite_noise_gen_polX_driver",
+                    self.logger,
+                    self.grpc_host,
+                    self.grpc_port,
+                ),
+            )
+            self._gaussian_noise_driver_y_apis.append(
+                VccGrpcClient(
+                    f"{self.card_name}_receptor{self.receptor_id}_bite_noise_gen_polY_driver",
+                    self.logger,
+                    self.grpc_host,
+                    self.grpc_port,
+                ),
+            )
+            self._noise_diode_driver_x_apis.append(
+                VccGrpcClient(
+                    f"{self.card_name}_receptor{self.receptor_id}_bite_noise_diode_polX_driver",
+                    self.logger,
+                    self.grpc_host,
+                    self.grpc_port,
+                ),
+            )
+            self._noise_diode_driver_y_apis.append(
+                VccGrpcClient(
+                    f"{self.card_name}_receptor{self.receptor_id}_bite_noise_diode_polY_driver",
+                    self.logger,
+                    self.grpc_host,
+                    self.grpc_port,
+                ),
+            )
 
-                self._polarization_coupler_apis.append(
-                    VccGrpcClient(
-                        f"{card_name}_receptor{i}_bite_polarization_coupler_driver",
-                        self.logger,
-                        self.grpc_host,
-                        self.grpc_port,
-                    )
+            self._polarization_coupler_apis.append(
+                VccGrpcClient(
+                    f"{self.card_name}_receptor{self.receptor_id}_bite_polarization_coupler_driver",
+                    self.logger,
+                    self.grpc_host,
+                    self.grpc_port,
                 )
+            )
 
-                self._spfrx_packetizer_apis.append(
-                    VccGrpcClient(
-                        f"{card_name}_receptor{i}_bite_spfrx_packetizer_driver",
-                        self.logger,
-                        self.grpc_host,
-                        self.grpc_port,
-                    )
+            self._spfrx_packetizer_apis.append(
+                VccGrpcClient(
+                    f"{self.card_name}_receptor{self.receptor_id}_bite_spfrx_packetizer_driver",
+                    self.logger,
+                    self.grpc_host,
+                    self.grpc_port,
                 )
+            )
 
     def configure(self, config: VCCAllBandsConfigureVCCBiteSchema) -> int:
         """Configure the VCC Bite."""

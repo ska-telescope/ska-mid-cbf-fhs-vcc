@@ -8,7 +8,7 @@ from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
 from ska_mid_cbf_fhs_common.state_model.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
 from ska_tango_base import SKAObsDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
-from tango.server import attribute, command
+from tango.server import attribute, command, device_property
 
 from ska_mid_cbf_fhs_vcc import release as release_info
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum
@@ -48,6 +48,9 @@ class VCCAllBandsController(
             ("ConfigureVCCBite", "configure_vcc_bite"),
             ("DeconfigureVCCBite", "deconfigure_vcc_bite"),
         ]
+
+    # TODO move this to the fhs-common base device?
+    receptor_id = device_property(dtype=int)
 
     @attribute(
         dtype=str,
