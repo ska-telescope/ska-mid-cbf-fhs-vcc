@@ -183,6 +183,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             grpc_port=self.device.grpc_port,
             simulation_mode=(simulation_mode | emulation_mode),
             card_name=self.device.fpga_card_id,
+            receptor_id=self.device.receptor_id
         )
         self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
