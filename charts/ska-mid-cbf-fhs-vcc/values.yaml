@@ -303,7 +303,8 @@ vccAllBandsDevice:
       values:
         - "{{ .fpgaCardId }}"
     - name: receptor_id
-      values: {{ .receptorId }}
+      values: 
+        - "{{ .receptorId }}"
 
 # the number of VCCUnit stacks to deploy
 numVccUnits: 2
