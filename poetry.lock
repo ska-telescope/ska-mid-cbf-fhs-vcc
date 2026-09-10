@@ -3241,14 +3241,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.4.0+dev.c339af721"
+version = "0.4.1+dev.c5083e220"
 description = "SKA Mid.CBF FHS Common Library"
 optional = false
 python-versions = ">=3.10,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_common-0.4.0+dev.c339af721-py3-none-any.whl", hash = "sha256:7498e1157f7541eabc72873f79d70438792070150917819bbd17f6aaf9348b33"},
-    {file = "ska_mid_cbf_fhs_common-0.4.0+dev.c339af721.tar.gz", hash = "sha256:c629e9b5775df371b2b4bf73ca5dbb0191368c3927e04f290df8536816025256"},
+    {file = "ska_mid_cbf_fhs_common-0.4.1+dev.c5083e220-py3-none-any.whl", hash = "sha256:cab594c88f437842a7ba22719aa13ddd8788f81506f13d5b1da9417a05ce520f"},
+    {file = "ska_mid_cbf_fhs_common-0.4.1+dev.c5083e220.tar.gz", hash = "sha256:ab11b1bf192edb2792dfae451ca7f4b89ce7929454031eaa1f5a542f24486cc2"},
 ]
 
 [package.dependencies]
@@ -3278,14 +3278,14 @@ reference = "gitlab-fhs-common"
 
 [[package]]
 name = "ska-mid-cbf-fhs-vcc-grpc-controller"
-version = "0.0.4+dev.c27af1998"
+version = "0.0.4+dev.c84a2c982"
 description = "SKA Mid.CBF FHS FSP gRPC Controller"
 optional = false
 python-versions = ">=3.12,<3.15"
 groups = ["main"]
 files = [
-    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.4+dev.c27af1998-py3-none-any.whl", hash = "sha256:bfebb704f83a9dbfb8bdc9259ba07ab664505f5266f9cfa58f64ec3d091de464"},
-    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.4+dev.c27af1998.tar.gz", hash = "sha256:7875d732a099aab0f3c374670759816de5bfeb729f49687c32c9d556bb1f3fc4"},
+    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.4+dev.c84a2c982-py3-none-any.whl", hash = "sha256:27a0c04572ede8e85b1136d04b0fe91b4d55910358913bb38c962ca0d5fc43af"},
+    {file = "ska_mid_cbf_fhs_vcc_grpc_controller-0.0.4+dev.c84a2c982.tar.gz", hash = "sha256:f7ebd3751537bf86d9a80615dc6cc5783df85f1e2148555244f5e503f20a4e69"},
 ]
 
 [package.dependencies]
@@ -3306,7 +3306,7 @@ scipy = [
     {version = ">=1.17.1", markers = "python_version >= \"3.14\""},
 ]
 ska-mid-cbf-common = ">=0.2.8"
-ska-mid-cbf-fhs-common = "0.4.0+dev.c339af721"
+ska-mid-cbf-fhs-common = "0.4.1+dev.c5083e220"
 typing-extensions = ">=4.8.0,<5.0.0"
 urllib3 = "2.7.0"
 
@@ -4155,4 +4155,4 @@ reference = "gitlab-fhs-common"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.15"
-content-hash = "5f12df16cb9ec1585f5f01a38d19415aeeb6aa5509575175a197ae682584b211"
+content-hash = "c95632f7df0053589c77391a60026a2b9d86ac6d88e8c1688db620863352551b"

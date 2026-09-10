@@ -46,7 +46,7 @@ midcbf:
     registry: registry.gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
     image: ska-mid-cbf-fhs-vcc
     #tag: 0.4.1
-    tag: 0.4.1-dev.c40a16c6a
+    tag: 0.4.1-dev.cc7949141
     pullPolicy: IfNotPresent
 
 resources:
