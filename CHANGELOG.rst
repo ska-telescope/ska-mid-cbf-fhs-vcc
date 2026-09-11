@@ -7,6 +7,11 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 UNRELEASED CHANGES
 ******************
+* CIP-6263:
+
+  * Moved common BAR params into the global section of the values.yaml
+  * Moved the template for the bar secret into its own file: bar-secret.yaml
+  * Each VCC unit will have its own bitstream download job. This allows the deployment repo to set diff bitstream versions for each VCC unit
 
 0.4.1
 *****
