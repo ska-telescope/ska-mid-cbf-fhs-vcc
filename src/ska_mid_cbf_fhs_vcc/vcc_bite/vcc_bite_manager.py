@@ -409,10 +409,10 @@ class VCCBiteManager:
 
         # stop the deconfigure the ip blocks
         result = self.stop()
-        
+
         # VCC Source Select
         for api in self._vcc_source_select_apis:
-            result = api.deconfigure(config= None if config is None else config.to_dict())
+            result = api.deconfigure(config=None if config is None else config.to_dict())
             if result == 1:
                 self.logger.error("Could not deconfigure VCC Source Select")
                 return result
