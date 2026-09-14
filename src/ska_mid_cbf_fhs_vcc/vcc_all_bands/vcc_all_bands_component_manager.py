@@ -1177,8 +1177,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         try:
             deconfigure_vcc_bite_schema_dict = json.loads(argin)
             transaction_id = deconfigure_vcc_bite_schema_dict.get("transaction_id", None)
-            self.transaction_ids_per_command[CommandType.DECONFIGUREVCCBITE] = transaction_id
-            deconfigure_vcc_bite_schema = VCCAllBandsDeconfigureVCCBiteSchema.from_dict(deconfigure_vcc_bite_schema_dict)
+
+            deconfigure_vcc_bite_schema = None
+
+            if transaction_id is not None:
+                self.transaction_ids_per_command[CommandType.DECONFIGUREVCCBITE] = transaction_id
+                deconfigure_vcc_bite_schema = VCCAllBandsDeconfigureVCCBiteSchema.from_dict(deconfigure_vcc_bite_schema_dict)
 
             self.log_info("Received Command DeconfigureVCCBite", transaction_id)
 
