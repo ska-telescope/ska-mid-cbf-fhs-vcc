@@ -283,46 +283,6 @@ class VCCBiteManager:
         """Configure the VCC Bite."""
         result = 0
 
-        # VCC Source Select Config
-        vcc_source_select_config = VCCSourceSelectApiConfig(
-            source_select=VCCSourceSelect.VCC_BITE,
-            # TODO: In the future, Fix this default value and possibly get from config
-            test_select=True,
-        )
-        for api in self._vcc_source_select_apis:
-            result = api.configure(config=vcc_source_select_config.to_dict())
-            if result == 1:
-                self.logger.error("Could not configure VCC Source Select")
-                return result
-
-        # VCC Bite Config
-        vcc_bite_config = VCCBiteApiConfig(
-            band=config.band,
-            start_time=config.utc_start_time,
-            sample_rate=config.receiver.dish_sample_rate,
-            # TODO: Remove speed eventually
-            speed=1,
-        )
-        for api in self._vcc_bite_apis:
-            result = api.configure(config=vcc_bite_config.to_dict())
-            if result == 1:
-                self.logger.error("Could not configure VCC Bite")
-                return result
-
-        # VCC Bite Tone Gen Config
-        vcc_bite_tone_gen_config = VCCBiteToneGenApiConfig(
-            sample_rate=config.receiver.dish_sample_rate,
-            # TODO: If y driver is added, use the y values
-            frequency=config.rfi[0].pol_x.frequency,
-            magnitude=config.rfi[0].pol_x.scale,
-            band=config.band,
-        )
-        for api in self._vcc_bite_tone_gen_apis:
-            result = api.configure(vcc_bite_tone_gen_config.to_dict())
-            if result == 1:
-                self.logger.error("Could not configure VCC Bite Tone Gen")
-                return result
-
         # Gaussian Noise Driver Config
         gaussian_noise_driver_x_config = GaussianNoiseDriverApiConfig(
             seed=config.source.noise_info.pol_x.seed,
@@ -343,6 +303,52 @@ class VCCBiteManager:
             result = api.configure(gaussian_noise_driver_y_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure Gaussian Noise Driver Y")
+                return result
+
+        # VCC Bite Tone Gen Config
+        vcc_bite_tone_gen_config = VCCBiteToneGenApiConfig(
+            sample_rate=config.receiver.dish_sample_rate,
+            # TODO: If y driver is added, use the y values
+            frequency=config.rfi[0].pol_x.frequency,
+            magnitude=config.rfi[0].pol_x.scale,
+            band=config.band,
+        )
+        for api in self._vcc_bite_tone_gen_apis:
+            result = api.configure(vcc_bite_tone_gen_config.to_dict())
+            if result == 1:
+                self.logger.error("Could not configure VCC Bite Tone Gen")
+                return result
+
+        # Polarization Coupler Config
+        polarization_coupler_config = PolarizationCouplerApiConfig(
+            correlation_coefficient=config.source.pol_coupling_rho,
+            delay_enable=config.source.pol_Y_1_sample_delay,
+        )
+        for api in self._polarization_coupler_apis:
+            result = api.configure(config=polarization_coupler_config.to_dict())
+            if result == 1:
+                self.logger.error("Could not configure Polarization Coupler")
+                return result
+
+        # TODO: Fix default values here
+        # SPFRx Packetizer Config
+        spfrx_packetizer_config = SPFRxPacketizerApiConfig(
+            local_mac=None,
+            remote_mac=None,
+            ethertype=0xFEED,
+            # dish_id=config.receiver.dish_id,
+            dish_id=0,
+            hw_src_id=0,
+            band=config.band,
+            sample_rate=config.receiver.dish_sample_rate,
+            sample_rate_b=config.receiver.dish_sample_rate,
+            noise_diode_rising_holdoff=0.0,
+            noise_diode_rising_holdoff_b=0.0,
+        )
+        for api in self._spfrx_packetizer_apis:
+            result = api.configure(config=spfrx_packetizer_config.to_dict())
+            if result == 1:
+                self.logger.error("Could not configure SPFRx Packetizer")
                 return result
 
         # Noise Diode config
@@ -369,37 +375,41 @@ class VCCBiteManager:
                 self.logger.error("Could not configure Noise Diode Y")
                 return result
 
-        # Polarization Coupler Config
-        polarization_coupler_config = PolarizationCouplerApiConfig(
-            correlation_coefficient=config.source.pol_coupling_rho,
-            delay_enable=config.source.pol_Y_1_sample_delay,
+        # VCC Bite Config
+        vcc_bite_config = VCCBiteApiConfig(
+            band=config.band,
+            start_time=config.utc_start_time,
+            sample_rate=config.receiver.dish_sample_rate,
+            # TODO: Remove speed eventually
+            speed=1,
         )
-        for api in self._polarization_coupler_apis:
-            result = api.configure(config=polarization_coupler_config.to_dict())
+        for api in self._vcc_bite_apis:
+            result = api.configure(config=vcc_bite_config.to_dict())
             if result == 1:
-                self.logger.error("Could not configure Polarization Coupler")
+                self.logger.error("Could not configure VCC Bite")
                 return result
 
-        # TODO: Fix default values here
-        # SPFRx Packetizer Config
-        spfrx_packetizer_config = SPFRxPacketizerApiConfig(
-            local_mac=0x112233445566,
-            remote_mac=0x778899AABBCC,
-            ethertype=0xFEED,
-            # dish_id=config.receiver.dish_id,
-            dish_id=1,
-            hw_src_id=0,
-            band=config.band,
-            sample_rate=config.receiver.dish_sample_rate,
-            sample_rate_b=config.receiver.dish_sample_rate,
-            noise_diode_rising_holdoff=0.0,
-            noise_diode_rising_holdoff_b=0.0,
+        # VCC Source Select Config
+        vcc_source_select_config = VCCSourceSelectApiConfig(
+            source_select=VCCSourceSelect.VCC_BITE,
+            # TODO: In the future, Fix this default value and possibly get from config
+            test_select=True,
         )
-        for api in self._spfrx_packetizer_apis:
-            result = api.configure(config=spfrx_packetizer_config.to_dict())
+        for api in self._vcc_source_select_apis:
+            result = api.configure(config=vcc_source_select_config.to_dict())
             if result == 1:
-                self.logger.error("Could not configure SPFRx Packetizer")
+                self.logger.error("Could not configure VCC Source Select")
                 return result
+
+
+
+
+
+
+
+
+
+
 
         return result
 
