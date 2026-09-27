@@ -26,8 +26,8 @@ variables:
   MINIKUBE: "false"
   CI_POETRY_VERSION: "2.4.0"
   BASE_IMAGE_URL: registry.gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc/ska-mid-cbf-fhs-vcc-ci-base
-  DOCS_PYTHON_RUNNER: "poetry run python -m "
-  DOCS_SPHINXBUILD: "poetry run python -m sphinx "
+  DOCS_PYTHON_RUNNER: "uv run python -m "
+  DOCS_SPHINXBUILD: "uv run python -m sphinx "
 
 get-version:
   image: $SKA_K8S_TOOLS_BUILD_DEPLOY
@@ -90,7 +90,7 @@ include:
 python-test:
   image: "$BASE_IMAGE"
   variables:
-    PYTHON_RUNNER: "poetry run python -m "
+    PYTHON_RUNNER: "uv run python -m "
   needs:
     - python-lint
     - get-version
@@ -102,7 +102,7 @@ python-test:
 python-lint:
   image: "$BASE_IMAGE"
   variables:
-    PYTHON_RUNNER: "poetry run python -m "
+    PYTHON_RUNNER: "uv run python -m "
   needs:
     - ci-base-image-build
     - get-version
@@ -114,7 +114,7 @@ python-lint:
 docs-build:
   image: "$BASE_IMAGE"
   variables:
-    PYTHON_RUNNER: "poetry run python -m "
+    PYTHON_RUNNER: "uv run python -m "
   needs:
     - ci-base-image-build
     - get-version
@@ -128,7 +128,7 @@ docs-build-rtd:
 python-build-for-development:
   image: "$BASE_IMAGE"
   variables:
-    PYTHON_RUNNER: "poetry run "
+    PYTHON_RUNNER: "uv run "
   needs:
     - python-lint
     - get-version
@@ -143,7 +143,7 @@ python-build-for-development:
 python-build-for-publication:
   image: "$BASE_IMAGE"
   variables:
-    PYTHON_RUNNER: "poetry run "
+    PYTHON_RUNNER: "uv run "
   needs:
     - python-lint
     - get-version
