@@ -1,4 +1,4 @@
-ARG BUILD_IMAGE=harbor.skao.int/production/ska-build-python:0.3.3
+ARG BUILD_IMAGE=artefact.skao.int/ska-build-python:0.3.3
 ARG BASE_IMAGE=harbor.skao.int/production/ska-tango-images-tango-python:0.4.1
 FROM $BUILD_IMAGE AS build
 
@@ -30,17 +30,6 @@ RUN python3.14 -m ensurepip --upgrade && \
     python3.14 -m pip install --upgrade setuptools && \
     python3.14 -m pip install certifi
 
-ENV POETRY_HOME=/opt/poetry
-ENV POETRY_VERSION=2.4.0
-RUN mkdir -p $POETRY_HOME && curl -sSL https://raw.githubusercontent.com/python-poetry/install.python-poetry.org/main/install-poetry.py --output $POETRY_HOME/install-poetry.py
-RUN cd $POETRY_HOME && POETRY_VERSION=${POETRY_VERSION} python3.14 install-poetry.py --yes
-RUN ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
-ENV PATH /opt/poetry/bin:$PATH
-RUN ls -la ./
-
-ENV PIP_REQUESTS_TIMEOUT 30
-ENV POETRY_REQUESTS_TIMEOUT 30
-
 WORKDIR /build
 
 # We install the dependencies and the application in two steps so that the
@@ -53,13 +42,14 @@ WORKDIR /build
 # above.  We use poetry to install the dependencies so that we can pass
 # `--only main` to avoid installing dev dependencies.  This option is not
 # available for pip.
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml uv.lock* ./
+COPY README.md ./
 
-RUN poetry lock && poetry install --only main --no-root
+RUN pip install uv
+RUN uv sync --active
 
 # The README.md here must match the `tool.poetry.readme` key in the
 # pyproject.toml otherwise the `pip install` step below will fail.
-COPY README.md ./
 COPY src ./src
 
 # We use pip to install the application because `poetry install` is
@@ -90,6 +80,10 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY --from=build $VIRTUAL_ENV $VIRTUAL_ENV
 
 USER root
+
+RUN ls -lrt /app/bin/
+RUN ls -lrt $VIRTUAL_ENV/bin/
+RUN ls -lrt /usr/local/bin/
 
 RUN update-alternatives --install $VIRTUAL_ENV/bin/python3 python3 $VIRTUAL_ENV/bin/python3.14 1 && \
     update-alternatives --install $VIRTUAL_ENV/bin/python python $VIRTUAL_ENV/bin/python3.14 1
