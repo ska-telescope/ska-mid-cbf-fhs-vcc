@@ -149,7 +149,7 @@ python-build-for-publication:
     - get-version
   before_script:
     - cd /ska-mid-cbf-fhs-vcc
-    - poetry install --only ci
+    - uv sync --frozen --no-default-groups --only-group ci
   script:
     - make python-build PYTHON_BUILD_TYPE="tag_pyproject"
     - cp -r /ska-mid-cbf-fhs-vcc/dist/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc

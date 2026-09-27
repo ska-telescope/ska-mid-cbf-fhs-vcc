@@ -81,10 +81,6 @@ COPY --from=build $VIRTUAL_ENV $VIRTUAL_ENV
 
 USER root
 
-RUN ls -lrt /app/bin/
-RUN ls -lrt $VIRTUAL_ENV/bin/
-RUN ls -lrt /usr/local/bin/
-
 RUN update-alternatives --install $VIRTUAL_ENV/bin/python3 python3 $VIRTUAL_ENV/bin/python3.14 1 && \
     update-alternatives --install $VIRTUAL_ENV/bin/python python $VIRTUAL_ENV/bin/python3.14 1
 
