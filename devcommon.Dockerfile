@@ -30,16 +30,8 @@ RUN python3.14 -m ensurepip --upgrade && \
     python3.14 -m pip install --upgrade setuptools && \
     python3.14 -m pip install certifi
 
-ENV POETRY_HOME=/opt/poetry
-ENV POETRY_VERSION=2.4.0
-RUN mkdir -p $POETRY_HOME && curl -sSL https://raw.githubusercontent.com/python-poetry/install.python-poetry.org/main/install-poetry.py --output $POETRY_HOME/install-poetry.py
-RUN cd $POETRY_HOME && POETRY_VERSION=${POETRY_VERSION} python3.14 install-poetry.py --yes
-RUN ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
-ENV PATH /opt/poetry/bin:$PATH
-RUN ls -la ./
 
 ENV PIP_REQUESTS_TIMEOUT 30
-ENV POETRY_REQUESTS_TIMEOUT 30
 
 WORKDIR /build
 
@@ -53,14 +45,15 @@ WORKDIR /build
 # above.  We use poetry to install the dependencies so that we can pass
 # `--only main` to avoid installing dev dependencies.  This option is not
 # available for pip.
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml uv.lock* ./
 RUN sed -i 's|^ska-mid-cbf-fhs-common\s*=\s*.*$|ska-mid-cbf-fhs-common = "0.4.0"|g' pyproject.toml
 
-RUN poetry lock && poetry install --only main --no-root
+RUN pip install uv
+COPY README.md ./
+RUN uv sync --active
 
 # The README.md here must match the `tool.poetry.readme` key in the
 # pyproject.toml otherwise the `pip install` step below will fail.
-COPY README.md ./
 COPY src ./src
 
 # We use pip to install the application because `poetry install` is
