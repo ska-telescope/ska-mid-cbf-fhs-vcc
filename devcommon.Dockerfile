@@ -1,130 +1,40 @@
-ARG BUILD_IMAGE=harbor.skao.int/production/ska-build-python:0.3.3
-ARG BASE_IMAGE=harbor.skao.int/production/ska-tango-images-tango-python:0.4.1
-FROM $BUILD_IMAGE AS build
+FROM artefact.skao.int/ska-build-python:1.0.0 AS builder
+WORKDIR /app
 
-ENV VIRTUAL_ENV=/app \
-    POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1
-
-# # ############################################
-# # # Python 3.14
-# # ############################################
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
-    apt-get install -y software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install python3.14-full -y --no-install-recommends && \
-    apt-get install python3.14-dev python3.14-venv -y --no-install-recommends && \
-    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.14 1 && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python3.14 1
-
-RUN python3.14 -m venv $VIRTUAL_ENV; \
-    mkdir /build; \
-    ln -s $VIRTUAL_ENV /build/.venv
-
-ENV PATH=$VIRTUAL_ENV/bin:$PATH
-
-RUN python3.14 -m ensurepip --upgrade && \
-    python3.14 -m pip install --upgrade pip && \
-    python3.14 -m pip install --upgrade setuptools && \
-    python3.14 -m pip install certifi
-
-
-ENV PIP_REQUESTS_TIMEOUT 30
-
-WORKDIR /build
-
-# We install the dependencies and the application in two steps so that the
-# dependency installation can be cached by the OCI image builder.  The
-# important point is to install the dependencies _before_ we copy in src so
-# that changes to the src directory to not result in needlessly reinstalling the
-# dependencies.
-
-# Installing the dependencies into /app here relies on the .venv symlink created
-# above.  We use poetry to install the dependencies so that we can pass
-# `--only main` to avoid installing dev dependencies.  This option is not
-# available for pip.
-COPY pyproject.toml uv.lock* ./
-RUN sed -i 's|^ska-mid-cbf-fhs-common\s*=\s*.*$|ska-mid-cbf-fhs-common = "0.4.0"|g' pyproject.toml
-
-RUN pip install uv
-COPY README.md ./
-RUN uv sync --active
-
-# The README.md here must match the `tool.poetry.readme` key in the
-# pyproject.toml otherwise the `pip install` step below will fail.
+# Install the application dependencies with uv, then the application itself with
+# pip to ensure device server scripts are generated properly.
+# Since pipeline infrastructure is set up to use the application image for the
+# k8s-test runner pod, we also install pip in .venv and export test dependencies
+# to be used at test runtime.
+COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
+RUN uv sync --no-default-groups --no-install-project && \
+    uv pip install . && \
+    uv pip install pip
 
-# We use pip to install the application because `poetry install` is
-# equivalent to `pip install --editable` which creates symlinks to the src
-# directory, whereas we want to copy the files.
-RUN pip install --no-deps .
-
-# We don't want to copy pip into the runtime image
-RUN pip uninstall -y pip
-
-FROM $BASE_IMAGE
-
-USER root
-
-RUN export DEBIAN_FRONTEND=noninteractive && \
+# Using ska-base-images for its Python 3.14 runtime instead of ska-tango-images
+# means we have to perform the runtime dependencies installation ourselves.
+FROM artefact.skao.int/ska-tango-images-tango-admin:1.28.1 AS tools
+FROM artefact.skao.int/ska-python-py314:1.0.0 AS runtime
+COPY --from=tools /usr/local/ /usr/local/
+COPY --from=tools /runtime_deps.txt /runtime_deps.txt
+RUN set -xe; \
     apt-get update && \
-    apt-get install -y software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install python3.14-full -y --no-install-recommends && \
-    apt-get install python3.14-dev python3.14-venv -y --no-install-recommends
+    apt-get install -y --no-install-recommends sudo; \
+    xargs apt-get install -y --no-install-recommends < /runtime_deps.txt; \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy in application data as well as the list of test dependencies.
+COPY pyproject.toml /app/pyproject.toml
+COPY --from=builder /app/.venv /app/.venv
+
+# Create default tango user.
+RUN groupadd -g 10001 tango && \
+    useradd -u 10001 -g tango -ms /bin/bash tango && \
+    usermod -aG sudo tango && \
+    echo "tango ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    chown -R tango:tango /app
 
 USER tango
-
-ENV VIRTUAL_ENV=/app
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-COPY --from=build $VIRTUAL_ENV $VIRTUAL_ENV
-
-USER root
-
-RUN update-alternatives --install $VIRTUAL_ENV/bin/python3 python3 $VIRTUAL_ENV/bin/python3.14 1 && \
-    update-alternatives --install $VIRTUAL_ENV/bin/python python $VIRTUAL_ENV/bin/python3.14 1
-
-RUN python3.14 -m ensurepip --upgrade && \
-    python3.14 -m pip install --upgrade pip && \
-    python3.14 -m pip install --upgrade setuptools && \
-    python3.14 -m pip install certifi
-
-USER tango
-
-RUN python3.14 -m ensurepip
-
-LABEL int.skao.image.team=cipa-halifax \
-      int.skao.image.authors="Jason Turner <jason.turner@mda.space>, Ben Herriott <ben.herriott@mda.space>, Justin Wamback <justin.wamback@mda.space>" \
-      int.skao.image.url=https://gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc \
-      description="SKA Mid.CBF FHS VCC" \
-      license="BSD license"
-
-USER root
-
-ENV LOGS_DIR=/app/logs
-RUN mkdir -p $LOGS_DIR
-RUN chmod -R 777 $LOGS_DIR
-
-RUN rm -rf /app/lib/python3.14/site-packages/ska_mid_cbf_fhs_common/*
-COPY ./temp-common/src/ska_mid_cbf_fhs_common /app/lib/python3.14/site-packages/ska_mid_cbf_fhs_common
-RUN chmod -R 777 /app/lib/python3.14/site-packages/ska_mid_cbf_fhs_common
-
-RUN apt-get update && \
-  apt-get install -y apt-transport-https ca-certificates curl gnupg && \
-  curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
-  chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
-  echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list && \
-  chmod 644 /etc/apt/sources.list.d/kubernetes.list
-
-RUN apt-get update && \
-  apt-get install -y kubectl
-
-RUN python --version
-
-USER tango
-
-RUN python --version
+ENV PATH="/app/.venv/bin:${PATH}"
+WORKDIR /app
