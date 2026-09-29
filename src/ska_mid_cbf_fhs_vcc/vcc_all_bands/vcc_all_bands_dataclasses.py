@@ -31,7 +31,6 @@ class VCCAllBandsConfigureScanConfig(FhsControllerBaseConfig, DataClassJsonMixin
     config_id: str
     expected_dish_id: str
     dish_sample_rate: int
-    samples_per_frame: int
     frequency_band: str
     frequency_band_offset_stream_1: int
     vcc_gain: list[float]

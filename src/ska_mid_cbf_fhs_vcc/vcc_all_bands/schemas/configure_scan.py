@@ -12,7 +12,6 @@ vcc_all_bands_configure_scan_schema = {
             "minimum": 3960000000,
             "maximum": 11891998800,
         },
-        "samples_per_frame": {"type": "integer"},
         "frequency_band": {"type": "string", "enum": ["1", "2", "3", "4", "5a", "5b"]},
         "frequency_band_offset_stream_1": {
             "type": "integer",
@@ -53,7 +52,6 @@ vcc_all_bands_configure_scan_schema = {
         "config_id",
         "expected_dish_id",
         "dish_sample_rate",
-        "samples_per_frame",
         "frequency_band",
         "frequency_band_offset_stream_1",
         "vcc_gain",
@@ -71,7 +69,6 @@ example_config = {
     "config_id": "1",
     "expected_dish_id": "MKT001",
     "dish_sample_rate": 3960000000,
-    "samples_per_frame": 18,
     "vcc_gain": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     "frequency_band": "2",
     "noise_diode_transition_holdoff_seconds": 0,

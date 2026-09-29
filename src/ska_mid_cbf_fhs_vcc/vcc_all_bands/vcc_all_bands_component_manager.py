@@ -652,7 +652,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
         """
         self._sample_rate = configuration.dish_sample_rate
-        self._samples_per_frame = configuration.samples_per_frame
         self.frequency_band = freq_band_dict()[configuration.frequency_band]
         self.expected_dish_id = configuration.expected_dish_id
         self._config_id = configuration.config_id
@@ -1199,7 +1198,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         self.frequency_band = FrequencyBandEnum._1
         self.frequency_band_offset = [0, 0]
         self._sample_rate = 0
-        self._samples_per_frame = 0
         self._fs_lanes = []
 
     def _go_to_idle_deconfigure(self, go_to_idle_schema: FhsControllerBaseGoToIdleSchema) -> None:
