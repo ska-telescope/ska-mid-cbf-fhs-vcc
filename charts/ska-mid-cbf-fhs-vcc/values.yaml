@@ -20,6 +20,7 @@ global:
   exposeDatabaseDS: true
   exposeAllDS: false
   tango_host: tango-databaseds-test:10000
+  cluster_domain: cluster.local
   dsconfig:
     image:
       registry: artefact.skao.int
@@ -107,7 +108,7 @@ properties:
   simulationMode: "1"
   emulationMode: "{{ .unitEmulationMode }}"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
-  emulatorStatusCacheUrl: "status-cache-service.ska-mid-cbf-emulators.svc.cluster.local"
+  emulatorStatusCacheUrl: "status-cache-service.{{ .Release.Namespace }}.svc.{{ .Values.global.cluster_domain }}"
   emulatorStatusCachePort: "6379"  # should rarely if ever need to change
   bitstreamPath: "/app/mnt/bitstream"
   bitstreams:
