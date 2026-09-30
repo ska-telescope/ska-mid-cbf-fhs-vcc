@@ -106,3 +106,7 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
 {{- define "fhs-vcc-bar-secret-name" -}}
 fhs-vcc-bar-secret
 {{- end -}}
+
+{{- define "ska-mid-cbf-fhs-vcc.emulatorStatusCacheUrl" -}}
+{{- printf "status-cache-service.%s.svc.%s" .Release.Namespace .Values.global.cluster_domain -}}
+{{- end -}}
