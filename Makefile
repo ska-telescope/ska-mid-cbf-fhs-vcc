@@ -17,6 +17,7 @@ DASHBOARD ?= webjive-dash.dump
 CLUSTER_DOMAIN ?= cluster.local
 FHS_SERVER_ID ?= fhs01
 CONFIG_LOCATION ?= /app/mnt/lowLevelConfigMap
+AJ_KUBE ?= false
 
 HELM_RELEASE ?= test## HELM_RELEASE is the release that all Kubernetes resources will be labelled with
 
@@ -64,6 +65,10 @@ ifneq ($(MINIKUBE),)
 ifeq ($(MINIKUBE),true)
 PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=standard
 endif
+endif
+
+ifeq ($(AJ_KUBE),true)
+PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=standard --set ska-mid-cbf-fhs-vcc.pvStorageAccess="ReadWriteOnce"
 endif
 
 # a portion of the BAR_URL from which to retrieve the RAW binary artefacts from
@@ -147,7 +152,7 @@ check-minikube-eval:
 	fi
 
 k8s-pre-install-chart:
-	@if [ "$(MINIKUBE)" = "true" ]; then make check-minikube-eval; fi;
+	@if [ "$(MINIKUBE)" = "true" && "$(AJ_KUBE)" = "false" ]; then make check-minikube-eval; fi;
 	rm -f charts/ska-mid-cbf-fhs-vcc/Chart.lock
 
 k8s-deploy:

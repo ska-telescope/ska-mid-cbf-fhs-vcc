@@ -13,6 +13,10 @@ UNRELEASED CHANGES
   * Moved the template for the bar secret into its own file: bar-secret.yaml
   * Each VCC unit will have its own bitstream download job. This allows the deployment repo to set diff bitstream versions for each VCC unit
 
+0.4.2
+*****
+* CIP-6279: update sim-device for ConfigureVCCBite and DeconfigureVCCBite
+
 0.4.1
 *****
 * Fix broken Dockerfile, now using python 3.14 everywhere.

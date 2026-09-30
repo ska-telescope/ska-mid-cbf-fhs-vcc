@@ -513,6 +513,8 @@ class TestVCCAllBandsSim:
         [
             ("AutoSetFilterGains", [ObsState.SCANNING], json.dumps({"headrooms": [3.0]})),
             ("UpdateSubarrayMembership", [ObsState.IDLE], 1),
+            ("ConfigureVCCBite", [ObsState.IDLE], json.dumps({"transaction_id": "txn-test"})),
+            ("DeconfigureVCCBite", [ObsState.IDLE], "txn-test"),
         ],
     )
     def test_commands(
@@ -1023,5 +1025,3 @@ class TestVCCAllBandsSim:
                 "invoked_action": "CONFIGURE_INVOKED",
                 "completed_action": "CONFIGURE_COMPLETED",
             }
-
-
