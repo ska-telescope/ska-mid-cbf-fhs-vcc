@@ -24,7 +24,7 @@
       {{- $deviceValues = list $simVccDeviceValues }}
     {{- end }}
 
-    {{- $properties := $.Values.properties | merge (dict "emulatorStatusCacheUrl" (include "ska-mid-cbf-fhs-vcc.emulatorStatusCacheUrl" $)) -}}
+    {{- $properties := $.Values.properties | merge (dict "emulatorStatusCacheUrl" (include "emulatorStatusCacheUrl" $)) -}}
     {{- $serverInstances := include "generateServerInstances" (list $instance $fhsVccUnit $deviceValues $properties $vccNum) | nindent 2 }}
     {{- $fileDeviceServerContext := dict "fhsVccUnit" $fhsVccUnit "instance" $instance "serverInstances" $serverInstances "deviceCommand" $deviceCommand "pvEnabled" $.Values.bitstreamDownloadJob.enabled }}
     {{- $fileDeviceServer := include "ska-mid-cbf-fhs-vcc.fhsVccStack" (merge $fileDeviceServerContext $) | fromYaml }}
