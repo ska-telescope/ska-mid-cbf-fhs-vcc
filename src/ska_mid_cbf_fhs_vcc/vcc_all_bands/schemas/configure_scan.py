@@ -13,12 +13,12 @@ vcc_all_bands_configure_scan_schema = {
             "maximum": 11891998800,
         },
         "frequency_band": {"type": "string", "enum": ["1", "2", "3", "4", "5a", "5b"]},
-        "frequency_band_offset_stream_1": {
+        "frequency_band_offset_stream1": {
             "type": "integer",
             "min": -100000000,
             "max": 100000000,
         },
-        "frequency_band_offset_stream_2": {
+        "frequency_band_offset_stream2": {
             "type": "integer",
             "min": -100000000,
             "max": 100000000,
@@ -53,7 +53,7 @@ vcc_all_bands_configure_scan_schema = {
         "expected_dish_id",
         "dish_sample_rate",
         "frequency_band",
-        "frequency_band_offset_stream_1",
+        "frequency_band_offset_stream1",
         "vcc_gain",
         "noise_diode_transition_holdoff_seconds",
         "b123_pwrm",
@@ -72,8 +72,8 @@ example_config = {
     "vcc_gain": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     "frequency_band": "2",
     "noise_diode_transition_holdoff_seconds": 0,
-    "frequency_band_offset_stream_1": 110,
-    "frequency_band_offset_stream_2": 56,
+    "frequency_band_offset_stream1": 110,
+    "frequency_band_offset_stream2": 56,
     "b123_pwrm": {"averaging_time": 1, "flagging": 0},
     "b45a_pwrm": {"averaging_time": 1, "flagging": 0},
     "b5b_pwrm": {"averaging_time": 1, "flagging": 0},

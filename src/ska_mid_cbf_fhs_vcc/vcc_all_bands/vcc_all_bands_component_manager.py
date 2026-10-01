@@ -655,8 +655,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         self.frequency_band = freq_band_dict()[configuration.frequency_band]
         self.expected_dish_id = configuration.expected_dish_id
         self._config_id = configuration.config_id
-        self.frequency_band_offset[0] = configuration.frequency_band_offset_stream_1
-        self.frequency_band_offset[1] = configuration.frequency_band_offset_stream_2
+        self.frequency_band_offset[0] = configuration.frequency_band_offset_stream1
+        self.frequency_band_offset[1] = configuration.frequency_band_offset_stream2
 
         transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
 

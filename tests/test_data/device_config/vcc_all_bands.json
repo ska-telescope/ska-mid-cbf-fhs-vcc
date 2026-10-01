@@ -49,8 +49,8 @@
     }
   ],
   "noise_diode_transition_holdoff_seconds": 0,
-  "frequency_band_offset_stream_1": 110,
-  "frequency_band_offset_stream_2": 56,
+  "frequency_band_offset_stream1": 110,
+  "frequency_band_offset_stream2": 56,
   "b123_pwrm": {
     "averaging_time": 1,
     "flagging": 0
