@@ -33,11 +33,11 @@ class VCCAllBandsConfigureScanConfig(FhsControllerBaseConfig, DataClassJsonMixin
     dish_sample_rate: int
     frequency_band: str
     frequency_band_offset_stream1: int
-    vcc_gain: list[float]
-    noise_diode_transition_holdoff_seconds: int
-    b123_pwrm: VCCAllBandsConfigureScanPowerMeterConfig
-    b45a_pwrm: VCCAllBandsConfigureScanPowerMeterConfig
-    b5b_pwrm: VCCAllBandsConfigureScanPowerMeterConfig
+    vcc_gains_stream_1: list[float]
+    noise_diode_transition_holdoff_count: int
+    b123_power_meter: VCCAllBandsConfigureScanPowerMeterConfig
+    b45_1_power_meter: VCCAllBandsConfigureScanPowerMeterConfig
+    b45_2_power_meter: VCCAllBandsConfigureScanPowerMeterConfig
     fs_lanes: list[VCCAllBandsConfigureScanFSLaneConfig]
     frequency_band_offset_stream2: int = 0
     band_5_tuning: float = 0.0

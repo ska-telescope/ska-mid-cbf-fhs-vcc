@@ -681,7 +681,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         # number of channels * number of polarizations
         self._num_vcc_gains = self._num_fs * 2
 
-        self.vcc_gains = configuration.vcc_gain
+        self.vcc_gains = configuration.vcc_gains_stream_1
 
         if len(self.vcc_gains) != self._num_vcc_gains:
             self._reset()
@@ -738,7 +738,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 WidebandInputBufferConfig(
                     transaction_id=transaction_id,
                     expected_sample_rate=self._sample_rate,
-                    noise_diode_transition_holdoff_seconds=configuration.noise_diode_transition_holdoff_seconds,
+                    noise_diode_transition_holdoff_count=configuration.noise_diode_transition_holdoff_count,
                     expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
                 )
             )
@@ -754,9 +754,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             # Pre-channelizer WPM Configuration
             self.log_debug("Pre-channelizer Wideband Power Meters Configuring..", transaction_id)
             self._pre_channelizer_power_meter_configs = {
-                VCCBandGroup.B123: configuration.b123_pwrm,
-                VCCBandGroup.B45A: configuration.b45a_pwrm,
-                VCCBandGroup.B5B: configuration.b5b_pwrm,
+                VCCBandGroup.B123: configuration.b123_power_meter,
+                VCCBandGroup.B45A: configuration.b45_1_power_meter,
+                VCCBandGroup.B5B: configuration.b45_2_power_meter,
             }
 
             for band_group in VCCBandGroup:

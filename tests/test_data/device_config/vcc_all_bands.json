@@ -3,7 +3,7 @@
   "transaction_id": "TEST_VCC_ALL_BANDS_CONFIG",
   "expected_dish_id": "MKT001",
   "dish_sample_rate": 3960000000,
-  "vcc_gain": [
+  "vcc_gains_stream_1": [
     1,
     1,
     1,
@@ -48,18 +48,18 @@
       "function_mode": "CORR"
     }
   ],
-  "noise_diode_transition_holdoff_seconds": 0,
+  "noise_diode_transition_holdoff_count": 0,
   "frequency_band_offset_stream1": 110,
   "frequency_band_offset_stream2": 56,
-  "b123_pwrm": {
+  "b123_power_meter": {
     "averaging_time": 1,
     "flagging": 0
   },
-  "b45a_pwrm": {
+  "b45_1_power_meter": {
     "averaging_time": 1,
     "flagging": 0
   },
-  "b5b_pwrm": {
+  "b45_2_power_meter": {
     "averaging_time": 1,
     "flagging": 0
   },
