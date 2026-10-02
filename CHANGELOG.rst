@@ -5,8 +5,8 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-UNRELEASED CHANGES
-******************
+0.4.3
+*****
 * CIP-6263:
 
   * Moved common BAR params into the global section of the values.yaml
