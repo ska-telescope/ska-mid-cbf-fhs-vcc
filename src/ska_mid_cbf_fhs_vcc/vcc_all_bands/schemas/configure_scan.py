@@ -29,33 +29,33 @@ vcc_all_bands_configure_scan_schema = {
         "b123_power_meter": {
             "type": "object",
             "properties": {
-                "averaging_time": {"type": "integer"},
+                "averaging": {"type": "integer"},
                 "flagging": {"type": "integer"},
             },
             "required": [
-                "averaging_time",
+                "averaging",
                 "flagging",
             ],
         },
         "b45_1_power_meter": {
             "type": "object",
             "properties": {
-                "averaging_time": {"type": "integer"},
+                "averaging": {"type": "integer"},
                 "flagging": {"type": "integer"},
             },
             "required": [
-                "averaging_time",
+                "averaging",
                 "flagging",
             ],
         },
         "b45_2_power_meter": {
             "type": "object",
             "properties": {
-                "averaging_time": {"type": "integer"},
+                "averaging": {"type": "integer"},
                 "flagging": {"type": "integer"},
             },
             "required": [
-                "averaging_time",
+                "averaging",
                 "flagging",
             ],
         },
@@ -69,11 +69,11 @@ vcc_all_bands_configure_scan_schema = {
                     "power_meter": {
                         "type": "object",
                         "properties": {
-                            "averaging_time": {"type": "integer"},
+                            "averaging": {"type": "integer"},
                             "flagging": {"type": "integer"},
                         },
                         "required": [
-                            "averaging_time",
+                            "averaging",
                             "flagging",
                         ],
                     },
@@ -112,19 +112,19 @@ example_config = {
     "noise_diode_transition_holdoff_count": 0,
     "frequency_band_offset_stream1": 110,
     "frequency_band_offset_stream2": 56,
-    "b123_power_meter": {"averaging_time": 1, "flagging": 0},
-    "b45_1_power_meter": {"averaging_time": 1, "flagging": 0},
-    "b45_2_power_meter": {"averaging_time": 1, "flagging": 0},
+    "b123_power_meter": {"averaging": 1, "flagging": 0},
+    "b45_1_power_meter": {"averaging": 1, "flagging": 0},
+    "b45_2_power_meter": {"averaging": 1, "flagging": 0},
     "fs_lanes": [
-        {"vlan_id": 2, "fs_id": 1, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 2, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 3, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 4, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 5, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 6, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 7, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 8, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 9, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 10, "averaging_time": 1, "flagging": 0}
+        {"vlan_id": 2, "fs_id": 1, "power_meter": {"averaging": 1, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 2, "power_meter": {"averaging": 1, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 3, "power_meter": {"averaging": 1, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 4, "power_meter": {"averaging": 1, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 5, "power_meter": {"averaging": 1, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 6, "power_meter": {"averaging": 1, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 7, "power_meter": {"averaging": 1, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 8, "power_meter": {"averaging": 1, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 9, "power_meter": {"averaging": 1, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 10, "power_meter": {"averaging": 1, "flagging": 0}}
     ]
 }

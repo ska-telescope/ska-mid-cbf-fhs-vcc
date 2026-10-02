@@ -10,7 +10,7 @@ from ska_mid_cbf_fhs_common import FhsControllerBaseConfig
 class VCCAllBandsConfigureScanPowerMeterConfig(DataClassJsonMixin):
     """Dataclass representing a power meter configuration as part of the VCC All Bands ConfigureScan input parameter."""
 
-    averaging_time: int
+    averaging: int
     flagging: int
 
 
