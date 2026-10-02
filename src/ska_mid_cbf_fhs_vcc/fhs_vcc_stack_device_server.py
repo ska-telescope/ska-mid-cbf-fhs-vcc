@@ -12,8 +12,9 @@ __all__ = ["main"]
 
 
 def main(args=None, **kwargs):  # noqa: E302
-    # Call the kubectl command and wait until the bitstreams have been successfully downloaded
+    # Wait for the download path size to stop increasing
     bitstream_mount_path = os.getenv("BITSTREAM_MOUNT_PATH")
+    print(bitstream_mount_path)
     wait_for_download_completion(bitstream_mount_path)
 
     return run(
@@ -36,6 +37,7 @@ def dir_size(root: Path) -> int:
     return total
 
 def wait_for_download_completion(folder: Path, interval: float = 5.0) -> bool:
+    print(str(folder))
     if not folder.is_dir():
         sys.exit(f"Error: {folder} is not a directory")
 
