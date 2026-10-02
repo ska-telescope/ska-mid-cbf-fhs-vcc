@@ -26,9 +26,39 @@ vcc_all_bands_configure_scan_schema = {
         "vcc_gains_stream_1": {"type": "array", "items": {"type": "number"}},
         "noise_diode_transition_holdoff_count": {"type": "integer", "minimum": 0, "maximum": 65535},
         "band_5_tuning": {"type": "number"},
-        "b123_power_meter": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
-        "b45_1_power_meter": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
-        "b45_2_power_meter": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
+        "b123_power_meter": {
+            "type": "object", 
+            "properties": {
+                "averaging_time": {"type": "integer"}, 
+                "flagging": {"type": "integer"},
+            }, 
+            "required": [
+                "averaging_time",
+                "flagging",
+            ],
+        },
+        "b45_1_power_meter": {
+            "type": "object", 
+            "properties": {
+                "averaging_time": {"type": "integer"}, 
+                "flagging": {"type": "integer"},
+            }, 
+            "required": [
+                "averaging_time",
+                "flagging",
+            ],
+        },
+        "b45_2_power_meter": {
+            "type": "object", 
+            "properties": {
+                "averaging_time": {"type": "integer"}, 
+                "flagging": {"type": "integer"},
+            }, 
+            "required": [
+                "averaging_time",
+                "flagging",
+            ],
+        },
         "fs_lanes": {
             "type": "array",
             "items": {
@@ -36,14 +66,22 @@ vcc_all_bands_configure_scan_schema = {
                 "properties": {
                     "vlan_id": {"type": "integer"},
                     "fs_id": {"type": "integer"},
-                    "averaging_time": {"type": "integer"},
-                    "flagging": {"type": "integer"},
+                    "power_meter": {
+                        "type": "object", 
+                        "properties": {
+                            "averaging_time": {"type": "integer"}, 
+                            "flagging": {"type": "integer"},
+                        }, 
+                        "required": [
+                            "averaging_time",
+                            "flagging",
+                        ],
+                    },  
                 },
                 "required": [
                     "vlan_id",
                     "fs_id",
-                    "averaging_time",
-                    "flagging",
+                    "power_meter",
                 ],
             },
         },

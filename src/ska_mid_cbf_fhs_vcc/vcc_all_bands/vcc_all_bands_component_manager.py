@@ -791,8 +791,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 result = self.wideband_power_meters[fs_id].configure(
                     WidebandPowerMeterConfig(
                         transaction_id=transaction_id,
-                        averaging_time=config.averaging_time,
-                        flagging=config.flagging,
+                        averaging_time=config.power_meter.averaging_time,
+                        flagging=config.power_meter.flagging,
                     )
                 )
                 if result == 1:

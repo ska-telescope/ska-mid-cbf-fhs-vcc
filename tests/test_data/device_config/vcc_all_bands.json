@@ -67,62 +67,82 @@
     {
       "vlan_id": 2,
       "fs_id": 1,
-      "averaging_time": 1,
-      "flagging": 0
+      "power_meter": {
+        "averaging_time": 1,
+        "flagging": 0
+      }
     },
     {
       "vlan_id": 2,
       "fs_id": 2,
-      "averaging_time": 1,
-      "flagging": 0
+      "power_meter": {
+        "averaging_time": 1,
+        "flagging": 0
+      }
     },
     {
       "vlan_id": 2,
       "fs_id": 3,
-      "averaging_time": 1,
-      "flagging": 0
+      "power_meter": {
+        "averaging_time": 1,
+        "flagging": 0
+      }
     },
     {
       "vlan_id": 2,
       "fs_id": 4,
-      "averaging_time": 1,
-      "flagging": 0
+      "power_meter": {
+        "averaging_time": 1,
+        "flagging": 0
+      }
     },
     {
       "vlan_id": 2,
       "fs_id": 5,
-      "averaging_time": 1,
-      "flagging": 0
+      "power_meter": {
+        "averaging_time": 1,
+        "flagging": 0
+      }
     },
     {
       "vlan_id": 2,
       "fs_id": 6,
-      "averaging_time": 1,
-      "flagging": 0
+      "power_meter": {
+        "averaging_time": 1,
+        "flagging": 0
+      }
     },
     {
       "vlan_id": 2,
       "fs_id": 7,
-      "averaging_time": 1,
-      "flagging": 0
+      "power_meter": {
+        "averaging_time": 1,
+        "flagging": 0
+      }
     },
     {
       "vlan_id": 2,
       "fs_id": 8,
-      "averaging_time": 1,
-      "flagging": 0
+      "power_meter": {
+        "averaging_time": 1,
+        "flagging": 0
+      }
     },
     {
       "vlan_id": 2,
       "fs_id": 9,
-      "averaging_time": 1,
-      "flagging": 0
+      "power_meter": {
+        "averaging_time": 1,
+        "flagging": 0
+      }
     },
     {
       "vlan_id": 2,
       "fs_id": 10,
-      "averaging_time": 1,
-      "flagging": 0
+      "power_meter": {
+        "averaging_time": 1,
+        "flagging": 0
+      }
     }
   ]
 }

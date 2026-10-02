@@ -20,8 +20,7 @@ class VCCAllBandsConfigureScanFSLaneConfig(DataClassJsonMixin):
 
     vlan_id: int
     fs_id: int
-    averaging_time: int
-    flagging: int
+    power_meter: VCCAllBandsConfigureScanPowerMeterConfig
 
 
 @dataclass
