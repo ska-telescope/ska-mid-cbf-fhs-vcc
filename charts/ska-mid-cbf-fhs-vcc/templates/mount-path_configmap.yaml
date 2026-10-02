@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: mount-path-configmap
-data:
-  BITSTREAM_MOUNT_PATH: {{ .Values.bitstreamMountPath }}

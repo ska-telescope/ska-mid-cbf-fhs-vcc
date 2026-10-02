@@ -34,10 +34,9 @@ image:
   tag: "{{.Values.midcbf.image.tag}}"
   pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
 
-extraVolumes:
-- name: mount-path-vol
-  configMap: 
-    name:  mount-path-configmap
+environment_variables:
+- name: BITSTREAM_MOUNT_PATH
+  value: "{{ .Values.bitstreamMountPath }}"
 
 {{- if $pvEnabled }}
 volume:

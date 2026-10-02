@@ -13,10 +13,8 @@ __all__ = ["main"]
 
 def main(args=None, **kwargs):  # noqa: E302
     # Wait for the download path size to stop increasing
-    #bitstream_mount_path = os.getenv("BITSTREAM_MOUNT_PATH")
-    bitstream_mount_path = Path("/app/mnt/bitstream")
-    print(bitstream_mount_path)
-    wait_for_download_completion(bitstream_mount_path)
+    bitstream_mount_path = os.getenv("BITSTREAM_MOUNT_PATH")
+    wait_for_download_completion(Path(bitstream_mount_path))
 
     return run(
         classes=(VCCAllBandsController,),
