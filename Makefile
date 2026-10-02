@@ -120,7 +120,14 @@ PYTHON_TEST_FILE = ./tests/unit/
 # ('make interactive', 'make test', etc.) are defined in this file.
 #
 
-include .make/*.mk
+include .make/base.mk
+include .make/python.mk
+include .make/utils.mk
+include .make/helm.mk
+include .make/k8s.mk
+include .make/release.mk
+include .make/oci.mk
+include .make/docs.mk
 
 all: test lint
 
