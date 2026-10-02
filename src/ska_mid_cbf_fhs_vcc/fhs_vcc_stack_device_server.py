@@ -1,4 +1,8 @@
 import subprocess
+import os
+import sys
+import time
+from pathlib import Path
 
 from tango.server import run
 
@@ -9,7 +13,8 @@ __all__ = ["main"]
 
 def main(args=None, **kwargs):  # noqa: E302
     # Call the kubectl command and wait until the bitstreams have been successfully downloaded
-    wait_for_job_completion("fhs-vcc-bitstream-download-job")
+    bitstream_mount_path = os.getenv("BITSTREAM_MOUNT_PATH")
+    wait_for_download_completion(bitstream_mount_path)
 
     return run(
         classes=(VCCAllBandsController,),
@@ -17,17 +22,35 @@ def main(args=None, **kwargs):  # noqa: E302
         **kwargs,
     )
 
+def dir_size(root: Path) -> int:
+    """Return total size (in bytes) of all regular files under *root*."""
+    total = 0
+    for dirpath, _, filenames in os.walk(root):
+        for name in filenames:
+            try:
+                fp = Path(dirpath) / name
+                total += fp.stat().st_size
+            except (FileNotFoundError, PermissionError):
+                # File vanished or we can't read it – ignore it for this pass
+                continue
+    return total
 
-def wait_for_job_completion(job_name) -> bool:
-    cmd = ["kubectl", "wait", "--for=condition=complete", "--timeout=60s", f"job/{job_name}"]
+def wait_for_download_completion(folder: Path, interval: float = 5.0) -> bool:
+    if not folder.is_dir():
+        sys.exit(f"Error: {folder} is not a directory")
 
-    try:
-        subprocess.run(cmd, check=True)
-        print(f"Job {job_name} completed successfully...")
-        return True
-    except subprocess.CalledProcessError as ex:
-        print(f"Job {job_name} did not complete successfully.. {repr(ex)}")
-        return False
+    prev = dir_size(folder)
+    print(f"Starting size of '{folder}': {prev}")
+
+    while True:
+        time.sleep(interval)
+        cur = dir_size(folder)
+
+        if cur == prev:
+            print(f"Size unchanged after {interval}s → stopping.")
+            break
+
+        prev = cur
 
 
 if __name__ == "__main__":  # noqa: #E305

@@ -34,12 +34,18 @@ image:
   tag: "{{.Values.midcbf.image.tag}}"
   pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
 
+extraVolumes:
+- name: mount-path-vol
+  configMap: 
+    name:  mount-path-configmap
+
 {{- if $pvEnabled }}
 volume:
   existingClaimName: "fhs-bitstream-pv"
   mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
 {{- end }}
+
 
 {{- if $fhsVccUnit.toleration }}
 tolerations:
