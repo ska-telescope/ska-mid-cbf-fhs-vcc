@@ -47,7 +47,7 @@ def wait_for_download_completion(folder: Path, interval: float = 5.0) -> bool:
         time.sleep(interval)
         cur = dir_size(folder)
 
-        if cur == prev:
+        if cur == prev and curr > 0:
             print(f"Size unchanged after {interval}s → stopping.")
             break
 
