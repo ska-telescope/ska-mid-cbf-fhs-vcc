@@ -36,7 +36,6 @@ def dir_size(root: Path) -> int:
     return total
 
 def wait_for_download_completion(folder: Path, interval: float = 5.0) -> bool:
-    print(str(folder))
     if not folder.is_dir():
         sys.exit(f"Error: {folder} is not a directory")
 
