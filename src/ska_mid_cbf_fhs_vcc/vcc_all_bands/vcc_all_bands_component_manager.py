@@ -652,12 +652,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
         """
         self._sample_rate = configuration.dish_sample_rate
-        self._samples_per_frame = configuration.samples_per_frame
         self.frequency_band = freq_band_dict()[configuration.frequency_band]
         self.expected_dish_id = configuration.expected_dish_id
         self._config_id = configuration.config_id
-        self.frequency_band_offset[0] = configuration.frequency_band_offset_stream_1
-        self.frequency_band_offset[1] = configuration.frequency_band_offset_stream_2
+        self.frequency_band_offset[0] = configuration.frequency_band_offset_stream1
+        self.frequency_band_offset[1] = configuration.frequency_band_offset_stream2
 
         transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
 
@@ -682,7 +681,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         # number of channels * number of polarizations
         self._num_vcc_gains = self._num_fs * 2
 
-        self.vcc_gains = configuration.vcc_gain
+        self.vcc_gains = configuration.vcc_gains_stream_1
 
         if len(self.vcc_gains) != self._num_vcc_gains:
             self._reset()
@@ -739,7 +738,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 WidebandInputBufferConfig(
                     transaction_id=transaction_id,
                     expected_sample_rate=self._sample_rate,
-                    noise_diode_transition_holdoff_seconds=configuration.noise_diode_transition_holdoff_seconds,
+                    noise_diode_transition_holdoff_count=configuration.noise_diode_transition_holdoff_count,
                     expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
                 )
             )
@@ -755,9 +754,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             # Pre-channelizer WPM Configuration
             self.log_debug("Pre-channelizer Wideband Power Meters Configuring..", transaction_id)
             self._pre_channelizer_power_meter_configs = {
-                VCCBandGroup.B123: configuration.b123_pwrm,
-                VCCBandGroup.B45A: configuration.b45a_pwrm,
-                VCCBandGroup.B5B: configuration.b5b_pwrm,
+                VCCBandGroup.B123: configuration.b123_power_meter,
+                VCCBandGroup.B45A: configuration.b45_1_power_meter,
+                VCCBandGroup.B5B: configuration.b45_2_power_meter,
             }
 
             for band_group in VCCBandGroup:
@@ -766,7 +765,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 result = self.wideband_power_meters[band_group].configure(
                     WidebandPowerMeterConfig(
                         transaction_id=transaction_id,
-                        averaging_time=config.averaging_time,
+                        averaging_time=config.averaging,
                         flagging=config.flagging,
                     )
                 )
@@ -792,8 +791,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 result = self.wideband_power_meters[fs_id].configure(
                     WidebandPowerMeterConfig(
                         transaction_id=transaction_id,
-                        averaging_time=config.averaging_time,
-                        flagging=config.flagging,
+                        averaging_time=config.power_meter.averaging,
+                        flagging=config.power_meter.flagging,
                     )
                 )
                 if result == 1:
@@ -1199,7 +1198,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         self.frequency_band = FrequencyBandEnum._1
         self.frequency_band_offset = [0, 0]
         self._sample_rate = 0
-        self._samples_per_frame = 0
         self._fs_lanes = []
 
     def _go_to_idle_deconfigure(self, go_to_idle_schema: FhsControllerBaseGoToIdleSchema) -> None:
