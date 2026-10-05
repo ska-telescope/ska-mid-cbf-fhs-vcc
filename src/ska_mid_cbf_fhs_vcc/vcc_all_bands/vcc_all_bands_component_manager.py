@@ -13,16 +13,18 @@ import jsonschema
 from ska_control_model import CommunicationStatus, HealthState, ObsState, ResultCode, SimulationMode, TaskStatus
 from ska_control_model.faults import StateModelError
 from ska_mid_cbf_common.enums.command_type import CommandType
-from ska_mid_cbf_fhs_common import FtileEthernetManager, NonBlockingFunction, WidebandPowerMeterConfig, WidebandPowerMeterManager, calculate_gain_multiplier
-from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_base_dataclasses import (
-    FhsControllerBaseEndScanSchema,
-    FhsControllerBaseGoToIdleSchema,
-    FhsControllerBaseScanSchema,
+from ska_mid_cbf_fhs_common import (
+    LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE,
+    BaseIPBlockManager,
+    FhsControllerBaseGoToIdleArgin,
+    FhsControllerComponentManagerBase,
+    FhsObsStateMachine,
+    FtileEthernetManager,
+    NonBlockingFunction,
+    WidebandPowerMeterConfig,
+    WidebandPowerMeterManager,
+    calculate_gain_multiplier,
 )
-from ska_mid_cbf_fhs_common.base_classes.device.controller.fhs_controller_component_manager_base import FhsControllerComponentManagerBase
-from ska_mid_cbf_fhs_common.base_classes.ip_block.managers import BaseIPBlockManager
-from ska_mid_cbf_fhs_common.helpers.constants import LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE
-from ska_mid_cbf_fhs_common.state_model.fhs_obs_state import FhsObsStateMachine
 from ska_tango_base.obs import ObsDeviceComponentManager
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
@@ -36,10 +38,12 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_ban
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_vcc_bite import vcc_all_bands_configure_vcc_bite_schema
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.utils.admin_online import VccAdminOnline
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (
-    VCCAllBandsAutoSetFilterGainsSchema,
-    VCCAllBandsConfigureScanConfig,
-    VCCAllBandsConfigureVCCBiteSchema,
-    VCCAllBandsDeconfigureVCCBiteSchema,
+    VCCAllBandsAutoSetFilterGainsArgin,
+    VCCAllBandsConfigureScanArgin,
+    VCCAllBandsConfigureVCCBiteArgin,
+    VCCAllBandsDeconfigureVCCBiteArgin,
+    VCCAllBandsEndScanArgin,
+    VCCAllBandsScanArgin,
 )
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager, VCCSourceSelect
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
@@ -111,9 +115,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         return vcc_all_bands_configure_scan_schema
 
     @property
-    def config_dataclass(self) -> type[VCCAllBandsConfigureScanConfig]:
+    def config_dataclass(self) -> type[VCCAllBandsConfigureScanArgin]:
         """The ConfigureScan input dataclass for the VCC All Bands Controller."""
-        return VCCAllBandsConfigureScanConfig
+        return VCCAllBandsConfigureScanArgin
 
     def __init__(
         self,
@@ -315,7 +319,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """Submit the task to start running the Scan command implementation.
 
         Args:
-            argin (:obj:`str`): The scan schema JSON string from the command's input argument.
+            argin (:obj:`str`): The input JSON string to the Scan command.
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
 
         Returns:
@@ -335,7 +339,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """Submit the task to start running the EndScan command implementation.
 
         Args:
-            argin (:obj:`str`): The end scan schema JSON string from the command's input argument.
+            argin (:obj:`str`): The input JSON string to the EndScan command.
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
 
         Returns:
@@ -355,7 +359,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """Submit the task to start running the GoToIdle command implementation.
 
         Args:
-            argin (:obj:`str`): The go_to_idle schema JSON string from the command's input argument.
+            argin (:obj:`str`): The input JSON string to the GoToIdle command.
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
 
         Returns:
@@ -380,7 +384,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """Submit the task to start running the ObsReset command implementation.
 
         Args:
-            argin (:obj:`str`): The obs_reset schema JSON string from the command's input argument.
+            argin (:obj:`str`): The input JSON string to the ObsReset command.
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
 
         Returns:
@@ -408,7 +412,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """Submit the task to start running the ConfigureVCCBite command implementation.
 
         Args:
-            argin (:obj:`str`): The configure_vcc_bite_schema schema JSON string from the command's input argument.
+            argin (:obj:`str`): The input JSON string to the ConfigureVCCBite command.
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
 
         Returns:
@@ -428,7 +432,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """Submit the task to start running the DeconfigureVCCBite command implementation.
 
         Args:
-            argin (:obj:`str`): The deconfigure_vcc_bite_schema schema JSON string from the command's input argument.
+            argin (:obj:`str`): The input JSON string to the DeconfigureVCCBite command.
             task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
 
         Returns:
@@ -487,13 +491,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             self._config_id = configuration.config_id
             self.frequency_band_offset[0] = configuration.frequency_band_offset_stream_1
             self.frequency_band_offset[1] = configuration.frequency_band_offset_stream_2
-    
+
             self.log_info(f"Configuring VCC {self._vcc_id} - Config ID: {self._config_id}, Freq Band: {self.frequency_band.value}", transaction_id)
-    
-            # Only used if the configuration fails and go to idle deconfigure needs to be called
-            # It is being initialised here so we dont need to initialise it in every if failed block
-            failure_go_to_idle_schema = FhsControllerBaseGoToIdleSchema(subarray_id=self.subarray_id, transaction_id=transaction_id)
-    
+
             match self.frequency_band:
                 case FrequencyBandEnum._1 | FrequencyBandEnum._2:
                     self._num_fs = 10
@@ -505,16 +505,16 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                     self._reset_data()
                     raise ValueError("Bands 5A/B not implemented")
                     # self._num_fs = 26
-    
+
             # number of channels * number of polarizations
             self._num_vcc_gains = self._num_fs * 2
-    
+
             self.vcc_gains = configuration.vcc_gain
-    
+
             if len(self.vcc_gains) != self._num_vcc_gains:
                 self._reset_data()
                 raise ValueError(f"Incorrect number of gain values supplied: {self.vcc_gains} != {self._num_vcc_gains}")
-    
+
             if not self.simulation_mode:
                 # VCC123 Channelizer Configuration
                 self.log_debug("VCC123 Channelizer Configuring..", transaction_id)
@@ -522,18 +522,18 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                     result = self.b123_vcc.configure(
                         B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains, transaction_id=transaction_id)
                     )
-    
+
                     if result == 1:
                         self.log_error("Configuration of VCC123 Channelizer failed.", transaction_id)
-                        self._deconfigure_ip_blocks(go_to_idle_schema=failure_go_to_idle_schema)
+                        self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
                         self._reset_data()
                         raise RuntimeError("Configuration of VCC123 failed.")
-    
+
                 else:
                     # TODO: Implement routing to the 5 Channelizer once outlined
                     self._reset_data()
                     raise ValueError(f"ConfigureScan failed unsupported band specified: {self.frequency_band}")
-    
+
                 # WFS Configuration
                 self.log_debug("Wideband Frequency Shifter Configuring..", transaction_id)
                 result = self.wideband_frequency_shifter.configure(
@@ -541,10 +541,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                 )
                 if result == 1:
                     self.log_error("Configuration of Wideband Frequency Shifter failed.", transaction_id)
-                    self._deconfigure_ip_blocks(go_to_idle_schema=failure_go_to_idle_schema)
+                    self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
                     self._reset_data()
                     raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
-    
+
                 # FSS Configuration
                 result = self.frequency_slice_selection.configure(
                     FrequencySliceSelectionConfig(
@@ -553,13 +553,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                         transaction_id=transaction_id,
                     )
                 )
-    
+
                 if result == 1:
                     self.log_error("Configuration of FS Selection failed.", transaction_id)
-                    self._deconfigure_ip_blocks(go_to_idle_schema=failure_go_to_idle_schema)
+                    self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
                     self._reset_data()
                     raise RuntimeError("Configuration of FS Selection failed.")
-    
+
                 # WIB Configuration
                 self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
                 result = self.wideband_input_buffer.configure(
@@ -570,15 +570,15 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                         expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
                     )
                 )
-    
+
                 if result == 1:
                     self.log_error("Configuration of WIB failed.", transaction_id)
-                    self._deconfigure_ip_blocks(go_to_idle_schema=failure_go_to_idle_schema)
+                    self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
                     self._reset_data()
                     raise RuntimeError("Configuration of WIB failed.")
-    
+
                 self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
-    
+
                 # Pre-channelizer WPM Configuration
                 self.log_debug("Pre-channelizer Wideband Power Meters Configuring..", transaction_id)
                 self._pre_channelizer_power_meter_configs = {
@@ -586,7 +586,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                     VCCBandGroup.B45A: configuration.b45a_pwrm,
                     VCCBandGroup.B5B: configuration.b5b_pwrm,
                 }
-    
+
                 for band_group in VCCBandGroup:
                     config = self._pre_channelizer_power_meter_configs.get(band_group)
                     self.log_debug(f"Configuring {band_group.value} power meter with {config}", transaction_id)
@@ -599,20 +599,20 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                     )
                     if result == 1:
                         self.log_error(f"Configuration of {band_group.value} Wideband Power Meter failed.", transaction_id)
-                        self._deconfigure_ip_blocks(go_to_idle_schema=failure_go_to_idle_schema)
+                        self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
                         self._reset_data()
                         raise RuntimeError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
-    
+
                 # Post-channelizer WPM Configuration
                 self.log_debug("Post-channelizer Wideband Power Meters Configuring..", transaction_id)
                 self._fs_lanes = configuration.fs_lanes
-    
+
                 # Verify vlan_id is within range
                 # ((config.vid >= 2 && config.vid <= 1001) || (config.vid >= 1006 && config.vid <= 4094))
                 for config in self._fs_lanes:
                     if not (2 <= config.vlan_id <= 1001 or 1006 <= config.vlan_id <= 4094):
                         raise ValueError(f"VLAN ID {config.vlan_id} is not within range")
-    
+
                 for config in self._fs_lanes:
                     fs_id = int(config.fs_id)
                     self.log_debug(f"Configuring FS {fs_id} power meter with {config}", transaction_id)
@@ -625,10 +625,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                     )
                     if result == 1:
                         self.log_error(f"Configuration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
-                        self._deconfigure_ip_blocks(go_to_idle_schema=failure_go_to_idle_schema)
+                        self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
                         self._reset_data()
                         raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
-    
+
                 # VCC Stream Merge Configuration
                 self.log_debug("VCC Stream Merge Configuring..", transaction_id)
                 for i in range(1, 3):
@@ -647,10 +647,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                     )
                     if result == 1:
                         self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
-                        self._deconfigure_ip_blocks(go_to_idle_schema=failure_go_to_idle_schema)
+                        self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
                         self._reset_data()
                         raise RuntimeError("Configuration of VCC Stream Merge failed.")
-    
+
             self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
             self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.OK, transaction_id=transaction_id)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
@@ -708,11 +708,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             if self.task_abort_event_is_set("Scan", task_callback, task_abort_event):
                 return
 
-            scan_schema_dict = json.loads(argin)
-            transaction_id = scan_schema_dict.get("transaction_id", None)
+            scan_argin = VCCAllBandsScanArgin.from_json(argin)
+            transaction_id = scan_argin.transaction_id
             self.transaction_ids_per_command[CommandType.SCAN] = transaction_id
-            scan_schema = FhsControllerBaseScanSchema.from_dict(scan_schema_dict)
-            self._scan_id = scan_schema.scan_id
+            self._scan_id = scan_argin.scan_id
             self.log_info("Starting Scanning", transaction_id)
 
             if not self.simulation_mode:
@@ -769,8 +768,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
                 return
 
-            end_scan_schema_dict = json.loads(argin)
-            transaction_id = end_scan_schema_dict.get("transaction_id", None)
+            end_scan_argin = VCCAllBandsEndScanArgin.from_json(argin)
+            transaction_id = end_scan_argin.transaction_id
             self.transaction_ids_per_command[CommandType.ENDSCAN] = transaction_id
             self.log_info("Ending Scan", transaction_id)
 
@@ -825,13 +824,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
                 return
 
-            go_to_idle_schema_dict = json.loads(argin)
-            transaction_id = go_to_idle_schema_dict.get("transaction_id", None)
+            go_to_idle_argin = FhsControllerBaseGoToIdleArgin.from_json(argin)
+            transaction_id = go_to_idle_argin.transaction_id
             self.transaction_ids_per_command[CommandType.GOTOIDLE] = transaction_id
             self.log_info("Received Command GoToIdle", transaction_id)
-            go_to_idle_schema = FhsControllerBaseGoToIdleSchema.from_dict(go_to_idle_schema_dict)
 
-            self._deconfigure_ip_blocks(go_to_idle_schema=go_to_idle_schema)
+            self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
             self._reset_data()
             self.log_info("Command GoToIdle Successful", transaction_id)
 
@@ -875,8 +873,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             if self.task_abort_event_is_set("ObsReset", task_callback, task_abort_event):
                 return
 
-            obs_reset_schema_dict = json.loads(argin)
-            transaction_id = obs_reset_schema_dict.get("transaction_id", None)
+            obs_reset_argin_dict = json.loads(argin)
+            transaction_id = obs_reset_argin_dict.get("transaction_id", None)
             self.transaction_ids_per_command[CommandType.OBSRESET] = transaction_id
             self.log_info("Received Command ObsReset", transaction_id)
 
@@ -1007,11 +1005,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             transaction_id = None
 
             if argin:
-                auto_set_filter_gains_schema_dict = json.loads(argin)
-                transaction_id = auto_set_filter_gains_schema_dict.get("transaction_id", None)
+                auto_set_filter_gains_argin = VCCAllBandsAutoSetFilterGainsArgin.from_json(argin)
+                transaction_id = auto_set_filter_gains_argin.transaction_id
                 self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = transaction_id
-                auto_set_filter_gains_schema = VCCAllBandsAutoSetFilterGainsSchema.from_dict(auto_set_filter_gains_schema_dict)
-                headrooms = auto_set_filter_gains_schema.headrooms
+                headrooms = auto_set_filter_gains_argin.headrooms
 
             self.log_info("Received Command AutoSetFilterGains", transaction_id)
 
@@ -1149,18 +1146,18 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         to handle task management as well as error handling.
         """
         try:
-            configure_vcc_bite_schema_dict = json.loads(argin)
-            transaction_id = configure_vcc_bite_schema_dict.get("transaction_id", None)
+            configure_vcc_bite_argin_dict = json.loads(argin)
+            transaction_id = configure_vcc_bite_argin_dict.get("transaction_id", None)
             self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
             jsonschema.validate(
-                configure_vcc_bite_schema_dict,
+                configure_vcc_bite_argin_dict,
                 vcc_all_bands_configure_vcc_bite_schema,
             )
-            configure_vcc_bite_schema = VCCAllBandsConfigureVCCBiteSchema.from_dict(configure_vcc_bite_schema_dict)
+            configure_vcc_bite_argin = VCCAllBandsConfigureVCCBiteArgin.from_dict(configure_vcc_bite_argin_dict)
 
             self.log_info("Received Command ConfigureVCCBite", transaction_id)
 
-            self.vcc_bite_manager.configure(config=configure_vcc_bite_schema)
+            self.vcc_bite_manager.configure(config=configure_vcc_bite_argin)
             self.vcc_source_select = VCCSourceSelect.VCC_BITE
 
             self._set_task_callback(
@@ -1204,14 +1201,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         to handle task management as well as error handling.
         """
         try:
-            deconfigure_vcc_bite_schema_dict = json.loads(argin)
-            transaction_id = deconfigure_vcc_bite_schema_dict.get("transaction_id", None)
+            deconfigure_vcc_bite_argin = VCCAllBandsDeconfigureVCCBiteArgin.from_json(argin)
+            transaction_id = deconfigure_vcc_bite_argin.transaction_id
             self.transaction_ids_per_command[CommandType.DECONFIGUREVCCBITE] = transaction_id
-            deconfigure_vcc_bite_schema = VCCAllBandsDeconfigureVCCBiteSchema.from_dict(deconfigure_vcc_bite_schema_dict)
 
             self.log_info("Received Command DeconfigureVCCBite", transaction_id)
 
-            self.vcc_bite_manager.deconfigure(config=deconfigure_vcc_bite_schema)
+            self.vcc_bite_manager.deconfigure(config=deconfigure_vcc_bite_argin)
             self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
             self._set_task_callback(
@@ -1261,9 +1257,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             return 1
         return 0
 
-    def _deconfigure_ip_blocks(self, go_to_idle_schema: FhsControllerBaseGoToIdleSchema) -> None:
+    def _deconfigure_ip_blocks(self, subarray_id: int, transaction_id: str | None = None) -> None:
         """Deconfigure all ip blocks"""
-        transaction_id = self.transaction_ids_per_command.get(CommandType.GOTOIDLE, None)
 
         # VCC123 Channelizer Deconfiguration
         b123_vcc_deconfigure_result = self.b123_vcc.deconfigure()

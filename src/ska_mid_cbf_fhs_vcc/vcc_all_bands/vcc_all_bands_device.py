@@ -4,8 +4,7 @@ from threading import Event
 
 import tango
 from ska_control_model import ObsState, ResultCode, TaskStatus
-from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
-from ska_mid_cbf_fhs_common.state_model.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
+from ska_mid_cbf_fhs_common import FhsControllerBaseDevice, FhsObsStateMachine, FhsObsStateModel
 from ska_tango_base import SKAObsDevice
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command
@@ -163,13 +162,13 @@ class VCCAllBandsController(
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
-        doc_in="Scan Schema JSON.",
+        doc_in="JSON string following the Scan schema.",
     )
-    def Scan(self, scan_schema: str) -> DevVarLongStringArrayType:
+    def Scan(self, scan_argin: str) -> DevVarLongStringArrayType:
         """Tango command to start a scan operation.
 
         Args:
-            scan_schema (:obj:`str`): The scan schema JSON string.
+            scan_argin (:obj:`str`): JSON string following the Scan schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
@@ -178,52 +177,52 @@ class VCCAllBandsController(
         command_handler = self.get_command_object(command_name="Scan")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
-        result_code, message = command_handler(argin=scan_schema)
+        result_code, message = command_handler(argin=scan_argin)
         return [[result_code], [message]]
 
-    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="End Scan Schema JSON.")
-    def EndScan(self, end_scan_schema: str | None = None) -> DevVarLongStringArrayType:
+    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the EndScan schema.")
+    def EndScan(self, end_scan_argin: str | None = None) -> DevVarLongStringArrayType:
         """Tango command to end a scan operation.
 
         Args:
-            end_scan_schema (:obj:`str`): The end scan schema JSON string.
+            end_scan_argin (:obj:`str`): JSON string following the EndScan schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
             message indicating status. The message is for information purpose only.
         """
         command_handler = self.get_command_object(command_name="EndScan")
-        result_code, message = command_handler(argin=end_scan_schema)
+        result_code, message = command_handler(argin=end_scan_argin)
         return [[result_code], [message]]
 
-    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="GoToIdle Schema JSON.")
-    def GoToIdle(self, go_to_idle_schema: str) -> DevVarLongStringArrayType:
+    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the GoToIdle schema.")
+    def GoToIdle(self, go_to_idle_argin: str) -> DevVarLongStringArrayType:
         """Tango command to return the device to IDLE state.
 
         Args:
-            go_to_idle_schema (:obj:`str`): The go_to_idle schema JSON string.
+            go_to_idle_argin (:obj:`str`): JSON string following the GoToIdle schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
             message indicating status. The message is for information purpose only.
         """
         command_handler = self.get_command_object(command_name="GoToIdle")
-        result_code, message = command_handler(argin=go_to_idle_schema)
+        result_code, message = command_handler(argin=go_to_idle_argin)
         return [[result_code], [message]]
 
-    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="ObsReset Schema JSON.")
-    def ObsReset(self, obs_reset_schema: str) -> DevVarLongStringArrayType:
+    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the ObsReset schema.")
+    def ObsReset(self, obs_reset_argin: str) -> DevVarLongStringArrayType:
         """Tango command to return the device to IDLE state from ABORTED.
 
         Args:
-            obs_reset_schema (:obj:`str`): The obs_reset schema JSON string.
+            obs_reset_argin (:obj:`str`): JSON string following the ObsReset schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
             message indicating status. The message is for information purpose only.
         """
         command_handler = self.get_command_object(command_name="ObsReset")
-        result_code, message = command_handler(argin=obs_reset_schema)
+        result_code, message = command_handler(argin=obs_reset_argin)
         return [[result_code], [message]]
 
     @command(
@@ -250,13 +249,13 @@ class VCCAllBandsController(
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
-        doc_in=("String containing JSON following the ConfigureVCCBite schema."),
+        doc_in="JSON string following the ConfigureVCCBite schema.",
     )
-    def ConfigureVCCBite(self: VCCAllBandsController, configure_vcc_bite_schema: str | None = None) -> DevVarLongStringArrayType:
+    def ConfigureVCCBite(self: VCCAllBandsController, configure_vcc_bite_argin: str | None = None) -> DevVarLongStringArrayType:
         """Tango command to configure VCC Bite.
 
         Args:
-            configure_vcc_bite_schema (:obj:`str`): JSON String following the ConfigureVCCBite command schema
+            configure_vcc_bite_argin (:obj:`str`): JSON string following the ConfigureVCCBite schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
@@ -265,19 +264,19 @@ class VCCAllBandsController(
         command_handler = self.get_command_object(command_name="ConfigureVCCBite")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=configure_vcc_bite_schema)
+        result_code, command_id = command_handler(argin=configure_vcc_bite_argin)
         return [[result_code], [command_id]]
 
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
-        doc_in=("String containing JSON following the DeconfigureVCCBite schema."),
+        doc_in="JSON string following the DeconfigureVCCBite schema.",
     )
-    def DeconfigureVCCBite(self: VCCAllBandsController, deconfigure_vcc_bite_schema: str | None = None) -> DevVarLongStringArrayType:
+    def DeconfigureVCCBite(self: VCCAllBandsController, deconfigure_vcc_bite_argin: str | None = None) -> DevVarLongStringArrayType:
         """Tango command to deconfigure VCC Bite.
 
         Args:
-            deconfigure_vcc_bite_schema (:obj:`str`): JSON String following the DeconfigureVCCBite command schema
+            deconfigure_vcc_bite_argin (:obj:`str`): JSON string following the DeconfigureVCCBite schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
@@ -286,27 +285,15 @@ class VCCAllBandsController(
         command_handler = self.get_command_object(command_name="DeconfigureVCCBite")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=deconfigure_vcc_bite_schema)
+        result_code, command_id = command_handler(argin=deconfigure_vcc_bite_argin)
         return [[result_code], [command_id]]
 
-    @command(
-        dtype_in="DevString",
-        dtype_out="DevVarLongStringArray",
-        doc_in=(
-            "String containing JSON following the AutoSetFliterGains schema."
-            "Requested RFI Headroom, in decibels (dB). "
-            "Must be a list containing either a single value to apply to all frequency slices, "
-            "or a value per frequency slice to be applied separately."
-        ),
-    )
-    def AutoSetFilterGains(self: VCCAllBandsController, auto_set_filter_gains_schema: str | None = None) -> DevVarLongStringArrayType:
+    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON String following the AutoSetFilterGains schema.")
+    def AutoSetFilterGains(self: VCCAllBandsController, auto_set_filter_gains_argin: str | None = None) -> DevVarLongStringArrayType:
         """Tango command to start a scan operation.
 
         Args:
-            auto_set_filter_gains_schema (:obj:`str`): JSON String following the auto set filter gains command schema
-                Requested RFI headroom, in decibels (dB).
-                Must be a list containing either a single value to apply to all frequency slices,
-                or a value per frequency slice to be applied separately.
+            auto_set_filter_gains_argin (:obj:`str`): JSON String following the AutoSetFilterGains schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
@@ -315,7 +302,7 @@ class VCCAllBandsController(
         command_handler = self.get_command_object(command_name="AutoSetFilterGains")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=auto_set_filter_gains_schema)
+        result_code, command_id = command_handler(argin=auto_set_filter_gains_argin)
         return [[result_code], [command_id]]
 
     def is_Abort_allowed(self: VCCAllBandsController) -> bool:
