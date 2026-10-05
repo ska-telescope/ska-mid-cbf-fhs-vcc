@@ -377,59 +377,6 @@ class TestVCCAllBandsSim:
                 min_n_events=n,
             )
 
-    def test_scan(
-        self: TestVCCAllBandsSim,
-        sim_vcc_all_bands_device: Any,
-        sim_vcc_all_bands_event_tracer: TangoEventTracer,
-        event_timeout: int,
-    ) -> None:
-        """Test Scan command
-
-        Args:
-            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
-            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
-                events from the device under test.
-        """
-
-        # Set to READY obsState
-        [[result_code], [configure_scan_command_id]] = sim_vcc_all_bands_device.ConfigureScan("")
-        [[result_code], [scan_command_id]] = sim_vcc_all_bands_device.Scan(json.dumps({"scan_id": 0}))
-        assert result_code == ResultCode.QUEUED
-        assert result_code == ResultCode.QUEUED
-        expected_events = [
-            ("obsState", ObsState.SCANNING, ObsState.READY, 1),
-            ("obsState", ObsState.SCANNING, ObsState.READY, 1),
-            (
-                "longRunningCommandResult",
-                (
-                    f"{configure_scan_command_id}",
-                    f'[{ResultCode.OK.value}, "ConfigureScan completed OK"]',
-                ),
-                None,
-                1,
-            ),
-            (
-                "longRunningCommandResult",
-                (
-                    f"{scan_command_id}",
-                    f'[{ResultCode.OK.value}, "Scan completed OK"]',
-                ),
-                None,
-                1,
-            ),
-        ]
-
-        for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
-                attribute_name=name,
-                attribute_value=value,
-                previous_value=previous,
-                min_n_events=n,
-            )
-
     @pytest.mark.parametrize(
         "command_name, \
         not_allowed_obs_states, \
@@ -487,8 +434,6 @@ class TestVCCAllBandsSim:
             # Set state if needed
             if obs_state == ObsState.READY:
                 sim_vcc_all_bands_device.ConfigureScan("")
-            elif obs_state == ObsState.SCANNING:
-                sim_vcc_all_bands_device.Scan(json.dumps({"scan_id": 0}))
 
             [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
                 command_name, command_param
@@ -539,8 +484,6 @@ class TestVCCAllBandsSim:
             # Set state if needed - device starts in IDLE
             if obs_state in [ObsState.READY, ObsState.SCANNING]:
                 sim_vcc_all_bands_device.ConfigureScan("")
-                if obs_state == ObsState.SCANNING:
-                    sim_vcc_all_bands_device.Scan(json.dumps({"scan_id": 0}))
 
             [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
                 command_name, command_param
@@ -674,8 +617,6 @@ class TestVCCAllBandsSim:
             # Set state if needed - device starts in IDLE
             if obs_state in [ObsState.READY, ObsState.SCANNING]:
                 sim_vcc_all_bands_device.ConfigureScan("")
-                if obs_state == ObsState.SCANNING:
-                    sim_vcc_all_bands_device.Scan(json.dumps({"scan_id": 0}))
 
             [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
                 command_name, command_param

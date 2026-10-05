@@ -181,6 +181,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         self.vcc_bite_manager = VCCBiteManager(logger=logger)
         self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
+        self._sample_rate = 0
+
     def _device_specific_setup(self) -> None:
         """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
         self.admin_mode_online_check = VccAdminOnline(
@@ -406,6 +408,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             jsonschema.validate(config_dict, self.config_schema)
             configuration = self.config_dataclass.from_dict(config_dict)
 
+            self.is_sample_rate_changed = False if self._sample_rate == configuration.dish_sample_rate else True
             self._sample_rate = configuration.dish_sample_rate
             self.frequency_band = freq_band_dict()[configuration.frequency_band]
             self.expected_dish_id = configuration.expected_dish_id
@@ -482,6 +485,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
                     raise RuntimeError("Configuration of FS Selection failed.")
 
                 # WIB Configuration
+                # WIB must be stopped prior to reconfiguration if the sample rate changed
+                if self.is_sample_rate_changed:
+                    self.wideband_input_buffer.stop()
+
                 self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
                 result = self.wideband_input_buffer.configure(
                     WidebandInputBufferConfig(
