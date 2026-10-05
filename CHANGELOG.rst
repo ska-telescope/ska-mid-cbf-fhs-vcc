@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.4.3
+*****
+* CIP-6551: Updated ConfigureScan config schema to better align with ICD, including removing the samples_per_frame field.
+
 0.4.2
 *****
 * CIP-6279: update sim-device for ConfigureVCCBite and DeconfigureVCCBite
