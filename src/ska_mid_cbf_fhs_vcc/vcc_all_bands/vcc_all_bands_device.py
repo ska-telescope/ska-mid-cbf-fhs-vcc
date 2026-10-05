@@ -37,10 +37,7 @@ class VCCAllBandsController(
         """
         return [
             ("ConfigureScan", "configure_scan"),
-            ("Scan", "scan"),
-            ("EndScan", "end_scan"),
             ("GoToIdle", "go_to_idle"),
-            ("ObsReset", "obs_reset"),
             ("Abort", "abort"),
             ("UpdateSubarrayMembership", "update_subarray_membership"),
             ("AutoSetFilterGains", "auto_set_filter_gains"),
@@ -159,42 +156,6 @@ class VCCAllBandsController(
         result_code, message = command_handler(argin=config)
         return [[result_code], [message]]
 
-    @command(
-        dtype_in="DevString",
-        dtype_out="DevVarLongStringArray",
-        doc_in="JSON string following the Scan schema.",
-    )
-    def Scan(self, scan_argin: str) -> DevVarLongStringArrayType:
-        """Tango command to start a scan operation.
-
-        Args:
-            scan_argin (:obj:`str`): JSON string following the Scan schema.
-
-        Returns:
-            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
-            message indicating status. The message is for information purpose only.
-        """
-        command_handler = self.get_command_object(command_name="Scan")
-        # It is important that the argin keyword be provided, as the
-        # component manager method will be overriden in simulation mode
-        result_code, message = command_handler(argin=scan_argin)
-        return [[result_code], [message]]
-
-    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the EndScan schema.")
-    def EndScan(self, end_scan_argin: str | None = None) -> DevVarLongStringArrayType:
-        """Tango command to end a scan operation.
-
-        Args:
-            end_scan_argin (:obj:`str`): JSON string following the EndScan schema.
-
-        Returns:
-            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
-            message indicating status. The message is for information purpose only.
-        """
-        command_handler = self.get_command_object(command_name="EndScan")
-        result_code, message = command_handler(argin=end_scan_argin)
-        return [[result_code], [message]]
-
     @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the GoToIdle schema.")
     def GoToIdle(self, go_to_idle_argin: str) -> DevVarLongStringArrayType:
         """Tango command to return the device to IDLE state.
@@ -208,21 +169,6 @@ class VCCAllBandsController(
         """
         command_handler = self.get_command_object(command_name="GoToIdle")
         result_code, message = command_handler(argin=go_to_idle_argin)
-        return [[result_code], [message]]
-
-    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the ObsReset schema.")
-    def ObsReset(self, obs_reset_argin: str) -> DevVarLongStringArrayType:
-        """Tango command to return the device to IDLE state from ABORTED.
-
-        Args:
-            obs_reset_argin (:obj:`str`): JSON string following the ObsReset schema.
-
-        Returns:
-            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
-            message indicating status. The message is for information purpose only.
-        """
-        command_handler = self.get_command_object(command_name="ObsReset")
-        result_code, message = command_handler(argin=obs_reset_argin)
         return [[result_code], [message]]
 
     @command(

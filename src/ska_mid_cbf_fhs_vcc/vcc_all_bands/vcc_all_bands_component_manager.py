@@ -41,9 +41,7 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (
     VCCAllBandsConfigureScanArgin,
     VCCAllBandsConfigureVCCBiteArgin,
     VCCAllBandsDeconfigureVCCBiteArgin,
-    VCCAllBandsEndScanArgin,
     VCCAllBandsGoToIdleArgin,
-    VCCAllBandsScanArgin,
 )
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager, VCCSourceSelect
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
@@ -283,18 +281,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
 
         return self.is_allowed(error_msg, [ObsState.READY])
 
-    def is_obs_reset_allowed(self) -> bool:
-        """Determine whether the ObsReset command is allowed from the current ObsState.
-
-        Returns:
-            :obj:`bool`: True if the ObsReset command is allowed, False otherwise.
-        """
-        self.logger.debug("Checking if ObsReset is allowed...")
-        error_msg = f"ObsReset not allowed in ObsState {self.obs_state}; \
-            must be in ObsState.FAULT or ObsState.ABORTED"
-
-        return self.is_allowed(error_msg, [ObsState.FAULT, ObsState.ABORTED])
-
     def configure_scan(
         self,
         argin: str,
@@ -311,42 +297,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         """
         return self.submit_task(
             func=self._configure_scan,
-            args=[argin],
-            task_callback=task_callback,
-        )
-
-    def scan(self, argin: str, task_callback: Optional[Callable] = None) -> tuple[TaskStatus, str]:
-        """Submit the task to start running the Scan command implementation.
-
-        Args:
-            argin (:obj:`str`): The input JSON string to the Scan command.
-            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
-
-        Returns:
-            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
-        """
-        return self.submit_task(
-            func=self._scan,
-            args=[argin],
-            task_callback=task_callback,
-        )
-
-    def end_scan(
-        self,
-        argin: Optional[str] = None,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        """Submit the task to start running the EndScan command implementation.
-
-        Args:
-            argin (:obj:`str`): The input JSON string to the EndScan command.
-            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
-
-        Returns:
-            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
-        """
-        return self.submit_task(
-            func=self._end_scan,
             args=[argin],
             task_callback=task_callback,
         )
@@ -374,34 +324,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             args=[argin],
             task_callback=task_callback,
             is_cmd_allowed=self.is_go_to_idle_allowed,
-        )
-
-    def obs_reset(
-        self,
-        argin: Optional[str] = None,
-        task_callback: Optional[Callable] = None,
-    ) -> tuple[TaskStatus, str]:
-        """Submit the task to start running the ObsReset command implementation.
-
-        Args:
-            argin (:obj:`str`): The input JSON string to the ObsReset command.
-            task_callback (:obj:`Optional[Callable]`, optional): A callback to run when the task status changes. Default is None.
-
-        Returns:
-            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
-        """
-        return self.submit_task(
-            func=functools.partial(
-                self._obs_command_with_callback,
-                hook="obsreset",
-                command_thread=functools.partial(
-                    self._obs_reset,
-                    from_state=self.obs_state,
-                ),
-            ),
-            args=[argin],
-            task_callback=task_callback,
-            is_cmd_allowed=self.is_obs_reset_allowed,
         )
 
     def configure_vcc_bite(
@@ -692,125 +614,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             # Reset the ID so it's not used in a different Command call
             self.transaction_ids_per_command[CommandType.CONFIGURESCAN] = None
 
-    def _scan(
-        self,
-        argin: str,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-    ) -> None:
-        """Wrapper for the Scan command implementation for all controllers,
-        to handle task management as well as error handling.
-        """
-        try:
-            self._obs_state_action_callback(FhsObsStateMachine.START_INVOKED)
-            task_callback(status=TaskStatus.IN_PROGRESS)
-            if self.task_abort_event_is_set("Scan", task_callback, task_abort_event):
-                return
-
-            scan_argin = VCCAllBandsScanArgin.from_json(argin)
-            transaction_id = scan_argin.transaction_id
-            self.transaction_ids_per_command[CommandType.SCAN] = transaction_id
-            self._scan_id = scan_argin.scan_id
-            self.log_info("Starting Scanning", transaction_id)
-
-            if not self.simulation_mode:
-                eth_start_result, pv_start_result, wib_start_result = NonBlockingFunction.await_all(
-                    self.ethernet_200g.start(),
-                    self.packet_validation.start(),
-                    self.wideband_input_buffer.start(),
-                )
-                if eth_start_result == 1 or pv_start_result == 1 or wib_start_result == 1:
-                    raise RuntimeError("Failed to start Ethernet, PV and/or WIB")
-
-            self.log_info("Scan started", transaction_id)
-            self.long_running_command_result_buffer.insert(command_type=CommandType.SCAN, result_code=ResultCode.OK, transaction_id=transaction_id)
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "Scan completed OK")
-            self._obs_state_action_callback(FhsObsStateMachine.START_COMPLETED)
-        except StateModelError as ex:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.SCAN, None)
-            self.log_error("Attempted to call Scan command from an incorrect state", transaction_id)
-            self.logger.exception(ex)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call Scan command from an incorrect state",
-            )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.SCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id)
-        except Exception as ex:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.SCAN, None)
-            self.logger.exception(ex)
-            self._obs_state_action_callback(FhsObsStateMachine.START_FAILED)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.FAILED,
-                textwrap.shorten(f"An unexpected exception occurred during Scan: {ex}", width=400),
-            )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.SCAN, result_code=ResultCode.FAILED, transaction_id=transaction_id)
-        finally:
-            # Reset the ID so it's not used in a different Command call
-            self.transaction_ids_per_command[CommandType.SCAN] = None
-
-    def _end_scan(
-        self,
-        argin: str = None,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-    ) -> None:
-        """Wrapper for the EndScan command implementation for all controllers,
-        to handle task management as well as error handling.
-        """
-        try:
-            self._obs_state_action_callback(FhsObsStateMachine.STOP_INVOKED)
-            task_callback(status=TaskStatus.IN_PROGRESS)
-            if self.task_abort_event_is_set("EndScan", task_callback, task_abort_event):
-                return
-
-            end_scan_argin = VCCAllBandsEndScanArgin.from_json(argin)
-            transaction_id = end_scan_argin.transaction_id
-            self.transaction_ids_per_command[CommandType.ENDSCAN] = transaction_id
-            self.log_info("Ending Scan", transaction_id)
-
-            if not self.simulation_mode:
-                eth_stop_result, pv_stop_result, wib_stop_result = NonBlockingFunction.await_all(
-                    self.ethernet_200g.stop(),
-                    self.packet_validation.stop(),
-                    self.wideband_input_buffer.stop(),
-                )
-                if eth_stop_result == 1 or pv_stop_result == 1 or wib_stop_result == 1:
-                    raise RuntimeError("Failed to stop Ethernet, PV and/or WIB")
-
-            self.log_info("Scan ended", transaction_id)
-            self.long_running_command_result_buffer.insert(command_type=CommandType.ENDSCAN, result_code=ResultCode.OK, transaction_id=transaction_id)
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "EndScan completed OK")
-            self._obs_state_action_callback(FhsObsStateMachine.STOP_COMPLETED)
-        except StateModelError as ex:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.ENDSCAN, None)
-            self.log_error("Attempted to call EndScan command from an incorrect state", transaction_id)
-            self.logger.exception(ex)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call EndScan command from an incorrect state",
-            )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.ENDSCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id)
-        except Exception as ex:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.ENDSCAN, None)
-            self.logger.exception(ex)
-            self._obs_state_action_callback(FhsObsStateMachine.STOP_FAILED)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.FAILED,
-                textwrap.shorten(f"An unexpected exception occurred during EndScan: {ex}", width=400),
-            )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.ENDSCAN, result_code=ResultCode.FAILED, transaction_id=transaction_id)
-        finally:
-            # Reset the ID so it's not used in a different Command call
-            self.transaction_ids_per_command[CommandType.ENDSCAN] = None
-
     def _go_to_idle(
         self,
         argin: str = None,
@@ -858,57 +661,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
         finally:
             # Reset the ID so it's not used in a different Command call
             self.transaction_ids_per_command[CommandType.GOTOIDLE] = None
-
-    def _obs_reset(
-        self,
-        argin: str = None,
-        task_callback: Optional[Callable] = None,
-        task_abort_event: Optional[Event] = None,
-        from_state=ObsState.ABORTED,
-    ) -> None:
-        """ObsReset command implementation for VCC All Bands controllers."""
-        try:
-            task_callback(status=TaskStatus.IN_PROGRESS)
-            if self.task_abort_event_is_set("ObsReset", task_callback, task_abort_event):
-                return
-
-            obs_reset_argin_dict = json.loads(argin)
-            transaction_id = obs_reset_argin_dict.get("transaction_id", None)
-            self.transaction_ids_per_command[CommandType.OBSRESET] = transaction_id
-            self.log_info("Received Command ObsReset", transaction_id)
-
-            # If in FAULT state, devices may still be running, so make sure they are stopped
-            if from_state is ObsState.FAULT:
-                self._stop_ip_blocks()
-
-            self._reset_data()
-            self._recover_ip_blocks()
-            self.log_info("Command ObsReset Successful", transaction_id)
-
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ObsReset completed OK")
-            self.long_running_command_result_buffer.insert(command_type=CommandType.OBSRESET, result_code=ResultCode.OK, transaction_id=transaction_id)
-            return
-        except StateModelError as ex:
-            self.log_error(f"Attempted to call command from an incorrect state: {repr(ex)}", transaction_id)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.REJECTED,
-                "Attempted to call ObsReset command from an incorrect state",
-            )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.OBSRESET, result_code=ResultCode.REJECTED, transaction_id=transaction_id)
-        except Exception as ex:
-            self.logger.exception(ex)
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.FAILED,
-                textwrap.shorten(f"An unexpected exception occurred during ObsReset: {ex}", width=400),
-            )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.OBSRESET, result_code=ResultCode.FAILED, transaction_id=transaction_id)
-        finally:
-            # Reset the ID so it's not used in a different Command call
-            self.transaction_ids_per_command[CommandType.OBSRESET] = None
 
     def auto_set_filter_gains(
         self: VCCAllBandsComponentManager,

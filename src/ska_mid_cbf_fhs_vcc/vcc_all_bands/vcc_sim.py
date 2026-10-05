@@ -76,33 +76,6 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
                     "invoked_action": "CONFIGURE_INVOKED",
                     "completed_action": "CONFIGURE_COMPLETED",
                 },
-                "Scan": {
-                    "allowed": True,
-                    "allowed_states": ["ON"],
-                    "allowed_obs_states": ["READY"],
-                    "result_code": "OK",
-                    "message": "Scan completed OK",
-                    "invoked_action": "START_INVOKED",
-                    "completed_action": "START_COMPLETED",
-                },
-                "EndScan": {
-                    "allowed": True,
-                    "allowed_states": ["ON"],
-                    "allowed_obs_states": ["SCANNING"],
-                    "result_code": "OK",
-                    "message": "EndScan completed OK",
-                    "invoked_action": "STOP_INVOKED",
-                    "completed_action": "STOP_COMPLETED",
-                },
-                "ObsReset": {
-                    "allowed": True,
-                    "allowed_states": ["ON"],
-                    "allowed_obs_states": ["FAULT", "ABORTED"],
-                    "result_code": "OK",
-                    "message": "ObsReset completed OK",
-                    "invoked_action": "OBSRESET_INVOKED",
-                    "completed_action": "OBSRESET_COMPLETED",
-                },
                 "UpdateSubarrayMembership": {
                     "allowed": True,
                     "allowed_states": ["ON"],
@@ -137,9 +110,6 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
             }
         )
         self.configure_scan = partial(self.sim_command, command_name="ConfigureScan", transaction_id="TEST_CS")
-        self.scan = partial(self.sim_command, command_name="Scan", transaction_id="TEST_S")
-        self.end_scan = partial(self.sim_command, command_name="EndScan", transaction_id="TEST_ES")
-        self.obs_reset = partial(self.sim_command, command_name="ObsReset", transaction_id="TEST_OBS")
         self.update_subarray_membership = partial(self.sim_command, command_name="UpdateSubarrayMembership", transaction_id="TEST_USM")
         self.auto_set_filter_gains = partial(self.sim_command, command_name="AutoSetFilterGains", transaction_id="TEST_ASFG")
         self.configure_vcc_bite = partial(self.sim_command, command_name="ConfigureVCCBite", transaction_id="TEST_CVB")

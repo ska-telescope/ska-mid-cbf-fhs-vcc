@@ -51,11 +51,8 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | Name                                  | Input Type  | Input Parameter                                | Allowed in modes      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------------------- | ----------- | ---------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ConfigureScan()`                     | JSON String | See below.                                     | IDLE, READY           | Configure parameters for the next scan(s). Parameters are propagated down to low-level device servers. Sets the state to CONFIGURING, if the inputted JSON can be successfully parsed the state is set to READY.                                                                                                                                                                                                                                                                                           |
-| `Scan()`                              | String      | The identifier of the current scan             | READY                 | Start the scan using the last set of parameters passed via the `ConfigureScan()` command. The state is then set to SCANNING.  <br>  <br>If Transient Capture Buffer (TCB) is configured, scan will begin buffering of FS packets dependent on the number of configured search windows.                                                                                                                                                                                                                     |
 | `GoToIdle()`                          | void        | n/a                                            | READY                 | Resets the device and changes the state to IDLE                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `Abort()`                             | void        | n/a                                            | IDLE, READY, SCANNING | Sets the device state to ABORTED and aborts all running/queued commands                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `EndScan()`                           | void        | n/a                                            | SCANNING              | Completes the scan and changes the device back to the READY state.  <br>  <br>If Transient Buffer Capture is configured, ending the scan will stop buffering packets and clear the applicable buffers.                                                                                                                                                                                                                                                                                                     |
-| `ObsReset()`                          | void        | n/a                                            | ABORTED, FAULT        | Reset the observing device from a FAULT/ABORTED obsState to IDLE. Initially sets the state to RESETTING, resets the configuration of the device to the default and then sets the state to IDLE on completion.                                                                                                                                                                                                                                                                                              |
 | `AutoSetFilterGain()`                 | Array<Tango::DevDouble>      | Requested RFI headroom(s).                        | SCANNING              | This command triggers the algorithm to determine and adjust filter gains and levels and takes as input the optional parameter Headroom.                                                                                                                                                                                                                                                                                                                                                                    |
 | `AutoSetTCBGain()`                    | Scalar      | Dwell Time                                     | SCANNING              | This command triggers algorithm that measures and adjusts Transient Capture Buffer (TCB) re-quantizer gain settings to provide optimal sensitivity. ‘Dwell time” specifies how long to integrate to determine the quantizer gain settings (seconds).   <br>  <br>Applies gain corrections on fine channels.                                                                                                                                                                                                |
 | `UpdateSubarrayMembership()`          | int         | Subarray ID                                    |                       | Command to update the current subarray membership of the VCC. If the VCC is not currently assigned to a subarray, i.e. its subarray_id attribute is 0, then its membership is updated and the subarray_id attribute is set appropriately. Otherwise, if the current subarray_id > 0, indicating the VCC has already been assigned to a differing subarray, then the command is REJECTED.  <br>  <br>The VCC’s subarray membership can also be cleared using this command, by providing a subarray ID of 0. |
@@ -159,12 +156,6 @@ Low-level device failure: error configuring a IP block low-level device. Returns
 Server Error: unexpected error occured on server. Returns `ResultCode: FAILED, message: Failed to an unexpected exception during ConfigureScan`
 
 
-#### `Scan(DevLong)`
-##### Parameters
-| Name     | Type   | Description                    |
-| -------- | ------ | ------------------------------ |
-| `scan_id` | long | Identifier of the current scan |
-
 #### `UpdateDelayModels(DevString)`
 ##### Parameters
 | Name                | Type                                   | Description | Range |
@@ -183,9 +174,6 @@ Server Error: unexpected error occured on server. Returns `ResultCode: FAILED, m
 | `xypol_coeffs_ns` | Vector of Double |                                           |       |
 | `ypol_offset_ns`  | Double           |                                           |       |
 #### `GoToIdle()` 
-##### Parameters
-n/a
-#### `EndScan()`
 ##### Parameters
 n/a
 
@@ -213,11 +201,6 @@ If a `band_id` is not provided All gains corrections are returned of the format 
 #### `Abort()`
 ##### Parameters
 n/a
-
-#### `ObsReset()`
-##### Parameters
-n/a
-
 
 
 #### `ConfigureVCCBite()`
