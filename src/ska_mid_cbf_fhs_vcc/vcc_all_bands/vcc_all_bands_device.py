@@ -140,6 +140,93 @@ class VCCAllBandsController(
         return self.component_manager.vcc_gains
 
     @command(
+        dtype_in="DevString",
+        dtype_out="DevVarLongStringArray",
+        doc_in="Configuration JSON.",
+    )
+    def ConfigureScan(self, config: str) -> DevVarLongStringArrayType:
+        """Tango command to apply a received scan configuration in preparation for a scan.
+
+        Args:
+            config (:obj:`str`): The configuration JSON string.
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="ConfigureScan")
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
+        result_code, message = command_handler(argin=config)
+        return [[result_code], [message]]
+
+    @command(
+        dtype_in="DevString",
+        dtype_out="DevVarLongStringArray",
+        doc_in="Scan Schema JSON.",
+    )
+    def Scan(self, scan_schema: str) -> DevVarLongStringArrayType:
+        """Tango command to start a scan operation.
+
+        Args:
+            scan_schema (:obj:`str`): The scan schema JSON string.
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="Scan")
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
+        result_code, message = command_handler(argin=scan_schema)
+        return [[result_code], [message]]
+
+    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="End Scan Schema JSON.")
+    def EndScan(self, end_scan_schema: str | None = None) -> DevVarLongStringArrayType:
+        """Tango command to end a scan operation.
+
+        Args:
+            end_scan_schema (:obj:`str`): The end scan schema JSON string.
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="EndScan")
+        result_code, message = command_handler(argin=end_scan_schema)
+        return [[result_code], [message]]
+
+    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="GoToIdle Schema JSON.")
+    def GoToIdle(self, go_to_idle_schema: str) -> DevVarLongStringArrayType:
+        """Tango command to return the device to IDLE state.
+
+        Args:
+            go_to_idle_schema (:obj:`str`): The go_to_idle schema JSON string.
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="GoToIdle")
+        result_code, message = command_handler(argin=go_to_idle_schema)
+        return [[result_code], [message]]
+
+    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="ObsReset Schema JSON.")
+    def ObsReset(self, obs_reset_schema: str) -> DevVarLongStringArrayType:
+        """Tango command to return the device to IDLE state from ABORTED.
+
+        Args:
+            obs_reset_schema (:obj:`str`): The obs_reset schema JSON string.
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="ObsReset")
+        result_code, message = command_handler(argin=obs_reset_schema)
+        return [[result_code], [message]]
+
+    @command(
         dtype_in="DevUShort",
         dtype_out="DevVarLongStringArray",
         doc_in="Subarray ID to assign to the VCC.",
