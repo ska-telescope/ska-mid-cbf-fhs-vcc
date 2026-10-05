@@ -24,7 +24,7 @@ class VCCAllBandsConfigureScanFSLaneConfig(DataClassJsonMixin):
 
 
 @dataclass
-class VCCAllBandsConfigureScanConfig(FhsControllerBaseConfig, DataClassJsonMixin):
+class VCCAllBandsConfigureScanArgin(FhsControllerBaseConfig, DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureScan input parameter."""
 
     config_id: str
@@ -44,7 +44,40 @@ class VCCAllBandsConfigureScanConfig(FhsControllerBaseConfig, DataClassJsonMixin
 
 
 @dataclass
-class VCCAllBandsAutoSetFilterGainsSchema(DataClassJsonMixin):
+class VCCAllBandsAbortArgin(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands Abort input parameter."""
+
+    subarray_id: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsScanArgin(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands Scan input parameter."""
+
+    scan_id: int
+    subarray_id: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsEndScanArgin(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands EndScan input parameter."""
+
+    subarray_id: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsGoToIdleArgin(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands GoToIdle input parameter."""
+
+    subarray_id: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsAutoSetFilterGainsArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands AutoSetFilterGains input parameter."""
 
     headrooms: Optional[list[float]] = field(default_factory=lambda: [3.0])
@@ -116,7 +149,7 @@ class VCCAllBandsConfigureVCCBiteRfiConfig(DataClassJsonMixin):
 
 
 @dataclass
-class VCCAllBandsConfigureVCCBiteSchema(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureVCCBite input parameter."""
 
     receiver: VCCAllBandsConfigureVCCBiteReceiverConfig
@@ -128,7 +161,7 @@ class VCCAllBandsConfigureVCCBiteSchema(DataClassJsonMixin):
 
 
 @dataclass
-class VCCAllBandsDeconfigureVCCBiteSchema(DataClassJsonMixin):
+class VCCAllBandsDeconfigureVCCBiteArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands DeconfigureVCCBite input parameter."""
 
     transaction_id: Optional[str] = None

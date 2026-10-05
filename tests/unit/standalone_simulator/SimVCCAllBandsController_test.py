@@ -24,7 +24,7 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim import SimVCCAllBandsController, 
 from ska_tango_testing.integration import TangoEventTracer
 from tango import DevState
 
-from ska_mid_cbf_fhs_common.testing.configurable_test_context import ConfigurableThreadedTestTangoContextManager
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
 
 # Path
 test_data_path = os.path.dirname(os.path.abspath(__file__)) + "/../../data/"
