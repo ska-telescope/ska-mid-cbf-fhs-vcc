@@ -16,7 +16,6 @@ from ska_mid_cbf_common.enums.command_type import CommandType
 from ska_mid_cbf_fhs_common import (
     LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE,
     BaseIPBlockManager,
-    FhsControllerBaseGoToIdleArgin,
     FhsControllerComponentManagerBase,
     FhsObsStateMachine,
     FtileEthernetManager,
@@ -43,6 +42,7 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (
     VCCAllBandsConfigureVCCBiteArgin,
     VCCAllBandsDeconfigureVCCBiteArgin,
     VCCAllBandsEndScanArgin,
+    VCCAllBandsGoToIdleArgin,
     VCCAllBandsScanArgin,
 )
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager, VCCSourceSelect
@@ -824,7 +824,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase, ObsDeviceCo
             if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
                 return
 
-            go_to_idle_argin = FhsControllerBaseGoToIdleArgin.from_json(argin)
+            go_to_idle_argin = VCCAllBandsGoToIdleArgin.from_json(argin)
             transaction_id = go_to_idle_argin.transaction_id
             self.transaction_ids_per_command[CommandType.GOTOIDLE] = transaction_id
             self.log_info("Received Command GoToIdle", transaction_id)

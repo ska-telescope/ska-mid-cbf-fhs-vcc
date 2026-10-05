@@ -71,6 +71,14 @@ class VCCAllBandsEndScanArgin(DataClassJsonMixin):
 
 
 @dataclass
+class VCCAllBandsGoToIdleArgin(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands GoToIdle input parameter."""
+
+    subarray_id: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
 class VCCAllBandsAutoSetFilterGainsArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands AutoSetFilterGains input parameter."""
 

@@ -288,7 +288,11 @@ class VCCAllBandsController(
         result_code, command_id = command_handler(argin=deconfigure_vcc_bite_argin)
         return [[result_code], [command_id]]
 
-    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON String following the AutoSetFilterGains schema.")
+    @command(
+        dtype_in="DevString",
+        dtype_out="DevVarLongStringArray",
+        doc_in="JSON String following the AutoSetFilterGains schema.",
+    )
     def AutoSetFilterGains(self: VCCAllBandsController, auto_set_filter_gains_argin: str | None = None) -> DevVarLongStringArrayType:
         """Tango command to start a scan operation.
 

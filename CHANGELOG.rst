@@ -14,6 +14,7 @@ UNRELEASED CHANGES
 
   * Update scan sequence commands to replace functionality that was removed from the common library
   * Naming updates for clarity
+  * Miscellaneous code cleanup
 
 0.4.2
 *****
