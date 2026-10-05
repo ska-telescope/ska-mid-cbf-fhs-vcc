@@ -1,4 +1,3 @@
-import subprocess
 import os
 import sys
 import time
@@ -22,6 +21,7 @@ def main(args=None, **kwargs):  # noqa: E302
         **kwargs,
     )
 
+
 def dir_size(root: Path) -> int:
     """Return total size (in bytes) of all regular files under *root*."""
     total = 0
@@ -34,6 +34,7 @@ def dir_size(root: Path) -> int:
                 # File vanished or we can't read it – ignore it for this pass
                 continue
     return total
+
 
 def wait_for_download_completion(folder: Path, interval: float = 5.0) -> bool:
     if not folder.is_dir():
