@@ -12,7 +12,7 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator i
 @dataclass
 class WidebandInputBufferConfig(DataClassJsonMixin):
     expected_sample_rate: np.uint64
-    noise_diode_transition_holdoff_count: float
+    noise_diode_transition_holdoff_count: int
     expected_dish_band: np.uint8
     transaction_id: Optional[str] = None
 
