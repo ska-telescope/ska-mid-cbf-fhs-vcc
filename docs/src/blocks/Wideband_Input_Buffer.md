@@ -18,7 +18,7 @@ Purpose is to replace missing packets (dropped, or otherwise) with packets conta
 ### Structs
 #### `struct config`
 - expected_sample_rate : uint64_t
-- noise_diode_transition_holdoff_seconds : float
+- noise_diode_transition_holdoff_count : uint16_t
 
 #### `struct status`
 - link_failure : boolean

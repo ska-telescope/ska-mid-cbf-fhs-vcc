@@ -12,24 +12,53 @@ vcc_all_bands_configure_scan_schema = {
             "minimum": 3960000000,
             "maximum": 11891998800,
         },
-        "samples_per_frame": {"type": "integer"},
         "frequency_band": {"type": "string", "enum": ["1", "2", "3", "4", "5a", "5b"]},
-        "frequency_band_offset_stream_1": {
+        "frequency_band_offset_stream1": {
             "type": "integer",
             "min": -100000000,
             "max": 100000000,
         },
-        "frequency_band_offset_stream_2": {
+        "frequency_band_offset_stream2": {
             "type": "integer",
             "min": -100000000,
             "max": 100000000,
         },
-        "vcc_gain": {"type": "array", "items": {"type": "number"}},
-        "noise_diode_transition_holdoff_seconds": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "vcc_gains_stream_1": {"type": "array", "items": {"type": "number"}},
+        "noise_diode_transition_holdoff_count": {"type": "integer", "minimum": 0, "maximum": 65535},
         "band_5_tuning": {"type": "number"},
-        "b123_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
-        "b45a_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
-        "b5b_pwrm": {"type": "object", "properties": {"averaging_time": {"type": "integer"}, "flagging": {"type": "integer"}}},
+        "b123_power_meter": {
+            "type": "object",
+            "properties": {
+                "averaging": {"type": "number"},
+                "flagging": {"type": "integer"},
+            },
+            "required": [
+                "averaging",
+                "flagging",
+            ],
+        },
+        "b45_1_power_meter": {
+            "type": "object",
+            "properties": {
+                "averaging": {"type": "number"},
+                "flagging": {"type": "integer"},
+            },
+            "required": [
+                "averaging",
+                "flagging",
+            ],
+        },
+        "b45_2_power_meter": {
+            "type": "object",
+            "properties": {
+                "averaging": {"type": "number"},
+                "flagging": {"type": "integer"},
+            },
+            "required": [
+                "averaging",
+                "flagging",
+            ],
+        },
         "fs_lanes": {
             "type": "array",
             "items": {
@@ -37,14 +66,22 @@ vcc_all_bands_configure_scan_schema = {
                 "properties": {
                     "vlan_id": {"type": "integer"},
                     "fs_id": {"type": "integer"},
-                    "averaging_time": {"type": "integer"},
-                    "flagging": {"type": "integer"},
+                    "power_meter": {
+                        "type": "object",
+                        "properties": {
+                            "averaging": {"type": "number"},
+                            "flagging": {"type": "integer"},
+                        },
+                        "required": [
+                            "averaging",
+                            "flagging",
+                        ],
+                    },
                 },
                 "required": [
                     "vlan_id",
                     "fs_id",
-                    "averaging_time",
-                    "flagging",
+                    "power_meter",
                 ],
             },
         },
@@ -53,14 +90,13 @@ vcc_all_bands_configure_scan_schema = {
         "config_id",
         "expected_dish_id",
         "dish_sample_rate",
-        "samples_per_frame",
         "frequency_band",
-        "frequency_band_offset_stream_1",
-        "vcc_gain",
-        "noise_diode_transition_holdoff_seconds",
-        "b123_pwrm",
-        "b45a_pwrm",
-        "b5b_pwrm",
+        "frequency_band_offset_stream1",
+        "vcc_gains_stream_1",
+        "noise_diode_transition_holdoff_count",
+        "b123_power_meter",
+        "b45_1_power_meter",
+        "b45_2_power_meter",
         "fs_lanes",
     ],
     #    "additionalProperties": False,  # TODO uncomment once schema and test data are correct and match
@@ -71,25 +107,24 @@ example_config = {
     "config_id": "1",
     "expected_dish_id": "MKT001",
     "dish_sample_rate": 3960000000,
-    "samples_per_frame": 18,
-    "vcc_gain": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "vcc_gains_stream_1": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     "frequency_band": "2",
-    "noise_diode_transition_holdoff_seconds": 0,
-    "frequency_band_offset_stream_1": 110,
-    "frequency_band_offset_stream_2": 56,
-    "b123_pwrm": {"averaging_time": 1, "flagging": 0},
-    "b45a_pwrm": {"averaging_time": 1, "flagging": 0},
-    "b5b_pwrm": {"averaging_time": 1, "flagging": 0},
+    "noise_diode_transition_holdoff_count": 0,
+    "frequency_band_offset_stream1": 110,
+    "frequency_band_offset_stream2": 56,
+    "b123_power_meter": {"averaging": 1.0, "flagging": 0},
+    "b45_1_power_meter": {"averaging": 1.0, "flagging": 0},
+    "b45_2_power_meter": {"averaging": 1.0, "flagging": 0},
     "fs_lanes": [
-        {"vlan_id": 2, "fs_id": 1, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 2, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 3, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 4, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 5, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 6, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 7, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 8, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 9, "averaging_time": 1, "flagging": 0},
-        {"vlan_id": 2, "fs_id": 10, "averaging_time": 1, "flagging": 0}
+        {"vlan_id": 2, "fs_id": 1, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 2, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 3, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 4, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 5, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 6, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 7, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 8, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 9, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_id": 2, "fs_id": 10, "power_meter": {"averaging": 1.0, "flagging": 0}}
     ]
 }
