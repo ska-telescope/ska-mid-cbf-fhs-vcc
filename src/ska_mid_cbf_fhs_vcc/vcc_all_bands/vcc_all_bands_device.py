@@ -3,9 +3,9 @@ from __future__ import annotations
 from threading import Event
 
 import tango
-from ska_control_model import ObsState, ResultCode, TaskStatus
-from ska_mid_cbf_fhs_common import FhsControllerBaseDevice, FhsObsStateMachine, FhsObsStateModel
-from ska_tango_base import SKAObsDevice
+from ska_control_model import ResultCode, TaskStatus
+from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
+from ska_mid_cbf_fhs_common.enums.fhs_state import FhsState
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command
 
@@ -16,7 +16,6 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VC
 
 class VCCAllBandsController(
     FhsControllerBaseDevice[VCCAllBandsComponentManager],
-    SKAObsDevice,
 ):
     """Tango device class for the VCC All Bands Controller."""
 
@@ -134,6 +133,21 @@ class VCCAllBandsController(
             [ch0_polX, ch1_polX, ..., chN_polX, ch0_polY, ch1_polY, ..., chN_polY].
         """
         return self.component_manager.vcc_gains
+
+    @attribute(
+        dtype="DevEnum",
+        enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURED.name],
+        doc="Device State",
+    )
+    def state(self) -> str:
+        """
+        Read-only Tango attribute that contains a string with the State value for this device.
+
+        :return: FhsState of this device
+        :rtype: FhsState
+        """
+
+        return self.component_manager.state
 
     @command(
         dtype_in="DevString",
@@ -255,12 +269,6 @@ class VCCAllBandsController(
         result_code, command_id = command_handler(argin=auto_set_filter_gains_argin)
         return [[result_code], [command_id]]
 
-    def is_Abort_allowed(self: VCCAllBandsController) -> bool:
-        """Check if Abort is allowed."""
-        if self._obs_state not in [ObsState.IDLE, ObsState.READY, ObsState.SCANNING, ObsState.CONFIGURING, ObsState.RESETTING]:
-            return False
-        return True
-
     @command(
         dtype_in="DevString",
         doc_in="JSON string conforming to the ska-mid-cbf-abort schema",
@@ -269,9 +277,9 @@ class VCCAllBandsController(
     )
     def Abort(self: VCCAllBandsController, argin: str) -> DevVarLongStringArrayType:
         """
-        Abort the current observing process and move to ABORTED obsState.
+        Abort the current observing process and move to ABORTED FhsState.
 
-        Overrides base LRC mixin to trigger ObsState transitions and component
+        Overrides base LRC mixin to trigger FhsState transitions and component
         manager abort task.
 
         :return: tuple containing a return code and a unique command identifier
@@ -300,8 +308,6 @@ class VCCAllBandsController(
         self._version_id = release_info.VERSION
         self._build_state = f"{release_info.NAME}, {release_info.VERSION}, {release_info.DESCRIPTION}"
 
-        self._update_obs_state(ObsState.IDLE)
-
     def create_component_manager(self) -> VCCAllBandsComponentManager:
         """Instantiate the component manager for this device.
 
@@ -315,66 +321,10 @@ class VCCAllBandsController(
             attr_archive_callback=self.push_archive_event,
             health_state_callback=self._update_health_state_wrapper,
             communication_state_callback=self._communication_state_changed,
-            obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
-            obs_state_action_callback=self._obs_state_action,
             simulation_mode=self.simulation_mode,
             emulation_mode=self.emulation_mode,
         )
-
-    def reset_obs_state(self):
-        """Set the ObsState of the device back to IDLE."""
-        if self._obs_state in [ObsState.FAULT, ObsState.ABORTED]:
-            self.obs_state_model.perform_action(FhsObsStateMachine.GO_TO_IDLE)
-
-    def _init_state_model(self) -> None:
-        """Set up the state model for the device."""
-        super()._init_state_model()
-
-        # supplying the reduced observing state machine defined above
-        self.obs_state_model = FhsObsStateModel(
-            logger=self.logger,
-            callback=self._update_obs_state,
-            state_machine_factory=FhsObsStateMachine,
-        )
-
-    def _obs_command_running(self, hook: str, running: bool) -> None:
-        """
-        Callback provided to component manager to drive the obs state model into
-        transitioning states during the relevant command's submitted thread.
-
-        Args:
-            hook (:obj:`str`): the observing command-specific hook
-            running (:obj:`bool`): True when thread begins, False when thread completes
-        """
-        action = "invoked" if running else "completed"
-        self.logger.info(f"Changing ObsState from running command, calling: {hook}_{action} ")
-        self.obs_state_model.perform_action(f"{hook}_{action}")
-
-    def _obs_state_action(self, action: str) -> None:
-        """Perform an action on the ObsState model."""
-        self.obs_state_model.perform_action(action)
-
-    def _update_obs_state(self, obs_state: ObsState) -> None:
-        """
-        Perform Tango operations in response to a change in obsState within the state machine.
-
-        This helper method is passed to the observation state model as a
-        callback, so that the model can trigger actions in the Tango
-        device.
-
-        Overridden here to supply new ObsState value to component manager property
-
-        Args:
-            obs_state (:obj:`ObsState`): the new obs_state value
-        """
-        self.logger.debug(f"ObsState updating to {ObsState(obs_state).name}")
-
-        super()._update_obs_state(obs_state=obs_state)
-
-        # set the obstate in the component_manager
-        if hasattr(self, "component_manager"):
-            self.component_manager.obs_state = obs_state
 
 
 if __name__ == "__main__":
