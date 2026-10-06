@@ -8,6 +8,18 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
+0.4.4
+*****
+* CIP-6475: Update to ska-mid-cbf-fhs-common 0.5.0
+
+  * Update scan sequence commands to replace functionality that was removed from the common library
+  * Naming updates for clarity
+  * Miscellaneous code cleanup
+
+0.4.3
+*****
+* CIP-6551: Updated ConfigureScan config schema to better align with ICD, including removing the samples_per_frame field.
+
 0.4.2
 *****
 * CIP-6279: update sim-device for ConfigureVCCBite and DeconfigureVCCBite

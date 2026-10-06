@@ -1,4 +1,4 @@
-from ska_mid_cbf_fhs_common.base_classes.device.utils.admin_online import AdminOnline
+from ska_mid_cbf_fhs_common import AdminOnline
 
 
 class VccAdminOnline(AdminOnline):

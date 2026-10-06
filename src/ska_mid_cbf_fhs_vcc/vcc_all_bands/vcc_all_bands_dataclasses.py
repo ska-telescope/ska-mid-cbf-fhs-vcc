@@ -10,7 +10,7 @@ from ska_mid_cbf_fhs_common import FhsControllerBaseConfig
 class VCCAllBandsConfigureScanPowerMeterConfig(DataClassJsonMixin):
     """Dataclass representing a power meter configuration as part of the VCC All Bands ConfigureScan input parameter."""
 
-    averaging_time: int
+    averaging: float
     flagging: int
 
 
@@ -20,33 +20,64 @@ class VCCAllBandsConfigureScanFSLaneConfig(DataClassJsonMixin):
 
     vlan_id: int
     fs_id: int
-    averaging_time: int
-    flagging: int
+    power_meter: VCCAllBandsConfigureScanPowerMeterConfig
 
 
 @dataclass
-class VCCAllBandsConfigureScanConfig(FhsControllerBaseConfig, DataClassJsonMixin):
+class VCCAllBandsConfigureScanArgin(FhsControllerBaseConfig, DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureScan input parameter."""
 
     config_id: str
     expected_dish_id: str
     dish_sample_rate: int
-    samples_per_frame: int
     frequency_band: str
-    frequency_band_offset_stream_1: int
-    vcc_gain: list[float]
-    noise_diode_transition_holdoff_seconds: int
-    b123_pwrm: VCCAllBandsConfigureScanPowerMeterConfig
-    b45a_pwrm: VCCAllBandsConfigureScanPowerMeterConfig
-    b5b_pwrm: VCCAllBandsConfigureScanPowerMeterConfig
+    frequency_band_offset_stream1: int
+    vcc_gains_stream_1: list[float]
+    noise_diode_transition_holdoff_count: int
+    b123_power_meter: VCCAllBandsConfigureScanPowerMeterConfig
+    b45_1_power_meter: VCCAllBandsConfigureScanPowerMeterConfig
+    b45_2_power_meter: VCCAllBandsConfigureScanPowerMeterConfig
     fs_lanes: list[VCCAllBandsConfigureScanFSLaneConfig]
-    frequency_band_offset_stream_2: int = 0
+    frequency_band_offset_stream2: int = 0
     band_5_tuning: float = 0.0
     transaction_id: Optional[str] = None
 
 
 @dataclass
-class VCCAllBandsAutoSetFilterGainsSchema(DataClassJsonMixin):
+class VCCAllBandsAbortArgin(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands Abort input parameter."""
+
+    subarray_id: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsScanArgin(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands Scan input parameter."""
+
+    scan_id: int
+    subarray_id: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsEndScanArgin(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands EndScan input parameter."""
+
+    subarray_id: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsGoToIdleArgin(DataClassJsonMixin):
+    """Dataclass representing the VCC All Bands GoToIdle input parameter."""
+
+    subarray_id: int
+    transaction_id: Optional[str] = None
+
+
+@dataclass
+class VCCAllBandsAutoSetFilterGainsArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands AutoSetFilterGains input parameter."""
 
     headrooms: Optional[list[float]] = field(default_factory=lambda: [3.0])
@@ -118,7 +149,7 @@ class VCCAllBandsConfigureVCCBiteRfiConfig(DataClassJsonMixin):
 
 
 @dataclass
-class VCCAllBandsConfigureVCCBiteSchema(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureVCCBite input parameter."""
 
     receiver: VCCAllBandsConfigureVCCBiteReceiverConfig
@@ -130,7 +161,7 @@ class VCCAllBandsConfigureVCCBiteSchema(DataClassJsonMixin):
 
 
 @dataclass
-class VCCAllBandsDeconfigureVCCBiteSchema(DataClassJsonMixin):
+class VCCAllBandsDeconfigureVCCBiteArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands DeconfigureVCCBite input parameter."""
 
     transaction_id: Optional[str] = None
