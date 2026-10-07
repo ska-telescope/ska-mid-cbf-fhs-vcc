@@ -26,7 +26,7 @@ dependencies = [
     "protobuf>=6.33.0,<7.0.0",
     "pyyaml>=6.0.3,<7",
     "requests>=2.32.3,<3",
-    "ska-tango-testing==0.9.0",
+    "ska-tango-testing==0.10.0",
     "ska-telmodel==1.33.0",
     "ska-ser-log-transactions==0.2.2",
     "ska-ser-skuid==5.2.0",
