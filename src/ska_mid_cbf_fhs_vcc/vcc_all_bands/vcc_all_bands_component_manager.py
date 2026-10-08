@@ -48,7 +48,7 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager imp
 class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     """Component manager for the VCC All Bands Controller device."""
 
-    state: FhsState
+    configuration_state: FhsState
     """:obj:`FhsState`: The string representation of the device's current FhsState."""
 
     subarray_id: int
@@ -149,7 +149,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             create_log_file (:obj:`bool`, optional): Whether or not to create a log file for this controller. Default is True.
             **kwargs (:obj:`Any`): Any arbitrary keyword arguments to pass to the superclass init method.
         """
-        self.state = FhsState.NOT_CONFIGURED
+        self.configuration_state = FhsState.NOT_CONFIGURED
 
         super().__init__(
             *args,
@@ -226,19 +226,19 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             *self.wideband_power_meters.values(),
         ]
 
-    def set_subarray_state_if_transition_is_allowed(self, dest_state: FhsState):
+    def set_configuration_state_if_transition_is_allowed(self, dest_state: FhsState):
         allowed_transitions = {
             FhsState.NOT_CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.CONFIGURED, FhsState.FAULT],
             FhsState.CONFIGURING: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURED, FhsState.FAULT],
             FhsState.CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.SCANNING, FhsState.FAULT],
         }
 
-        if dest_state not in allowed_transitions[self.state]:
-            raise RuntimeError(f"Tried entering state {dest_state} from {self.state} which is not allowed")
+        if dest_state not in allowed_transitions[self.configuration_state]:
+            raise RuntimeError(f"Tried entering state {dest_state} from {self.configuration_state} which is not allowed")
 
-        self.state = dest_state
-        self._attr_change_callback("state", dest_state)
-        self._attr_archive_callback("state", dest_state)
+        self.configuration_state = dest_state
+        self._attr_change_callback("configuration_state", dest_state)
+        self._attr_archive_callback("configuration_state", dest_state)
 
     def update_subarray_membership(
         self: VCCAllBandsComponentManager,
@@ -355,7 +355,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
         """
         task_status, msg = super().abort_tasks(task_callback)
-        self.set_subarray_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
+        self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
 
         return task_status, msg
 
@@ -373,7 +373,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
                 return
 
-            self.set_subarray_state_if_transition_is_allowed(FhsState.CONFIGURING)
+            self.set_configuration_state_if_transition_is_allowed(FhsState.CONFIGURING)
             config_dict = json.loads(argin)
             transaction_id = config_dict.get("transaction_id", None)
             self.transaction_ids_per_command[CommandType.CONFIGURESCAN] = transaction_id
@@ -551,7 +551,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                         self._reset_data()
                         raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
-            self.set_subarray_state_if_transition_is_allowed(FhsState.CONFIGURED)
+            self.set_configuration_state_if_transition_is_allowed(FhsState.CONFIGURED)
             self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
             self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.OK, transaction_id=transaction_id)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
@@ -598,7 +598,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
             self._reset_data()
 
-            self.set_subarray_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
+            self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
             self.log_info("Command GoToIdle Successful", transaction_id)
             self.long_running_command_result_buffer.insert(command_type=CommandType.GOTOIDLE, result_code=ResultCode.OK, transaction_id=transaction_id)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")

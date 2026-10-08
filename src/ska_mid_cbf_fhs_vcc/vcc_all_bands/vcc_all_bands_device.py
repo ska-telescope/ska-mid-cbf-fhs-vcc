@@ -137,17 +137,17 @@ class VCCAllBandsController(
     @attribute(
         dtype="DevEnum",
         enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURED.name],
-        doc="Device State",
+        doc="Device's configuration state",
     )
-    def state(self) -> str:
+    def configurationState(self) -> str:
         """
-        Read-only Tango attribute that contains a string with the State value for this device.
+        Read-only Tango attribute that contains a string with the FhsState value for this device.
 
         :return: FhsState of this device
         :rtype: FhsState
         """
 
-        return self.component_manager.state
+        return self.component_manager.configuration_state
 
     @command(
         dtype_in="DevString",
