@@ -106,8 +106,8 @@ PYTHON_SWITCHES_FOR_PYLINT = --rcfile=$(PYLINT_CONFIG_FILE)
 PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --rcfile=$(PYLINT_CONFIG_FILE)
 
 PYTHON_LINE_LENGTH = 160
-POETRY_PYTHON_RUNNER = poetry run python3 -m
-LOCAL_PYTHON_RUNNER = poetry run python3 -m
+POETRY_PYTHON_RUNNER = uv run python3 -m
+LOCAL_PYTHON_RUNNER = uv run python3 -m
 
 PYTHON_LINT_TARGET = ./src/
 K8S_VARS_AFTER_PYTEST = -s
@@ -120,7 +120,14 @@ PYTHON_TEST_FILE = ./tests/unit/
 # ('make interactive', 'make test', etc.) are defined in this file.
 #
 
-include .make/*.mk
+include .make/base.mk
+include .make/python.mk
+include .make/utils.mk
+include .make/helm.mk
+include .make/k8s.mk
+include .make/release.mk
+include .make/oci.mk
+include .make/docs.mk
 
 all: test lint
 
