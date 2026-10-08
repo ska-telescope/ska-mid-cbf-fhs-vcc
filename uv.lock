@@ -1906,7 +1906,7 @@ wheels = [
 
 [[package]]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.4.2"
+version = "0.4.5"
 source = { editable = "." }
 dependencies = [
     { name = "dataclasses-json" },
