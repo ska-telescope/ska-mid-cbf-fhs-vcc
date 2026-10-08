@@ -2,6 +2,12 @@
 
 Please see the [readthedocs](https://developer.skao.int/projects/ska-mid-cbf-fhs-vcc/en/latest/) for installation and usage
 
+# Using UV
+
+1. Activate your virtual env
+2. run `pip install uv`
+3. run `uv sync --active`
+
 # AJ Kube Guide:
 ## Preconditions
 1. AJ Kube has already been built using the prototyping repo
