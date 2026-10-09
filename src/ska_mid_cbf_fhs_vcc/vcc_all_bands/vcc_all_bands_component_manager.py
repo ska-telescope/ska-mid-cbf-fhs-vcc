@@ -230,15 +230,15 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         allowed_transitions = {
             FhsState.NOT_CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.CONFIGURED, FhsState.FAULT],
             FhsState.CONFIGURING: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURED, FhsState.FAULT],
-            FhsState.CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.SCANNING, FhsState.FAULT],
+            FhsState.CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.FAULT],
         }
 
         if dest_state not in allowed_transitions[self.configuration_state]:
             raise RuntimeError(f"Tried entering state {dest_state} from {self.configuration_state} which is not allowed")
 
         self.configuration_state = dest_state
-        self._attr_change_callback("configuration_state", dest_state)
-        self._attr_archive_callback("configuration_state", dest_state)
+        self._attr_change_callback("configurationState", dest_state)
+        self._attr_archive_callback("configurationState", dest_state)
 
     def update_subarray_membership(
         self: VCCAllBandsComponentManager,

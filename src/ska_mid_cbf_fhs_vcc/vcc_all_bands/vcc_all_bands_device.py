@@ -23,6 +23,8 @@ class VCCAllBandsController(
         super().set_local_change_events()
         self.set_change_event("subarrayID", True)
         self.set_archive_event("subarrayID", True)
+        self.set_change_event("configurationState", True)
+        self.set_archive_event("configurationState", True)
 
     @property
     def component_manager_class(self) -> type[VCCAllBandsComponentManager]:
