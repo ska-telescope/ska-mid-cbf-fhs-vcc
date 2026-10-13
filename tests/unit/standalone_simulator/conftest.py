@@ -44,6 +44,7 @@ def sim_vcc_all_bands_tango_event_tracer(
     tracer = TangoEventTracer(
         event_enum_mapping={
             "adminMode": AdminMode,
+            "obsState": ObsState,
             "healthState": HealthState,
         }
     )
@@ -52,6 +53,7 @@ def sim_vcc_all_bands_tango_event_tracer(
         "longRunningCommandResult",
         "adminMode",
         "state",
+        "obsState",
         "healthState",
         "subarrayID",
     ]
