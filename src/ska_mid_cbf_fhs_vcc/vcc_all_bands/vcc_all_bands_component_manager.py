@@ -228,7 +228,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def set_configuration_state_if_transition_is_allowed(self, dest_state: FhsState):
         allowed_transitions = {
-            FhsState.NOT_CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.CONFIGURED, FhsState.FAULT],
+            FhsState.NOT_CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.FAULT],
             FhsState.CONFIGURING: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURED, FhsState.FAULT],
             FhsState.CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.FAULT],
         }

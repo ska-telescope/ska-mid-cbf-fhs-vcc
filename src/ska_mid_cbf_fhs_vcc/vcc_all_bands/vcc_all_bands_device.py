@@ -138,7 +138,7 @@ class VCCAllBandsController(
 
     @attribute(
         dtype="DevEnum",
-        enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURED.name],
+        enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURING.name, FhsState.CONFIGURED.name, FhsState.FAULT.name],
         doc="Device's configuration state",
     )
     def configurationState(self) -> str:
