@@ -10,6 +10,11 @@ UNRELEASED CHANGES
 
 0.4.4
 *****
+* Migrating from poetry to UV
+* Removing dependency on kubectl. 
+
+0.4.4
+*****
 * CIP-6475: Update to ska-mid-cbf-fhs-common 0.5.0
 
   * Update scan sequence commands to replace functionality that was removed from the common library
