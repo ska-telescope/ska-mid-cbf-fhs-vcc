@@ -376,7 +376,7 @@ class TestVCCAllBandsSim:
                 previous_value=previous,
                 min_n_events=n,
             )
-            
+
     def test_scan(
         self: TestVCCAllBandsSim,
         sim_vcc_all_bands_device: Any,
@@ -539,7 +539,7 @@ class TestVCCAllBandsSim:
             # Set state if needed - device starts in IDLE
             if obs_state in [ObsState.READY, ObsState.SCANNING]:
                 sim_vcc_all_bands_device.ConfigureScan("")
-            if obs_state == ObsState.SCANNING:
+                if obs_state == ObsState.SCANNING:
                     sim_vcc_all_bands_device.Scan(json.dumps({"scan_id": 0}))
 
             [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
@@ -674,7 +674,7 @@ class TestVCCAllBandsSim:
             # Set state if needed - device starts in IDLE
             if obs_state in [ObsState.READY, ObsState.SCANNING]:
                 sim_vcc_all_bands_device.ConfigureScan("")
-            if obs_state == ObsState.SCANNING:
+                if obs_state == ObsState.SCANNING:
                     sim_vcc_all_bands_device.Scan(json.dumps({"scan_id": 0}))
 
             [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
