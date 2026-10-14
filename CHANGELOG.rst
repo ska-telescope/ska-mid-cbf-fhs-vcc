@@ -8,7 +8,12 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 UNRELEASED CHANGES
 ******************
 
-0.4.4
+0.4.6
+*****
+* CIP-6553: Removed Scan, EndScan, and ObsReset commands from All bands device, as well as all traces of the ObsState model.
+* Updated k8s-deploy make target to work with latest ska-cicd-makefile commit.
+
+0.4.5
 *****
 * Migrating from poetry to UV
 * Removing dependency on kubectl. 
