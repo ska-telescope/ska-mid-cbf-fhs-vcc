@@ -380,6 +380,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             jsonschema.validate(config_dict, self.config_schema)
             configuration = self.config_dataclass.from_dict(config_dict)
 
+            self.is_initial_configuration = False if self._sample_rate != 0 else True
             self.is_sample_rate_changed = False if self._sample_rate == configuration.dish_sample_rate else True
             self._sample_rate = configuration.dish_sample_rate
             self.frequency_band = freq_band_dict()[configuration.frequency_band]
@@ -458,8 +459,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
                 # WIB Configuration
                 # WIB must be stopped prior to reconfiguration if the sample rate changed
-                if self.is_sample_rate_changed:
-                    self.wideband_input_buffer.stop()
+                if not self.is_initial_configuration and self.is_sample_rate_changed:
+                    self.wideband_input_buffer.stop().await_result()
 
                 self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
                 result = self.wideband_input_buffer.configure(
