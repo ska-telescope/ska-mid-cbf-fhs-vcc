@@ -52,23 +52,6 @@ class VCCAllBandsAbortArgin(DataClassJsonMixin):
 
 
 @dataclass
-class VCCAllBandsScanArgin(DataClassJsonMixin):
-    """Dataclass representing the VCC All Bands Scan input parameter."""
-
-    scan_id: int
-    subarray_id: int
-    transaction_id: Optional[str] = None
-
-
-@dataclass
-class VCCAllBandsEndScanArgin(DataClassJsonMixin):
-    """Dataclass representing the VCC All Bands EndScan input parameter."""
-
-    subarray_id: int
-    transaction_id: Optional[str] = None
-
-
-@dataclass
 class VCCAllBandsGoToIdleArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands GoToIdle input parameter."""
 
