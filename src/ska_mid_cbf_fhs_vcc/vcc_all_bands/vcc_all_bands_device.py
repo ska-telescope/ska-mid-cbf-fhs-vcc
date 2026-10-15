@@ -3,9 +3,9 @@ from __future__ import annotations
 from threading import Event
 
 import tango
-from ska_control_model import ObsState, ResultCode, TaskStatus
-from ska_mid_cbf_fhs_common import FhsControllerBaseDevice, FhsObsStateMachine, FhsObsStateModel
-from ska_tango_base import SKAObsDevice
+from ska_control_model import ResultCode, TaskStatus
+from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
+from ska_mid_cbf_fhs_common.enums.fhs_state import FhsState
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command
 
@@ -16,7 +16,6 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VC
 
 class VCCAllBandsController(
     FhsControllerBaseDevice[VCCAllBandsComponentManager],
-    SKAObsDevice,
 ):
     """Tango device class for the VCC All Bands Controller."""
 
@@ -24,6 +23,8 @@ class VCCAllBandsController(
         super().set_local_change_events()
         self.set_change_event("subarrayID", True)
         self.set_archive_event("subarrayID", True)
+        self.set_change_event("configurationState", True)
+        self.set_archive_event("configurationState", True)
 
     @property
     def component_manager_class(self) -> type[VCCAllBandsComponentManager]:
@@ -37,10 +38,7 @@ class VCCAllBandsController(
         """
         return [
             ("ConfigureScan", "configure_scan"),
-            ("Scan", "scan"),
-            ("EndScan", "end_scan"),
             ("GoToIdle", "go_to_idle"),
-            ("ObsReset", "obs_reset"),
             ("Abort", "abort"),
             ("UpdateSubarrayMembership", "update_subarray_membership"),
             ("AutoSetFilterGains", "auto_set_filter_gains"),
@@ -138,6 +136,21 @@ class VCCAllBandsController(
         """
         return self.component_manager.vcc_gains
 
+    @attribute(
+        dtype="DevEnum",
+        enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURING.name, FhsState.CONFIGURED.name, FhsState.FAULT.name],
+        doc="Device's configuration state",
+    )
+    def configurationState(self) -> str:
+        """
+        Read-only Tango attribute that contains a string with the FhsState value for this device.
+
+        :return: FhsState of this device
+        :rtype: FhsState
+        """
+
+        return self.component_manager.configuration_state
+
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
@@ -159,42 +172,6 @@ class VCCAllBandsController(
         result_code, message = command_handler(argin=config)
         return [[result_code], [message]]
 
-    @command(
-        dtype_in="DevString",
-        dtype_out="DevVarLongStringArray",
-        doc_in="JSON string following the Scan schema.",
-    )
-    def Scan(self, scan_argin: str) -> DevVarLongStringArrayType:
-        """Tango command to start a scan operation.
-
-        Args:
-            scan_argin (:obj:`str`): JSON string following the Scan schema.
-
-        Returns:
-            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
-            message indicating status. The message is for information purpose only.
-        """
-        command_handler = self.get_command_object(command_name="Scan")
-        # It is important that the argin keyword be provided, as the
-        # component manager method will be overriden in simulation mode
-        result_code, message = command_handler(argin=scan_argin)
-        return [[result_code], [message]]
-
-    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the EndScan schema.")
-    def EndScan(self, end_scan_argin: str | None = None) -> DevVarLongStringArrayType:
-        """Tango command to end a scan operation.
-
-        Args:
-            end_scan_argin (:obj:`str`): JSON string following the EndScan schema.
-
-        Returns:
-            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
-            message indicating status. The message is for information purpose only.
-        """
-        command_handler = self.get_command_object(command_name="EndScan")
-        result_code, message = command_handler(argin=end_scan_argin)
-        return [[result_code], [message]]
-
     @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the GoToIdle schema.")
     def GoToIdle(self, go_to_idle_argin: str) -> DevVarLongStringArrayType:
         """Tango command to return the device to IDLE state.
@@ -208,21 +185,6 @@ class VCCAllBandsController(
         """
         command_handler = self.get_command_object(command_name="GoToIdle")
         result_code, message = command_handler(argin=go_to_idle_argin)
-        return [[result_code], [message]]
-
-    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the ObsReset schema.")
-    def ObsReset(self, obs_reset_argin: str) -> DevVarLongStringArrayType:
-        """Tango command to return the device to IDLE state from ABORTED.
-
-        Args:
-            obs_reset_argin (:obj:`str`): JSON string following the ObsReset schema.
-
-        Returns:
-            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
-            message indicating status. The message is for information purpose only.
-        """
-        command_handler = self.get_command_object(command_name="ObsReset")
-        result_code, message = command_handler(argin=obs_reset_argin)
         return [[result_code], [message]]
 
     @command(
@@ -309,12 +271,6 @@ class VCCAllBandsController(
         result_code, command_id = command_handler(argin=auto_set_filter_gains_argin)
         return [[result_code], [command_id]]
 
-    def is_Abort_allowed(self: VCCAllBandsController) -> bool:
-        """Check if Abort is allowed."""
-        if self._obs_state not in [ObsState.IDLE, ObsState.READY, ObsState.SCANNING, ObsState.CONFIGURING, ObsState.RESETTING]:
-            return False
-        return True
-
     @command(
         dtype_in="DevString",
         doc_in="JSON string conforming to the ska-mid-cbf-abort schema",
@@ -323,9 +279,9 @@ class VCCAllBandsController(
     )
     def Abort(self: VCCAllBandsController, argin: str) -> DevVarLongStringArrayType:
         """
-        Abort the current observing process and move to ABORTED obsState.
+        Abort the current observing process and move to ABORTED FhsState.
 
-        Overrides base LRC mixin to trigger ObsState transitions and component
+        Overrides base LRC mixin to trigger FhsState transitions and component
         manager abort task.
 
         :return: tuple containing a return code and a unique command identifier
@@ -354,8 +310,6 @@ class VCCAllBandsController(
         self._version_id = release_info.VERSION
         self._build_state = f"{release_info.NAME}, {release_info.VERSION}, {release_info.DESCRIPTION}"
 
-        self._update_obs_state(ObsState.IDLE)
-
     def create_component_manager(self) -> VCCAllBandsComponentManager:
         """Instantiate the component manager for this device.
 
@@ -369,66 +323,10 @@ class VCCAllBandsController(
             attr_archive_callback=self.push_archive_event,
             health_state_callback=self._update_health_state_wrapper,
             communication_state_callback=self._communication_state_changed,
-            obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
-            obs_state_action_callback=self._obs_state_action,
             simulation_mode=self.simulation_mode,
             emulation_mode=self.emulation_mode,
         )
-
-    def reset_obs_state(self):
-        """Set the ObsState of the device back to IDLE."""
-        if self._obs_state in [ObsState.FAULT, ObsState.ABORTED]:
-            self.obs_state_model.perform_action(FhsObsStateMachine.GO_TO_IDLE)
-
-    def _init_state_model(self) -> None:
-        """Set up the state model for the device."""
-        super()._init_state_model()
-
-        # supplying the reduced observing state machine defined above
-        self.obs_state_model = FhsObsStateModel(
-            logger=self.logger,
-            callback=self._update_obs_state,
-            state_machine_factory=FhsObsStateMachine,
-        )
-
-    def _obs_command_running(self, hook: str, running: bool) -> None:
-        """
-        Callback provided to component manager to drive the obs state model into
-        transitioning states during the relevant command's submitted thread.
-
-        Args:
-            hook (:obj:`str`): the observing command-specific hook
-            running (:obj:`bool`): True when thread begins, False when thread completes
-        """
-        action = "invoked" if running else "completed"
-        self.logger.info(f"Changing ObsState from running command, calling: {hook}_{action} ")
-        self.obs_state_model.perform_action(f"{hook}_{action}")
-
-    def _obs_state_action(self, action: str) -> None:
-        """Perform an action on the ObsState model."""
-        self.obs_state_model.perform_action(action)
-
-    def _update_obs_state(self, obs_state: ObsState) -> None:
-        """
-        Perform Tango operations in response to a change in obsState within the state machine.
-
-        This helper method is passed to the observation state model as a
-        callback, so that the model can trigger actions in the Tango
-        device.
-
-        Overridden here to supply new ObsState value to component manager property
-
-        Args:
-            obs_state (:obj:`ObsState`): the new obs_state value
-        """
-        self.logger.debug(f"ObsState updating to {ObsState(obs_state).name}")
-
-        super()._update_obs_state(obs_state=obs_state)
-
-        # set the obstate in the component_manager
-        if hasattr(self, "component_manager"):
-            self.component_manager.obs_state = obs_state
 
 
 if __name__ == "__main__":
