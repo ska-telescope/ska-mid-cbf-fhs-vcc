@@ -355,7 +355,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
         """
         task_status, msg = super().abort_tasks(task_callback)
-        self.go_to_idle()
 
         return task_status, msg
 
@@ -380,8 +379,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             jsonschema.validate(config_dict, self.config_schema)
             configuration = self.config_dataclass.from_dict(config_dict)
 
-            self.is_initial_configuration = False if self._sample_rate != 0 else True
-            self.is_sample_rate_changed = False if self._sample_rate == configuration.dish_sample_rate else True
+            # WIB must be stopped prior to reconfiguration if the sample rate changed
+            wib_stop_required = configuration.dish_sample_rate != self._sample_rate and self._sample_rate != 0
             self._sample_rate = configuration.dish_sample_rate
             self.frequency_band = freq_band_dict()[configuration.frequency_band]
             self.expected_dish_id = configuration.expected_dish_id
@@ -458,8 +457,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                     raise RuntimeError("Configuration of FS Selection failed.")
 
                 # WIB Configuration
-                # WIB must be stopped prior to reconfiguration if the sample rate changed
-                if not self.is_initial_configuration and self.is_sample_rate_changed:
+                if wib_stop_required:
                     self.wideband_input_buffer.stop().await_result()
 
                 self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
