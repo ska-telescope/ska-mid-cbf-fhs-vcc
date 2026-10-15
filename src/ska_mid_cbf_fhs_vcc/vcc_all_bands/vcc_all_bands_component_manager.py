@@ -552,6 +552,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                         self._reset_data()
                         raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
+                # Enables downstream processing
+                self.wideband_input_buffer.start().await_result()
+
             self.set_configuration_state_if_transition_is_allowed(FhsState.CONFIGURED)
             self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
             self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.OK, transaction_id=transaction_id)
