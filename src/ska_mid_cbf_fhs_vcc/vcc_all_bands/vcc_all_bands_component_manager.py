@@ -355,7 +355,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
         """
         task_status, msg = super().abort_tasks(task_callback)
-        self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
+        self.go_to_idle()
 
         return task_status, msg
 
