@@ -17,7 +17,7 @@ DASHBOARD ?= webjive-dash.dump
 CLUSTER_DOMAIN ?= cluster.local
 FHS_SERVER_ID ?= fhs01
 CONFIG_LOCATION ?= /app/mnt/lowLevelConfigMap
-AJ_KUBE ?= false
+CBF_KUBE ?= false
 
 HELM_RELEASE ?= test## HELM_RELEASE is the release that all Kubernetes resources will be labelled with
 
@@ -61,16 +61,6 @@ TARANTA_PARAMS = --set ska-taranta.enabled=$(TARANTA) \
 endif
 endif
 
-ifneq ($(MINIKUBE),)
-ifeq ($(MINIKUBE),true)
-PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=standard
-endif
-endif
-
-ifeq ($(AJ_KUBE),true)
-PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=standard --set ska-mid-cbf-fhs-vcc.pvStorageAccess="ReadWriteOnce"
-endif
-
 # a portion of the BAR_URL from which to retrieve the RAW binary artefacts from
 # (NOT the full URL for downloading the raw binaries from)
 BAR_URL := https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/artefacts
@@ -79,7 +69,7 @@ BAR_URL := https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/ar
 BAR_API_TOKEN ?=
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
-	--set global.k3d=$(K3D) \
+	--set global.cbf_kube=$(CBF_KUBE) \
 	--set global.exposeAllDS=$(EXPOSE_All_DS) \
 	--set global.tango_host=$(TANGO_HOST) \
 	--set global.cluster_domain=$(CLUSTER_DOMAIN) \
@@ -159,13 +149,13 @@ check-minikube-eval:
 	fi
 
 k8s-pre-install-chart:
-	@if [ "$(MINIKUBE)" = "true" && "$(AJ_KUBE)" = "false" ]; then make check-minikube-eval; fi;
+	@if [ "$(MINIKUBE)" = "true" && "$(CBF_KUBE)" = "false" ]; then make check-minikube-eval; fi;
 	rm -f charts/ska-mid-cbf-fhs-vcc/Chart.lock
 
 k8s-deploy:
 	make k8s-namespace KUBE_NAMESPACE=$(KUBE_NAMESPACE)
 	@if [ "$(MINIKUBE)" = "true" ]; then make k8s-create-bar-secret BAR_API_TOKEN=$(BAR_API_TOKEN); fi
-	make k8s-install-chart MINIKUBE=$(MINIKUBE) USE_DEV_BUILD=$(USE_DEV_BUILD) BOOGIE=$(BOOGIE) AJ_KUBE=$(AJ_KUBE) K8S_SKIP_NAMESPACE=true
+	make k8s-install-chart MINIKUBE=$(MINIKUBE) USE_DEV_BUILD=$(USE_DEV_BUILD) BOOGIE=$(BOOGIE) CBF_KUBE=$(CBF_KUBE) K8S_SKIP_NAMESPACE=true
 	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to be ready..."
 	@time kubectl wait pod --selector=app=ska-mid-cbf-fhs-vcc --for=condition=ready --timeout=15m0s --namespace $(KUBE_NAMESPACE)
 
@@ -177,10 +167,10 @@ k8s-create-bar-secret:
 	@echo "Creating secret for bar token"
 	@kubectl create secret generic ska-mid-cbf-fhs-vcc-bar-secret --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
 
-k8s-deploy-dev: MINIKUBE=true AJ_KUBE=true
+k8s-deploy-dev: MINIKUBE=true CBF_KUBE=true
 k8s-deploy-dev: CLUSTER_DOMAIN=cluster.local
 k8s-deploy-dev:
-	make k8s-deploy MINIKUBE=$(MINIKUBE) CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) DEV=true BOOGIE=true AJ_KUBE=true
+	make k8s-deploy MINIKUBE=$(MINIKUBE) CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) DEV=true BOOGIE=true CBF_KUBE=true
 
 k8s-destroy:
 	make k8s-uninstall-chart
