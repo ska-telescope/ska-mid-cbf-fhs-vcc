@@ -19,5 +19,5 @@ Please see the [readthedocs](https://developer.skao.int/projects/ska-mid-cbf-fhs
 ```kind load docker-image artefact.skao.int/ska-mid-cbf-fhs-vcc:<tag> --name <cluster-name>``` 
 
 ### Installing the chart
-```make k8s-install-chart MINIKUBE=true AJ_KUBE=true```
+```make k8s-deploy-dev```
 
