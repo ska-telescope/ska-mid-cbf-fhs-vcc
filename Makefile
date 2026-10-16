@@ -165,7 +165,7 @@ k8s-pre-install-chart:
 k8s-deploy:
 	make k8s-namespace KUBE_NAMESPACE=$(KUBE_NAMESPACE)
 	@if [ "$(MINIKUBE)" = "true" ]; then make k8s-create-bar-secret BAR_API_TOKEN=$(BAR_API_TOKEN); fi
-	make k8s-install-chart MINIKUBE=$(MINIKUBE) USE_DEV_BUILD=$(USE_DEV_BUILD) BOOGIE=$(BOOGIE) K8S_SKIP_NAMESPACE=true
+	make k8s-install-chart MINIKUBE=$(MINIKUBE) USE_DEV_BUILD=$(USE_DEV_BUILD) BOOGIE=$(BOOGIE) AJ_KUBE=$(AJ_KUBE) K8S_SKIP_NAMESPACE=true
 	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to be ready..."
 	@time kubectl wait pod --selector=app=ska-mid-cbf-fhs-vcc --for=condition=ready --timeout=15m0s --namespace $(KUBE_NAMESPACE)
 
@@ -177,10 +177,10 @@ k8s-create-bar-secret:
 	@echo "Creating secret for bar token"
 	@kubectl create secret generic ska-mid-cbf-fhs-vcc-bar-secret --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
 
-k8s-deploy-dev: MINIKUBE=true
+k8s-deploy-dev: MINIKUBE=true AJ_KUBE=true
 k8s-deploy-dev: CLUSTER_DOMAIN=cluster.local
 k8s-deploy-dev:
-	make k8s-deploy MINIKUBE=$(MINIKUBE) CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) DEV=true BOOGIE=true
+	make k8s-deploy MINIKUBE=$(MINIKUBE) CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) DEV=true BOOGIE=true AJ_KUBE=true
 
 k8s-destroy:
 	make k8s-uninstall-chart
