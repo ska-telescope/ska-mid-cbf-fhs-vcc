@@ -28,14 +28,15 @@ server:
   name: {{ $deviceCommand }}
   instances:
     {{ $serverInstances }}
-environment_variables:
-- name: BITSTREAM_DOWNLOAD_JOB_NAME
-  value: "fhs-vcc-bitstream-download-job-vcc-unit-{{ $fhsVccUnit.unitNum }}"
 image:
   registry: "{{.Values.midcbf.image.registry}}"
   image: "{{.Values.midcbf.image.image}}"
   tag: "{{.Values.midcbf.image.tag}}"
   pullPolicy: "{{.Values.midcbf.image.pullPolicy}}"
+
+environment_variables:
+- name: BITSTREAM_MOUNT_PATH
+  value: "{{ .Values.bitstreamMountPath }}"
 
 {{- if $pvEnabled }}
 volume:
@@ -43,6 +44,7 @@ volume:
   mountPath: "{{ .Values.bitstreamMountPath }}"
   readOnly: false
 {{- end }}
+
 
 {{- if $fhsVccUnit.toleration }}
 tolerations:

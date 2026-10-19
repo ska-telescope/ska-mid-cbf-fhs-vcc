@@ -4,7 +4,6 @@ import json
 from unittest import mock
 import pytest
 from assertpy import assert_that
-from ska_mid_cbf_fhs_common.testing.device_test_utils import DeviceTestUtils
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
 from tango import DevState
 from ska_control_model import AdminMode, HealthState, ObsState, ResultCode
@@ -53,7 +52,6 @@ def vcc_all_bands_tango_event_tracer(
     tracer = TangoEventTracer(
         event_enum_mapping={
             "adminMode": AdminMode,
-            "obsState": ObsState,
             "healthState": HealthState,
         }
     )
@@ -62,7 +60,6 @@ def vcc_all_bands_tango_event_tracer(
         "longRunningCommandResult",
         "adminMode",
         "state",
-        "obsState",
         "healthState",
         "subarrayID",
     ]

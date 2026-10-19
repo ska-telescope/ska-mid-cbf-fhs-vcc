@@ -106,8 +106,8 @@ PYTHON_SWITCHES_FOR_PYLINT = --rcfile=$(PYLINT_CONFIG_FILE)
 PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --rcfile=$(PYLINT_CONFIG_FILE)
 
 PYTHON_LINE_LENGTH = 160
-POETRY_PYTHON_RUNNER = poetry run python3 -m
-LOCAL_PYTHON_RUNNER = poetry run python3 -m
+POETRY_PYTHON_RUNNER = uv run python3 -m
+LOCAL_PYTHON_RUNNER = uv run python3 -m
 
 PYTHON_LINT_TARGET = ./src/
 K8S_VARS_AFTER_PYTEST = -s
@@ -120,7 +120,14 @@ PYTHON_TEST_FILE = ./tests/unit/
 # ('make interactive', 'make test', etc.) are defined in this file.
 #
 
-include .make/*.mk
+include .make/base.mk
+include .make/python.mk
+include .make/utils.mk
+include .make/helm.mk
+include .make/k8s.mk
+include .make/release.mk
+include .make/oci.mk
+include .make/docs.mk
 
 all: test lint
 
@@ -156,8 +163,9 @@ k8s-pre-install-chart:
 	rm -f charts/ska-mid-cbf-fhs-vcc/Chart.lock
 
 k8s-deploy:
-	@if [ "$(MINIKUBE)" = "true" ]; then make k8s-namespace; make k8s-create-bar-secret BAR_API_TOKEN=$(BAR_API_TOKEN); fi
-	make k8s-install-chart MINIKUBE=$(MINIKUBE) DEV=$(DEV) BOOGIE=$(BOOGIE)
+	make k8s-namespace KUBE_NAMESPACE=$(KUBE_NAMESPACE)
+	@if [ "$(MINIKUBE)" = "true" ]; then make k8s-create-bar-secret BAR_API_TOKEN=$(BAR_API_TOKEN); fi
+	make k8s-install-chart MINIKUBE=$(MINIKUBE) USE_DEV_BUILD=$(USE_DEV_BUILD) BOOGIE=$(BOOGIE) AJ_KUBE=$(AJ_KUBE) K8S_SKIP_NAMESPACE=true
 	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to be ready..."
 	@time kubectl wait pod --selector=app=ska-mid-cbf-fhs-vcc --for=condition=ready --timeout=15m0s --namespace $(KUBE_NAMESPACE)
 
@@ -169,10 +177,10 @@ k8s-create-bar-secret:
 	@echo "Creating secret for bar token"
 	@kubectl create secret generic $(BAR_SECRET_NAME) --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
 
-k8s-deploy-dev: MINIKUBE=true
+k8s-deploy-dev: MINIKUBE=true AJ_KUBE=true
 k8s-deploy-dev: CLUSTER_DOMAIN=cluster.local
 k8s-deploy-dev:
-	make k8s-deploy MINIKUBE=$(MINIKUBE) CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) DEV=true BOOGIE=true
+	make k8s-deploy MINIKUBE=$(MINIKUBE) CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) DEV=true BOOGIE=true AJ_KUBE=true
 
 k8s-destroy:
 	make k8s-uninstall-chart

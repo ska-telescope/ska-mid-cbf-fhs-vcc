@@ -3,10 +3,9 @@ from __future__ import annotations
 from threading import Event
 
 import tango
-from ska_control_model import ObsState, ResultCode, TaskStatus
+from ska_control_model import ResultCode, TaskStatus
 from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
-from ska_mid_cbf_fhs_common.state_model.fhs_obs_state import FhsObsStateMachine, FhsObsStateModel
-from ska_tango_base import SKAObsDevice
+from ska_mid_cbf_fhs_common.enums.fhs_state import FhsState
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command
 
@@ -17,7 +16,6 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VC
 
 class VCCAllBandsController(
     FhsControllerBaseDevice[VCCAllBandsComponentManager],
-    SKAObsDevice,
 ):
     """Tango device class for the VCC All Bands Controller."""
 
@@ -25,6 +23,8 @@ class VCCAllBandsController(
         super().set_local_change_events()
         self.set_change_event("subarrayID", True)
         self.set_archive_event("subarrayID", True)
+        self.set_change_event("configurationState", True)
+        self.set_archive_event("configurationState", True)
 
     @property
     def component_manager_class(self) -> type[VCCAllBandsComponentManager]:
@@ -38,10 +38,7 @@ class VCCAllBandsController(
         """
         return [
             ("ConfigureScan", "configure_scan"),
-            ("Scan", "scan"),
-            ("EndScan", "end_scan"),
             ("GoToIdle", "go_to_idle"),
-            ("ObsReset", "obs_reset"),
             ("Abort", "abort"),
             ("UpdateSubarrayMembership", "update_subarray_membership"),
             ("AutoSetFilterGains", "auto_set_filter_gains"),
@@ -139,6 +136,57 @@ class VCCAllBandsController(
         """
         return self.component_manager.vcc_gains
 
+    @attribute(
+        dtype="DevEnum",
+        enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURING.name, FhsState.CONFIGURED.name, FhsState.FAULT.name],
+        doc="Device's configuration state",
+    )
+    def configurationState(self) -> str:
+        """
+        Read-only Tango attribute that contains a string with the FhsState value for this device.
+
+        :return: FhsState of this device
+        :rtype: FhsState
+        """
+
+        return self.component_manager.configuration_state
+
+    @command(
+        dtype_in="DevString",
+        dtype_out="DevVarLongStringArray",
+        doc_in="Configuration JSON.",
+    )
+    def ConfigureScan(self, config: str) -> DevVarLongStringArrayType:
+        """Tango command to apply a received scan configuration in preparation for a scan.
+
+        Args:
+            config (:obj:`str`): The configuration JSON string.
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="ConfigureScan")
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
+        result_code, message = command_handler(argin=config)
+        return [[result_code], [message]]
+
+    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the GoToIdle schema.")
+    def GoToIdle(self, go_to_idle_argin: str) -> DevVarLongStringArrayType:
+        """Tango command to return the device to IDLE state.
+
+        Args:
+            go_to_idle_argin (:obj:`str`): JSON string following the GoToIdle schema.
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="GoToIdle")
+        result_code, message = command_handler(argin=go_to_idle_argin)
+        return [[result_code], [message]]
+
     @command(
         dtype_in="DevUShort",
         dtype_out="DevVarLongStringArray",
@@ -163,13 +211,13 @@ class VCCAllBandsController(
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
-        doc_in=("String containing JSON following the ConfigureVCCBite schema."),
+        doc_in="JSON string following the ConfigureVCCBite schema.",
     )
-    def ConfigureVCCBite(self: VCCAllBandsController, configure_vcc_bite_schema: str | None = None) -> DevVarLongStringArrayType:
+    def ConfigureVCCBite(self: VCCAllBandsController, configure_vcc_bite_argin: str | None = None) -> DevVarLongStringArrayType:
         """Tango command to configure VCC Bite.
 
         Args:
-            configure_vcc_bite_schema (:obj:`str`): JSON String following the ConfigureVCCBite command schema
+            configure_vcc_bite_argin (:obj:`str`): JSON string following the ConfigureVCCBite schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
@@ -178,19 +226,19 @@ class VCCAllBandsController(
         command_handler = self.get_command_object(command_name="ConfigureVCCBite")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=configure_vcc_bite_schema)
+        result_code, command_id = command_handler(argin=configure_vcc_bite_argin)
         return [[result_code], [command_id]]
 
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
-        doc_in=("String containing JSON following the DeconfigureVCCBite schema."),
+        doc_in="JSON string following the DeconfigureVCCBite schema.",
     )
-    def DeconfigureVCCBite(self: VCCAllBandsController, deconfigure_vcc_bite_schema: str | None = None) -> DevVarLongStringArrayType:
+    def DeconfigureVCCBite(self: VCCAllBandsController, deconfigure_vcc_bite_argin: str | None = None) -> DevVarLongStringArrayType:
         """Tango command to deconfigure VCC Bite.
 
         Args:
-            deconfigure_vcc_bite_schema (:obj:`str`): JSON String following the DeconfigureVCCBite command schema
+            deconfigure_vcc_bite_argin (:obj:`str`): JSON string following the DeconfigureVCCBite schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
@@ -199,27 +247,19 @@ class VCCAllBandsController(
         command_handler = self.get_command_object(command_name="DeconfigureVCCBite")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=deconfigure_vcc_bite_schema)
+        result_code, command_id = command_handler(argin=deconfigure_vcc_bite_argin)
         return [[result_code], [command_id]]
 
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
-        doc_in=(
-            "String containing JSON following the AutoSetFliterGains schema."
-            "Requested RFI Headroom, in decibels (dB). "
-            "Must be a list containing either a single value to apply to all frequency slices, "
-            "or a value per frequency slice to be applied separately."
-        ),
+        doc_in="JSON String following the AutoSetFilterGains schema.",
     )
-    def AutoSetFilterGains(self: VCCAllBandsController, auto_set_filter_gains_schema: str | None = None) -> DevVarLongStringArrayType:
+    def AutoSetFilterGains(self: VCCAllBandsController, auto_set_filter_gains_argin: str | None = None) -> DevVarLongStringArrayType:
         """Tango command to start a scan operation.
 
         Args:
-            auto_set_filter_gains_schema (:obj:`str`): JSON String following the auto set filter gains command schema
-                Requested RFI headroom, in decibels (dB).
-                Must be a list containing either a single value to apply to all frequency slices,
-                or a value per frequency slice to be applied separately.
+            auto_set_filter_gains_argin (:obj:`str`): JSON String following the AutoSetFilterGains schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
@@ -228,14 +268,8 @@ class VCCAllBandsController(
         command_handler = self.get_command_object(command_name="AutoSetFilterGains")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=auto_set_filter_gains_schema)
+        result_code, command_id = command_handler(argin=auto_set_filter_gains_argin)
         return [[result_code], [command_id]]
-
-    def is_Abort_allowed(self: VCCAllBandsController) -> bool:
-        """Check if Abort is allowed."""
-        if self._obs_state not in [ObsState.IDLE, ObsState.READY, ObsState.SCANNING, ObsState.CONFIGURING, ObsState.RESETTING]:
-            return False
-        return True
 
     @command(
         dtype_in="DevString",
@@ -245,9 +279,9 @@ class VCCAllBandsController(
     )
     def Abort(self: VCCAllBandsController, argin: str) -> DevVarLongStringArrayType:
         """
-        Abort the current observing process and move to ABORTED obsState.
+        Abort the current observing process and move to ABORTED FhsState.
 
-        Overrides base LRC mixin to trigger ObsState transitions and component
+        Overrides base LRC mixin to trigger FhsState transitions and component
         manager abort task.
 
         :return: tuple containing a return code and a unique command identifier
@@ -276,8 +310,6 @@ class VCCAllBandsController(
         self._version_id = release_info.VERSION
         self._build_state = f"{release_info.NAME}, {release_info.VERSION}, {release_info.DESCRIPTION}"
 
-        self._update_obs_state(ObsState.IDLE)
-
     def create_component_manager(self) -> VCCAllBandsComponentManager:
         """Instantiate the component manager for this device.
 
@@ -291,66 +323,10 @@ class VCCAllBandsController(
             attr_archive_callback=self.push_archive_event,
             health_state_callback=self._update_health_state_wrapper,
             communication_state_callback=self._communication_state_changed,
-            obs_command_running_callback=self._obs_command_running,
             component_state_callback=self._component_state_changed,
-            obs_state_action_callback=self._obs_state_action,
             simulation_mode=self.simulation_mode,
             emulation_mode=self.emulation_mode,
         )
-
-    def reset_obs_state(self):
-        """Set the ObsState of the device back to IDLE."""
-        if self._obs_state in [ObsState.FAULT, ObsState.ABORTED]:
-            self.obs_state_model.perform_action(FhsObsStateMachine.GO_TO_IDLE)
-
-    def _init_state_model(self) -> None:
-        """Set up the state model for the device."""
-        super()._init_state_model()
-
-        # supplying the reduced observing state machine defined above
-        self.obs_state_model = FhsObsStateModel(
-            logger=self.logger,
-            callback=self._update_obs_state,
-            state_machine_factory=FhsObsStateMachine,
-        )
-
-    def _obs_command_running(self, hook: str, running: bool) -> None:
-        """
-        Callback provided to component manager to drive the obs state model into
-        transitioning states during the relevant command's submitted thread.
-
-        Args:
-            hook (:obj:`str`): the observing command-specific hook
-            running (:obj:`bool`): True when thread begins, False when thread completes
-        """
-        action = "invoked" if running else "completed"
-        self.logger.info(f"Changing ObsState from running command, calling: {hook}_{action} ")
-        self.obs_state_model.perform_action(f"{hook}_{action}")
-
-    def _obs_state_action(self, action: str) -> None:
-        """Perform an action on the ObsState model."""
-        self.obs_state_model.perform_action(action)
-
-    def _update_obs_state(self, obs_state: ObsState) -> None:
-        """
-        Perform Tango operations in response to a change in obsState within the state machine.
-
-        This helper method is passed to the observation state model as a
-        callback, so that the model can trigger actions in the Tango
-        device.
-
-        Overridden here to supply new ObsState value to component manager property
-
-        Args:
-            obs_state (:obj:`ObsState`): the new obs_state value
-        """
-        self.logger.debug(f"ObsState updating to {ObsState(obs_state).name}")
-
-        super()._update_obs_state(obs_state=obs_state)
-
-        # set the obstate in the component_manager
-        if hasattr(self, "component_manager"):
-            self.component_manager.obs_state = obs_state
 
 
 if __name__ == "__main__":

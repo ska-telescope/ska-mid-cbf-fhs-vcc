@@ -2,6 +2,12 @@
 
 Please see the [readthedocs](https://developer.skao.int/projects/ska-mid-cbf-fhs-vcc/en/latest/) for installation and usage
 
+# Using UV
+
+1. Activate your virtual env
+2. run `pip install uv`
+3. run `uv sync --active`
+
 # AJ Kube Guide:
 ## Preconditions
 1. AJ Kube has already been built using the prototyping repo
@@ -13,5 +19,5 @@ Please see the [readthedocs](https://developer.skao.int/projects/ska-mid-cbf-fhs
 ```kind load docker-image artefact.skao.int/ska-mid-cbf-fhs-vcc:<tag> --name <cluster-name>``` 
 
 ### Installing the chart
-```make k8s-install-chart MINIKUBE=true AJ_KUBE=true```
+```make k8s-deploy-dev```
 

@@ -4,11 +4,10 @@ from enum import IntEnum
 
 from dataclasses_json import DataClassJsonMixin
 from ska_control_model import SimulationMode
-from ska_mid_cbf_fhs_common.services.api.firmware_api import FirmwareApi
-from ska_mid_cbf_fhs_common.services.grpc.grpc_client import GRPCInfo
+from ska_mid_cbf_fhs_common import FirmwareApi, GRPCInfo
 from ska_mid_cbf_fhs_vcc_grpc_controller.generated import vcc_drivers_pb2, vcc_drivers_pb2_grpc
 
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteSchema, VCCAllBandsDeconfigureVCCBiteSchema
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteArgin, VCCAllBandsDeconfigureVCCBiteArgin
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_simulator import (
     GaussianNoiseDriverSimulator,
     NoiseDiodeSimulator,
@@ -276,7 +275,7 @@ class VCCBiteManager:
                     )
                 )
 
-    def configure(self, config: VCCAllBandsConfigureVCCBiteSchema) -> int:
+    def configure(self, config: VCCAllBandsConfigureVCCBiteArgin) -> int:
         """Configure the VCC Bite."""
         result = 0
 
@@ -399,7 +398,7 @@ class VCCBiteManager:
 
         return result
 
-    def deconfigure(self, config: VCCAllBandsDeconfigureVCCBiteSchema | None = None) -> int:
+    def deconfigure(self, config: VCCAllBandsDeconfigureVCCBiteArgin | None = None) -> int:
         """Deconfigure the VCC Bite."""
         result = 0
 

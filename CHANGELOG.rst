@@ -13,6 +13,29 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
   * Moved the template for the bar secret into its own file: bar-secret.yaml
   * Each VCC unit will have its own bitstream download job. This allows the deployment repo to set diff bitstream versions for each VCC unit
 
+0.5.0
+*****
+* CIP-6553: Removed Scan, EndScan, and ObsReset commands from All bands device, as well as all traces of the ObsState model.
+* CIP-6553: WIB stops before configuration when sample rate changes.
+* Updated k8s-deploy make target to work with latest ska-cicd-makefile commit.
+
+0.4.5
+*****
+* Migrating from poetry to UV
+* Removing dependency on kubectl. 
+
+0.4.4
+*****
+* CIP-6475: Update to ska-mid-cbf-fhs-common 0.5.0
+
+  * Update scan sequence commands to replace functionality that was removed from the common library
+  * Naming updates for clarity
+  * Miscellaneous code cleanup
+
+0.4.3
+*****
+* CIP-6551: Updated ConfigureScan config schema to better align with ICD, including removing the samples_per_frame field.
+
 0.4.2
 *****
 * CIP-6279: update sim-device for ConfigureVCCBite and DeconfigureVCCBite

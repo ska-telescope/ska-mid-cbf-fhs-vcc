@@ -14,7 +14,7 @@ from functools import partial
 from typing import Any
 
 from ska_control_model import HealthState
-from ska_mid_cbf_fhs_common.testing.simulation import FhsObsSimMode, SimModeObsCMBase
+from ska_mid_cbf_fhs_common import FhsObsSimMode, SimModeObsCMBase
 from tango.server import run
 
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum
