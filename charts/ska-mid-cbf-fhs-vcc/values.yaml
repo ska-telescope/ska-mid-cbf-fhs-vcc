@@ -20,30 +20,31 @@ global:
   exposeDatabaseDS: true
   exposeAllDS: false
   tango_host: tango-databaseds-test:10000
+  cluster_domain: cluster.local
   dsconfig:
     image:
       registry: artefact.skao.int
       image: ska-tango-images-tango-dsconfig
       tag: 1.5.13
       pullPolicy: IfNotPresent
+  bar:
+    url: "https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/artefacts"
+    secret:
+      vault:
+        mount: psi-mid
+        secretPath: production/bar-api-token
+        secretKeys:
+          - "BAR_API_TOKEN"
 
 bar:
-  url: "https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/artefacts"
   secret:
-    # bar_api_token needs to be populated if vault.enabled: false; otherwise it is extracted from Vault
-    bar_api_token: ""
-    vault:
-      enabled: true
-      mount: psi-mid
-      secretPath: production/bar-api-token
-      secretKeys:
-        - "BAR_API_TOKEN"
+    enabled: true
 
 midcbf:
   image:
     registry: artefact.skao.int
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.5.0
+    tag: 0.6.0
     pullPolicy: IfNotPresent
 
 resources:
@@ -108,7 +109,7 @@ properties:
   simulationMode: "1"
   emulationMode: "{{ .unitEmulationMode }}"
   emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
-  emulatorStatusCacheUrl: "status-cache-service.ska-mid-cbf-emulators.svc.cluster.local"
+  emulatorStatusCacheUrl: "" # the template will generate as status-cache-service.<namespace>.svc.<cluster_domain>. Kept ony for documentation purposes.
   emulatorStatusCachePort: "6379"  # should rarely if ever need to change
   bitstreamPath: "/app/mnt/bitstream"
   bitstreams:

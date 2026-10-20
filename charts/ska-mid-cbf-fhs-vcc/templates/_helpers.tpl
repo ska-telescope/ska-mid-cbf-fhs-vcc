@@ -100,6 +100,13 @@ and returns a YAML-encoded list of instance names from start to end (inclusive).
   {{- toJson (dict "fpgaNum" $fpgaBoardNum) -}}
 {{- end -}}
 
-{{- define "ska-mid-cbf-fhs-vcc-bar-secret" -}}
-ska-mid-cbf-fhs-vcc-bar-secret
+{{/* 
+  Name of the secret that contains BAR_API_TOKEN
+*/}}
+{{- define "fhs-vcc-bar-secret-name" -}}
+fhs-vcc-bar-secret
+{{- end -}}
+
+{{- define "emulatorStatusCacheUrl" -}}
+{{- printf "status-cache-service.%s.svc.%s" .Release.Namespace .Values.global.cluster_domain -}}
 {{- end -}}

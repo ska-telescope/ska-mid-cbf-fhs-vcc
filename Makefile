@@ -77,6 +77,7 @@ BAR_URL := https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/ar
 # set BAR_API_TOKEN as an environmental variable via command line if testing locally
 # get the value from Vault
 BAR_API_TOKEN ?=
+BAR_SECRET_NAME = fhs-vcc-bar-secret## DO NOT CHANGE needs to match the name in bar-secret.yaml
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set global.k3d=$(K3D) \
@@ -93,8 +94,7 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	${PV_STORAGE_PARAM}
 
 ifeq ($(MINIKUBE),true)
-K8S_CHART_PARAMS += --set ska-mid-cbf-fhs-vcc.bar.secret.bar_api_token="$(BAR_API_TOKEN)" \
-	--set ska-mid-cbf-fhs-vcc.bar.secret.vault.enabled=false
+K8S_CHART_PARAMS += --set ska-mid-cbf-fhs-vcc.bar.secret.enabled=false
 endif
 
 # shared lint config file var definitions
@@ -171,11 +171,11 @@ k8s-deploy:
 
 k8s-create-bar-secret:
 	@if [ -z "$(BAR_API_TOKEN)" ]; then \
-		echo "ERROR: The required environmental variable BAR_API_TOKEN has not been set)"; \
+		echo "ERROR: The required environmental variable BAR_API_TOKEN has not been set"; \
 		exit 1; \
 	fi
 	@echo "Creating secret for bar token"
-	@kubectl create secret generic ska-mid-cbf-fhs-vcc-bar-secret --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
+	@kubectl create secret generic $(BAR_SECRET_NAME) --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
 
 k8s-deploy-dev: MINIKUBE=true AJ_KUBE=true
 k8s-deploy-dev: CLUSTER_DOMAIN=cluster.local
