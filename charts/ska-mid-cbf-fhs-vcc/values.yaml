@@ -73,6 +73,8 @@ hostInfo:
 
 bitstreamMountPath: "/app/mnt/bitstream"
 
+vccproductMountPath: "/app/mnt/vcc"
+
 bitstreamDownloadJob:
   enabled: True
 
