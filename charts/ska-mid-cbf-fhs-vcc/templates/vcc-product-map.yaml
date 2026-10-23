@@ -1,0 +1,9 @@
+{{- if .Values.vcc_product_definition}}
+apiVersion: v2
+kind: ConfigMap
+metadata:
+  name: vcc-product-map
+data:
+  vcc-product-definitions.yaml: | 
+{{ toYaml .Values.vcc_product_definition | indent 4 }}
+{{- end }}

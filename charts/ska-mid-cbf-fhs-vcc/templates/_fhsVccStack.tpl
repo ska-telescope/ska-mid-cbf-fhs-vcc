@@ -66,4 +66,12 @@ affinity:
               - {{ $fhsVccUnit.affinity }}
 {{- end }}
 
+{{- if .Values.vcc_product_definition}}
+extraVolumes:
+  - name: vcc-product-mount
+extraVolumeMounts:
+  - name: vcc-product
+    mountPath: /app/mnt/vcc
+{{- end }}
+
 {{- end -}}
