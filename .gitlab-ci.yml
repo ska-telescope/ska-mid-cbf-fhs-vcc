@@ -78,14 +78,14 @@ python-uv-build-for-publication:
   needs:
     - python-uv-lint
 
-python-publish-to-gitlab:
+python-uv-publish-to-gitlab:
   needs:
     - job: python-uv-build-for-development
       optional: true
     - job: python-uv-build-for-publication
       optional: true
 
-python-publish-to-car:
+python-uv-publish-to-car:
   needs:
     - python-uv-test
     - python-uv-build-for-publication
