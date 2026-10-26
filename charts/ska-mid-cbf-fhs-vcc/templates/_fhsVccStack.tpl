@@ -38,7 +38,7 @@ environment_variables:
 - name: BITSTREAM_MOUNT_PATH
   value: "{{ .Values.bitstreamMountPath }}"
 - name: VCC_PRODUCT_PATH
-  value: "{{ .Values.bitstreamMountPath}}"
+  value: "{{ .Values.vccproductMountPath }}"
 
 {{- if $pvEnabled }}
 volume:
@@ -71,8 +71,10 @@ affinity:
 {{- if .Values.vcc_product_definition}}
 extraVolumes:
   - name: vcc-product-mount
+    configMap:
+      name: vcc-product-map
 extraVolumeMounts:
-  - name: vcc-product
+  - name: vcc-product-mount
     mountPath: "{{ .Values.vccproductMountPath }}"
 {{- end }}
 
