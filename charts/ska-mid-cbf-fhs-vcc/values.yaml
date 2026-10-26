@@ -120,6 +120,7 @@ properties:
   emulatorId: "fhs-vcc-emulator-{{.deviceId}}"
   emulatorIpBlockId: ""
   firmwareIpBlockId: ""
+  loggingLevel: "INFO"
 
 # the devices in each stack. optionally override any property defined in `properties`. to add extra properties, provide a `properties` dict
 deviceCommand: "FhsVccStackDeviceServer"
@@ -130,9 +131,6 @@ vccAllBandsDevice:
   name: "VCCAllBandsController"
   path: "mid-cbf/fhs-vcc-all-bands/{{.deviceId000}}"
   properties:
-    - name: logging_level
-      values:
-        - "INFO"
     - name: ip_blocks
       values:
         Ethernet200Gb:
