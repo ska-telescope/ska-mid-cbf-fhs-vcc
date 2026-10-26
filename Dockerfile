@@ -1,4 +1,4 @@
-FROM artefact.skao.int/ska-build-python:1.0.0 AS builder
+FROM artefact.skao.int/ska-build-python:1.1.4 AS builder
 WORKDIR /app
 
 # Install the application dependencies with uv, then the application itself with

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of the ska-mid-cbf-fhs-vcc project
 #
@@ -200,7 +199,7 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
         )
 
 
-def main(args=None, **kwargs):  # noqa: E302
+def main(args=None, **kwargs):
     """Start VCCAllBandsController simulator."""
     return run(
         classes=(SimVCCAllBandsController,),
@@ -209,5 +208,5 @@ def main(args=None, **kwargs):  # noqa: E302
     )
 
 
-if __name__ == "__main__":  # noqa: #E305
+if __name__ == "__main__":
     main()

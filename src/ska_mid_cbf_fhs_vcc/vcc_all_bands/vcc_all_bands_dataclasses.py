@@ -1,5 +1,4 @@
 from dataclasses import field
-from typing import Optional
 
 from dataclasses_json import DataClassJsonMixin
 from pydantic.dataclasses import dataclass
@@ -40,7 +39,7 @@ class VCCAllBandsConfigureScanArgin(FhsControllerBaseConfig, DataClassJsonMixin)
     fs_lanes: list[VCCAllBandsConfigureScanFSLaneConfig]
     frequency_band_offset_stream2: int = 0
     band_5_tuning: float = 0.0
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None
 
 
 @dataclass
@@ -48,7 +47,7 @@ class VCCAllBandsAbortArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands Abort input parameter."""
 
     subarray_id: int
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None
 
 
 @dataclass
@@ -56,15 +55,15 @@ class VCCAllBandsGoToIdleArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands GoToIdle input parameter."""
 
     subarray_id: int
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None
 
 
 @dataclass
 class VCCAllBandsAutoSetFilterGainsArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands AutoSetFilterGains input parameter."""
 
-    headrooms: Optional[list[float]] = field(default_factory=lambda: [3.0])
-    transaction_id: Optional[str] = None
+    headrooms: list[float] | None = field(default_factory=lambda: [3.0])
+    transaction_id: str | None = None
 
 
 @dataclass
@@ -100,7 +99,7 @@ class VCCAllBandsConfigureVCCBiteReceiverConfig(DataClassJsonMixin):
     dish_id: str
     dish_sample_rate: int  # pylint: disable=invalid-name
     noise_diode: VCCAllBandsConfigureVCCBiteNoiseDiodeConfig
-    noise_info: Optional[VCCAllBandsConfigureVCCBiteNoiseInfoConfig] = None
+    noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig | None = None
 
 
 @dataclass
@@ -128,7 +127,7 @@ class VCCAllBandsConfigureVCCBiteRfiConfig(DataClassJsonMixin):
     # TODO: pol_y is currently not used even if provided.
     # It should used in case there is an x and y bite tone gen driver,
     # but currently there is a single driver so pol_y is ignored
-    pol_y: Optional[VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig] = None
+    pol_y: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig | None = None
 
 
 @dataclass
@@ -140,11 +139,11 @@ class VCCAllBandsConfigureVCCBiteArgin(DataClassJsonMixin):
     rfi: list[VCCAllBandsConfigureVCCBiteRfiConfig]
     utc_start_time: int
     band: int
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None
 
 
 @dataclass
 class VCCAllBandsDeconfigureVCCBiteArgin(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands DeconfigureVCCBite input parameter."""
 
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None

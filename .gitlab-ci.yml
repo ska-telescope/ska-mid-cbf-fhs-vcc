@@ -10,7 +10,6 @@ default:
 #   paths:
 
 stages:
-  - ci-init
   - lint
   - build
   - test
@@ -18,54 +17,20 @@ stages:
   - publish
   - scan
 
-
-
 # Standardised included jobs
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   MINIKUBE: "false"
   CI_POETRY_VERSION: "2.4.0"
-  BASE_IMAGE_URL: registry.gitlab.com/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc/ska-mid-cbf-fhs-vcc-ci-base
   DOCS_PYTHON_RUNNER: "uv run python -m "
   DOCS_SPHINXBUILD: "uv run python -m sphinx "
-
-get-version:
-  image: $SKA_K8S_TOOLS_BUILD_DEPLOY
-  stage: ci-init
-  tags:
-    - ${SKA_DEFAULT_RUNNER}
-  script:
-    - REL_VERSION=$(awk -F= '/^release=/{print $2}' .release)
-    - DEV_VERSION="$REL_VERSION"-dev.c"$CI_COMMIT_SHORT_SHA"
-    - BASE_IMAGE="$BASE_IMAGE_URL":"$DEV_VERSION"
-    - echo "REL_VERSION=$REL_VERSION" >> build.env
-    - echo "DEV_VERSION=$DEV_VERSION" >> build.env
-    - echo "BASE_IMAGE=$BASE_IMAGE" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
-
-ci-base-image-build:
-  image: $SKA_K8S_TOOLS_BUILD_DEPLOY
-  stage: ci-init
-  tags:
-    - ${SKA_DEFAULT_RUNNER}
-  before_script:
-    - '[ -f .make/oci.mk ] || (echo "File oci.mk not included in Makefile; exit 1")'
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-    - mkdir -p build
-  script:
-    - make oci-build CAR_OCI_REGISTRY_HOST=${CI_REGISTRY}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} OCI_IMAGE=ska-mid-cbf-fhs-vcc-ci-base OCI_IMAGE_FILE_PATH=./ci.Dockerfile OCI_BUILD_ADDITIONAL_ARGS="--build-arg ci_poetry_version=$CI_POETRY_VERSION"
-  artifacts:
-    paths:
-      - build/
 
 # Include CI templates
 include:
 
 # Python
   - project: 'ska-telescope/templates-repository'
-    file: 'gitlab-ci/includes/python.gitlab-ci.yml'
+    file: 'gitlab-ci/includes/python-uv.gitlab-ci.yml'
 
 # OCI images
   - project: 'ska-telescope/templates-repository'
@@ -87,81 +52,40 @@ include:
   - project: 'ska-telescope/templates-repository'
     file: 'gitlab-ci/includes/finaliser.gitlab-ci.yml'
 
-python-test:
-  image: "$BASE_IMAGE"
-  variables:
-    PYTHON_RUNNER: "uv run python -m "
+python-uv-test:
   needs:
-    - python-lint
-    - get-version
-  before_script:
-    - cd /ska-mid-cbf-fhs-vcc
-  after_script:
-    - cp -r /ska-mid-cbf-fhs-vcc/build/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
+    - python-uv-lint
 
-python-lint:
-  image: "$BASE_IMAGE"
-  variables:
-    PYTHON_RUNNER: "uv run python -m "
-  needs:
-    - ci-base-image-build
-    - get-version
-  before_script:
-    - cd /ska-mid-cbf-fhs-vcc
-  after_script:
-    - cp -r /ska-mid-cbf-fhs-vcc/build/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
+python-uv-lint:
+  needs: []
 
 docs-build:
-  image: "$BASE_IMAGE"
-  variables:
-    PYTHON_RUNNER: "uv run python -m "
-  needs:
-    - ci-base-image-build
-    - get-version
-  before_script:
-    - cd /ska-mid-cbf-fhs-vcc
+  needs: []
 
 docs-build-rtd:
   rules:
     - when: never
 
-python-build-for-development:
-  image: "$BASE_IMAGE"
+python-uv-build-for-development:
   variables:
     PYTHON_RUNNER: "uv run "
   needs:
-    - python-lint
-    - get-version
-  before_script:
-    - cd /ska-mid-cbf-fhs-vcc
-    - cat pyproject.toml
-    - uv sync --frozen --no-default-groups --only-group ci
-  script:
-    - make python-build PYTHON_BUILD_TYPE="non_tag_pyproject"
-    - cp -r /ska-mid-cbf-fhs-vcc/dist/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
+    - python-uv-lint
 
-python-build-for-publication:
-  image: "$BASE_IMAGE"
+python-uv-build-for-publication:
   variables:
     PYTHON_RUNNER: "uv run "
   needs:
-    - python-lint
-    - get-version
-  before_script:
-    - cd /ska-mid-cbf-fhs-vcc
-    - uv sync --frozen --no-default-groups --only-group ci
-  script:
-    - make python-build PYTHON_BUILD_TYPE="tag_pyproject"
-    - cp -r /ska-mid-cbf-fhs-vcc/dist/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
+    - python-uv-lint
 
 python-publish-to-gitlab:
   needs:
-    - job: python-build-for-development
+    - job: python-uv-build-for-development
       optional: true
-    - job: python-build-for-publication
+    - job: python-uv-build-for-publication
       optional: true
 
 python-publish-to-car:
   needs:
-    - python-test
-    - python-build-for-publication
+    - python-uv-test
+    - python-uv-build-for-publication
