@@ -150,10 +150,10 @@ class VCCBiteManagerStatus(DataClassJsonMixin):
     source_select: list[VCCSourceSelectStatus]
     bite_control: list[VCCBiteStatus]
     bite_tone_gen: list[VCCBiteToneGenStatus]
-    bite_noise_gen_polX: list[GaussianNoiseDriverStatus]  # pylint: disable=invalid-name
-    bite_noise_gen_polY: list[GaussianNoiseDriverStatus]  # pylint: disable=invalid-name
-    bite_noise_diode_polX: list[NoiseDiodeStatus]  # pylint: disable=invalid-name
-    bite_noise_diode_polY: list[NoiseDiodeStatus]  # pylint: disable=invalid-name
+    bite_noise_gen_polX: list[GaussianNoiseDriverStatus]
+    bite_noise_gen_polY: list[GaussianNoiseDriverStatus]
+    bite_noise_diode_polX: list[NoiseDiodeStatus]
+    bite_noise_diode_polY: list[NoiseDiodeStatus]
     polarization_coupler: list[PolarizationCouplerStatus]
     spfrx_packetizer: list[SPFRxPacketizerStatus]
 
