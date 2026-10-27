@@ -3,12 +3,14 @@ from __future__ import annotations
 import copy
 import json
 import logging
+import os
 import textwrap
 from math import isnan
 from threading import Event
 from typing import Any, Callable, Optional
 
 import jsonschema
+import yaml
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_mid_cbf_common.enums.command_type import CommandType
 from ska_mid_cbf_fhs_common import (
@@ -71,6 +73,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     vcc_gains: list[float]
     """:obj:`list[float]`: The currently applied gain multipliers for VCC coarse channels."""
+
+    vlan_lookup: dict
+    """dict containing the FS to VLAN mappings, parsed from the YAML file"""
 
     last_requested_headrooms: list[float]
     """:obj:`list[float]`: The requested headrooms from the most recent call to AutoSetFilterGains."""
@@ -199,6 +204,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.vcc_gains: list[float] = []
         self.last_requested_headrooms: list[float] = []
+
+        self.vlan_lookup = {}
+        vlan_mapping_file = os.environ["VCC_PRODUCT_PATH"] + "/vcc-product-definitions.yaml"
+        print(vlan_mapping_file)
+        self._parse_vlan_mapping(vlan_mapping_file)
 
     def _init_ip_block_managers(self) -> list[BaseIPBlockManager]:
         """Instantiate all the IP block managers for the VCC controller."""
@@ -1001,3 +1011,15 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 raise RuntimeError("Deconfiguration of VCC Stream Merge failed.")
 
         self.log_info("Sucessfully deconfigured all IP Blocks", transaction_id)
+
+    def _parse_vlan_mapping(self, vlan_file_loc):
+        with open(vlan_file_loc) as f:
+            def_data = yaml.safe_load(f)
+        target_id = "vcc_" + str(self._vcc_id).zfill(3)
+        if target_id in def_data:
+            filtered_data = def_data[target_id]
+            print("Adding mapping for " + target_id)
+            for switch in filtered_data:
+                self.vlan_lookup[switch] = filtered_data[switch]["vlan"]
+        else:
+            print("Mapping not added for" + target_id)

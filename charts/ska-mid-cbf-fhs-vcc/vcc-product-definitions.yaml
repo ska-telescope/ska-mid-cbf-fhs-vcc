@@ -1,183 +1,184 @@
 # To be reformatted for improved parsing
 ska-mid-cbf-fhs-vcc:
   vcc_product_definition:
-    vcc_001_b12_fs_01:
-      interface: vcc-1-1
-      vlan: 3100
-    vcc_001_b12_fs_02:
-      interface: vcc-1-1
-      vlan: 3101
-    vcc_001_b12_fs_03:
-      interface: vcc-1-1
-      vlan: 3102
-    vcc_001_b12_fs_04:
-      interface: vcc-1-1
-      vlan: 3103
-    vcc_001_b12_fs_05:
-      interface: vcc-1-1
-      vlan: 3104
-    vcc_001_b12_fs_06:
-      interface: vcc-1-1
-      vlan: 3105
-    vcc_001_b12_fs_07:
-      interface: vcc-1-1
-      vlan: 3106
-    vcc_001_b12_fs_08:
-      interface: vcc-1-1
-      vlan: 3107
-    vcc_001_b12_fs_09:
-      interface: vcc-1-1
-      vlan: 3108
-    vcc_001_b12_fs_10:
-      interface: vcc-1-1
-      vlan: 3109
-    vcc_001_b51_fs_01:
-      interface: vcc-1-1
-      vlan: 3110
-    vcc_001_b51_fs_02:
-      interface: vcc-1-1
-      vlan: 3111
-    vcc_001_b51_fs_03:
-      interface: vcc-1-1
-      vlan: 3112
-    vcc_001_b51_fs_04:
-      interface: vcc-1-1
-      vlan: 3113
-    vcc_001_b51_fs_05:
-      interface: vcc-1-1
-      vlan: 3114
-    vcc_001_b51_fs_06:
-      interface: vcc-1-1
-      vlan: 3115
-    vcc_001_b51_fs_07:
-      interface: vcc-1-1
-      vlan: 3116
-    vcc_001_b51_fs_08:
-      interface: vcc-1-1
-      vlan: 3117
-    vcc_001_b51_fs_09:
-      interface: vcc-1-1
-      vlan: 3118
-    vcc_001_b51_fs_10:
-      interface: vcc-1-1
-      vlan: 3119
-    vcc_001_b51_fs_11:
-      interface: vcc-1-1
-      vlan: 3120
-    vcc_001_b51_fs_12:
-      interface: vcc-1-1
-      vlan: 3121
-    vcc_001_b51_fs_13:
-      interface: vcc-1-1
-      vlan: 3122
-    vcc_001_b51_fs_14:
-      interface: vcc-1-1
-      vlan: 3123
-    vcc_001_b51_fs_15:
-      interface: vcc-1-1
-      vlan: 3124
-    vcc_001_b52_fs_01:
-      interface: vcc-1-1
-      vlan: 3125
-    vcc_001_b52_fs_02:
-      interface: vcc-1-1
-      vlan: 3126
-    vcc_001_b52_fs_03:
-      interface: vcc-1-1
-      vlan: 3127
-    vcc_001_b52_fs_04:
-      interface: vcc-1-1
-      vlan: 3128
-    vcc_001_b52_fs_05:
-      interface: vcc-1-1
-      vlan: 3129
-    vcc_001_b52_fs_06:
-      interface: vcc-1-2
-      vlan: 3150
-    vcc_001_b52_fs_07:
-      interface: vcc-1-2
-      vlan: 3151
-    vcc_001_b52_fs_08:
-      interface: vcc-1-2
-      vlan: 3152
-    vcc_001_b52_fs_09:
-      interface: vcc-1-2
-      vlan: 3153
-    vcc_001_b52_fs_10:
-      interface: vcc-1-2
-      vlan: 3154
-    vcc_001_b52_fs_11:
-      interface: vcc-1-2
-      vlan: 3155
-    vcc_001_b52_fs_12:
-      interface: vcc-1-2
-      vlan: 3156
-    vcc_001_b52_fs_13:
-      interface: vcc-1-2
-      vlan: 3157
-    vcc_001_b52_fs_14:
-      interface: vcc-1-2
-      vlan: 3158
-    vcc_001_b52_fs_15:
-      interface: vcc-1-2
-      vlan: 3159
-    vcc_001_swu_01:
-      interface: vcc-1-2
-      vlan: 3160
-    vcc_001_swu_02:
-      interface: vcc-1-2
-      vlan: 3161
-    vcc_001_swu_03:
-      interface: vcc-1-2
-      vlan: 3162
-    vcc_001_swu_04:
-      interface: vcc-1-2
-      vlan: 3163
-    vcc_001_swu_05:
-      interface: vcc-1-2
-      vlan: 3164
-    vcc_001_swu_06:
-      interface: vcc-1-2
-      vlan: 3165
-    vcc_001_swu_07:
-      interface: vcc-1-2
-      vlan: 3166
-    vcc_001_swu_08:
-      interface: vcc-1-2
-      vlan: 3167
-    vcc_001_swu_09:
-      interface: vcc-1-2
-      vlan: 3168
-    vcc_001_swu_10:
-      interface: vcc-1-2
-      vlan: 3169
-    vcc_001_swu_11:
-      interface: vcc-1-2
-      vlan: 3170
-    vcc_001_swu_12:
-      interface: vcc-1-2
-      vlan: 3171
-    vcc_001_swu_13:
-      interface: vcc-1-2
-      vlan: 3172
-    vcc_001_swu_14:
-      interface: vcc-1-2
-      vlan: 3173
-    vcc_001_swu_15:
-      interface: vcc-1-2
-      vlan: 3174
-    vcc_001_swu_16:
-      interface: vcc-1-2
-      vlan: 3175
-    vcc_001_swu_17:
-      interface: vcc-1-2
-      vlan: 3176
-    vcc_001_swu_18:
-      interface: vcc-1-2
-      vlan: 3177
-    vcc_001_swu_19:
-      interface: vcc-1-2
-      vlan: 3178
-    vcc_001_swu_20:
-      interface: vcc-1-2
-      vlan: 3179
+    vcc_001:
+      b12_fs_01:
+        interface: vcc-1-1
+        vlan: 3100
+      b12_fs_02:
+        interface: vcc-1-1
+        vlan: 3101
+      b12_fs_03:
+        interface: vcc-1-1
+        vlan: 3102
+      b12_fs_04:
+        interface: vcc-1-1
+        vlan: 3103
+      b12_fs_05:
+        interface: vcc-1-1
+        vlan: 3104
+      b12_fs_06:
+        interface: vcc-1-1
+        vlan: 3105
+      b12_fs_07:
+        interface: vcc-1-1
+        vlan: 3106s
+      b12_fs_08:
+        interface: vcc-1-1
+        vlan: 3107
+      b12_fs_09:
+        interface: vcc-1-1
+        vlan: 3108
+      b12_fs_10:
+        interface: vcc-1-1
+        vlan: 3109
+      b51_fs_01:
+        interface: vcc-1-1
+        vlan: 3110
+      b51_fs_02:
+        interface: vcc-1-1
+        vlan: 3111
+      b51_fs_03:
+        interface: vcc-1-1
+        vlan: 3112
+      b51_fs_04:
+        interface: vcc-1-1
+        vlan: 3113
+      b51_fs_05:
+        interface: vcc-1-1
+        vlan: 3114
+      b51_fs_06:
+        interface: vcc-1-1
+        vlan: 3115
+      b51_fs_07:
+        interface: vcc-1-1
+        vlan: 3116
+      b51_fs_08:
+        interface: vcc-1-1
+        vlan: 3117
+      b51_fs_09:
+        interface: vcc-1-1
+        vlan: 3118
+      b51_fs_10:
+        interface: vcc-1-1
+        vlan: 3119
+      b51_fs_11:
+        interface: vcc-1-1
+        vlan: 3120
+      b51_fs_12:
+        interface: vcc-1-1
+        vlan: 3121
+      b51_fs_13:
+        interface: vcc-1-1
+        vlan: 3122
+      b51_fs_14:
+        interface: vcc-1-1
+        vlan: 3123
+      b51_fs_15:
+        interface: vcc-1-1
+        vlan: 3124
+      b52_fs_01:
+        interface: vcc-1-1
+        vlan: 3125
+      b52_fs_02:
+        interface: vcc-1-1
+        vlan: 3126
+      b52_fs_03:
+        interface: vcc-1-1
+        vlan: 3127
+      b52_fs_04:
+        interface: vcc-1-1
+        vlan: 3128
+      b52_fs_05:
+        interface: vcc-1-1
+        vlan: 3129
+      b52_fs_06:
+        interface: vcc-1-2
+        vlan: 3150
+      b52_fs_07:
+        interface: vcc-1-2
+        vlan: 3151
+      b52_fs_08:
+        interface: vcc-1-2
+        vlan: 3152
+      b52_fs_09:
+        interface: vcc-1-2
+        vlan: 3153
+      b52_fs_10:
+        interface: vcc-1-2
+        vlan: 3154
+      b52_fs_11:
+        interface: vcc-1-2
+        vlan: 3155
+      b52_fs_12:
+        interface: vcc-1-2
+        vlan: 3156
+      b52_fs_13:
+        interface: vcc-1-2
+        vlan: 3157
+      b52_fs_14:
+        interface: vcc-1-2
+        vlan: 3158
+      b52_fs_15:
+        interface: vcc-1-2
+        vlan: 3159
+      swu_01:
+        interface: vcc-1-2
+        vlan: 3160
+      swu_02:
+        interface: vcc-1-2
+        vlan: 3161
+      swu_03:
+        interface: vcc-1-2
+        vlan: 3162
+      swu_04:
+        interface: vcc-1-2
+        vlan: 3163
+      swu_05:
+        interface: vcc-1-2
+        vlan: 3164
+      swu_06:
+        interface: vcc-1-2
+        vlan: 3165
+      swu_07:
+        interface: vcc-1-2
+        vlan: 3166
+      swu_08:
+        interface: vcc-1-2
+        vlan: 3167
+      swu_09:
+        interface: vcc-1-2
+        vlan: 3168
+      swu_10:
+        interface: vcc-1-2
+        vlan: 3169
+      swu_11:
+        interface: vcc-1-2
+        vlan: 3170
+      swu_12:
+        interface: vcc-1-2
+        vlan: 3171
+      swu_13:
+        interface: vcc-1-2
+        vlan: 3172
+      swu_14:
+        interface: vcc-1-2
+        vlan: 3173
+      swu_15:
+        interface: vcc-1-2
+        vlan: 3174
+      swu_16:
+        interface: vcc-1-2
+        vlan: 3175
+      swu_17:
+        interface: vcc-1-2
+        vlan: 3176
+      swu_18:
+        interface: vcc-1-2
+        vlan: 3177
+      swu_19:
+        interface: vcc-1-2
+        vlan: 3178
+      swu_20:
+        interface: vcc-1-2
+        vlan: 3179
