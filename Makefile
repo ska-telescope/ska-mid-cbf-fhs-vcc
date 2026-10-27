@@ -172,7 +172,7 @@ build-docs-local:
 	-@rm -rf docs/src/_code/ska_mid_cbf_fhs_vcc/*.rst
 	-@rm -rf ./build/sphinx_local/
 	@echo "Generating API docs..."
-	-@poetry run sphinx-apidoc -t docs/src/_templates -o docs/src/_code/ska_mid_cbf_fhs_vcc -M -f -d 2 src/ska_mid_cbf_fhs_vcc/
+	-@uv run sphinx-apidoc -t docs/src/_templates -o docs/src/_code/ska_mid_cbf_fhs_vcc -M -f -d 2 src/ska_mid_cbf_fhs_vcc/
 	@echo "Building docs..."
 	-@$(LOCAL_PYTHON_RUNNER) sphinx -T -b html -d ./build/sphinx_local/cache/doctrees -D language=en ./docs/src ./build/sphinx_local/output
 	@echo "Done. Open build/sphinx_local/output/index.html to view the generated docs."
