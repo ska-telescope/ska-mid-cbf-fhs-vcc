@@ -89,3 +89,13 @@ python-uv-publish-to-car:
   needs:
     - python-uv-test
     - python-uv-build-for-publication
+
+oci-image-publish:
+  needs:
+    - job: python-build-for-publication
+      optional: true
+
+helm-chart-publish:
+  needs:
+    - job: python-build-for-publication
+      optional: true
