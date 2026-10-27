@@ -5,6 +5,14 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+0.6.1
+*****
+* CIP-6640: Update SKA base image to 1.1.4 to address certificate vulnerability
+* Explicitly update minimum required python version to 3.13 (was technically already required due to certain features in use).
+* Migrate linter/formatter from isort/black/flake8/pylint to ruff, and fix linting/formatting to match.
+* Update pipeline to use uv stages and remove the no-longer-needed CI image.
+* The "devcommon" docker image has been removed; to use a custom version of FHS common, push it to GitLab first.
+
 0.6.0
 *****
 * CIP-6263:

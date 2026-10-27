@@ -97,16 +97,9 @@ ifeq ($(MINIKUBE),true)
 K8S_CHART_PARAMS += --set ska-mid-cbf-fhs-vcc.bar.secret.enabled=false
 endif
 
-# shared lint config file var definitions
-LINTCFG_DIR = tools/ska-mid-cbf-linter
-PYLINT_CONFIG_FILE = $(LINTCFG_DIR)/.pylintrc
-FLAKE8_CONFIG_FILE = $(LINTCFG_DIR)/.flake8
-PYTHON_SWITCHES_FOR_FLAKE8 = --config=$(FLAKE8_CONFIG_FILE)
-PYTHON_SWITCHES_FOR_PYLINT = --rcfile=$(PYLINT_CONFIG_FILE)
-PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --rcfile=$(PYLINT_CONFIG_FILE)
-
 PYTHON_LINE_LENGTH = 160
-POETRY_PYTHON_RUNNER = uv run python3 -m
+PYTHON_RUNNER = uv run python3 -m
+UV_PYTHON_RUNNER = uv run python3 -m
 LOCAL_PYTHON_RUNNER = uv run python3 -m
 
 PYTHON_LINT_TARGET = ./src/
@@ -121,34 +114,13 @@ PYTHON_TEST_FILE = ./tests/unit/
 #
 
 include .make/base.mk
-include .make/python.mk
+include .make/python-uv.mk
 include .make/utils.mk
 include .make/helm.mk
 include .make/k8s.mk
 include .make/release.mk
 include .make/oci.mk
 include .make/docs.mk
-
-all: test lint
-
-# The following steps copy across useful output to this volume which can
-# then be extracted to form the CI summary for the test procedure.
-test:
-
-	 python setup.py test | tee ./build/setup_py_test.stdout; \
-	 mv coverage.xml ./build/reports/code-coverage.xml;
-
-# The following steps copy across useful output to this volume which can
-# then be extracted to form the CI summary for the test procedure.
-lint:
-
-	# FIXME pylint needs to run twice since there is no way go gather the text and junit xml output at the same time
-	pip3 install pylint2junit; \
-	pylint --output-format=parseable src/ska/skeleton | tee ./build/code_analysis.stdout; \
-	pylint --output-format=pylint2junit.JunitReporter src/ska/skeleton > ./build/reports/linting.xml;
-
-
-.PHONY: all test lint
 
 check-minikube-eval:
 	@minikube status | grep -iE '^.*(docker-env: in-use).*$$'; \
@@ -191,39 +163,9 @@ k8s-destroy:
 build-and-deploy:
 	make oci-build-all && make k8s-deploy-dev
 
-build-local-common: COMMON_LIB_PATH = ../ska-mid-cbf-fhs-common
-build-local-common:
-	cp -r $(COMMON_LIB_PATH) ./temp-common
-	-make oci-build-all OCI_IMAGE_FILE_PATH=./devcommon.Dockerfile
-	rm -rf ./temp-common
-
-lc-build-and-deploy:
-	make build-local-common && make k8s-deploy-dev
-
-format-python:
-	$(LOCAL_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)
-	$(LOCAL_PYTHON_RUNNER) black --exclude .+\.ipynb --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_BLACK) $(PYTHON_LINT_TARGET)
-
-fix-python-imports:
-	$(LOCAL_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)
-
-lint-python-local:
-	mkdir -p build/lint-output
-	@echo "Linting..."
-	-@ISORT_ERROR=0 BLACK_ERROR=0 FLAKE_ERROR=0 PYLINT_ERROR=0; \
-	$(LOCAL_PYTHON_RUNNER) isort --check-only --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET) &> build/lint-output/1-isort-output.txt; \
-	if [ $$? -ne 0 ]; then ISORT_ERROR=1; fi; \
-	$(LOCAL_PYTHON_RUNNER) black --exclude .+\.ipynb --check --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_BLACK) $(PYTHON_LINT_TARGET) &> build/lint-output/2-black-output.txt; \
-	if [ $$? -ne 0 ]; then BLACK_ERROR=1; fi; \
-	$(LOCAL_PYTHON_RUNNER) flake8 --show-source --statistics --max-line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_FLAKE8) $(PYTHON_LINT_TARGET) &> build/lint-output/3-flake8-output.txt; \
-	if [ $$? -ne 0 ]; then FLAKE_ERROR=1; fi; \
-	$(LOCAL_PYTHON_RUNNER) pylint --output-format=parseable --max-line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_PYLINT_LOCAL) $(PYTHON_LINT_TARGET) &> build/lint-output/4-pylint-output.txt; \
-	if [ $$? -ne 0 ]; then PYLINT_ERROR=1; fi; \
-	if [ $$ISORT_ERROR -ne 0 ]; then echo "Isort lint errors were found. Check build/lint-output/1-isort-output.txt for details."; fi; \
-	if [ $$BLACK_ERROR -ne 0 ]; then echo "Black lint errors were found. Check build/lint-output/2-black-output.txt for details."; fi; \
-	if [ $$FLAKE_ERROR -ne 0 ]; then echo "Flake8 lint errors were found. Check build/lint-output/3-flake8-output.txt for details."; fi; \
-	if [ $$PYLINT_ERROR -ne 0 ]; then echo "Pylint lint errors were found. Check build/lint-output/4-pylint-output.txt for details."; fi; \
-	if [ $$ISORT_ERROR -eq 0 ] && [ $$BLACK_ERROR -eq 0 ] && [ $$FLAKE_ERROR -eq 0 ] && [ $$PYLINT_ERROR -eq 0 ]; then echo "Lint was successful. Check build/lint-output for any additional details."; fi;
+format-and-lint:
+	make python-format
+	make python-lint
 
 build-docs-local:
 	@echo "Cleaning up old build(s)..."
@@ -234,9 +176,6 @@ build-docs-local:
 	@echo "Building docs..."
 	-@$(LOCAL_PYTHON_RUNNER) sphinx -T -b html -d ./build/sphinx_local/cache/doctrees -D language=en ./docs/src ./build/sphinx_local/output
 	@echo "Done. Open build/sphinx_local/output/index.html to view the generated docs."
-
-lint-all:
-	@make fix-python-imports && make format-python && make lint-python-local
 
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
 
