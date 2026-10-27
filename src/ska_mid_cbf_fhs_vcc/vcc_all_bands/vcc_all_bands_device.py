@@ -151,6 +151,15 @@ class VCCAllBandsController(
 
         return self.component_manager.configuration_state
 
+    """
+    @attribute(
+        dtype=dict,
+        doc="Mappings from FS values to VLAN IDs",
+    )
+    def vlanLookup(self) -> dict:
+        return self.component_manager.vlan_lookup
+    """
+
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
