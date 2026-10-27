@@ -92,10 +92,10 @@ python-uv-publish-to-car:
 
 oci-image-publish:
   needs:
-    - job: python-build-for-publication
+    - job: python-uv-build-for-publication
       optional: true
 
 helm-chart-publish:
   needs:
-    - job: python-build-for-publication
+    - job: python-uv-build-for-publication
       optional: true
