@@ -15,7 +15,7 @@ RUN uv sync --no-default-groups --no-install-project && \
 # Using ska-base-images for its Python 3.14 runtime instead of ska-tango-images
 # means we have to perform the runtime dependencies installation ourselves.
 FROM artefact.skao.int/ska-tango-images-tango-admin:1.28.1 AS tools
-FROM artefact.skao.int/ska-python-py314:1.0.0 AS runtime
+FROM artefact.skao.int/ska-python-py314:1.1.4 AS runtime
 COPY --from=tools /usr/local/ /usr/local/
 COPY --from=tools /runtime_deps.txt /runtime_deps.txt
 RUN set -xe; \
