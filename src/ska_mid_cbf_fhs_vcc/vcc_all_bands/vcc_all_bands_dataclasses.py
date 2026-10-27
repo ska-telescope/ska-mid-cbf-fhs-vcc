@@ -97,7 +97,7 @@ class VCCAllBandsConfigureVCCBiteReceiverConfig(DataClassJsonMixin):
     """Dataclass representing the VCC All Bands ConfigureVCCBite Receiver parameter."""
 
     dish_id: str
-    dish_sample_rate: int  # pylint: disable=invalid-name
+    dish_sample_rate: int
     noise_diode: VCCAllBandsConfigureVCCBiteNoiseDiodeConfig
     noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig | None = None
 
@@ -108,7 +108,7 @@ class VCCAllBandsConfigureVCCBiteSourceConfig(DataClassJsonMixin):
 
     noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig
     pol_coupling_rho: float
-    pol_Y_1_sample_delay: bool  # pylint: disable=invalid-name
+    pol_Y_1_sample_delay: bool
 
 
 @dataclass
