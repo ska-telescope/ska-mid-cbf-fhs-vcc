@@ -1,5 +1,5 @@
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Optional
 
 import numpy as np
 from dataclasses_json import DataClassJsonMixin
@@ -54,7 +54,7 @@ class B123VccOsppfbChannelizerConfigureArgin(DataClassJsonMixin):
             1.0,
         ]
     )  # default gain values
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None
 
 
 class B123VccOsppfbChannelizerManager(BaseIPBlockManager[B123VccOsppfbChannelizerConfig, B123VccOsppfbChannelizerStatus]):

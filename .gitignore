@@ -10,6 +10,8 @@
 build
 dist
 .cache
+.ruff_cache
+.venv
 __pycache__
 
 Pipfile.lock

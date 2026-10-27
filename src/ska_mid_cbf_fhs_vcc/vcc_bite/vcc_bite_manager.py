@@ -176,7 +176,7 @@ class VCCBiteManager:
         self._spfrx_packetizer_apis: list[SPFRxPacketizerSimulator] | list[FirmwareApi] = []
 
         if self._simulation_mode == SimulationMode.TRUE:
-            for i in range(0, 3):
+            for i in range(3):
                 self._vcc_source_select_apis.append(VCCSourceSelectSimulator(f"{card_name}_receptor{i}_source_select", self.logger))
                 self._vcc_bite_apis.append(VCCBiteSimulator(f"{card_name}_receptor{i}_bite_control", self.logger))
                 self._vcc_bite_tone_gen_apis.append(VCCBiteToneGenSimulator(f"{card_name}_receptor{i}_bite_tone_gen", self.logger))
@@ -190,7 +190,7 @@ class VCCBiteManager:
             # Firmware Mode
             # TODO: Change grpc addresses to be deploy time constants instead of hardcoded values here
             # TODO: Fix Firmware API base class in fhs-common to get this mode working
-            for i in range(0, 3):
+            for i in range(3):
                 self._vcc_source_select_apis.append(
                     FirmwareApi(
                         f"{card_name}_receptor{i}_source_select_driver",

@@ -10,7 +10,7 @@ from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsCo
 __all__ = ["main"]
 
 
-def main(args=None, **kwargs):  # noqa: E302
+def main(args=None, **kwargs):
     # Wait for the download path size to stop increasing
     bitstream_mount_path = os.getenv("BITSTREAM_MOUNT_PATH")
     wait_for_download_completion(Path(bitstream_mount_path))
@@ -54,5 +54,5 @@ def wait_for_download_completion(folder: Path, interval: float = 5.0) -> bool:
         prev = cur
 
 
-if __name__ == "__main__":  # noqa: #E305
+if __name__ == "__main__":
     main()

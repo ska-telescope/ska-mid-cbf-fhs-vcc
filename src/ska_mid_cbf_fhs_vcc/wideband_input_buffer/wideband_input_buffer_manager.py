@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from dataclasses_json import DataClassJsonMixin
@@ -14,7 +14,7 @@ class WidebandInputBufferConfig(DataClassJsonMixin):
     expected_sample_rate: np.uint64
     noise_diode_transition_holdoff_count: int
     expected_dish_band: np.uint8
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None
 
 
 ##
@@ -134,8 +134,8 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         self,
         expected_value: Any,
         actual_value: Any,
-        success_msg: str = None,
-        failure_msg: str = None,
+        success_msg: str | None = None,
+        failure_msg: str | None = None,
         health_on_success: HealthState = HealthState.OK,
         health_on_failure: HealthState = HealthState.FAILED,
     ) -> HealthState:
