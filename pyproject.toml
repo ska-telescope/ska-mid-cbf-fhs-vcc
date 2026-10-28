@@ -18,22 +18,15 @@ classifiers = [
 ]
 dependencies = [
   "dataclasses-json >= 0.6.7, < 0.7",
-  "debugpy >= 1.8.5, < 2",
   "grpcio >= 1.62.0, < 2",
   "grpcio-health-checking >= 1.62.0, < 2",
   "grpcio-tools >= 1.62.0, < 2",
   "jsonschema >= 4.26.0, < 5",
   "protobuf >= 6.33.0, < 7.0.0",
-  "pyyaml >= 6.0.3, < 7",
-  "requests >= 2.32.3, < 3",
   "ska-tango-testing == 0.10.0",
-  "ska-telmodel == 1.33.0",
-  "ska-ser-log-transactions == 0.2.2",
-  "ska-ser-skuid == 5.2.0",
-  "typing-extensions >= 4.8.0, < 5",
   "ska-mid-cbf-fhs-common == 0.6.0",
   "ska-mid-cbf-common == 0.2.14",
-  "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.4",
+  "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
 ]
 
 [project.scripts]
@@ -65,6 +58,12 @@ docs = [
 [tool.uv]
 package = true
 default-groups = "all"
+constraint-dependencies = [
+  "certifi >= 2026.10.23",
+  "requests >= 2.32.4, < 3",
+  "scipy >= 1.18.1, < 2",
+  "ska-ser-skuid < 5.3",
+]
 
 [tool.uv.sources]
 # Official tagged release from CAR
