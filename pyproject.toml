@@ -35,7 +35,7 @@ SimVCCAllBandsController = "ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim:main"
 
 [dependency-groups]
 dev = [
-  "pytest >= 9.1.1, < 10",
+  "pytest == 9.1.1",
   "pytest-cov >= 7.1.0, < 8",
   "pytest-forked >= 1.6.0, < 2",
   "pytest-json-report >= 1.5.0, < 2",
