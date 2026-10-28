@@ -24,7 +24,7 @@ dependencies = [
   "jsonschema >= 4.26.0, < 5",
   "protobuf >= 6.33.0, < 7.0.0",
   "ska-tango-testing == 0.10.0",
-  "ska-mid-cbf-fhs-common == 0.6.0",
+  "ska-mid-cbf-fhs-common == 0.6.0+dev.c25ac847c",
   "ska-mid-cbf-common == 0.2.14",
   "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
 ]
@@ -67,9 +67,9 @@ constraint-dependencies = [
 
 [tool.uv.sources]
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = { index = "ska-nexus" }
+#ska-mid-cbf-fhs-common = { index = "ska-nexus" }
 # Commit hash version from Gitlab
-# ska-mid-cbf-fhs-common = { index = "gitlab-fhs-common" }
+ska-mid-cbf-fhs-common = { index = "gitlab-fhs-common" }
 
 # Official tagged release from CAR
 ska-mid-cbf-common = { index = "ska-nexus" }
