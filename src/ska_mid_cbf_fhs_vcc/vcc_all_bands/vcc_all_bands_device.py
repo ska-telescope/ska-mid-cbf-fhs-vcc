@@ -151,14 +151,17 @@ class VCCAllBandsController(
 
         return self.component_manager.configuration_state
 
-    """
     @attribute(
-        dtype=dict,
+        dtype=(str,),
         doc="Mappings from FS values to VLAN IDs",
+        max_dim_x=61,
     )
-    def vlanLookup(self) -> dict:
-        return self.component_manager.vlan_lookup
-    """
+    def vlanLookup(self) -> list[str]:
+        # For now, convert to list and return
+        mapping_list = []
+        for fs in self.component_manager.vlan_lookup:
+            mapping_list.append(str(fs) + ": " + str(self.component_manager.vlan_lookup[fs]))
+        return mapping_list
 
     @command(
         dtype_in="DevString",
