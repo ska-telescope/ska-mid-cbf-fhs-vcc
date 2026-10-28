@@ -30,6 +30,7 @@ VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
     "expectedDishId": "",
     "requestedRFIHeadroom": [0],
     "vccGains": [0],
+    "vlanLookup": {},
     "frequencyBand": FrequencyBandEnum._1,
     "inputSampleRate": 0,
     "frequencyBandOffset": [0],
@@ -172,6 +173,10 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
     @property
     def vcc_gains(self: SimVCCAllBandsCM) -> list[int]:
         return self.get_attribute_override("vccGains")
+
+    @property
+    def vlan_lookup(self: SimVCCAllBandsCM) -> dict:
+        return self.get_attribute_override("vlanLookup")
 
     @property
     def health_info(self: SimVCCAllBandsCM) -> str:
