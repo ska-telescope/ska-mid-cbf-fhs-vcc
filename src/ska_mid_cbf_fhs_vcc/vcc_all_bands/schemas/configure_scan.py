@@ -64,7 +64,7 @@ vcc_all_bands_configure_scan_schema = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "vlan_id": {"type": "integer"},
+                    "vlan_alias": {"type": "string"},
                     "fs_id": {"type": "integer"},
                     "power_meter": {
                         "type": "object",
@@ -79,7 +79,7 @@ vcc_all_bands_configure_scan_schema = {
                     },
                 },
                 "required": [
-                    "vlan_id",
+                    "vlan_alias",
                     "fs_id",
                     "power_meter",
                 ],
@@ -116,15 +116,15 @@ example_config = {
     "b45_1_power_meter": {"averaging": 1.0, "flagging": 0},
     "b45_2_power_meter": {"averaging": 1.0, "flagging": 0},
     "fs_lanes": [
-        {"vlan_id": 2, "fs_id": 1, "power_meter": {"averaging": 1.0, "flagging": 0}},
-        {"vlan_id": 2, "fs_id": 2, "power_meter": {"averaging": 1.0, "flagging": 0}},
-        {"vlan_id": 2, "fs_id": 3, "power_meter": {"averaging": 1.0, "flagging": 0}},
-        {"vlan_id": 2, "fs_id": 4, "power_meter": {"averaging": 1.0, "flagging": 0}},
-        {"vlan_id": 2, "fs_id": 5, "power_meter": {"averaging": 1.0, "flagging": 0}},
-        {"vlan_id": 2, "fs_id": 6, "power_meter": {"averaging": 1.0, "flagging": 0}},
-        {"vlan_id": 2, "fs_id": 7, "power_meter": {"averaging": 1.0, "flagging": 0}},
-        {"vlan_id": 2, "fs_id": 8, "power_meter": {"averaging": 1.0, "flagging": 0}},
-        {"vlan_id": 2, "fs_id": 9, "power_meter": {"averaging": 1.0, "flagging": 0}},
-        {"vlan_id": 2, "fs_id": 10, "power_meter": {"averaging": 1.0, "flagging": 0}}
+        {"vlan_alias": "2", "fs_id": 1, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_alias": "2", "fs_id": 2, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_alias": "2", "fs_id": 3, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_alias": "2", "fs_id": 4, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_alias": "2", "fs_id": 5, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_alias": "2", "fs_id": 6, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_alias": "2", "fs_id": 7, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_alias": "2", "fs_id": 8, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_alias": "2", "fs_id": 9, "power_meter": {"averaging": 1.0, "flagging": 0}},
+        {"vlan_alias": "2", "fs_id": 10, "power_meter": {"averaging": 1.0, "flagging": 0}}
     ]
 }
