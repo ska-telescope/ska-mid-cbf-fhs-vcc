@@ -5,6 +5,10 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+0.6.3
+*****
+* CIP-6640: Ensure certifi minimum version 2026.10.23 for certificate vulnerability patch
+
 0.6.2
 *****
 * CIP-6640: Update SKA python runtime image to 1.1.4 to address certificate vulnerability
