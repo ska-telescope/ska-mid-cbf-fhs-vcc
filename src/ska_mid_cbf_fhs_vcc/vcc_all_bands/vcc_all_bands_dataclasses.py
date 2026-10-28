@@ -18,7 +18,7 @@ class VCCAllBandsConfigureScanPowerMeterConfig(DataClassJsonMixin):
 class VCCAllBandsConfigureScanFSLaneConfig(DataClassJsonMixin):
     """Dataclass representing an element of the fs_lanes property of the VCC All Bands ConfigureScan input parameter."""
 
-    vlan_id: int
+    vlan_alias: str
     fs_id: int
     power_meter: VCCAllBandsConfigureScanPowerMeterConfig
 
