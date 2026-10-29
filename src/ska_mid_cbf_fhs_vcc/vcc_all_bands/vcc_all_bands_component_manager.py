@@ -516,8 +516,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 self.log_debug("Post-channelizer Wideband Power Meters Configuring..", transaction_id)
                 self._fs_lanes = configuration.fs_lanes
 
-                # Verify vlan_alias is within range
-                # ((config.vid >= 2 && config.vid <= 1001) || (config.vid >= 1006 && config.vid <= 4094))
+                # Verify vlan_alias is within the provided keys and result is in range
                 for config in self._fs_lanes:
                     if config.vlan_alias in self.vlan_lookup.keys():
                         if not (2 <= self.vlan_lookup[config.vlan_alias] <= 1001 or 1006 <= self.vlan_lookup[config.vlan_alias] <= 4094):
@@ -549,7 +548,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                             transaction_id=transaction_id,
                             fs_lane_configs=[
                                 VCCStreamMergeConfig(
-                                    vid=self.vlan_lookup[config.vlan_alias],
+                                    vid=self.vlan_lookup[lane.vlan_alias],
                                     vcc_id=self._vcc_id,
                                     fs_id=lane.fs_id,
                                 )

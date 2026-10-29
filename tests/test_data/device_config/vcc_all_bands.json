@@ -65,7 +65,7 @@
   },
   "fs_lanes": [
     {
-      "vlan_alias": 2,
+      "vlan_alias": "b12_fs_2",
       "fs_id": 1,
       "power_meter": {
         "averaging": 1.0,
@@ -73,7 +73,7 @@
       }
     },
     {
-      "vlan_alias": 2,
+      "vlan_alias": "b12_fs_2",
       "fs_id": 2,
       "power_meter": {
         "averaging": 1.0,
@@ -81,7 +81,7 @@
       }
     },
     {
-      "vlan_alias": 2,
+      "vlan_alias": "b12_fs_2",
       "fs_id": 3,
       "power_meter": {
         "averaging": 1.0,
@@ -89,7 +89,7 @@
       }
     },
     {
-      "vlan_alias": 2,
+      "vlan_alias": "b12_fs_2",
       "fs_id": 4,
       "power_meter": {
         "averaging": 1.0,
@@ -97,7 +97,7 @@
       }
     },
     {
-      "vlan_alias": 2,
+      "vlan_alias": "b12_fs_2",
       "fs_id": 5,
       "power_meter": {
         "averaging": 1.0,
@@ -105,7 +105,7 @@
       }
     },
     {
-      "vlan_alias": 2,
+      "vlan_alias": "b12_fs_2",
       "fs_id": 6,
       "power_meter": {
         "averaging": 1.0,
@@ -113,7 +113,7 @@
       }
     },
     {
-      "vlan_alias": 2,
+      "vlan_alias": "b12_fs_2",
       "fs_id": 7,
       "power_meter": {
         "averaging": 1.0,
@@ -121,7 +121,7 @@
       }
     },
     {
-      "vlan_alias": 2,
+      "vlan_alias": "b12_fs_2",
       "fs_id": 8,
       "power_meter": {
         "averaging": 1.0,
@@ -129,7 +129,7 @@
       }
     },
     {
-      "vlan_alias": 2,
+      "vlan_alias": "b12_fs_2",
       "fs_id": 9,
       "power_meter": {
         "averaging": 1.0,
@@ -137,7 +137,7 @@
       }
     },
     {
-      "vlan_alias": 2,
+      "vlan_alias": "b12_fs_2",
       "fs_id": 10,
       "power_meter": {
         "averaging": 1.0,
