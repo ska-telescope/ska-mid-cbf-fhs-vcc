@@ -44,7 +44,7 @@ midcbf:
   image:
     registry: artefact.skao.int
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.6.3
+    tag: 0.6.4
     pullPolicy: IfNotPresent
 
 resources:
@@ -108,8 +108,8 @@ properties:
   deviceGitlabHash: "0"
   simulationMode: "1"
   emulationMode: "{{ .unitEmulationMode }}"
-  emulatorBaseUrl: "ska-mid-cbf-emulators.svc.cluster.local:5001"
-  emulatorStatusCacheUrl: "" # the template will generate as status-cache-service.<namespace>.svc.<cluster_domain>. Kept ony for documentation purposes.
+  emulatorPort: "5001"
+  emulatorStatusCacheUrl: "status-cache-service"
   emulatorStatusCachePort: "6379"  # should rarely if ever need to change
   bitstreamPath: "/app/mnt/bitstream"
   bitstreams:
