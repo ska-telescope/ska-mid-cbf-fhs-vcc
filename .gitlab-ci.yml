@@ -96,6 +96,8 @@ python-test:
     - get-version
   before_script:
     - cd /ska-mid-cbf-fhs-vcc
+    - mkdir -p /app/mnt/vcc
+    - cp charts/ska-mid-cbf-fhs-vcc/vcc-product-definitions.yaml /app/mnt/vcc
   after_script:
     - cp -r /ska-mid-cbf-fhs-vcc/build/ /builds/ska-telescope/ska-mid-cbf/monitor-control/ska-mid-cbf-fhs-vcc
 

@@ -206,7 +206,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.last_requested_headrooms: list[float] = []
 
         self.vlan_lookup = {}
-        vlan_mapping_file = os.environ["VCC_PRODUCT_PATH"] + "/vcc-product-definitions.yaml"
+        vlan_mapping_file = os.getenv("VCC_PRODUCT_PATH", "/app/mnt/vcc") + "/vcc-product-definitions.yaml"
         print(vlan_mapping_file)
         self._parse_vlan_mapping(vlan_mapping_file)
 
