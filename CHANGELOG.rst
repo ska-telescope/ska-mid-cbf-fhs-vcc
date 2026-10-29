@@ -5,6 +5,15 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+
+0.6.4
+*****
+* CIP-6650: 
+
+  * Update to ska-mid-cbf-fhs-common 0.6.1 to support emulator changes and how VCC pods will communicate with Emulator pods
+  * Replace emulator_base_url with emulator_port in unit tests, and emulatorBaseUrl with emulatorPort in helm values and templates accordingly
+
+
 0.6.3
 *****
 * CIP-6640: Ensure certifi minimum version 2026.10.23 for certificate vulnerability patch
