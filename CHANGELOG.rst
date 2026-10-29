@@ -11,7 +11,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 * CIP-6650: 
 
   * Update to ska-mid-cbf-fhs-common 0.6.1 to support emulator changes and how VCC pods will communicate with Emulator pods
-  * Replace emulator_base_url with emulator_port in unit tests, and emulatorBaseUrl with emulatorPort in helm values and templates accordingly
+  * Replace ``emulator_base_url`` with ``emulator_port`` in unit tests, and ``emulatorBaseUrl`` with ``emulatorPort`` in helm values and templates accordingly
 
 
 0.6.3
