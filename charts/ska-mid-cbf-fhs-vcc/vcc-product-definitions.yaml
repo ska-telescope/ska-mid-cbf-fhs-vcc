@@ -1,4 +1,3 @@
-# To be reformatted for improved parsing
 ska-mid-cbf-fhs-vcc:
   vcc_product_definition:
     vcc_001:
@@ -22,7 +21,7 @@ ska-mid-cbf-fhs-vcc:
         vlan: 3105
       b12_fs_07:
         interface: vcc-1-1
-        vlan: 3106s
+        vlan: 3106
       b12_fs_08:
         interface: vcc-1-1
         vlan: 3107
