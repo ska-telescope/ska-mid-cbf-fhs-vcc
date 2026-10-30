@@ -207,7 +207,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.vlan_lookup = {}
         vlan_mapping_file = os.getenv("VCC_PRODUCT_PATH", "/app/mnt/vcc") + "/vcc-product-definitions.yaml"
-        print(vlan_mapping_file)
         self._parse_vlan_mapping(vlan_mapping_file)
 
     def _init_ip_block_managers(self) -> list[BaseIPBlockManager]:
@@ -1015,13 +1014,20 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.log_info("Sucessfully deconfigured all IP Blocks", transaction_id)
 
     def _parse_vlan_mapping(self, vlan_file_loc):
+        """
+        Given the location of a VLAN mapping YAML file, gets the vlan mappings from the file for the VCC id and and adds it to the vlan_lookup dict in the object.
+        """
+        if not os.path.isfile(vlan_file_loc):
+            self.log_error("VLAN mapping file not found at: " + vlan_file_loc)
+            raise RuntimeError("VLAN mapping file not found at: " + vlan_file_loc)
         with open(vlan_file_loc) as f:
             def_data = yaml.safe_load(f)
         target_id = "vcc_" + str(self._vcc_id).zfill(3)
         if target_id in def_data:
             filtered_data = def_data[target_id]
-            print("Adding mapping for " + target_id)
+            self.log_info("Adding VLAN mapping for " + target_id)
             for switch in filtered_data:
                 self.vlan_lookup[switch] = filtered_data[switch]["vlan"]
         else:
-            print("Mapping not added for" + target_id)
+            self.log_error("Mapping not added for " + target_id)
+            # TODO: Fill out entire example mapping file for VCCs and make error
