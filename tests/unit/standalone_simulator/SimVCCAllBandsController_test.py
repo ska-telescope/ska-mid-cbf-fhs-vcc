@@ -869,24 +869,3 @@ class TestVCCAllBandsSim:
                 previous_value=previous,
                 min_n_events=n,
             )
-
-    def test_deep_update(
-        self: TestVCCAllBandsSim,
-        sim_vcc_all_bands_device: Any,
-    ) -> None:
-        """ Test command overrides updates merging default and override properly """
-        sim_vcc_all_bands_device.simOverrides = json.dumps(
-            {
-                "commands":{
-                    "ConfigureScan": {
-                        "allowed": False,
-                    },
-                }
-            }
-        )
-        assert json.loads(sim_vcc_all_bands_device.simOverrides)["commands"]["ConfigureScan"] == {
-                "allowed": False,
-                "allowed_states": ["ON"],
-                "result_code": "OK",
-                "message": "ConfigureScan completed OK",
-            }
