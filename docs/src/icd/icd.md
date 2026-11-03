@@ -25,7 +25,7 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 #### Device Properties (out of date)
 | Name                           | Type                            | Description                                                                                                              |
 | ------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `test`        | DevString                       | Fully Qualified Domain name (FQDN) for the 1,2& 3 OSPPFB Channelizer lower level device                                  |
+| `test2`        | DevString                       | Fully Qualified Domain name (FQDN) for the 1,2& 3 OSPPFB Channelizer lower level device                                  |
 | `vcc45_1ChannelizerFQDN`       | DevString                       | FQDN for the 4&5 stream 1 OSPPFB Channelizer lower level device                                                          |
 | `vcc45_2ChannelizerFQDN`       | DevString                       | FQDN for the 4&5 stream 2 OSPPFB Channelizer lower level device                                                          |
 | `vcc123PowerMeterFQDN`         | DevString                       | FQDN for the Wideband Power Meter for B123                                                                               |
