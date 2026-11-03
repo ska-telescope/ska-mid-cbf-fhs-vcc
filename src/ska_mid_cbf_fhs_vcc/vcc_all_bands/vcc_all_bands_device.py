@@ -275,7 +275,7 @@ class VCCAllBandsController(
         dtype_in="DevString",
         doc_in="JSON string conforming to the ska-mid-cbf-abort schema",
         dtype_out="DevVarLongStringArray",
-        doc_out=("A tuple containing a return code and a string message " "indicating status. The message is for information purpose " "only."),
+        doc_out=("A tuple containing a return code and a string message indicating status. The message is for information purpose only."),
     )
     def Abort(self: VCCAllBandsController, argin: str) -> DevVarLongStringArrayType:
         """
@@ -292,7 +292,7 @@ class VCCAllBandsController(
         # task to immediately clear out any tasks in progress.
         abort_tasks_event = Event()
         status, message = self.component_manager.abort_tasks(
-            task_callback=lambda status, result=None: (abort_tasks_event.set() if status is TaskStatus.COMPLETED else None)
+            task_callback=lambda status, result=None: abort_tasks_event.set() if status is TaskStatus.COMPLETED else None
         )
 
         # Abort command succeeds if the task executor is successfully shut down

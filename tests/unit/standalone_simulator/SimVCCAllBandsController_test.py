@@ -48,7 +48,7 @@
 #             device_id="1",
 #             device_version_num="1.0",
 #             device_gitlab_hash="abc123",
-#             emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
+#             emulator_port="5001",
 #             bitstream_path="../resources",
 #             bitstream_id="agilex-vcc",
 #             bitstream_version="0.0.1",

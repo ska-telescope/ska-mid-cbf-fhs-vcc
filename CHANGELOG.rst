@@ -5,8 +5,38 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-UNRELEASED CHANGES
-******************
+
+0.6.4
+*****
+* CIP-6650: 
+
+  * Update to ska-mid-cbf-fhs-common 0.6.1 to support emulator changes and how VCC pods will communicate with Emulator pods
+  * Replace ``emulator_base_url`` with ``emulator_port`` in unit tests, and ``emulatorBaseUrl`` with ``emulatorPort`` in helm values and templates accordingly
+
+
+0.6.3
+*****
+* CIP-6640: Ensure certifi minimum version 2026.10.23 for certificate vulnerability patch
+
+0.6.2
+*****
+* CIP-6640: Update SKA python runtime image to 1.1.4 to address certificate vulnerability
+
+0.6.1
+*****
+* CIP-6640: Update SKA base image to 1.1.4 to address certificate vulnerability
+* Explicitly update minimum required python version to 3.13 (was technically already required due to certain features in use).
+* Migrate linter/formatter from isort/black/flake8/pylint to ruff, and fix linting/formatting to match.
+* Update pipeline to use uv stages and remove the no-longer-needed CI image.
+* The "devcommon" docker image has been removed; to use a custom version of FHS common, push it to GitLab first.
+
+0.6.0
+*****
+* CIP-6263:
+
+  * Moved common BAR params into the global section of the values.yaml
+  * Moved the template for the bar secret into its own file: bar-secret.yaml
+  * Each VCC unit will have its own bitstream download job. This allows the deployment repo to set diff bitstream versions for each VCC unit
 
 0.5.0
 *****

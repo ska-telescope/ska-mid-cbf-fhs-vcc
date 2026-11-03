@@ -1,0 +1,30 @@
+extend-exclude = []
+
+line-length = 160
+indent-width = 4
+
+[lint]
+ignore = [
+  "E203",
+  "E501",
+  "E731",
+  "B009",
+  "B010",
+  "B013",
+  "B023",
+  "B024",
+  "B032",
+  "ANN001",
+  "ANN002",
+  "ANN003",
+  "ANN201",
+  "ANN202",
+  "ANN204",
+  "ANN401",
+  "BLE001",
+  "EXE002",
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
