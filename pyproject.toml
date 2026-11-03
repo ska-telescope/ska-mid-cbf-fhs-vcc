@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.6.4"
+version = "0.6.5"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },
@@ -24,7 +24,7 @@ dependencies = [
   "jsonschema >= 4.26.0, < 5",
   "protobuf >= 6.33.0, < 7.0.0",
   "ska-tango-testing == 0.10.0",
-  "ska-mid-cbf-fhs-common == 0.6.2+dev.c9a6fef90",
+  "ska-mid-cbf-fhs-common == 0.6.3+dev.c74d9a0a4",
   "ska-mid-cbf-common == 0.2.14",
   "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
 ]
