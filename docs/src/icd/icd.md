@@ -5,21 +5,21 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 ![alt text](../diagrams/VCC-scenario-diagram.png "Title")
 ### Device Attributes
 
-| Name                          | Type                                                      | Read/Write | Description                                                                                                                                                      |
-| ----------------------------- | --------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dishID`                      | DevString                                                 | R          | Associated dish identifier                                                                                                                                       |
-| `vccGains`                    | `Array<Tango::DevDouble>` | R          | Read attribute for applied gain multipliers size=`Num of selected FSs * pol`.                                                                                                                                   |
-| `pssGains`                    | `Array<Tango::DevDouble>` | R          | Read attribute for applied gain multipliers on fine channels to enable PSS`.                                                                                                                                   |
-| `tcbGains`                    | `Array<Tango::DevDouble>` | R          | Read attribute for applied gain multipliers used for FSs selected for TCB channels`.                                                                                                                                   |
-| `frequencyBand`               | DevEnum                                                   | R          | Frequency band that is currently configured                                                                                                                      |
-| `configID`                    | DevString                                                 | R          | Identifier of the current scan configuration                                                                                                                     |
-| `scanID`                      | DevULong                                                  | R          | Identifier of the current scan                                                                                                                                   |
-| `inputSampleRate`             | DevULong64                                                | R          | Input sample rate read attribute                                                                                                                                 |
-| `frequencyBandOffset`           | DevLong[2]                                                | R          | Frequency band offset, received during scan configuration  <br>  <br>Length 2 since band 5 needs two values specified, other bands will only use the first value |
-| `requestedRFIHeadroom`          | `Array<Tango::DevDouble>`                                     | R          | Requested RFI Headroom, in decibels (dB), to be applied when Auto-set gains is requested. May contain a single value to apply to all frequency slices, or `num FSs` values to apply to each FS separately. (default: 3 dB for all FS)                                                                   |
-| `subarrayID`                    | DevUShort                                                    | R          | Current Subarray the VCC is a member of.                                                                                                                         |
-| `noiseDiodeMeasurementInterval` | DevFloat                                                    | R/W        | Measurement interval for Noise Diode calculations, provided as an integer number of samples at the channel resolution where the power is being measured. <br> <br> **TODO**: understand how it relates to power meter configuration & reporting.                                 |
-| `noiseDiodeReportingInterval`   | DevUShort                                                    | R/W        | The reporting interval is an integer number of measurement intervals, applicable to Noise Diode reporting. <br><br>**TODO**: understand how it relates to power meter configuration & reporting.                                                                                             |
+| Name | Type | Read/Write | Description |
+| ---- | ---- | ---------- | ----------- |
+| `expectedDishID` | `String` | R | Associated dish identifier |
+| `vccGains` | `Array<Number>` | R | Read attribute for applied gain multipliers size=`Num of selected FSs * pol`. |
+| `pssGains` | `Array<Number>` | R | Read attribute for applied gain multipliers on fine channels to enable PSS`. |
+| `tcbGains` | `Array<Number>` | R | Read attribute for applied gain multipliers used for FSs selected for TCB channels`. |
+| `frequencyBand` | `Number` | R | Frequency band that is currently configured; implemented as an Enum. |
+| `configID` | `String` | R | Identifier of the current scan configuration. |
+| `scanID` | `Number` | R | Identifier of the current scan. |
+| `inputSampleRate` | `Number` | R | Input sample rate read attribute. |
+| `frequencyBandOffset` | `Array<Number>` | R | Frequency band offset, received during scan configuration  <br>  <br>Length 2 since band 5 needs two values specified, other bands will only use the first value. |
+| `requestedRFIHeadroom` | `Array<Number>` | R | Requested RFI Headroom, in decibels (dB), to be applied when Auto-set gains is requested. May contain a single value to apply to all frequency slices, or `num FS` values to apply to each FS separately (default: 3 dB for all FS). |
+| `subarrayID` | `Number` | R | Current Subarray the VCC is a member of. |
+| `noiseDiodeMeasurementInterval` | `Number` | R/W | Measurement interval for Noise Diode calculations, provided as an integer number of samples at the channel resolution where the power is being measured. <br> <br> **TODO**: understand how it relates to power meter configuration & reporting. |
+| `noiseDiodeReportingInterval` | `Number` | R/W | The reporting interval is an integer number of measurement intervals, applicable to Noise Diode reporting. <br><br>**TODO**: understand how it relates to power meter configuration & reporting. |
 
 
 #### Device Properties (out of date)
