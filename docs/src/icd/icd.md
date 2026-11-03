@@ -1,51 +1,37 @@
 # FHS-VCC All Bands Controller - ICD MCS to FHS-VCC
 ### Overview
 This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VCC All Bands Controller provides the control layer between MCS and the subordinate FHS-VCC devices. Implemented as a Tango Device server using the 1.0.0+ version of the ska-tango-base classes.
+
 ### Scenario Diagram 
 ![alt text](../diagrams/VCC-scenario-diagram.png "Title")
-### Device Attributes
 
+### Device Attributes
 | Name | Type | Read/Write | Description |
 | ---- | ---- | ---------- | ----------- |
-| `expectedDishID` | `String` | R | Associated dish identifier |
-| `vccGains` | `Array<Number>` | R | Read attribute for applied gain multipliers size=`Num of selected FSs * pol`. |
-| `pssGains` | `Array<Number>` | R | Read attribute for applied gain multipliers on fine channels to enable PSS`. |
-| `tcbGains` | `Array<Number>` | R | Read attribute for applied gain multipliers used for FSs selected for TCB channels`. |
-| `frequencyBand` | `Number` | R | Frequency band that is currently configured; implemented as an Enum. |
-| `configID` | `String` | R | Identifier of the current scan configuration. |
-| `scanID` | `Number` | R | Identifier of the current scan. |
-| `inputSampleRate` | `Number` | R | Input sample rate read attribute. |
-| `frequencyBandOffset` | `Array<Number>` | R | Frequency band offset, received during scan configuration  <br>  <br>Length 2 since band 5 needs two values specified, other bands will only use the first value. |
-| `requestedRFIHeadroom` | `Array<Number>` | R | Requested RFI Headroom, in decibels (dB), to be applied when Auto-set gains is requested. May contain a single value to apply to all frequency slices, or `num FS` values to apply to each FS separately (default: 3 dB for all FS). |
-| `subarrayID` | `Number` | R | Current Subarray the VCC is a member of. |
-| `noiseDiodeMeasurementInterval` | `Number` | R/W | Measurement interval for Noise Diode calculations, provided as an integer number of samples at the channel resolution where the power is being measured. <br> <br> **TODO**: understand how it relates to power meter configuration & reporting. |
-| `noiseDiodeReportingInterval` | `Number` | R/W | The reporting interval is an integer number of measurement intervals, applicable to Noise Diode reporting. <br><br>**TODO**: understand how it relates to power meter configuration & reporting. |
+| configurationState | DevEnum | R | The device's current state of configuration. |
+| expectedDishID | DevString | R | Associated dish identifier. |
+| frequencyBand | DevEnum | R | Frequency band that is currently configured. |
+| frequencyBandOffset | Array<DevLong> | R | Frequency band offset, received during scan configuration  <br>  <br>Length 2 since band 5 needs two values specified, other bands will only use the first value. |
+| inputSampleRate | DevULong64 | R | Input sample rate read attribute. |
+| requestedRFIHeadroom | Array<DevFloat> | R | Requested RFI Headroom, in decibels (dB), to be applied when Auto-set gains is requested. May contain a single value to apply to all frequency slices, or `num FS` values to apply to each FS separately (default: 3 dB for all FS). |
+| subarrayID | DevUShort | R | Current subarray for which the VCC is a member. |
+| vccGains | Array<DevFloat> | R | Read attribute for applied gain multipliers size=`Num of selected FSs * pol`. |
 
-
-#### Device Properties (out of date)
-| Name                           | Type                            | Description                                                                                                              |
-| ------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `vcc123ChannelizerFQDN`        | DevString                       | Fully Qualified Domain name (FQDN) for the 1,2& 3 OSPPFB Channelizer lower level device                                  |
-| `vcc45_1ChannelizerFQDN`       | DevString                       | FQDN for the 4&5 stream 1 OSPPFB Channelizer lower level device                                                          |
-| `vcc45_2ChannelizerFQDN`       | DevString                       | FQDN for the 4&5 stream 2 OSPPFB Channelizer lower level device                                                          |
-| `vcc123PowerMeterFQDN`         | DevString                       | FQDN for the Wideband Power Meter for B123                                                                               |
-| `vcc45_1PowerMeterFQDN`        | DevString                       | FQDN for the Wideband Power Meter for B45.1                                                                              |
-| `vcc45_2PowerMeterFQDN`        | DevString                       | FQDN for the Wideband Power Meter for B45.2                                                                              |
-| `fsPowerMeters`                | Array of DevStrings (size = 26) | FQDNs for the FS powers meters on each of the 26 lanes following the FS Selection IP BIock                               |
-| `vccStreamMergeFQDN`           | DevString                       | FQDN for the VCC Stream Merge lower level device                                                                                               |
-| `fsSelectionFQDN`              | DevString                       | FQDN for the FS Selection lower level device                                                                             |
-| `widebandFrequencyShifterFQDN` | DevString                       | FQDN for Wideband Frequency Shifter lower level device                                                                   |
-| `widebandInputBufferFQDN`      | DevString                       | FQDN for Wideband Frequency Input Buffer lower level device                                                              |
-| `macFQDN   `                   | DevString                       | FQDN for Ethernet Media Access Control (MAC) lower level device likely only needed for testing purposes in loopback mode |
+#### Device Properties
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| ip_blocks | Dict | Base64-encoded string containing the deploy-time properties of all IP blocks managed by the controller. |
+| network_switch_id | Number | tbd... |
+| bmc_endpoint_id | Number | tbd... |
+| unit_number | Number | tbd... |
+| fpga_number | Number | tbd... |
+| long_running_command_result_buffer_max_size | Number | tbd... |
 
 #### Publish Events
-| Name          | Type                            | Description                                                                                                                                                                                           |
-| ------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| healthState   | HealthState Enum                | Publishes a change event on the health state if any changes were detected from the low-level devices, the value holds the reason for the change in state.                                                                            |
-| gains         | `Array<Tango::DevDouble>` | Publishes a change event if the gain values have been updated as a result of a gains stabilization.|
-| pssGains         | `Array<Tango::DevDouble>` | Publishes a change event if the gain values have been updated as a result of a gains stabilization across PSS fine channels.|
-| tcbGains         | `Array<Tango::DevDouble>` | Publishes a change event if the gain values have been updated as a result of a gains stabilization on selected FSs used for TCB.|
-| frequencyBand | DevEnum                         | Change event published if the band changed successfully.                                                                                                                                            |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| subarrayID | Number |  Publishes a change event whevever the VCC's subarray ID changes. |
+| configurationState | Number | Publishes a change event whenever the configurationState attribute changes. |
 
 ### Commands
 | Name                                  | Input Type  | Input Parameter                                | Allowed in modes      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |

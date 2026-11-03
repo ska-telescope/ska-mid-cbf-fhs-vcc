@@ -47,6 +47,21 @@ class VCCAllBandsController(
         ]
 
     @attribute(
+        dtype="DevEnum",
+        enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURING.name, FhsState.CONFIGURED.name, FhsState.FAULT.name],
+        doc="Device's configuration state",
+    )
+    def configurationState(self) -> str:
+        """
+        Read-only Tango attribute that contains a string with the FhsState value for this device.
+
+        :return: FhsState of this device
+        :rtype: FhsState
+        """
+
+        return self.component_manager.configuration_state
+    
+    @attribute(
         dtype=str,
     )
     def expectedDishId(self) -> str:
@@ -56,6 +71,58 @@ class VCCAllBandsController(
             :obj:`str`: The expected dish ID.
         """
         return self.component_manager.expected_dish_id
+    
+    @attribute(
+        abs_change=1,
+        dtype=tango.DevEnum,
+        enum_labels=["1", "2", "3", "4", "5a", "5b"],
+    )
+    def frequencyBand(self) -> FrequencyBandEnum:
+        """Read-only Tango attribute specifying the frequency band in which this VCC is operating.
+
+        Returns:
+            :obj:`FrequencyBandEnum`: the frequency band (being observed by the current scan, one of
+            ["1", "2", "3", "4", "5a", "5b"]).
+        """
+        return self.component_manager.frequency_band.value
+    
+    @attribute(
+        dtype=tango.DevLong,
+        dformat=tango.SPECTRUM,
+        max_dim_x=2,
+    )
+    def frequencyBandOffset(self) -> list[int]:
+        """Read-only Tango attribute specifying the frequency band offset(s) configured for this VCC.
+        Contains two offset values, however the second value is only meaningful when operating in band 5.
+        Only the first value is required in all other bands.
+
+        Returns:
+            :obj:`list[int]`: the frequency band offset(s).
+        """
+        return self.component_manager.frequency_band_offset
+    
+    @attribute(
+        dtype=tango.DevULong64,
+    )
+    def inputSampleRate(self) -> int:
+        """Read-only Tango attribute specifying the input sample rate of this VCC.
+
+        Returns:
+            :obj:`int`: The input sample rate.
+        """
+        return self.component_manager.input_sample_rate
+    
+    @attribute(
+        dtype=(float,),
+        max_dim_x=26,
+    )
+    def requestedRFIHeadroom(self) -> list[float]:
+        """Read-only Tango attribute specifying the requested headrooms from the most recent call to AutoSetFilterGains.
+
+        Returns:
+            :obj:`list[float]`: The requested headrooms.
+        """
+        return self.component_manager.last_requested_headrooms
 
     @attribute(
         dtype=tango.DevUShort,
@@ -72,58 +139,6 @@ class VCCAllBandsController(
         return self.component_manager.subarray_id
 
     @attribute(
-        abs_change=1,
-        dtype=tango.DevEnum,
-        enum_labels=["1", "2", "3", "4", "5a", "5b"],
-    )
-    def frequencyBand(self) -> FrequencyBandEnum:
-        """Read-only Tango attribute specifying the frequency band in which this VCC is operating.
-
-        Returns:
-            :obj:`FrequencyBandEnum`: the frequency band (being observed by the current scan, one of
-            ["1", "2", "3", "4", "5a", "5b"]).
-        """
-        return self.component_manager.frequency_band.value
-
-    @attribute(
-        dtype=tango.DevULong64,
-    )
-    def inputSampleRate(self) -> int:
-        """Read-only Tango attribute specifying the input sample rate of this VCC.
-
-        Returns:
-            :obj:`int`: The input sample rate.
-        """
-        return self.component_manager.input_sample_rate
-
-    @attribute(
-        dtype=tango.DevLong,
-        dformat=tango.SPECTRUM,
-        max_dim_x=2,
-    )
-    def frequencyBandOffset(self) -> list[int]:
-        """Read-only Tango attribute specifying the frequency band offset(s) configured for this VCC.
-        Contains two offset values, however the second value is only meaningful when operating in band 5.
-        Only the first value is required in all other bands.
-
-        Returns:
-            :obj:`list[int]`: the frequency band offset(s).
-        """
-        return self.component_manager.frequency_band_offset
-
-    @attribute(
-        dtype=(float,),
-        max_dim_x=26,
-    )
-    def requestedRFIHeadroom(self) -> list[float]:
-        """Read-only Tango attribute specifying the requested headrooms from the most recent call to AutoSetFilterGains.
-
-        Returns:
-            :obj:`list[float]`: The requested headrooms.
-        """
-        return self.component_manager.last_requested_headrooms
-
-    @attribute(
         dtype=(float,),
         max_dim_x=52,
     )
@@ -135,21 +150,6 @@ class VCCAllBandsController(
             [ch0_polX, ch1_polX, ..., chN_polX, ch0_polY, ch1_polY, ..., chN_polY].
         """
         return self.component_manager.vcc_gains
-
-    @attribute(
-        dtype="DevEnum",
-        enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURING.name, FhsState.CONFIGURED.name, FhsState.FAULT.name],
-        doc="Device's configuration state",
-    )
-    def configurationState(self) -> str:
-        """
-        Read-only Tango attribute that contains a string with the FhsState value for this device.
-
-        :return: FhsState of this device
-        :rtype: FhsState
-        """
-
-        return self.component_manager.configuration_state
 
     @command(
         dtype_in="DevString",
