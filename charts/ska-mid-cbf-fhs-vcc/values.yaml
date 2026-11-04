@@ -247,12 +247,9 @@ vccAllBandsDevice:
         FS26WidebandPowerMeter:
           emulator_ip_block_id: "fs26_wideband_power_meter"
           firmware_ip_block_id: "receptor{{.receptorId}}_fs26_power_meter"
-    - name: network_switch_id
+    - name: switch_ip
       values:
-        - "{{ .networkSwitchId }}"
-    - name: bmc_endpoint_id
-      values:
-        - "{{ .bmcEndpointIp }}"
+        - "{{ .switchIp }}"
     - name: unit_number
       values:
         - "{{ .unitNum }}"
@@ -270,12 +267,12 @@ numVccUnits: 2
 VCCUnits:
   - unitNum: 1
     emulationMode: "0"
-    networkSwitchId: "127.0.0.1"
+    switchIp: "127.0.0.1"
     bmcEndpointIp: "127.0.1.1"
     instancesRange: [1, 6]
   - unitNum: 2
     emulationMode: "0"
-    networkSwitchId: "127.0.0.2"
+    switchIp: "127.0.0.2"
     bmcEndpointIp: "127.0.1.2"
     instancesRange: [7, 12]
 
