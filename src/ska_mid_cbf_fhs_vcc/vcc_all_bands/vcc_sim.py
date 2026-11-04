@@ -13,7 +13,7 @@ from functools import partial
 from typing import Any
 
 from ska_control_model import HealthState
-from ska_mid_cbf_fhs_common import FhsObsSimMode, SimModeObsCMBase
+from ska_mid_cbf_fhs_common import FhsSimMode, SimModeCMBase
 from tango.server import run
 
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum
@@ -43,7 +43,7 @@ VCC_SIM_ARCHIVE_EVENT_ATTRS = {
 }
 
 
-class SimVCCAllBandsCM(SimModeObsCMBase):
+class SimVCCAllBandsCM(SimModeCMBase):
     def __init__(
         self: SimVCCAllBandsCM,
         *args: Any,
@@ -69,43 +69,18 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
                 "ConfigureScan": {
                     "allowed": True,
                     "allowed_states": ["ON"],
-                    "allowed_obs_states": ["IDLE", "READY"],
                     "result_code": "OK",
                     "message": "ConfigureScan completed OK",
-                    "invoked_action": "CONFIGURE_INVOKED",
-                    "completed_action": "CONFIGURE_COMPLETED",
                 },
-                "Scan": {
+                "GoToIdle": {
                     "allowed": True,
                     "allowed_states": ["ON"],
-                    "allowed_obs_states": ["READY"],
                     "result_code": "OK",
-                    "message": "Scan completed OK",
-                    "invoked_action": "START_INVOKED",
-                    "completed_action": "START_COMPLETED",
-                },
-                "EndScan": {
-                    "allowed": True,
-                    "allowed_states": ["ON"],
-                    "allowed_obs_states": ["SCANNING"],
-                    "result_code": "OK",
-                    "message": "EndScan completed OK",
-                    "invoked_action": "STOP_INVOKED",
-                    "completed_action": "STOP_COMPLETED",
-                },
-                "ObsReset": {
-                    "allowed": True,
-                    "allowed_states": ["ON"],
-                    "allowed_obs_states": ["FAULT", "ABORTED"],
-                    "result_code": "OK",
-                    "message": "ObsReset completed OK",
-                    "invoked_action": "OBSRESET_INVOKED",
-                    "completed_action": "OBSRESET_COMPLETED",
+                    "message": "GoToIdle completed OK",
                 },
                 "UpdateSubarrayMembership": {
                     "allowed": True,
                     "allowed_states": ["ON"],
-                    "allowed_obs_states": ["IDLE"],
                     "result_code": "OK",
                     "message": "UpdateSubarrayMembership completed OK",
                     "attr_change_events": {
@@ -115,30 +90,25 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
                 "AutoSetFilterGains": {
                     "allowed": True,
                     "allowed_states": ["ON"],
-                    "allowed_obs_states": ["SCANNING"],
                     "result_code": "OK",
                     "message": "AutoSetFilterGains completed OK",
                 },
                 "ConfigureVCCBite": {
                     "allowed": True,
                     "allowed_states": ["ON"],
-                    "allowed_obs_states": ["IDLE"],
                     "result_code": "OK",
                     "message": "ConfigureVCCBite completed OK",
                 },
                 "DeconfigureVCCBite": {
                     "allowed": True,
                     "allowed_states": ["ON"],
-                    "allowed_obs_states": ["IDLE"],
                     "result_code": "OK",
                     "message": "DeconfigureVCCBite completed OK",
                 },
             }
         )
         self.configure_scan = partial(self.sim_command, command_name="ConfigureScan", transaction_id="TEST_CS")
-        self.scan = partial(self.sim_command, command_name="Scan", transaction_id="TEST_S")
-        self.end_scan = partial(self.sim_command, command_name="EndScan", transaction_id="TEST_ES")
-        self.obs_reset = partial(self.sim_command, command_name="ObsReset", transaction_id="TEST_OBS")
+        self.go_to_idle = partial(self.sim_command, command_name="GoToIdle", transaction_id="TEST_GTI")
         self.update_subarray_membership = partial(self.sim_command, command_name="UpdateSubarrayMembership", transaction_id="TEST_USM")
         self.auto_set_filter_gains = partial(self.sim_command, command_name="AutoSetFilterGains", transaction_id="TEST_ASFG")
         self.configure_vcc_bite = partial(self.sim_command, command_name="ConfigureVCCBite", transaction_id="TEST_CVB")
@@ -177,7 +147,7 @@ class SimVCCAllBandsCM(SimModeObsCMBase):
         return self.get_attribute_override("healthInfo")
 
 
-class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
+class SimVCCAllBandsController(VCCAllBandsController, FhsSimMode):
     change_event_attributes = VCC_SIM_CHANGE_EVENT_ATTRS
     archive_event_attributes = VCC_SIM_ARCHIVE_EVENT_ATTRS
 
@@ -195,7 +165,7 @@ class SimVCCAllBandsController(VCCAllBandsController, FhsObsSimMode):
             attr_change_callback=self.push_change_event,
             attr_archive_callback=self.push_archive_event,
             communication_state_callback=self._communication_state_changed,
-            component_state_callback=partial(FhsObsSimMode._component_state_changed, self),
+            component_state_callback=self._component_state_changed,
         )
 
 
