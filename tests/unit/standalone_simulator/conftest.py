@@ -53,7 +53,6 @@ def sim_vcc_all_bands_tango_event_tracer(
         "longRunningCommandResult",
         "adminMode",
         "state",
-        "obsState",
         "healthState",
         "subarrayID",
     ]

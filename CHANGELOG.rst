@@ -5,6 +5,9 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+0.6.5
+*****
+* CIP-6651: Update to ska-mid-cbf-fhs-common v0.6.2 to remove Obs device simulation.
 
 0.6.4
 *****
