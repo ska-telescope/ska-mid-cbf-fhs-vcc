@@ -11,232 +11,241 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | configurationState | DevEnum | R | The device's current state of configuration. |
 | expectedDishID | DevString | R | Associated dish identifier. |
 | frequencyBand | DevEnum | R | Frequency band that is currently configured. |
-| frequencyBandOffset | Array<DevLong> | R | Frequency band offset, received during scan configuration  <br>  <br>Length 2 since band 5 needs two values specified, other bands will only use the first value. |
+| frequencyBandOffset | Array[DevLong] | R | Frequency band offset, received during scan configuration  <br>  <br>Length 2 since band 5 needs two values specified, other bands will only use the first value. |
 | inputSampleRate | DevULong64 | R | Input sample rate read attribute. |
-| requestedRFIHeadroom | Array<DevFloat> | R | Requested RFI Headroom, in decibels (dB), to be applied when Auto-set gains is requested. May contain a single value to apply to all frequency slices, or `num FS` values to apply to each FS separately (default: 3 dB for all FS). |
+| requestedRFIHeadroom | Array[DevFloat] | R | Requested RFI Headroom, in decibels (dB), to be applied when Auto-set gains is requested. May contain a single value to apply to all frequency slices, or `num FS` values to apply to each FS separately (default: 3 dB for all FS). |
 | subarrayID | DevUShort | R | Current subarray for which the VCC is a member. |
-| vccGains | Array<DevFloat> | R | Read attribute for applied gain multipliers size=`Num of selected FSs * pol`. |
+| vccGains | Array[DevFloat] | R | Read attribute for applied gain multipliers size=`Num of selected FSs * pol`. |
 
-#### Device Properties
+### Device Properties
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | ip_blocks | Dict | Base64-encoded string containing the deploy-time properties of all IP blocks managed by the controller. |
-| network_switch_id | Number | tbd... |
-| bmc_endpoint_id | Number | tbd... |
-| unit_number | Number | tbd... |
-| fpga_number | Number | tbd... |
-| long_running_command_result_buffer_max_size | Number | tbd... |
+| network_switch_id | Number | TODO: |
+| bmc_endpoint_id | Number | TODO: |
+| unit_number | Number | TODO: |
+| fpga_number | Number | TODO: |
+| long_running_command_result_buffer_max_size | Number | TODO: |
 
-#### Publish Events
+### Publish Events
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | subarrayID | Number |  Publishes a change event whevever the VCC's subarray ID changes. |
 | configurationState | Number | Publishes a change event whenever the configurationState attribute changes. |
 
 ### Commands
-| Name                                  | Input Type  | Input Parameter                                | Allowed in modes      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| ------------------------------------- | ----------- | ---------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ConfigureScan()`                     | JSON String | See below.                                     | IDLE, READY           | Configure parameters for the next scan(s). Parameters are propagated down to low-level device servers. Sets the state to CONFIGURING, if the inputted JSON can be successfully parsed the state is set to READY.                                                                                                                                                                                                                                                                                           |
-| `GoToIdle()`                          | void        | n/a                                            | READY                 | Resets the device and changes the state to IDLE                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `Abort()`                             | void        | n/a                                            | IDLE, READY, SCANNING | Sets the device state to ABORTED and aborts all running/queued commands                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `AutoSetFilterGain()`                 | Array<Tango::DevDouble>      | Requested RFI headroom(s).                        | SCANNING              | This command triggers the algorithm to determine and adjust filter gains and levels and takes as input the optional parameter Headroom.                                                                                                                                                                                                                                                                                                                                                                    |
-| `AutoSetTCBGain()`                    | Scalar      | Dwell Time                                     | SCANNING              | This command triggers algorithm that measures and adjusts Transient Capture Buffer (TCB) re-quantizer gain settings to provide optimal sensitivity. ‘Dwell time” specifies how long to integrate to determine the quantizer gain settings (seconds).   <br>  <br>Applies gain corrections on fine channels.                                                                                                                                                                                                |
-| `UpdateSubarrayMembership()`          | int         | Subarray ID                                    |                       | Command to update the current subarray membership of the VCC. If the VCC is not currently assigned to a subarray, i.e. its subarray_id attribute is 0, then its membership is updated and the subarray_id attribute is set appropriately. Otherwise, if the current subarray_id > 0, indicating the VCC has already been assigned to a differing subarray, then the command is REJECTED.  <br>  <br>The VCC’s subarray membership can also be cleared using this command, by providing a subarray ID of 0. |
-| `OffloadTransientDataCapture()`       | Timestamp   | Starting epoch to begin transient capture | SCANNING              | Command which triggers the offload of transient data for the given VCC. Data is offloaded relative to the start time of the capture and the duration configured within the scan. On command execution, writing to the transient buffer is locked, and it is iterated over to construct a capture, starting at the provided start time and lasting for the provided duration, before it is transmitted over the 400GbE to SDP.                                                                              |
-| `UpdateDelayModels()`                 | JSON string | See below.                                     | READY, SCANNING       | Update delay tracking with new High order delay models required for PSS processing.                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `GetStoredGainValues()` | int         | Optional - Index for a frequency band {1-6}    | N/A                   | Returns a 2-Dimensional list of previously set auto-set gains.   <br>  <br>- Valid band index provided - Returns a 2-Dim arr with at index 0 the gains applied for the given band  <br>- Valid band index provided with no prior scan for that band - Returns an empty list  <br>- No index provided - Returns a 2-Dim arr of format [i → frequency band, j → gain value for channel i, pol % 2]                                                                                                           |
-| `UpdateJonesMatrix()`                 | (TBD)       |                                                |                       | **Placeholder:** Applies updates to Jones Matrix polarization correction for fine channels.                                                                                                                                                                                                                                                                                                                                                                                                                |                                                                                     |
-| `GetBandpassCorrectionCoefficients()`                 | (TBD)       |                                                |                       | **Placeholder:** TBD: Retrieves Bandpass correction coefficients required when PSS is configured.                                                                                                                                                                                                                                                                                                                                                                                                                |                                                                                     |
-| `ConfigureVCCBite()`                 | JSON string  | See below.                                     |                       | Command to configure VCC Bite and apply the input configuration provided. The parameters are propogated to low-level servers.                                                                                                                                                                                                                                                                      |                                                                                     |
-| `DeconfigureVCCBite()`                 | JSON string  | See below.                                     |                       | Command to deconfigure VCC Bite. The low-level servers are deconfigured and the previously applied configuration is removed.                                                                                                                                                                                                                                                                      |                                                                                     |
+| Name | Input Type | Input Parameter | Allowed in modes | Description |
+| ---- | ---------- | --------------- | ---------------- | ----------- |
+| `Abort()` | JSON String | See below. | IDLE, READY, SCANNING | Sets the device state to ABORTED and aborts all running/queued commands. |
+| `ConfigureScan()` | JSON String | See below. | IDLE, READY | Configure parameters for the next scan(s). Parameters are propagated down to low-level device servers. Sets the state to CONFIGURING, if the input JSON can be successfully parsed the state is set to READY. |
+| `ConfigureVCCBite()` | JSON String | See below. | TODO: | Command to configure VCC Bite and apply the input configuration provided. The parameters are propogated to low-level servers. | TODO: |
+| `DeconfigureVCCBite()` | JSON String | See below. | TODO: | Command to deconfigure VCC Bite. The low-level servers are deconfigured and the previously applied configuration is removed. | TODO: |
+| `GoToIdle()` | JSON String | See below. | READY | Resets the device and changes the state to IDLE |
+| `UpdateSubarrayMembership()` | Integer | Subarray ID | TODO: | Command to update the current subarray membership of the VCC. If the VCC is not currently assigned to a subarray, i.e. its subarray_id attribute is 0, then its membership is updated and the subarray_id attribute is set appropriately. Otherwise, if the current subarray_id > 0, indicating the VCC has already been assigned to a different subarray, then the command is REJECTED.  <br>  <br>The VCC’s subarray membership can also be cleared using this command, by providing a subarray ID of 0. |
+
+### Proposed Commands (Unimplemented)
+| `AutoSetTCBGain()` | Scalar | Dwell Time | SCANNING | This command triggers algorithm that measures and adjusts Transient Capture Buffer (TCB) re-quantizer gain settings to provide optimal sensitivity. ‘Dwell time” specifies how long to integrate to determine the quantizer gain settings (seconds).   <br>  <br>Applies gain corrections on fine channels. |
+| `GetBandpassCorrectionCoefficients()` | (TBD) | TODO: | TODO: | **Placeholder:** TBD: Retrieves Bandpass correction coefficients required when PSS is configured. | TODO: |
+| `GetStoredGainValues()` | int | Optional - Index for a frequency band {1-6} | N/A | Returns a 2-Dimensional list of previously set auto-set gains.   <br>  <br>- Valid band index provided - Returns a 2-Dim arr with at index 0 the gains applied for the given band  <br>- Valid band index provided with no prior scan for that band - Returns an empty list  <br>- No index provided - Returns a 2-Dim arr of format [i → frequency band, j → gain value for channel i, pol % 2] |
+| `OffloadTransientDataCapture()` | Timestamp | Starting epoch to begin transient capture | SCANNING | Command which triggers the offload of transient data for the given VCC. Data is offloaded relative to the start time of the capture and the duration configured within the scan. On command execution, writing to the transient buffer is locked, and it is iterated over to construct a capture, starting at the provided start time and lasting for the provided duration, before it is transmitted over the 400GbE to SDP. |
+| `UpdateDelayModels()` | JSON string | See below. | READY, SCANNING | Update delay tracking with new High order delay models required for PSS processing. |
+| `UpdateJonesMatrix()` | (TBD) | TODO: | TODO: | **Placeholder:** Applies updates to Jones Matrix polarization correction for fine channels.| TODO: |
+
 ### Command Parameter Definitions
-#### `UpdateSubarrayMembership(int)`
-##### Parameters
-| Name                | Type                                   | Description | Range |
-| ------------------- | -------------------------------------- | ----------- | ----- |
-| subarray_id  | int                                 | Subarray ID to assign this VCC to. If 0, the subarray membership of the VCC is reset.            | 0-16      |
-##### Returns
-Returns `ResultCode.OK` if the VCC could be successfully assigned or the value has been cleared. The command is a LRC to ensure no race conditions can occur between subarrays.
-##### Errors
-Returns `ResultCode.REJECTED` if the VCC is already assigned to a subarray and the ID provided is not equal to 0. Membership must be cleared before reassignment.
-#### `ConfigureScan()`
-##### Parameters
-| Name                                   | Type                                                                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Range                                                                                                                              |
-| -------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `config_id`                            | string                                                                 | Identifier of the current scan configuration                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                    |
-| `expected_dish_id`                       | string                                                                 | Expected Dish ID for the VCC                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | MKT000-MKT063 or  <br>SKA001-SKA133                                                                                                |
-| `frequency_band`                       | string                                                                 | Frequency band for the current scan                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | ("1","2","5a","5b")                                                                                                                |
-| `frequency_band_offset_stream1`       | long                                                                   | See `frequencyBandOffset` attribute description                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | ![](https://confluence.skatelescope.org/plugins/servlet/latexmath/placeholder?key=4c1bf6a7b39e79ccfdb21ee05a003e7c&vertAlign=-8px) |
-| `frequency_band_offset_stream2`       | long                                                                   | See `frequencyBandOffset` attribute description                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | ![](https://confluence.skatelescope.org/plugins/servlet/latexmath/placeholder?key=4c1bf6a7b39e79ccfdb21ee05a003e7c&vertAlign=-8px) |
-| `b123_power_meter`                       | PowerMeterConfig                       | Configuration for the wideband power meter pre-B123 OSPPFB Channelizer                                                                                                                                                                                                                                                                                                                                                                                                                                                     |                                                                                                                                    |
-| `b45_1_power_meter`                      | PowerMeterConfig                       | Configuration for the wideband power meter pre-B45 sub-band 1 OSPPFB Channelizer                                                                                                                                                                                                                                                                                                                                                                                                                                           |                                                                                                                                    |
-| `b45_2_power_meter`                      | PowerMeterConfig                       | Configuration for the wideband power meter pre-B45 sub-band 2 OSPPFB Channelizer                                                                                                                                                                                                                                                                                                                                                                                                                                           |                                                                                                                                    |
-| `fs_lanes`                               | Array of FSLaneConfig(size = 26)                                       | Configuration the set of 26 FS power meters, each element specifies config for relative to an FS lane following the FS Selection handling either 10 FS in Band 1&2, 15 in Band 4 or 26 in Band 5 (a or b).                                                                                                                                                                                                                                                                                                                 |                                                                                                                                    |
-| `fs_select_start_channels`               | Array of int {0-2} (size = 2)                                          | Required in band 5 (a or b) the two streams produce 15 frequency slices each through the B45.1 and B45.2 channelizers for a total of 30 frequency slices however, only 26 outputs are available within the FS selection IP block. Therefore, the start channel index is used to mitigate the number of FSs for both streams.  <br>  <br>fs_select_start_channel[0] → sets the starting index for 13 FS selected from stream 1<br><br>fs_select_start_channel[1] → sets the starting index for 13 FS selected from stream 2 |                                                                                                                                    |
-| `band_5_tuning or stream_tuning`       | Array of Floats                                                        | Center frequency for the band-of-interest. Required if band is 5a or 5b; not specified for other bands                                                                                                                                                                                                                                                                                                                                                                                                                     | 5A: 5.85 to 7.25 GHz  <br>5B:  9.55 to 14.05 GHz                                                                                   |
-| `noise_diode_transition_holdoff_count` | int                                                                  | Number of sample frames that indicates the worst case state transition in the event of packet loss/corruption within the Wideband Input Buffer.                                                                                                                                                                                                                                                                               | 0 to 65535                                                                                                                         |
-| `dish_sample_rate`                     | uint64_t                                                               | Dish sample rate factoring in the frequency band and the freq_offset_k                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 3,960,001,800 to 11,891,998,800                                                                                                    |
-| `vcc_gains_stream_1`                   | Array of DevDouble (size = `num_vcc_channels_` * `num_polarizations_`) | Specifies the gain of each channel in the VCC for stream 1 (e.g. VCC-B123 OSPPFB or VCC-B45 OSPPFB 1)                                                                                                                                                                                                                                                                                                                                                                                                                      | When frequency band is:<br><br>12&3 → Size = 20, or,<br><br>4, 5a/5b → Size = 30                                                   |
-| `vcc_gains_stream_2`                   | Array of DevDouble (size = `num_vcc_channels_` * `num_polarizations_`) | Specifies the gain of each channel for the VCC-B45 OSPPFB 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Size = 30                                                                                                                          |
-| `is_pss`                                 | bool                                                                   | Is PSS being configured?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                    |
-| `pss`                                    | PSSConfig                                                              | The PSS configuration, used if PSS is being configured (is_pss=True)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |                                                                                                                                    |
 
-**Power Meter Config**
-
-| Name      | Type  | Description                                                                                                                                                                                                                                                                          | Range                                                 |
-| --------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
-| `averaging` | float | Averaging interval in seconds. The power meters implement a block moving average, when interval `t` ends the accumulated power is divided by `t` to produce an average power value. The power accumulators are then reset to start a new block average. (Used for Wideband and FS lanes power meters) |                                                       |
-| `flagging`  | int   | Specifies the mode used for to handle flagged data.                                                                                                                                                                                                 | 0 - Ignore<br><br>1 - Use<br><br>2 - Saturate and use |
-
-**FS Lane Config Definition**:
-
-| Name      | Type   | Description                                                                                                                                                                                                                                                                          | Range                                                 |
-| --------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
-| `vlan_id`   | uint16 | VLAN identifier for use in network switch map to the given FS to an FSP (Used for the VCC Stream Merge)                                                                                                                                                                                    | $[[2, 1001], [1006, 4094]]$                           |
-| `fs_id`     | int    | Identifier of the frequency slice                                                                                                                                                                                                                                                    | $[1,26]$                                              |
-| `power_meter` | PowerMeter Config  | Power Meter configuration to configure the ND Power Meter for the fs lane equal to `fs_id`. | |
-
-**PSS Config**
-| Name                   | Type                         | Description                                                                                                                                                                                           | Range       |
-| ---------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `search_window`        | Array of SearchWindow Config | Provides configuration for up to two 300 MHz Search Windows, providing input Transient Capture Buffer and/or PSS beam-forming.                                                                        | Size=1 or 2 |
-| `rdt`                  | RDTConfig                    | See below definition. **TBD:** The size of this config relative to the 6 RDTs.                                                                                                                                                                                |             |
-| `enable_tcb`           | bool                         | Is Transient Capture Buffer enabled?                                                                                                                                                                  |             |
-| `tcb_fs_ids`           | int[2]                       | FS Identifiers for use in the TB FS Selection block prior to requantization. <br><br>Assumption packetizing information can be derived from the `vcc_id` and `search_window_id`.                      |             |
-| `tcb_period_before_epoch`         | int                          | Period before requested epoch to capture transient data.                                                                                          | 2s or 4s  |
-| `tcb_period_after_epoch`         | int                          | Period after requested epoch to capture transient data.                                                                                          | 20s or 40s  |
-| `tcb_bit_size`         | int                          | The bit size of the FS to be requantized to for use in the buffers.                                                                                                                                   | 4 or 8      |
-| `tcb_destination_addr` | string                       | Destination address for offload of transient buffer data. This must be validated to map to the SDP port, due this **TBD** if we need to provide this configuration option if we know the destination. |             |
-
-
-**SearchWindow Config**
-| Name                           | Type | Description                                                                                                                                                                                  | Range                                                                                                                                                                                                                        |
-| ------------------------------ | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `search_window_id`             | int  | Identifier of the 300MHz Search Window.<br><br>Unique within a sub-array.                                                                                                                    | 1-2                                                                                                                                                                                                                          |
-| `search_window_tuning`         | int  | The Search Window tuning in Hertz (Hz) is provided in absolute terms as RF center frequency. Based on this, Mid.CBF calculates its tuning within the data stream received from the receptor. | The Search Window must be placed within the observed Band. If partially out of the observed Band a warning is generated. If completely outside of the observed Band an exception is generated and configuration is rejected. |
-| `search_window_size` **(TBD)** | int  | Parameter to specify the sizes of the SWs, provided as integers 1,2, …, 10, which represent multiples of 40 MHz                                                                              |                                                                                                                                                                                                                              |
-
-**RDT Config**
-| Name                               | Type   | Description                                                                                                                                                                                                                                                                                                                                          | Range |
-| ---------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
-| `input_sample_rate`                  | long   | The sample rate of the incoming signal.                                                                                                                                                                                                                                                                                                              | >= 0  |
-| `output_sample_rate`                 | long   | The desired sample rate of the outgoing signal.                                                                                                                                                                                                                                                                                                      | >= 0  |
-| `fo_validity_interval`               | double | The duration, in seconds, for which each FODM should be valid, i.e., this should represent the difference between each FODM's start_ts and stop_ts. Default is 0.01 (10ms).                                                                                                                                                                          | >= 0  |
-| `fo_fill_threshold`                  | long   | The "needs filling" threshold of elements in the FW circular buffer, below which the DS will start generating and loading more FODMs into the FW. Default is 3000 (30 seconds of 10ms FODMs).                                                                                                                                                        | >= 0  |
-| `fo_low_threshold`                   | long   | The "low" threshold of elements in the FW circular buffer, below which the DS will move to a DEGRADED HealthState. Default is 500 (5 seconds of 10ms FODMs).                                                                                                                                                                                         | >= 0  |
-| `first_input_timestamp_start_offset` | double | The time offset, in seconds, which is added to the current timestamp of the IP to determine the minimum allowed start timestamp, rounded up to the next PPS, for FODMs to be provided to the FW driver (which then loads them into the circular buffer). All FODMs generated with start timestamps before this calculated minimum will be discarded. | >= 0  |
-| `num_lsq_points`                     | long   | The number of points to use in the Least Squares (LSQ) linear fitting algorithm for converting HODMs to FODMs. Default is 100.                                                                                                                                                                                                                       | >= 0  |
-| `freq_down_shift`                    | double | The frequency downshift that was applied to the input signal in the VCC IP(?).                                                                                                                                                                                                                                                                       |       |
-| `freq_align_shift`                   | double | A fine frequency shift to additionally apply to the output signal. This covers any residual wideband frequency shift and alignment of channels between frequency slices.                                                                                                                                                                             |       |
-| `freq_wb_shift`                      | double | The wideband (WB) frequency shift that was applied to the input signal in the Frequency Shifter IP(?).                                                                                                                                                                                                                                               |       |
-| `freq_scfo_shift`                    | double | The frequency shift required due to SCFO sampling. (TODO: Need more detail?)                                                                                                                                                                                                                                                                         |       |
-##### Returns
-Implmented as a LRC. Once the task has completed for a successful command completion, the command will return `ResultCode.OK` with message `ConfigureScan completed OK`.
-##### Errors
-Bad Request: provided configuration does not match required JSON schema definition or input critieria for a specific band. Returns `ResultCode.REJECTED` and message: `Arg provided does not meet ConfigureScan criteria: {reason}`
-
-State Model violation: there was an attempt to call a command that violates the current ObsState. Returns `ResultCode.REJECTED` and message `Attempted to call ConfigureScan command from an incorrect state`
-
-Low-level device failure: error configuring a IP block low-level device. Returns `ResultCode: REJECTED, message: Configuration of low-level fhs device failed: {device name}`
-
-Server Error: unexpected error occured on server. Returns `ResultCode: FAILED, message: Failed to an unexpected exception during ConfigureScan`
-
-
-#### `UpdateDelayModels(DevString)`
-##### Parameters
-| Name                | Type                                   | Description | Range |
-| ------------------- | -------------------------------------- | ----------- | ----- |
-| `start_validity_sec`  | Double                                 |             |       |
-| `cadence_sec`         | Double                                 |             |       |
-| `validity_period_sec` | Double                                 |             |       |
-| `config_id`           | String                                 |             |       |
-| `subarray`            | Integer                                |             |       |
-| `receptor_delays`     | Array of JSON (format Receptor Delays) |             |       |
-
-**Receptor Delays Config**
-| Name            | Type             | Description                               | Range |
-| --------------- | ---------------- | ----------------------------------------- | ----- |
-| `receptor`        | uint16           | Receptor id to update the delay model for | TBD   |
-| `xypol_coeffs_ns` | Vector of Double |                                           |       |
-| `ypol_offset_ns`  | Double           |                                           |       |
-#### `GoToIdle()` 
-##### Parameters
-n/a
-
-#### `AutoSetFilterGains(int)`
-##### Parameters
-| Name                | Type                                   | Description | Range |
-| ------------------- | -------------------------------------- | ----------- | ----- |
-| `requested_rfi_headroom`  | `Array<Tango::DevDouble>` - Optional                                 | Requested RFI Headroom, in decibels (dB), to be accounted for pre-requantization. May contain a single value to apply to all frequency slices, or `num FSs` values to apply to each FS separately. (default: 3 dB for all FS)           |       |
-
-#### `OffloadTransientBufferCapture(DevLong)`
-##### Parameters
-| Name                | Type                                   | Description | Range |
-| ------------------- | -------------------------------------- | ----------- | ----- |
-| `epoch_start_time`  | long                                 | Epoch start time to begin transient buffer capture            |       |
-
-#### `GetStoredGainValues(int) - Fast Command`
-##### Parameters
-| Name                | Type                                   | Description | Range |
-| ------------------- | -------------------------------------- | ----------- | ----- |
-| `band_id`  | int - Optional                                 | Frequency Band of interest for retrieving gain corrections (uses same definition as Frequency Band used within ConfigureScan)            |  1-6     |
-##### Returns
-Returns a `Float[][][]` of digital bandpass corrections for the specified of `band_id`. 
-
-If a `band_id` is not provided All gains corrections are returned of the format `[i → frequency band, j → gain value for channel i, pol % 2]`
 #### `Abort()`
 ##### Parameters
-n/a
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| subarray_id | Number | Identifier of the subarray to abort. | 0 - 16 |
+| transaction_id | String | Optional identifier that will be used for tracing. |  |
 
+#### `ConfigureScan()`
+##### Parameters
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| config_id | String | Identifier of the current scan configuration. |  |
+| dish_sample_rate | Number | Dish sample rate factoring in the frequency band and the K value. | `3960000000` - `11891998800` |
+| expected_dish_id | String | Expected Dish ID for the VCC. | `MKT000`-`MKT063` or <br>`SKA001`-`SKA133` |
+| frequency_band | String | Frequency band for the current scan. | `1`,`2`,`5a`, or `5b` |
+| frequency_band_offset_stream1 | Number | See `frequencyBandOffset` attribute description. | `-100000000` - `100000000` |
+| frequency_band_offset_stream2 | Number | See `frequencyBandOffset` attribute description. | `-100000000` - `100000000` |
+| vcc_gains_stream_1 | Array[Number] | Specifies the gain of each channel in the VCC for stream 1.<br>(e.g. VCC-B123 OSPPFB or VCC-B45 OSPPFB 1) <br>Size = `num_vcc_channels_` * `num_polarizations_` <br><br>Bands 1, 2, 3 → Size = 20,<br>Bands 4, 5a, 5b → Size = 30 | `-1.0` - `1.0` TODO: |
+| noise_diode_transition_holdoff_count | Number | Number of sample frames that indicates the worst case state transition in the event of packet loss/corruption within the Wideband Input Buffer. | `0` - `65535` |
+| band_5_tuning | Number | Center frequency for the band-of-interest. Required if band is 5a or 5b; not specified for other bands | Band 5a: `5.85` - `7.25` GHz <br>Band 5b:  `9.55` - `14.05` GHz |
+| b123_power_meter | Object[`PowerMeterConfig`] | Configuration for the wideband power meter pre-B123 OSPPFB Channelizer |  |
+| b45_1_power_meter | Object[`PowerMeterConfig`] | Configuration for the wideband power meter pre-B45 sub-band 1 OSPPFB Channelizer |  |
+| b45_2_power_meter | Object[`PowerMeterConfig`] | Configuration for the wideband power meter pre-B45 sub-band 2 OSPPFB Channelizer |  |
+| fs_lanes | Array[`FSLaneConfig`] | Configuration for the set of (up to) 26 FS power meters.<br>Array size is relative to the configured frequency band:<br><br>Band 1, 2 → Size = 10<br>Band 4 → Size = 15<br>Band 5a, 5b → Size = 26. |  |
+
+**Power Meter Config**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| averaging | Number | Averaging interval in seconds. The power meters implement a block moving average; when interval `t` ends, the accumulated power is divided by `t` to produce an average power value. The power accumulators are then reset to start a new block average. (Used for Wideband and FS lanes power meters) |  |
+| flagging | Number | Specifies the mode used to handle flagged data. | 0 - Ignore<br>1 - Use<br>2 - Saturate and use |
+
+**FS Lane Config Definition**:
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| vlan_id | Number | VLAN identifier for use in network switch map to the given FS to an FSP (Used for the VCC Stream Merge) | [[2, 1001], [1006, 4094]] |
+| fs_id | Number | Identifier of the frequency slice | [1, 26] |
+| power_meter | Object[`PowerMeterConfig`] | Power Meter configuration to configure the ND Power Meter for the fs lane equal to `fs_id`. |  |
+
+**PSS Config (Unimplemented)**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| `search_window` | Array of SearchWindow Config | Provides configuration for up to two 300 MHz Search Windows, providing input Transient Capture Buffer and/or PSS beam-forming. | Size=1 or 2 |
+| `rdt` | RDTConfig | See below definition. **TBD:** The size of this config relative to the 6 RDTs. |  |
+| `enable_tcb` | bool | Is Transient Capture Buffer enabled? |  |
+| `tcb_fs_ids` | int[2] | FS Identifiers for use in the TB FS Selection block prior to requantization. <br><br>Assumption packetizing information can be derived from the `vcc_id` and `search_window_id`. |  |
+| `tcb_period_before_epoch` | int | Period before requested epoch to capture transient data. | 2s or 4s |
+| `tcb_period_after_epoch` | int | Period after requested epoch to capture transient data. | 20s or 40s |
+| `tcb_bit_size` | int | The bit size of the FS to be requantized to for use in the buffers. | 4 or 8 |
+| `tcb_destination_addr` | string | Destination address for offload of transient buffer data. This must be validated to map to the SDP port, due this **TBD** if we need to provide this configuration option if we know the destination. |  |
+
+**SearchWindow Config (Unimplemented)**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| `search_window_id` | int | Identifier of the 300MHz Search Window.<br><br>Unique within a sub-array. | 1-2 |
+| `search_window_tuning` | int | The Search Window tuning in Hertz (Hz) is provided in absolute terms as RF center frequency. Based on this, Mid.CBF calculates its tuning within the data stream received from the receptor. | The Search Window must be placed within the observed Band. If partially out of the observed Band a warning is generated. If completely outside of the observed Band an exception is generated and configuration is rejected. |
+| `search_window_size` **(TBD)** | int  | Parameter to specify the sizes of the SWs, provided as integers 1,2, …, 10, which represent multiples of 40 MHz |  |
+
+**RDT Config (Unimplemented)**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| `input_sample_rate` | long | The sample rate of the incoming signal. | >= 0 |
+| `output_sample_rate` | long | The desired sample rate of the outgoing signal. | >= 0 |
+| `fo_validity_interval` | double | The duration, in seconds, for which each FODM should be valid, i.e., this should represent the difference between each FODM's start_ts and stop_ts. Default is 0.01 (10ms). | >= 0 |
+| `fo_fill_threshold` | long | The "needs filling" threshold of elements in the FW circular buffer, below which the DS will start generating and loading more FODMs into the FW. Default is 3000 (30 seconds of 10ms FODMs). | >= 0 |
+| `fo_low_threshold` | long | The "low" threshold of elements in the FW circular buffer, below which the DS will move to a DEGRADED HealthState. Default is 500 (5 seconds of 10ms FODMs). | >= 0 |
+| `first_input_timestamp_start_offset` | double | The time offset, in seconds, which is added to the current timestamp of the IP to determine the minimum allowed start timestamp, rounded up to the next PPS, for FODMs to be provided to the FW driver (which then loads them into the circular buffer). All FODMs generated with start timestamps before this calculated minimum will be discarded. | >= 0  |
+| `num_lsq_points` | long | The number of points to use in the Least Squares (LSQ) linear fitting algorithm for converting HODMs to FODMs. Default is 100. | >= 0 |
+| `freq_down_shift` | double | The frequency downshift that was applied to the input signal in the VCC IP(?). |  |
+| `freq_align_shift` | double | A fine frequency shift to additionally apply to the output signal. This covers any residual wideband frequency shift and alignment of channels between frequency slices. |  |
+| `freq_wb_shift` | double | The wideband (WB) frequency shift that was applied to the input signal in the Frequency Shifter IP(?). |  |
+| `freq_scfo_shift` | double | The frequency shift required due to SCFO sampling. (TODO: Need more detail?) |  |
+##### Result Codes
+- Success: the command will return `ResultCode.OK` and message `ConfigureScan completed OK`.
+- Bad request: provided configuration does not match required JSON schema definition or input critieria for a specific band. Returns `ResultCode.REJECTED` and message `Arg provided does not meet ConfigureScan criteria: {reason}`
+- State model violation: there was an attempt to call a command that violates the current ObsState. Returns `ResultCode.REJECTED` and message `Attempted to call ConfigureScan command from an incorrect state`
+- Low-level device failure: error configuring a IP block low-level device. Returns `ResultCode.REJECTED` and message `Configuration of low-level fhs device failed: {device name}`
+- Server error: unexpected error occured on server. Returns `ResultCode.FAILED` and message `Failed to an unexpected exception during ConfigureScan`
 
 #### `ConfigureVCCBite()`
 ##### Parameters
-| Name                                      | Type                                                            | Description                                                                                                                                                                                                                                                                                                                                                                                       | Range |
-|-------------------------------------------|-----------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
-| **receiver**                               | `VCCAllBandsConfigureVCCBiteReceiverConfig`                     | Configuration of the VCC receiver.                                                                                                                                                                                                                                                                                                                                            |       |
-| `receiver.dish_id`                        | `string`                                                        | Dish identifier used by the VCC.                                                                                                                                                                                                                                                                                                                                                                 |       |
-| `receiver.dish_sample_rate`           | `int`                                                           | Dish sample‑rate (Hz).                                                                                                                                                                                                                                                                                                                       |       |
-| `receiver.noise_diode`                    | `VCCAllBandsConfigureVCCBiteNoiseDiodeConfig`                   | Noise‑diode (ND) configuration.                                                                                                                                                                                                                                                                                                                                                       |       |
-| `dwell_time_us`                           | `int`                                                           | ND “on/off” dwell time in micro‑seconds.                                                                                                                                                                                                                                                                                                                                                         |       |
-| `random_pattern_seed`                     | `int`                                                           | Seed for the random ND on/off pattern generator.                                                                                                                                                                                                                                                                                                                                          |       |
-| `on_state_scaling_factor`                 | `float`                                                         |                                                                                                                                                                                                                                                                                                                                           |       |
-| `receiver.noise_info` *(optional)*        | `VCCAllBandsConfigureVCCBiteNoiseInfoConfig`                    | Optional “noise‑info” details.                                                                                                                                                                                                                                                                                                                          |       |
-| `noise_info.pol_x.seed`                   | `int`                                                           | Seed for the X‑polarisation Gaussian‑noise generator.                                                                                                                                                                                                                                                                                                                                          |       |
-| `noise_info.pol_x.noise_std`              | `int`                                                           | Standard deviation of the X‑polarisation noise.                                                                                                                                                                                                                                                                                                                                           |       |
-| `noise_info.pol_x.noise_mean`             | `int`                                                           | Mean (offset) of the X‑polarisation noise.                                                                                                                                                                                                                                                                                                                                                      |       |
-| `noise_info.pol_y.seed` *(optional)*      | `int`                                                           | Seed for the Y‑polarisation Gaussian‑noise generator.                                                                                                                                                                                                                                                                                                                                          |       |
-| `noise_info.pol_y.noise_std` *(optional)* | `int`                                                           | Standard deviation of the Y‑polarisation noise.                                                                                                                                                                                                                                                                                                                                           |       |
-| `noise_info.pol_y.noise_mean` *(optional)*| `int`                                                           | Mean (offset) of the Y‑polarisation noise.                                                                                                                                                                                                                                                                                                                                                     |       |
-| **source**                                 | `VCCAllBandsConfigureVCCBiteSourceConfig`                       | Configuration of the VCC source.                                                                                                                                                                                                                                                                                                                                           |       |
-| `source.noise_info`                       | `VCCAllBandsConfigureVCCBiteNoiseInfoConfig`                    | Noise‑info.                                                                                                                                                                                                                                                                                                                                |       |
-| `source.pol_coupling_rho`                 | `float`                                                         |                                                                                                                                                                                                                                                                                                     |       |
-| `source.pol_Y_1_sample_delay`             | `bool`                                                          |                                                                                                                                                                                                                                                                                                                             |       |
-| **rfi**                                    | `list[VCCAllBandsConfigureVCCBiteRfiConfig]` (size = 1‑2)          | Up to two RFI tone definitions (one per polarisation).                                                                                                                                                                                                                                                                                                                                          |       |
-| `rfi[i].pol_x.frequency`                  | `int`                                                          | Frequency (Hz) of the X‑polarisation RFI tone.                                                                                                                                                                                                                                                                                                                                                  |       |
-| `rfi[i].pol_x.scale`                      | `float`                                                        | Amplitude scaling factor for the X‑tone.                                                                                                                                                                                                                                                                                                                                                         |       |
-| `rfi[i].pol_y` *(optional)*               | `VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig` (optional) | Y‑polarisation RFI tone – currently ignored by the driver (present for completeness).                                                                                                                                                                                                                                                                                                         |       |
-| **utc_start_time**                        | `int`                                                          | Desired UTC start time of the observation expressed as seconds since the Unix epoch (1970‑01‑01T00:00:00Z).                                                                                                                                                                                                                                                                                        |       |
-| **band**                                   | `int`                                                          | Frequency‑band used by the VCC.                                                                                                                                                                                                                                                                                                                                                      |       |
-| **transaction_id** *(optional)*           | `string`                                                       | Optional identifier that will be used for tracing.                                                                                                                                                                                                                                                                                                      |       |
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| receiver | Object[`VCCAllBandsConfigureVCCBiteReceiverConfig`] | Configuration of the VCC receiver. |  |
+| source | Object[`VCCAllBandsConfigureVCCBiteSourceConfig`] | Configuration of the VCC source. |  |
+| rfi | Array[`VCCAllBandsConfigureVCCBiteRfiConfig`] | Up to two RFI tone definitions (one per polarization). |  |
+| utc_start_time | Number | Desired UTC start time of the observation expressed as seconds since the Unix epoch (1970‑01‑01T00:00:00Z). |  |
+| band | Number | Frequency‑band used by the VCC. |  |
+| transaction_id *(optional)* | String | Optional identifier that will be used for tracing. |  |
 
-##### Returns
-Implmented as a LRC. Once the task has completed for a successful command completion, the command will return `ResultCode.OK` with message "ConfigureVCCBite completed OK"
+**VCCAllBandsConfigureVCCBiteReceiverConfig**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| dish_id | String | Dish identifier used by the VCC. |  |
+| dish_sample_rate | Number | Dish sample‑rate (Hz). |  |
+| noise_diode | Object[`VCCAllBandsConfigureVCCBiteNoiseDiodeConfig`] | Noise‑diode (ND) configuration. |  |
+| noise_info *(optional)* | `VCCAllBandsConfigureVCCBiteNoiseInfoConfig` | Optional “noise‑info” details. |  |
 
-##### Errors
+**VCCAllBandsConfigureVCCBiteNoiseDiodeConfig**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| dwell_time_us | Number | ND “on/off” dwell time in micro‑seconds. |  |
+| random_pattern_seed | Number | Seed for the random ND on/off pattern generator. |  |
+| on_state_scaling_factor | Number |  |  |
 
-Bad Request: provided configuration does not match required JSON schema definition or input critieria for a specific band. Returns `ResultCode.REJECTED` and message: `Arg provided does not meet ConfigureVCCBite criteria: {reason}`
+**VCCAllBandsConfigureVCCBiteNoiseInfoConfig**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| pol_x | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig`] | Configuration parameters for the X-Polarization. |  |
+| pol_y *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig`] | Optional configuration parameters for the Y-Polarization. |  |
 
-Low-level driver failure: error configuring a IP block low-level device. Returns `ResultCode: REJECTED, message: Configuration of low-level driver: {driver name}`
+**VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| seed | Number | Seed for the polarization's Gaussian‑noise generator. |  |
+| noise_std | Number | Standard deviation of the polarization's noise. |  |
+| noise_mean | Number | Mean (offset) of the polarization's noise. |  |
 
-Server Error: unexpected error occured on server. Returns `ResultCode: FAILED, message: Failed to an unexpected exception during ConfigureVCCBite`
+**VCCAllBandsConfigureVCCBiteSourceConfig**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| noise_info | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoConfig`] | Noise‑info. |  |
+| pol_coupling_rho | Number |  |  |
+| pol_Y_1_sample_delay | Boolean |  |  |
 
+**VCCAllBandsConfigureVCCBiteRfiConfig**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| frequency | Number | Frequency (Hz) of the polarization's RFI tone. |  |
+| scale | Number | Amplitude scaling factor for the polarization's tone. |  |
+
+##### Result Codes
 All error responses include the optional `transaction_id` field (if it was supplied in the request) so the caller can correlate request and response.
+- Success: the command will return `ResultCode.OK` and message `ConfigureVCCBite completed OK`.
+- Bad request: provided configuration does not match required JSON schema definition or input critieria for a specific band. Returns `ResultCode.REJECTED` and message `Arg provided does not meet ConfigureVCCBite criteria: {reason}`
+- Low-level driver failure: error configuring a IP block low-level device. Returns `ResultCode: REJECTED` and message `Configuration of low-level driver: {driver name}`
+- Server error: unexpected error occured on server. Returns `ResultCode: FAILED` and message `Failed to an unexpected exception during ConfigureVCCBite`
 
 #### `DeconfigureVCCBite()`
 ##### Parameters
-| Name                | Type                     | Description                                            | Range |
-|---------------------|--------------------------|--------------------------------------------------------|-------|
-| **transaction_id** *(optional)* | `string`                 | Optional identifier that will be used for tracing.                               |       |
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| transaction_id *(optional)* | String | Optional identifier that will be used for tracing. |  |
+##### Result Codes
+- Success: the command will return `ResultCode.OK` and message `DeconfigureVCCBite completed OK`.
 
-##### Returns
-Implmented as a LRC. Once the task has completed for a successful command completion, the command will return `ResultCode.OK` with message "DeconfigureVCCBite completed OK"
+#### `GoToIdle()` 
+##### Parameters
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| subarray_id | Integer | Identifier of the subarray to abort. | 0 - 16 |
+| transaction_id | String | Optional identifier that will be used for tracing. |  |
+
+#### `UpdateSubarrayMembership()`
+##### Parameters
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| subarray_id | Integer | Subarray ID to assign this VCC to. If 0, the subarray membership of the VCC is reset. | 0-16 |
+##### Result Codes
+The command is an LRC to ensure no race conditions can occur between subarrays.
+- Success: the command will return `ResultCode.OK` and message `UpdateSubarrayMembership completed OK`.
+- Bad request: the VCC is already assigned to a subarray and the ID provided is not equal to 0, or the requested subarray ID is outside of the valid range. Membership must be cleared before reassignment; the command will return `ResultCode.REJECTED` along with a descriptive message.
+
+### Proposed Command Parameter Definitions (Unimplemented)
+
+#### `OffloadTransientBufferCapture()`
+##### Parameters
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| `epoch_start_time` | long | Epoch start time to begin transient buffer capture |  |
+
+#### `GetStoredGainValues() - Fast Command`
+##### Parameters
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| `band_id` | int - Optional | Frequency Band of interest for retrieving gain corrections (uses same definition as Frequency Band used within ConfigureScan) | 1-6 |
+##### Result Codes
+Returns a `Float[][][]` of digital bandpass corrections for the specified of `band_id`. 
+If a `band_id` is not provided All gains corrections are returned of the format `[i → frequency band, j → gain value for channel i, pol % 2]`
+
+#### `UpdateDelayModels()`
+##### Parameters
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| `start_validity_sec` | Double |  |  |
+| `cadence_sec` | Double |  |  |
+| `validity_period_sec` | Double |  |  |
+| `config_id` | String |  |  |
+| `subarray` | Integer |  |  |
+| `receptor_delays` | Array of JSON (format Receptor Delays) |  |  |
+
+**Receptor Delays Config**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| `receptor` | uint16 | Receptor id to update the delay model for | TBD |
+| `xypol_coeffs_ns` | Vector of Double |  |  |
+| `ypol_offset_ns` | Double |  |  |
