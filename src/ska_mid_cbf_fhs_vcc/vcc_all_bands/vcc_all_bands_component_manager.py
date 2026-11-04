@@ -1030,4 +1030,4 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 self.vlan_lookup[switch] = filtered_data[switch]["vlan"]
         else:
             self.log_error("Mapping not added for " + target_id)
-            # TODO: Fill out entire example mapping file for VCCs and make error
+            raise KeyError(f"Could not find the requested VCC ({target_id}) in the VLAN mapping provided")
