@@ -268,12 +268,10 @@ VCCUnits:
   - unitNum: 1
     emulationMode: "0"
     switchIp: "127.0.0.1"
-    bmcEndpointIp: "127.0.1.1"
     instancesRange: [1, 6]
   - unitNum: 2
     emulationMode: "0"
     switchIp: "127.0.0.2"
-    bmcEndpointIp: "127.0.1.2"
     instancesRange: [7, 12]
 
 # --- DEVICE SERVER SIMULATION --- #
