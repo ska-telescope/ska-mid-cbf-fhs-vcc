@@ -47,6 +47,21 @@ class VCCAllBandsController(
         ]
 
     @attribute(
+        dtype="DevEnum",
+        enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURING.name, FhsState.CONFIGURED.name, FhsState.FAULT.name],
+        doc="Device's configuration state",
+    )
+    def configurationState(self) -> str:
+        """
+        Read-only Tango attribute that contains a string with the FhsState value for this device.
+
+        :return: FhsState of this device
+        :rtype: FhsState
+        """
+
+        return self.component_manager.configuration_state
+
+    @attribute(
         dtype=str,
     )
     def expectedDishId(self) -> str:
@@ -56,20 +71,6 @@ class VCCAllBandsController(
             :obj:`str`: The expected dish ID.
         """
         return self.component_manager.expected_dish_id
-
-    @attribute(
-        dtype=tango.DevUShort,
-        abs_change=1,
-        min_value=0,
-        max_value=16,
-    )
-    def subarrayID(self) -> int:
-        """Read-only Tango attribute specifying the subarray ID currently assigned to this VCC.
-
-        Returns:
-            :obj:`int`: The assigned subarray ID.
-        """
-        return self.component_manager.subarray_id
 
     @attribute(
         abs_change=1,
@@ -84,17 +85,6 @@ class VCCAllBandsController(
             ["1", "2", "3", "4", "5a", "5b"]).
         """
         return self.component_manager.frequency_band.value
-
-    @attribute(
-        dtype=tango.DevULong64,
-    )
-    def inputSampleRate(self) -> int:
-        """Read-only Tango attribute specifying the input sample rate of this VCC.
-
-        Returns:
-            :obj:`int`: The input sample rate.
-        """
-        return self.component_manager.input_sample_rate
 
     @attribute(
         dtype=tango.DevLong,
@@ -112,6 +102,17 @@ class VCCAllBandsController(
         return self.component_manager.frequency_band_offset
 
     @attribute(
+        dtype=tango.DevULong64,
+    )
+    def inputSampleRate(self) -> int:
+        """Read-only Tango attribute specifying the input sample rate of this VCC.
+
+        Returns:
+            :obj:`int`: The input sample rate.
+        """
+        return self.component_manager.input_sample_rate
+
+    @attribute(
         dtype=(float,),
         max_dim_x=26,
     )
@@ -122,6 +123,20 @@ class VCCAllBandsController(
             :obj:`list[float]`: The requested headrooms.
         """
         return self.component_manager.last_requested_headrooms
+
+    @attribute(
+        dtype=tango.DevUShort,
+        abs_change=1,
+        min_value=0,
+        max_value=16,
+    )
+    def subarrayID(self) -> int:
+        """Read-only Tango attribute specifying the subarray ID currently assigned to this VCC.
+
+        Returns:
+            :obj:`int`: The assigned subarray ID.
+        """
+        return self.component_manager.subarray_id
 
     @attribute(
         dtype=(float,),
@@ -135,21 +150,6 @@ class VCCAllBandsController(
             [ch0_polX, ch1_polX, ..., chN_polX, ch0_polY, ch1_polY, ..., chN_polY].
         """
         return self.component_manager.vcc_gains
-
-    @attribute(
-        dtype="DevEnum",
-        enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURING.name, FhsState.CONFIGURED.name, FhsState.FAULT.name],
-        doc="Device's configuration state",
-    )
-    def configurationState(self) -> str:
-        """
-        Read-only Tango attribute that contains a string with the FhsState value for this device.
-
-        :return: FhsState of this device
-        :rtype: FhsState
-        """
-
-        return self.component_manager.configuration_state
 
     @command(
         dtype_in="DevString",
@@ -326,6 +326,7 @@ class VCCAllBandsController(
             component_state_callback=self._component_state_changed,
             simulation_mode=self.simulation_mode,
             emulation_mode=self.emulation_mode,
+            long_running_command_result_buffer_max_size=self.long_running_command_result_buffer_max_size,
         )
 
 
