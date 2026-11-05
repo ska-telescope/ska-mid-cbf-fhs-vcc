@@ -15,7 +15,7 @@ from ska_tango_testing.harness import TangoTestHarnessContext
 
 EVENT_TIMEOUT = 30
 
-TEST_MAPPING_PATH = "tests/test_data/test_product_def.yaml"
+TEST_MAPPING_PATH = "tests/test_data"
 
 
 @pytest.fixture(scope="session")  # Use "session" scope for true constants
