@@ -517,7 +517,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
                 # Verify vlan_alias is within the provided keys and result is in range
                 for config in self._fs_lanes:
-                    if config.vlan_alias in self.vlan_lookup.keys():
+                    if config.vlan_alias in self.vlan_lookup:
                         if not (2 <= self.vlan_lookup[config.vlan_alias] <= 1001 or 1006 <= self.vlan_lookup[config.vlan_alias] <= 4094):
                             raise ValueError(f"VLAN ID {self.vlan_lookup[config.vlan_alias]} for alias {config.vlan_alias} is not within range")
                     else:
