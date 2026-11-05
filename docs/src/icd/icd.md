@@ -21,37 +21,36 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | ip_blocks | Dict | Base64-encoded string containing the deploy-time properties of all IP blocks managed by the controller. |
-| network_switch_id | Number | TODO: |
-| bmc_endpoint_id | Number | TODO: |
-| unit_number | Number | TODO: |
-| fpga_number | Number | TODO: |
-| long_running_command_result_buffer_max_size | Number | TODO: |
+| switch_ip | String | IP address of the VCC unit's switch. |
+| unit_number | Integer | VCC unit index within the CBF's 24 VCC units. |
+| fpga_number | Integer | FPGA index within the VCC unit's 2 FPGAs. |
+| long_running_command_result_buffer_max_size | Integer | Depth of the LRC command results buffer. |
 
 ### Publish Events
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| subarrayID | Number |  Publishes a change event whevever the VCC's subarray ID changes. |
-| configurationState | Number | Publishes a change event whenever the configurationState attribute changes. |
+| subarray_id | Integer |  Publishes a change event whevever the VCC's subarray ID changes. |
+| configuration_state | Integer | Publishes a change event whenever the configurationState attribute changes. |
 
 ### Commands
-| Name | Input Type | Input Parameter | Allowed in modes | Description |
-| ---- | ---------- | --------------- | ---------------- | ----------- |
-| `Abort()` | JSON String | See below. | IDLE, READY, SCANNING | Sets the device state to ABORTED and aborts all running/queued commands. |
-| `ConfigureScan()` | JSON String | See below. | IDLE, READY | Configure parameters for the next scan(s). Parameters are propagated down to low-level device servers. Sets the state to CONFIGURING, if the input JSON can be successfully parsed the state is set to READY. |
-| `ConfigureVCCBite()` | JSON String | See below. | TODO: | Command to configure VCC Bite and apply the input configuration provided. The parameters are propogated to low-level servers. | TODO: |
-| `DeconfigureVCCBite()` | JSON String | See below. | TODO: | Command to deconfigure VCC Bite. The low-level servers are deconfigured and the previously applied configuration is removed. | TODO: |
-| `GoToIdle()` | JSON String | See below. | READY | Resets the device and changes the state to IDLE |
-| `UpdateSubarrayMembership()` | Integer | Subarray ID | TODO: | Command to update the current subarray membership of the VCC. If the VCC is not currently assigned to a subarray, i.e. its subarray_id attribute is 0, then its membership is updated and the subarray_id attribute is set appropriately. Otherwise, if the current subarray_id > 0, indicating the VCC has already been assigned to a different subarray, then the command is REJECTED.  <br>  <br>The VCC’s subarray membership can also be cleared using this command, by providing a subarray ID of 0. |
+| Name | Input Type | Input Parameter | Description |
+| ---- | ---------- | --------------- | ----------- |
+| `Abort()` | JSON String | See below. | Sets the device state to ABORTED and aborts all running/queued commands. |
+| `ConfigureScan()` | JSON String | See below. | Configure parameters for the next scan(s). Parameters are propagated down to low-level device servers. Sets the state to CONFIGURING, if the input JSON can be successfully parsed the state is set to READY. |
+| `ConfigureVCCBite()` | JSON String | See below. | Command to configure VCC Bite and apply the input configuration provided. The parameters are propogated to low-level servers. |
+| `DeconfigureVCCBite()` | JSON String | See below. | Command to deconfigure VCC Bite. The low-level servers are deconfigured and the previously applied configuration is removed. |
+| `GoToIdle()` | JSON String | See below. | Resets the device and changes the state to IDLE |
+| `UpdateSubarrayMembership()` | Integer | Subarray ID | Command to update the current subarray membership of the VCC. If the VCC is not currently assigned to a subarray, i.e. its subarray_id attribute is 0, then its membership is updated and the subarray_id attribute is set appropriately. Otherwise, if the current subarray_id > 0, indicating the VCC has already been assigned to a different subarray, then the command is REJECTED.  <br>  <br>The VCC’s subarray membership can also be cleared using this command, by providing a subarray ID of 0. |
 
 ### Proposed Commands (Unimplemented)
-| Name | Input Type | Input Parameter | Allowed in modes | Description |
-| ---- | ---------- | --------------- | ---------------- | ----------- |
-| `AutoSetTCBGain()` | Scalar | Dwell Time | SCANNING | This command triggers algorithm that measures and adjusts Transient Capture Buffer (TCB) re-quantizer gain settings to provide optimal sensitivity. ‘Dwell time” specifies how long to integrate to determine the quantizer gain settings (seconds).   <br>  <br>Applies gain corrections on fine channels. |
-| `GetBandpassCorrectionCoefficients()` | (TBD) | TODO: | TODO: | **Placeholder:** TBD: Retrieves Bandpass correction coefficients required when PSS is configured. |
-| `GetStoredGainValues()` | int | Optional - Index for a frequency band {1-6} | N/A | Returns a 2-Dimensional list of previously set auto-set gains.   <br>  <br>- Valid band index provided - Returns a 2-Dim arr with at index 0 the gains applied for the given band  <br>- Valid band index provided with no prior scan for that band - Returns an empty list  <br>- No index provided - Returns a 2-Dim arr of format [i → frequency band, j → gain value for channel i, pol % 2] |
-| `OffloadTransientDataCapture()` | Timestamp | Starting epoch to begin transient capture | SCANNING | Command which triggers the offload of transient data for the given VCC. Data is offloaded relative to the start time of the capture and the duration configured within the scan. On command execution, writing to the transient buffer is locked, and it is iterated over to construct a capture, starting at the provided start time and lasting for the provided duration, before it is transmitted over the 400GbE to SDP. |
-| `UpdateDelayModels()` | JSON string | See below. | READY, SCANNING | Update delay tracking with new High order delay models required for PSS processing. |
-| `UpdateJonesMatrix()` | (TBD) | TODO: | TODO: | **Placeholder:** Applies updates to Jones Matrix polarization correction for fine channels.|
+| Name | Input Type | Input Parameter | Description |
+| ---- | ---------- | --------------- | ----------- |
+| `AutoSetTCBGain()` | Scalar | Dwell Time | This command triggers algorithm that measures and adjusts Transient Capture Buffer (TCB) re-quantizer gain settings to provide optimal sensitivity. ‘Dwell time” specifies how long to integrate to determine the quantizer gain settings (seconds).   <br>  <br>Applies gain corrections on fine channels. |
+| `GetBandpassCorrectionCoefficients()` | (TBD) | (TBD) | **Placeholder:** TBD: Retrieves Bandpass correction coefficients required when PSS is configured. |
+| `GetStoredGainValues()` | int | Optional - Index for a frequency band {1-6} | Returns a 2-Dimensional list of previously set auto-set gains.   <br>  <br>- Valid band index provided - Returns a 2-Dim arr with at index 0 the gains applied for the given band  <br>- Valid band index provided with no prior scan for that band - Returns an empty list  <br>- No index provided - Returns a 2-Dim arr of format [i → frequency band, j → gain value for channel i, pol % 2] |
+| `OffloadTransientDataCapture()` | Timestamp | Starting epoch to begin transient capture | Command which triggers the offload of transient data for the given VCC. Data is offloaded relative to the start time of the capture and the duration configured within the scan. On command execution, writing to the transient buffer is locked, and it is iterated over to construct a capture, starting at the provided start time and lasting for the provided duration, before it is transmitted over the 400GbE to SDP. |
+| `UpdateDelayModels()` | JSON string | See below. | Update delay tracking with new High order delay models required for PSS processing. |
+| `UpdateJonesMatrix()` | (TBD) | (TBD) | **Placeholder:** Applies updates to Jones Matrix polarization correction for fine channels.|
 
 ### Command Parameter Definitions
 
@@ -59,7 +58,7 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 ##### Parameters
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
-| subarray_id | Number | Identifier of the subarray to abort. | 0 - 16 |
+| subarray_id | Integer | Identifier of the subarray to abort. | `0` - `16` |
 | transaction_id | String | Optional identifier that will be used for tracing. |  |
 
 #### `ConfigureScan()`
@@ -67,13 +66,13 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
 | config_id | String | Identifier of the current scan configuration. |  |
-| dish_sample_rate | Number | Dish sample rate factoring in the frequency band and the K value. | `3960000000` - `11891998800` |
+| dish_sample_rate | Integer | Dish sample rate factoring in the frequency band and the K value. | `3960000000` - `11891998800` |
 | expected_dish_id | String | Expected Dish ID for the VCC. | `MKT000`-`MKT063` or <br>`SKA001`-`SKA133` |
-| frequency_band | String | Frequency band for the current scan. | `1`,`2`,`5a`, or `5b` |
-| frequency_band_offset_stream1 | Number | See `frequencyBandOffset` attribute description. | `-100000000` - `100000000` |
-| frequency_band_offset_stream2 | Number | See `frequencyBandOffset` attribute description. | `-100000000` - `100000000` |
-| vcc_gains_stream_1 | Array[Number] | Specifies the gain of each channel in the VCC for stream 1.<br>(e.g. VCC-B123 OSPPFB or VCC-B45 OSPPFB 1) <br>Size = `num_vcc_channels_` * `num_polarizations_` <br><br>Bands 1, 2, 3 → Size = 20,<br>Bands 4, 5a, 5b → Size = 30 | `-1.0` - `1.0` TODO: |
-| noise_diode_transition_holdoff_count | Number | Number of sample frames that indicates the worst case state transition in the event of packet loss/corruption within the Wideband Input Buffer. | `0` - `65535` |
+| frequency_band | String | Frequency band for the current scan. | `1`,`2`, `3`, `4`, `5a`, or `5b` |
+| frequency_band_offset_stream1 | Integer | See `frequencyBandOffset` attribute description. | `-100000000` - `100000000` |
+| frequency_band_offset_stream2 | Integer | See `frequencyBandOffset` attribute description. | `-100000000` - `100000000` |
+| vcc_gains_stream_1 | Array[Number] | Specifies the gain of each channel in the VCC for stream 1.<br>(e.g. VCC-B123 OSPPFB or VCC-B45 OSPPFB 1) <br>Size = `num_vcc_channels_` * `num_polarizations_` <br><br>Bands 1, 2, 3 → Size = 20,<br>Bands 4, 5a, 5b → Size = 30 | `-1.0` - `1.0` TODO: Confirm range|
+| noise_diode_transition_holdoff_count | Integer | Number of sample frames that indicates the worst case state transition in the event of packet loss/corruption within the Wideband Input Buffer. | `0` - `65535` |
 | band_5_tuning | Number | Center frequency for the band-of-interest. Required if band is 5a or 5b; not specified for other bands | Band 5a: `5.85` - `7.25` GHz <br>Band 5b:  `9.55` - `14.05` GHz |
 | b123_power_meter | Object[`PowerMeterConfig`] | Configuration for the wideband power meter pre-B123 OSPPFB Channelizer |  |
 | b45_1_power_meter | Object[`PowerMeterConfig`] | Configuration for the wideband power meter pre-B45 sub-band 1 OSPPFB Channelizer |  |
@@ -83,14 +82,14 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 **PowerMeterConfig**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
-| averaging | Number | Averaging interval in seconds. The power meters implement a block moving average; when interval `t` ends, the accumulated power is divided by `t` to produce an average power value. The power accumulators are then reset to start a new block average. (Used for Wideband and FS lanes power meters) |  |
-| flagging | Number | Specifies the mode used to handle flagged data. | 0 - Ignore<br>1 - Use<br>2 - Saturate and use |
+| averaging | Number | Averaging interval in seconds. The power meters implement a block moving average; when interval `t` ends, the accumulated power is divided by `t` to produce an average power value. The power accumulators are then reset to start a new block average. (Used for Wideband and FS lanes power meters) | > `0.0` |
+| flagging | Integer | Specifies the mode used to handle flagged data. | 0 - Ignore<br>1 - Use<br>2 - Saturate and use |
 
-**FSLaneConfig**:
+**FSLaneConfig**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
-| vlan_id | Number | VLAN identifier for use in network switch map to the given FS to an FSP (Used for the VCC Stream Merge) | [[2, 1001], [1006, 4094]] |
-| fs_id | Number | Identifier of the frequency slice | [1, 26] |
+| vlan_id | Integer | VLAN identifier for use in network switch map to the given FS to an FSP (Used for the VCC Stream Merge) | [[2, 1001], [1006, 4094]] |
+| fs_id | Integer | Identifier of the frequency slice | [1, 26] |
 | power_meter | Object[`PowerMeterConfig`] | Power Meter configuration to configure the ND Power Meter for the fs lane equal to `fs_id`. |  |
 
 **PSSConfig (Unimplemented)**
@@ -126,12 +125,16 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | `freq_align_shift` | double | A fine frequency shift to additionally apply to the output signal. This covers any residual wideband frequency shift and alignment of channels between frequency slices. |  |
 | `freq_wb_shift` | double | The wideband (WB) frequency shift that was applied to the input signal in the Frequency Shifter IP(?). |  |
 | `freq_scfo_shift` | double | The frequency shift required due to SCFO sampling. (TODO: Need more detail?) |  |
+
 ##### Result Codes
-- Success: the command will return `ResultCode.OK` and message `ConfigureScan completed OK`.
-- Bad request: provided configuration does not match required JSON schema definition or input critieria for a specific band. Returns `ResultCode.REJECTED` and message `Arg provided does not meet ConfigureScan criteria: {reason}`
-- State model violation: there was an attempt to call a command that violates the current ObsState. Returns `ResultCode.REJECTED` and message `Attempted to call ConfigureScan command from an incorrect state`
-- Low-level device failure: error configuring a IP block low-level device. Returns `ResultCode.REJECTED` and message `Configuration of low-level fhs device failed: {device name}`
-- Server error: unexpected error occured on server. Returns `ResultCode.FAILED` and message `Failed to an unexpected exception during ConfigureScan`
+All error responses include the optional `transaction_id` field (if it was supplied in the request) so the caller can correlate request and response.
+| Outcome | Result Code | Description | Message |
+| ------- | ----------- | ----------- | ------- |
+| Success | `ResultCode.OK` |  | `ConfigureScan completed OK` |
+| Bad request | `ResultCode.REJECTED` | Provided configuration does not match required JSON schema definition or input critieria for a specific band. | `Arg provided does not meet ConfigureScan criteria: {reason}` |
+| State model violation | `ResultCode.REJECTED` | There was an attempt to call a command that violates the current ObsState. | `Attempted to call ConfigureScan command from an incorrect state` |
+| Low-level driver failure | `ResultCode.REJECTED` | Error configuring a IP block low-level device. |`ResultCode.REJECTED` | `Configuration of low-level fhs device failed: {device name}` |
+| Server error | `ResultCode.FAILED` | Unexpected error occured on server. | `Failed to an unexpected exception during ConfigureScan` |
 
 #### `ConfigureVCCBite()`
 ##### Parameters
@@ -140,37 +143,37 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | receiver | Object[`VCCAllBandsConfigureVCCBiteReceiverConfig`] | Configuration of the VCC receiver. |  |
 | source | Object[`VCCAllBandsConfigureVCCBiteSourceConfig`] | Configuration of the VCC source. |  |
 | rfi | Array[`VCCAllBandsConfigureVCCBiteRfiConfig`] | Up to two RFI tone definitions (one per polarization). |  |
-| utc_start_time | Number | Desired UTC start time of the observation expressed as seconds since the Unix epoch (1970‑01‑01T00:00:00Z). |  |
-| band | Number | Frequency‑band used by the VCC. |  |
+| utc_start_time | Integer | Desired UTC start time of the observation expressed as seconds since the Unix epoch (1970‑01‑01T00:00:00Z). |  |
+| band | Integer | Frequency‑band used by the VCC. | FIXME: Code doesn't have range guards! |
 | transaction_id *(optional)* | String | Optional identifier that will be used for tracing. |  |
 
 **VCCAllBandsConfigureVCCBiteReceiverConfig**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
 | dish_id | String | Dish identifier used by the VCC. |  |
-| dish_sample_rate | Number | Dish sample‑rate (Hz). |  |
+| dish_sample_rate | Integer | Dish sample‑rate (Hz). |  |
 | noise_diode | Object[`VCCAllBandsConfigureVCCBiteNoiseDiodeConfig`] | Noise‑diode (ND) configuration. |  |
 | noise_info *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoConfig`] | Optional “noise‑info” details. |  |
 
 **VCCAllBandsConfigureVCCBiteNoiseDiodeConfig**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
-| dwell_time_us | Number | ND “on/off” dwell time in micro‑seconds. |  |
-| random_pattern_seed | Number | Seed for the random ND on/off pattern generator. |  |
+| dwell_time_us | Integer | ND “on/off” dwell time in micro‑seconds. |  |
+| random_pattern_seed | Integer | Seed for the random ND on/off pattern generator. |  |
 | on_state_scaling_factor | Number |  |  |
 
 **VCCAllBandsConfigureVCCBiteNoiseInfoConfig**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
-| pol_x | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig`] | Configuration parameters for the X-Polarization. |  |
+| pol_x *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig`] | Configuration parameters for the X-Polarization. |  |
 | pol_y *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig`] | Optional configuration parameters for the Y-Polarization. |  |
 
 **VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
-| seed | Number | Seed for the polarization's Gaussian‑noise generator. |  |
-| noise_std | Number | Standard deviation of the polarization's noise. |  |
-| noise_mean | Number | Mean (offset) of the polarization's noise. |  |
+| seed | Integer | Seed for the polarization's Gaussian‑noise generator. |  |
+| noise_std | Integer | Standard deviation of the polarization's noise. |  |
+| noise_mean | Integer | Mean (offset) of the polarization's noise. |  |
 
 **VCCAllBandsConfigureVCCBiteSourceConfig**
 | Name | Type | Description | Range |
@@ -182,15 +185,23 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 **VCCAllBandsConfigureVCCBiteRfiConfig**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
-| frequency | Number | Frequency (Hz) of the polarization's RFI tone. |  |
+| pol_x | Object[`VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig`] | Configuration parameters for the X-Polarization. |  |
+| pol_y *(optional)* | Object[`VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig`] | Optional configuration parameters for the Y-Polarization. |  |
+
+**VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig**
+| Name | Type | Description | Range |
+| ---- | ---- | ----------- | ----- |
+| frequency *(optional)* | Integer | Frequency (Hz) of the polarization's RFI tone. |  |
 | scale | Number | Amplitude scaling factor for the polarization's tone. |  |
 
 ##### Result Codes
 All error responses include the optional `transaction_id` field (if it was supplied in the request) so the caller can correlate request and response.
-- Success: the command will return `ResultCode.OK` and message `ConfigureVCCBite completed OK`.
-- Bad request: provided configuration does not match required JSON schema definition or input critieria for a specific band. Returns `ResultCode.REJECTED` and message `Arg provided does not meet ConfigureVCCBite criteria: {reason}`
-- Low-level driver failure: error configuring a IP block low-level device. Returns `ResultCode: REJECTED` and message `Configuration of low-level driver: {driver name}`
-- Server error: unexpected error occured on server. Returns `ResultCode: FAILED` and message `Failed to an unexpected exception during ConfigureVCCBite`
+| Outcome | Result Code | Description | Message |
+| ------- | ----------- | ----------- | ------- |
+| Success | `ResultCode.OK` |  | `ConfigureVCCBite completed OK` |
+| Bad request | `ResultCode.REJECTED` | Provided configuration does not match required JSON schema definition or input critieria for a specific band. | `Arg provided does not meet ConfigureVCCBite criteria: {reason}` |
+| Low-level driver failure | `ResultCode.REJECTED` | Error configuring a IP block low-level device. |`ResultCode.REJECTED` | `Configuration of low-level driver: {driver name}` |
+| Server error | `ResultCode.FAILED` | Unexpected error occured on server. | `Failed to an unexpected exception during ConfigureVCCBite` |
 
 #### `DeconfigureVCCBite()`
 ##### Parameters
@@ -198,24 +209,32 @@ All error responses include the optional `transaction_id` field (if it was suppl
 | ---- | ---- | ----------- | ----- |
 | transaction_id *(optional)* | String | Optional identifier that will be used for tracing. |  |
 ##### Result Codes
-- Success: the command will return `ResultCode.OK` and message `DeconfigureVCCBite completed OK`.
+| Outcome | Result Code | Description | Message |
+| ------- | ----------- | ----------- | ------- |
+| Success | `ResultCode.OK` |  | `DeconfigureVCCBite completed OK` |
 
 #### `GoToIdle()` 
 ##### Parameters
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
-| subarray_id | Integer | Identifier of the subarray to abort. | 0 - 16 |
-| transaction_id | String | Optional identifier that will be used for tracing. |  |
+| transaction_id *(optional)* | String | Optional identifier that will be used for tracing. |  |
+##### Result Codes
+| Outcome | Result Code | Description | Message |
+| ------- | ----------- | ----------- | ------- |
+| Success | `ResultCode.OK` |  | `DeconfigureVCCBite completed OK` |
 
 #### `UpdateSubarrayMembership()`
+The command is an LRC to ensure no race conditions can occur between subarrays.
 ##### Parameters
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
 | subarray_id | Integer | Subarray ID to assign this VCC to. If 0, the subarray membership of the VCC is reset. | 0-16 |
 ##### Result Codes
-The command is an LRC to ensure no race conditions can occur between subarrays.
-- Success: the command will return `ResultCode.OK` and message `UpdateSubarrayMembership completed OK`.
-- Bad request: the VCC is already assigned to a subarray and the ID provided is not equal to 0, or the requested subarray ID is outside of the valid range. Membership must be cleared before reassignment; the command will return `ResultCode.REJECTED` along with a descriptive message.
+All error responses include the optional `transaction_id` field (if it was supplied in the request) so the caller can correlate request and response.
+| Outcome | Result Code | Description | Message |
+| ------- | ----------- | ----------- | ------- |
+| Success | `ResultCode.OK` |  | `ConfigureVCCBite completed OK` |
+| Bad request | `ResultCode.REJECTED` | The VCC is already assigned to a subarray and the ID provided is not equal to 0, or the requested subarray ID is outside of the valid range. Membership must be cleared before reassignment. | `Arg provided does not meet ConfigureVCCBite criteria: {reason}` |
 
 ### Proposed Command Parameter Definitions (Unimplemented)
 

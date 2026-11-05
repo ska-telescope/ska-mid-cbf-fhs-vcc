@@ -60,7 +60,7 @@ class VCCAllBandsController(
         """
 
         return self.component_manager.configuration_state
-    
+
     @attribute(
         dtype=str,
     )
@@ -71,7 +71,7 @@ class VCCAllBandsController(
             :obj:`str`: The expected dish ID.
         """
         return self.component_manager.expected_dish_id
-    
+
     @attribute(
         abs_change=1,
         dtype=tango.DevEnum,
@@ -85,7 +85,7 @@ class VCCAllBandsController(
             ["1", "2", "3", "4", "5a", "5b"]).
         """
         return self.component_manager.frequency_band.value
-    
+
     @attribute(
         dtype=tango.DevLong,
         dformat=tango.SPECTRUM,
@@ -100,7 +100,7 @@ class VCCAllBandsController(
             :obj:`list[int]`: the frequency band offset(s).
         """
         return self.component_manager.frequency_band_offset
-    
+
     @attribute(
         dtype=tango.DevULong64,
     )
@@ -111,7 +111,7 @@ class VCCAllBandsController(
             :obj:`int`: The input sample rate.
         """
         return self.component_manager.input_sample_rate
-    
+
     @attribute(
         dtype=(float,),
         max_dim_x=26,
@@ -182,7 +182,7 @@ class VCCAllBandsController(
         if not abort_tasks_event.wait(3):
             return ([ResultCode.FAILED], ["Failed to shut down TaskExecutor"])
         return ([ResultCode.OK], ["Abort command completed OK"])
-    
+
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
@@ -203,7 +203,7 @@ class VCCAllBandsController(
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=auto_set_filter_gains_argin)
         return [[result_code], [command_id]]
-    
+
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
@@ -224,7 +224,7 @@ class VCCAllBandsController(
         # component manager method will be overriden in simulation mode
         result_code, message = command_handler(argin=config)
         return [[result_code], [message]]
-    
+
     @command(
         dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
@@ -267,11 +267,7 @@ class VCCAllBandsController(
         result_code, command_id = command_handler(argin=deconfigure_vcc_bite_argin)
         return [[result_code], [command_id]]
 
-    @command(
-        dtype_in="DevString", 
-        dtype_out="DevVarLongStringArray", 
-        doc_in="JSON string following the GoToIdle schema."
-    )
+    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the GoToIdle schema.")
     def GoToIdle(self, go_to_idle_argin: str) -> DevVarLongStringArrayType:
         """Tango command to return the device to IDLE state.
 
@@ -332,6 +328,7 @@ class VCCAllBandsController(
             emulation_mode=self.emulation_mode,
             long_running_command_result_buffer_max_size=self.long_running_command_result_buffer_max_size,
         )
+
 
 if __name__ == "__main__":
     VCCAllBandsController.run()
