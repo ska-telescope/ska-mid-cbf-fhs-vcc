@@ -13,27 +13,28 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
     - [Command Parameter Definitions](#command-parameter-definitions)
       - [`Abort()`](#abort)
         - [Parameters](#parameters)
+        - [Result Codes](#result-codes)
       - [`ConfigureScan()`](#configurescan)
         - [Parameters](#parameters-1)
-        - [Result Codes](#result-codes)
+        - [Result Codes](#result-codes-1)
       - [`ConfigureVCCBite()`](#configurevccbite)
         - [Parameters](#parameters-2)
-        - [Result Codes](#result-codes-1)
+        - [Result Codes](#result-codes-2)
       - [`DeconfigureVCCBite()`](#deconfigurevccbite)
         - [Parameters](#parameters-3)
-        - [Result Codes](#result-codes-2)
+        - [Result Codes](#result-codes-3)
       - [`GoToIdle()`](#gotoidle)
         - [Parameters](#parameters-4)
-        - [Result Codes](#result-codes-3)
+        - [Result Codes](#result-codes-4)
       - [`UpdateSubarrayMembership()`](#updatesubarraymembership)
         - [Parameters](#parameters-5)
-        - [Result Codes](#result-codes-4)
+        - [Result Codes](#result-codes-5)
     - [Proposed Command Parameter Definitions (Unimplemented)](#proposed-command-parameter-definitions-unimplemented)
       - [`OffloadTransientBufferCapture()`](#offloadtransientbuffercapture)
         - [Parameters](#parameters-6)
       - [`GetStoredGainValues() - Fast Command`](#getstoredgainvalues---fast-command)
         - [Parameters](#parameters-7)
-        - [Result Codes](#result-codes-5)
+        - [Result Codes](#result-codes-6)
       - [`UpdateDelayModels()`](#updatedelaymodels)
         - [Parameters](#parameters-8)
 
@@ -92,10 +93,13 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 
 #### `Abort()`
 ##### Parameters
-| Name           | Type    | Description                                        | Range      |
-| -------------- | ------- | -------------------------------------------------- | ---------- |
-| subarray_id    | Integer | Identifier of the subarray to abort.               | `0` - `16` |
-| transaction_id | String  | Optional identifier that will be used for tracing. |            |
+| Name                        | Type   | Description                                        | Range |
+| --------------------------- | ------ | -------------------------------------------------- | ----- |
+| transaction_id *(optional)* | String | Optional identifier that will be used for tracing. |       |
+##### Result Codes
+| Outcome | Result Code     | Description | Message              |
+| ------- | --------------- | ----------- | -------------------- |
+| Success | `ResultCode.OK` |             | `Abort completed OK` |
 
 #### `ConfigureScan()`
 ##### Parameters
@@ -107,18 +111,19 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | frequency_band                       | String                     | Frequency band for the current scan.                                                                                                                                                                                              | `1`,`2`, `3`, `4`, `5a`, or `5b`                                |
 | frequency_band_offset_stream1        | Integer                    | See `frequencyBandOffset` attribute description.                                                                                                                                                                                  | `-100000000` - `100000000`                                      |
 | frequency_band_offset_stream2        | Integer                    | See `frequencyBandOffset` attribute description.                                                                                                                                                                                  | `-100000000` - `100000000`                                      |
-| vcc_gains_stream_1                   | Array[Number]              | Specifies the gain of each channel in the VCC for stream 1.<br>(e.g. VCC-B123 OSPPFB or VCC-B45 OSPPFB 1) <br>Size = `num_vcc_channels_` * `num_polarizations_` <br><br>Bands 1, 2, 3 → Size = 20,<br>Bands 4, 5a, 5b → Size = 30 | `-1.0` - `1.0` TODO: Confirm range                              |
+| vcc_gains_stream_1                   | Array[Number]              | Specifies the gain of each channel in the VCC for stream 1.<br>(e.g. VCC-B123 OSPPFB or VCC-B45 OSPPFB 1) <br>Size = `num_vcc_channels_` * `num_polarizations_` <br><br>Bands 1, 2, 3 → Size = 20,<br>Bands 4, 5a, 5b → Size = 30 | (TBD)                                                           |
 | noise_diode_transition_holdoff_count | Integer                    | Number of sample frames that indicates the worst case state transition in the event of packet loss/corruption within the Wideband Input Buffer.                                                                                   | `0` - `65535`                                                   |
 | band_5_tuning                        | Number                     | Center frequency for the band-of-interest. Required if band is 5a or 5b; not specified for other bands                                                                                                                            | Band 5a: `5.85` - `7.25` GHz <br>Band 5b:  `9.55` - `14.05` GHz |
 | b123_power_meter                     | Object[`PowerMeterConfig`] | Configuration for the wideband power meter pre-B123 OSPPFB Channelizer                                                                                                                                                            |                                                                 |
 | b45_1_power_meter                    | Object[`PowerMeterConfig`] | Configuration for the wideband power meter pre-B45 sub-band 1 OSPPFB Channelizer                                                                                                                                                  |                                                                 |
 | b45_2_power_meter                    | Object[`PowerMeterConfig`] | Configuration for the wideband power meter pre-B45 sub-band 2 OSPPFB Channelizer                                                                                                                                                  |                                                                 |
 | fs_lanes                             | Array[`FSLaneConfig`]      | Configuration for the set of (up to) 26 FS power meters.<br>Array size is relative to the configured frequency band:<br><br>Band 1, 2 → Size = 10<br>Band 4 → Size = 15<br>Band 5a, 5b → Size = 26.                               |                                                                 |
+| transaction_id *(optional)*          | String                     | Optional identifier that will be used for tracing.                                                                                                                                                                                |
 
 **PowerMeterConfig**
 | Name      | Type    | Description                                                                                                                                                                                                                                                                                            | Range                                         |
 | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
-| averaging | Number  | Averaging interval in seconds. The power meters implement a block moving average; when interval `t` ends, the accumulated power is divided by `t` to produce an average power value. The power accumulators are then reset to start a new block average. (Used for Wideband and FS lanes power meters) | > `0.0`                                       |
+| averaging | Integer | Averaging interval in seconds. The power meters implement a block moving average; when interval `t` ends, the accumulated power is divided by `t` to produce an average power value. The power accumulators are then reset to start a new block average. (Used for Wideband and FS lanes power meters) | >= `1`                                        |
 | flagging  | Integer | Specifies the mode used to handle flagged data.                                                                                                                                                                                                                                                        | 0 - Ignore<br>1 - Use<br>2 - Saturate and use |
 
 **FSLaneConfig**
@@ -174,61 +179,61 @@ All error responses include the optional `transaction_id` field (if it was suppl
 
 #### `ConfigureVCCBite()`
 ##### Parameters
-| Name                        | Type                                                | Description                                                                                                 | Range                                  |
-| --------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| receiver                    | Object[`VCCAllBandsConfigureVCCBiteReceiverConfig`] | Configuration of the VCC receiver.                                                                          |                                        |
-| source                      | Object[`VCCAllBandsConfigureVCCBiteSourceConfig`]   | Configuration of the VCC source.                                                                            |                                        |
-| rfi                         | Array[`VCCAllBandsConfigureVCCBiteRfiConfig`]       | Up to two RFI tone definitions (one per polarization).                                                      |                                        |
-| utc_start_time              | Integer                                             | Desired UTC start time of the observation expressed as seconds since the Unix epoch (1970‑01‑01T00:00:00Z). |                                        |
-| band                        | Integer                                             | Frequency‑band used by the VCC.                                                                             | FIXME: Code doesn't have range guards! |
-| transaction_id *(optional)* | String                                              | Optional identifier that will be used for tracing.                                                          |                                        |
+| Name                        | Type                                                | Description                                                                                                 | Range     |
+| --------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------- |
+| receiver                    | Object[`VCCAllBandsConfigureVCCBiteReceiverConfig`] | Configuration of the VCC receiver.                                                                          |           |
+| source                      | Object[`VCCAllBandsConfigureVCCBiteSourceConfig`]   | Configuration of the VCC source.                                                                            |           |
+| rfi                         | Array[`VCCAllBandsConfigureVCCBiteRfiConfig`]       | Up to two RFI tone definitions (one per polarization).                                                      |           |
+| utc_start_time              | Integer                                             | Desired UTC start time of the observation expressed as seconds since the Unix epoch (1970‑01‑01T00:00:00Z). | (TBD)     |
+| band                        | Integer                                             | Frequency‑band used by the VCC.                                                                             | `1` - `5` |
+| transaction_id *(optional)* | String                                              | Optional identifier that will be used for tracing.                                                          |           |
 
 **VCCAllBandsConfigureVCCBiteReceiverConfig**
-| Name                    | Type                                                  | Description                      | Range |
-| ----------------------- | ----------------------------------------------------- | -------------------------------- | ----- |
-| dish_id                 | String                                                | Dish identifier used by the VCC. |       |
-| dish_sample_rate        | Integer                                               | Dish sample‑rate (Hz).           |       |
-| noise_diode             | Object[`VCCAllBandsConfigureVCCBiteNoiseDiodeConfig`] | Noise‑diode (ND) configuration.  |       |
-| noise_info *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoConfig`]  | Optional “noise‑info” details.   |       |
+| Name                     | Type                                                  | Description                      | Range                        |
+| ------------------------ | ----------------------------------------------------- | -------------------------------- | ---------------------------- |
+| dish_id                  | String                                                | Dish identifier used by the VCC. | (TBD)                        |
+| dish_sample_rate         | Integer                                               | Dish sample‑rate (Hz).           | `3960000000` - `11891998800` |
+| noise_diode *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseDiodeConfig`] | Noise‑diode (ND) configuration.  |                              |
+| noise_info               | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoConfig`]  | Optional “noise‑info” details.   |                              |
 
 **VCCAllBandsConfigureVCCBiteNoiseDiodeConfig**
 | Name                    | Type    | Description                                      | Range |
 | ----------------------- | ------- | ------------------------------------------------ | ----- |
-| dwell_time_us           | Integer | ND “on/off” dwell time in micro‑seconds.         |       |
-| random_pattern_seed     | Integer | Seed for the random ND on/off pattern generator. |       |
-| on_state_scaling_factor | Number  |                                                  |       |
+| dwell_time_us           | Integer | ND “on/off” dwell time in micro‑seconds.         | (TBD) |
+| random_pattern_seed     | Integer | Seed for the random ND on/off pattern generator. | (TBD) |
+| on_state_scaling_factor | Number  |                                                  | (TBD) |
 
 **VCCAllBandsConfigureVCCBiteNoiseInfoConfig**
-| Name               | Type                                                         | Description                                               | Range |
-| ------------------ | ------------------------------------------------------------ | --------------------------------------------------------- | ----- |
-| pol_x *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig`] | Configuration parameters for the X-Polarization.          |       |
-| pol_y *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig`] | Optional configuration parameters for the Y-Polarization. |       |
+| Name  | Type                                                         | Description                                               | Range |
+| ----- | ------------------------------------------------------------ | --------------------------------------------------------- | ----- |
+| pol_x | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig`] | Configuration parameters for the X-Polarization.          |       |
+| pol_y | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig`] | Optional configuration parameters for the Y-Polarization. |       |
 
 **VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig**
 | Name       | Type    | Description                                           | Range |
 | ---------- | ------- | ----------------------------------------------------- | ----- |
-| seed       | Integer | Seed for the polarization's Gaussian‑noise generator. |       |
-| noise_std  | Integer | Standard deviation of the polarization's noise.       |       |
-| noise_mean | Integer | Mean (offset) of the polarization's noise.            |       |
+| seed       | Integer | Seed for the polarization's Gaussian‑noise generator. | (TBD) |
+| noise_std  | Integer | Standard deviation of the polarization's noise.       | (TBD) |
+| noise_mean | Integer | Mean (offset) of the polarization's noise.            | (TBD) |
 
 **VCCAllBandsConfigureVCCBiteSourceConfig**
 | Name                 | Type                                                 | Description | Range |
 | -------------------- | ---------------------------------------------------- | ----------- | ----- |
 | noise_info           | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoConfig`] | Noise‑info. |       |
-| pol_coupling_rho     | Number                                               |             |       |
+| pol_coupling_rho     | Number                                               |             | (TBD) |
 | pol_Y_1_sample_delay | Boolean                                              |             |       |
 
 **VCCAllBandsConfigureVCCBiteRfiConfig**
-| Name               | Type                                                       | Description                                               | Range |
-| ------------------ | ---------------------------------------------------------- | --------------------------------------------------------- | ----- |
-| pol_x              | Object[`VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig`] | Configuration parameters for the X-Polarization.          |       |
-| pol_y *(optional)* | Object[`VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig`] | Optional configuration parameters for the Y-Polarization. |       |
+| Name               | Type                                                       | Description                                                                                                                                         | Range |
+| ------------------ | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| pol_x              | Object[`VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig`] | Configuration parameters for the X-Polarization.                                                                                                    |       |
+| pol_y *(optional)* | Object[`VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig`] | Optional configuration parameters for the Y-Polarization. Unused for VCC Bite; FW is unable to produce and independent tone for the Y-polarization. |       |
 
 **VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig**
-| Name                   | Type    | Description                                           | Range |
-| ---------------------- | ------- | ----------------------------------------------------- | ----- |
-| frequency *(optional)* | Integer | Frequency (Hz) of the polarization's RFI tone.        |       |
-| scale                  | Number  | Amplitude scaling factor for the polarization's tone. |       |
+| Name      | Type    | Description                                           | Range |
+| --------- | ------- | ----------------------------------------------------- | ----- |
+| frequency | Integer | Frequency (Hz) of the polarization's RFI tone.        | (TBD) |
+| scale     | Number  | Amplitude scaling factor for the polarization's tone. | (TBD) |
 
 ##### Result Codes
 All error responses include the optional `transaction_id` field (if it was supplied in the request) so the caller can correlate request and response.
@@ -262,9 +267,10 @@ All error responses include the optional `transaction_id` field (if it was suppl
 #### `UpdateSubarrayMembership()`
 The command is an LRC to ensure no race conditions can occur between subarrays.
 ##### Parameters
-| Name        | Type    | Description                                                                           | Range |
-| ----------- | ------- | ------------------------------------------------------------------------------------- | ----- |
-| subarray_id | Integer | Subarray ID to assign this VCC to. If 0, the subarray membership of the VCC is reset. | 0-16  |
+| Name                        | Type    | Description                                                                           | Range      |
+| --------------------------- | ------- | ------------------------------------------------------------------------------------- | ---------- |
+| subarray_id                 | Integer | Subarray ID to assign this VCC to. If 0, the subarray membership of the VCC is reset. | `0` - `16` |
+| transaction_id *(optional)* | String  | Optional identifier that will be used for tracing.                                    |            |
 ##### Result Codes
 All error responses include the optional `transaction_id` field (if it was supplied in the request) so the caller can correlate request and response.
 | Outcome     | Result Code           | Description                                                                                                                                                                                  | Message                                                          |
