@@ -189,12 +189,12 @@ All error responses include the optional `transaction_id` field (if it was suppl
 | transaction_id *(optional)* | String                                              | Optional identifier that will be used for tracing.                                                          |           |
 
 **VCCAllBandsConfigureVCCBiteReceiverConfig**
-| Name                     | Type                                                  | Description                      | Range                        |
-| ------------------------ | ----------------------------------------------------- | -------------------------------- | ---------------------------- |
-| dish_id                  | String                                                | Dish identifier used by the VCC. | (TBD)                        |
-| dish_sample_rate         | Integer                                               | Dish sample‑rate (Hz).           | `3960000000` - `11891998800` |
-| noise_diode *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseDiodeConfig`] | Noise‑diode (ND) configuration.  |                              |
-| noise_info               | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoConfig`]  | Optional “noise‑info” details.   |                              |
+| Name                    | Type                                                  | Description                      | Range                        |
+| ----------------------- | ----------------------------------------------------- | -------------------------------- | ---------------------------- |
+| dish_id                 | String                                                | Dish identifier used by the VCC. | (TBD)                        |
+| dish_sample_rate        | Integer                                               | Dish sample‑rate (Hz).           | `3960000000` - `11891998800` |
+| noise_diode             | Object[`VCCAllBandsConfigureVCCBiteNoiseDiodeConfig`] | Noise‑diode (ND) configuration.  |                              |
+| noise_info *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoConfig`]  | Optional “noise‑info” details.   |                              |
 
 **VCCAllBandsConfigureVCCBiteNoiseDiodeConfig**
 | Name                    | Type    | Description                                      | Range |

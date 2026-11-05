@@ -43,7 +43,7 @@ vcc_all_bands_configure_vcc_bite_schema = {
                     "required": ["pol_x", "pol_y"],
                 },
             },
-            "required": ["dish_id", "dish_sample_rate", "noise_info"],
+            "required": ["dish_id", "dish_sample_rate", "noise_diode"],
         },
         "source": {
             "type": "object",
