@@ -44,12 +44,14 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | `UpdateSubarrayMembership()` | Integer | Subarray ID | TODO: | Command to update the current subarray membership of the VCC. If the VCC is not currently assigned to a subarray, i.e. its subarray_id attribute is 0, then its membership is updated and the subarray_id attribute is set appropriately. Otherwise, if the current subarray_id > 0, indicating the VCC has already been assigned to a different subarray, then the command is REJECTED.  <br>  <br>The VCC’s subarray membership can also be cleared using this command, by providing a subarray ID of 0. |
 
 ### Proposed Commands (Unimplemented)
+| Name | Input Type | Input Parameter | Allowed in modes | Description |
+| ---- | ---------- | --------------- | ---------------- | ----------- |
 | `AutoSetTCBGain()` | Scalar | Dwell Time | SCANNING | This command triggers algorithm that measures and adjusts Transient Capture Buffer (TCB) re-quantizer gain settings to provide optimal sensitivity. ‘Dwell time” specifies how long to integrate to determine the quantizer gain settings (seconds).   <br>  <br>Applies gain corrections on fine channels. |
-| `GetBandpassCorrectionCoefficients()` | (TBD) | TODO: | TODO: | **Placeholder:** TBD: Retrieves Bandpass correction coefficients required when PSS is configured. | TODO: |
+| `GetBandpassCorrectionCoefficients()` | (TBD) | TODO: | TODO: | **Placeholder:** TBD: Retrieves Bandpass correction coefficients required when PSS is configured. |
 | `GetStoredGainValues()` | int | Optional - Index for a frequency band {1-6} | N/A | Returns a 2-Dimensional list of previously set auto-set gains.   <br>  <br>- Valid band index provided - Returns a 2-Dim arr with at index 0 the gains applied for the given band  <br>- Valid band index provided with no prior scan for that band - Returns an empty list  <br>- No index provided - Returns a 2-Dim arr of format [i → frequency band, j → gain value for channel i, pol % 2] |
 | `OffloadTransientDataCapture()` | Timestamp | Starting epoch to begin transient capture | SCANNING | Command which triggers the offload of transient data for the given VCC. Data is offloaded relative to the start time of the capture and the duration configured within the scan. On command execution, writing to the transient buffer is locked, and it is iterated over to construct a capture, starting at the provided start time and lasting for the provided duration, before it is transmitted over the 400GbE to SDP. |
 | `UpdateDelayModels()` | JSON string | See below. | READY, SCANNING | Update delay tracking with new High order delay models required for PSS processing. |
-| `UpdateJonesMatrix()` | (TBD) | TODO: | TODO: | **Placeholder:** Applies updates to Jones Matrix polarization correction for fine channels.| TODO: |
+| `UpdateJonesMatrix()` | (TBD) | TODO: | TODO: | **Placeholder:** Applies updates to Jones Matrix polarization correction for fine channels.|
 
 ### Command Parameter Definitions
 
@@ -78,20 +80,20 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | b45_2_power_meter | Object[`PowerMeterConfig`] | Configuration for the wideband power meter pre-B45 sub-band 2 OSPPFB Channelizer |  |
 | fs_lanes | Array[`FSLaneConfig`] | Configuration for the set of (up to) 26 FS power meters.<br>Array size is relative to the configured frequency band:<br><br>Band 1, 2 → Size = 10<br>Band 4 → Size = 15<br>Band 5a, 5b → Size = 26. |  |
 
-**Power Meter Config**
+**PowerMeterConfig**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
 | averaging | Number | Averaging interval in seconds. The power meters implement a block moving average; when interval `t` ends, the accumulated power is divided by `t` to produce an average power value. The power accumulators are then reset to start a new block average. (Used for Wideband and FS lanes power meters) |  |
 | flagging | Number | Specifies the mode used to handle flagged data. | 0 - Ignore<br>1 - Use<br>2 - Saturate and use |
 
-**FS Lane Config Definition**:
+**FSLaneConfig**:
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
 | vlan_id | Number | VLAN identifier for use in network switch map to the given FS to an FSP (Used for the VCC Stream Merge) | [[2, 1001], [1006, 4094]] |
 | fs_id | Number | Identifier of the frequency slice | [1, 26] |
 | power_meter | Object[`PowerMeterConfig`] | Power Meter configuration to configure the ND Power Meter for the fs lane equal to `fs_id`. |  |
 
-**PSS Config (Unimplemented)**
+**PSSConfig (Unimplemented)**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
 | `search_window` | Array of SearchWindow Config | Provides configuration for up to two 300 MHz Search Windows, providing input Transient Capture Buffer and/or PSS beam-forming. | Size=1 or 2 |
@@ -103,14 +105,14 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | `tcb_bit_size` | int | The bit size of the FS to be requantized to for use in the buffers. | 4 or 8 |
 | `tcb_destination_addr` | string | Destination address for offload of transient buffer data. This must be validated to map to the SDP port, due this **TBD** if we need to provide this configuration option if we know the destination. |  |
 
-**SearchWindow Config (Unimplemented)**
+**SearchWindowConfig (Unimplemented)**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
 | `search_window_id` | int | Identifier of the 300MHz Search Window.<br><br>Unique within a sub-array. | 1-2 |
 | `search_window_tuning` | int | The Search Window tuning in Hertz (Hz) is provided in absolute terms as RF center frequency. Based on this, Mid.CBF calculates its tuning within the data stream received from the receptor. | The Search Window must be placed within the observed Band. If partially out of the observed Band a warning is generated. If completely outside of the observed Band an exception is generated and configuration is rejected. |
 | `search_window_size` **(TBD)** | int  | Parameter to specify the sizes of the SWs, provided as integers 1,2, …, 10, which represent multiples of 40 MHz |  |
 
-**RDT Config (Unimplemented)**
+**RDTConfig (Unimplemented)**
 | Name | Type | Description | Range |
 | ---- | ---- | ----------- | ----- |
 | `input_sample_rate` | long | The sample rate of the incoming signal. | >= 0 |
@@ -148,7 +150,7 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 | dish_id | String | Dish identifier used by the VCC. |  |
 | dish_sample_rate | Number | Dish sample‑rate (Hz). |  |
 | noise_diode | Object[`VCCAllBandsConfigureVCCBiteNoiseDiodeConfig`] | Noise‑diode (ND) configuration. |  |
-| noise_info *(optional)* | `VCCAllBandsConfigureVCCBiteNoiseInfoConfig` | Optional “noise‑info” details. |  |
+| noise_info *(optional)* | Object[`VCCAllBandsConfigureVCCBiteNoiseInfoConfig`] | Optional “noise‑info” details. |  |
 
 **VCCAllBandsConfigureVCCBiteNoiseDiodeConfig**
 | Name | Type | Description | Range |
