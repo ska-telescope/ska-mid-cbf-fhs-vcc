@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.6.5"
+version = "0.6.7"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },
@@ -24,7 +24,7 @@ dependencies = [
   "jsonschema >= 4.26.0, < 5",
   "protobuf >= 6.33.0, < 7.0.0",
   "ska-tango-testing == 0.10.0",
-  "ska-mid-cbf-fhs-common == 0.6.1",
+  "ska-mid-cbf-fhs-common == 0.6.3",
   "ska-mid-cbf-common == 0.2.14",
   "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
 ]
@@ -70,6 +70,8 @@ constraint-dependencies = [
 ska-mid-cbf-fhs-common = { index = "ska-nexus" }
 # Commit hash version from Gitlab
 # ska-mid-cbf-fhs-common = { index = "gitlab-fhs-common" }
+# Local dev version
+# ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", editable = true }
 
 # Official tagged release from CAR
 ska-mid-cbf-common = { index = "ska-nexus" }

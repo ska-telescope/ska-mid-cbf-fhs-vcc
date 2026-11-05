@@ -5,9 +5,17 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-0.6.5
+0.6.7
 *****
 * CIP-6600: ICD updates, All Bands Controller CM constructor missing parameter caught. Code rearranged with alphabetical command/attribute definitions.
+
+0.6.6
+*****
+* CIP-5111: Remove obsolete bmcEndpointIp and rename networkSwitchId to switchIp in values.yaml
+
+0.6.5
+*****
+* CIP-6651: Update to ska-mid-cbf-fhs-common v0.6.2 to remove Obs device simulation.
 
 0.6.4
 *****
