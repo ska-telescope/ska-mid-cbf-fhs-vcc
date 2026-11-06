@@ -3,6 +3,7 @@ from typing import Any
 
 import numpy as np
 from dataclasses_json import DataClassJsonMixin
+from constants import BER_DEGRADED_THRESHOLD, BER_FAILED_THRESHOLD, BER_MEASUREMENT_PERIOD, BITS_PER_SAMPLE_BAND123, BITS_PER_SAMPLE_BAND45
 from ska_control_model import HealthState
 from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, convert_dish_id_uint16_t_to_mnemonic, non_blocking
 
@@ -60,6 +61,9 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
     def _manager_specific_setup(self, **kwargs):
         self.expected_sample_rate = None
         self.expected_dish_id = None
+        self.bit_error_rate = None
+        self.bit_error_rate_health_state = None
+        self.poll_counter = None
 
     def configure(self, config: WidebandInputBufferConfig) -> int:
         """Configure the Wideband Input Buffer."""
@@ -79,6 +83,32 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
     @non_blocking
     def stop(self) -> int:
         return super().stop()
+    
+    def calculate_ber_healthstate(self, status: WidebandInputBufferStatus) -> HealthState:
+        self.poll_counter += 1
+        
+        if self.poll_counter == BER_MEASUREMENT_PERIOD:
+            self.poll_counter = 0
+            
+            match status.meta_band_id:
+                case 1 | 2 | 3:
+                    self.bit_error_rate = status.packet_error_count / ((status.meta_transport_sample_rate * BITS_PER_SAMPLE_BAND123) * BER_MEASUREMENT_PERIOD)
+                case 4 | 5:
+                    self.bit_error_rate = status.packet_error_count / ((status.meta_transport_sample_rate * BITS_PER_SAMPLE_BAND45) * BER_MEASUREMENT_PERIOD)
+                case _:
+                    self.logger.error(f"Unrecognized band ID: {status.meta_band_id}")
+                    
+            if self.bit_error_rate > BER_FAILED_THRESHOLD:
+                self.bit_error_rate_health_state = HealthState.FAILED
+                self.logger.debug(f"Bit Error Rate exceeded FAILED threshold: {self.bit_error_rate} > {BER_FAILED_THRESHOLD}")
+            elif self.bit_error_rate > BER_DEGRADED_THRESHOLD:
+                self.bit_error_rate_health_state = HealthState.DEGRADED
+                self.logger.debug(f"Bit Error Rate exceeded DEGRADED threshold: {self.bit_error_rate} > {BER_DEGRADED_THRESHOLD}")
+            else:
+                self.bit_error_rate_health_state = HealthState.OK
+                
+        return self.bit_error_rate_health_state
+                
 
     def get_status_healthstates(self, status: WidebandInputBufferStatus) -> dict[str, HealthState]:
         status_healthstates = {}
@@ -125,6 +155,8 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
             status.buffer_overflow,
             failure_msg=f"buffer_overflow mismatch. Expected False, Actual: {status.buffer_overflow}",
         )
+            
+        status_healthstates["bit_error_rate"] = self.calculate_ber_healthstate(status)
 
         self.logger.info(f"REGISTER_STATUSES={status_healthstates}")
 

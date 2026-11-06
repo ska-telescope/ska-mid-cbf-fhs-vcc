@@ -47,6 +47,20 @@ class VCCAllBandsController(
         ]
 
     @attribute(
+        dtype="DevFloat",
+        doc="Device's bit error rate",
+    )
+    def bitErrorRate(self) -> float:
+        """
+        Read-only Tango attribute that reads the bit error rate from the Wideband Input Buffer's IP block manager.
+
+        :return: BER from this VCC's WIB
+        :rtype: float
+        """
+
+        return self.component_manager.wideband_input_buffer.bit_error_rate
+
+    @attribute(
         dtype="DevEnum",
         enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURING.name, FhsState.CONFIGURED.name, FhsState.FAULT.name],
         doc="Device's configuration state",
