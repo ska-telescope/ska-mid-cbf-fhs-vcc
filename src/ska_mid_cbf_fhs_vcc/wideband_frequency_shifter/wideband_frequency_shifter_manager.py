@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from dataclasses_json import DataClassJsonMixin
 from ska_mid_cbf_fhs_common import BaseIPBlockManager
@@ -9,7 +8,7 @@ from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_s
 
 @dataclass
 class WidebandFrequencyShifterConfig(DataClassJsonMixin):
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None
     shift_frequency: float = 0.0
 
 

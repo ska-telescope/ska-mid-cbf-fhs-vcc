@@ -8,7 +8,7 @@ from assertpy import assert_that
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
 from tango import DevState
 from ska_control_model import AdminMode, HealthState, ObsState, ResultCode
-from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 from ska_tango_testing.integration import TangoEventTracer
 from ska_tango_testing.harness import TangoTestHarnessContext
@@ -116,7 +116,7 @@ class TestVCCAllBandsController:
             device_id="1",
             device_version_num="1.0",
             device_gitlab_hash="n/a",
-            emulator_base_url="emulators.ska-mid-cbf-emulators.svc.cluster.local:5001",
+            emulator_port="5001",
             bitstream_path="tests/resources",
             bitstream_id="agilex-vcc",
             bitstream_version="0.0.1",
@@ -124,6 +124,7 @@ class TestVCCAllBandsController:
             emulation_mode="0",
             logging_level="DEBUG",
             ip_blocks=b64encode(json.dumps(ip_blocks).encode("utf-8")).decode("ascii"),
+            long_running_command_result_buffer_max_size=LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE, 
         )
 
         with harness as test_context:
