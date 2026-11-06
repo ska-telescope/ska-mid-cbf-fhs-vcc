@@ -5,6 +5,13 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+0.6.8
+****
+* CIP-6593: 
+  * Swap to use "vlan_alias" in configurescan rather than directly providing "vlan_id", add basic file for these mappings.
+  * Enables mappings to be specified via Charts, under the vcc_product_definition section. 
+  * Added vlanLookup attribute to enable validation of these mappings.
+
 0.6.7
 *****
 * CIP-6600: ICD updates, All Bands Controller CM constructor missing parameter caught. Code rearranged with alphabetical command/attribute definitions.

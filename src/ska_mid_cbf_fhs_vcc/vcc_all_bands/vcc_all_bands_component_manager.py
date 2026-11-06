@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 import logging
+import os
 import textwrap
 from collections.abc import Callable
 from math import isnan
@@ -10,6 +11,7 @@ from threading import Event
 from typing import Any
 
 import jsonschema
+import yaml
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_mid_cbf_common.enums.command_type import CommandType
 from ska_mid_cbf_fhs_common import (
@@ -72,6 +74,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     vcc_gains: list[float]
     """:obj:`list[float]`: The currently applied gain multipliers for VCC coarse channels."""
+
+    vlan_lookup: dict
+    """dict containing the FS to VLAN mappings, parsed from the YAML file"""
 
     last_requested_headrooms: list[float]
     """:obj:`list[float]`: The requested headrooms from the most recent call to AutoSetFilterGains."""
@@ -200,6 +205,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.vcc_gains: list[float] = []
         self.last_requested_headrooms: list[float] = []
+
+        self.vlan_lookup = {}
+        vlan_mapping_file = os.getenv("VCC_PRODUCT_PATH", "/app/mnt/vcc") + "/vcc-product-definitions.yaml"
+        self._parse_vlan_mapping(vlan_mapping_file)
 
     def _init_ip_block_managers(self) -> list[BaseIPBlockManager]:
         """Instantiate all the IP block managers for the VCC controller."""
@@ -507,11 +516,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 self.log_debug("Post-channelizer Wideband Power Meters Configuring..", transaction_id)
                 self._fs_lanes = configuration.fs_lanes
 
-                # Verify vlan_id is within range
-                # ((config.vid >= 2 && config.vid <= 1001) || (config.vid >= 1006 && config.vid <= 4094))
+                # Verify vlan_alias is within the provided keys and result is in range
                 for config in self._fs_lanes:
-                    if not (2 <= config.vlan_id <= 1001 or 1006 <= config.vlan_id <= 4094):
-                        raise ValueError(f"VLAN ID {config.vlan_id} is not within range")
+                    if config.vlan_alias in self.vlan_lookup:
+                        if not (2 <= self.vlan_lookup[config.vlan_alias] <= 1001 or 1006 <= self.vlan_lookup[config.vlan_alias] <= 4094):
+                            raise ValueError(f"VLAN ID {self.vlan_lookup[config.vlan_alias]} for alias {config.vlan_alias} is not within range")
+                    else:
+                        raise KeyError(f"Could not find the requested vlan_alias ({config.vlan_alias}) in the VLAN mapping provided")
 
                 for config in self._fs_lanes:
                     fs_id = int(config.fs_id)
@@ -537,7 +548,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                             transaction_id=transaction_id,
                             fs_lane_configs=[
                                 VCCStreamMergeConfig(
-                                    vid=lane.vlan_id,
+                                    vid=self.vlan_lookup[lane.vlan_alias],
                                     vcc_id=self._vcc_id,
                                     fs_id=lane.fs_id,
                                 )
@@ -1000,3 +1011,22 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 raise RuntimeError("Deconfiguration of VCC Stream Merge failed.")
 
         self.log_info("Sucessfully deconfigured all IP Blocks", transaction_id)
+
+    def _parse_vlan_mapping(self, vlan_file_loc):
+        """
+        Given the location of a VLAN mapping YAML file, gets the vlan mappings from the file for the VCC id and and adds it to the vlan_lookup dict in the object.
+        """
+        if not os.path.isfile(vlan_file_loc):
+            self.log_error("VLAN mapping file not found at: " + vlan_file_loc)
+            raise RuntimeError("VLAN mapping file not found at: " + vlan_file_loc)
+        with open(vlan_file_loc) as f:
+            def_data = yaml.safe_load(f)
+        target_id = "vcc_" + str(self._vcc_id).zfill(3)
+        if target_id in def_data:
+            filtered_data = def_data[target_id]
+            self.log_info("Adding VLAN mapping for " + target_id)
+            for switch in filtered_data:
+                self.vlan_lookup[switch] = filtered_data[switch]["vlan"]
+        else:
+            self.log_error("Mapping not added for " + target_id)
+            raise KeyError(f"Could not find the requested VCC ({target_id}) in the VLAN mapping provided")
