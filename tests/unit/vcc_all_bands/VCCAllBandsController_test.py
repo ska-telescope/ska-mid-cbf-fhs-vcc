@@ -3,6 +3,7 @@ from collections.abc import Generator
 import json
 from unittest import mock
 import pytest
+import os
 from assertpy import assert_that
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
 from tango import DevState
@@ -13,6 +14,8 @@ from ska_tango_testing.integration import TangoEventTracer
 from ska_tango_testing.harness import TangoTestHarnessContext
 
 EVENT_TIMEOUT = 30
+
+TEST_MAPPING_PATH = "tests/test_data"
 
 
 @pytest.fixture(scope="session")  # Use "session" scope for true constants
@@ -81,6 +84,7 @@ class TestVCCAllBandsController:
         Fixture to set up the VCC All Bands device for testing with a mock Tango database.
         """
         harness = ConfigurableThreadedTestTangoContextManager(timeout=30.0)
+        os.environ["VCC_PRODUCT_PATH"] = TEST_MAPPING_PATH
 
         default_ip_block = {
             "emulator_ip_block_id": "n/a",
