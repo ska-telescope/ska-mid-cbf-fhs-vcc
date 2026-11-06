@@ -153,59 +153,6 @@ class VCCAllBandsController(
 
     @command(
         dtype_in="DevString",
-        doc_in="JSON string conforming to the ska-mid-cbf-abort schema",
-        dtype_out="DevVarLongStringArray",
-        doc_out=("A tuple containing a return code and a string message indicating status. The message is for information purpose only."),
-    )
-    def Abort(self: VCCAllBandsController, argin: str) -> DevVarLongStringArrayType:
-        """
-        Abort the current observing process and move to ABORTED FhsState.
-
-        Overrides base LRC mixin to trigger FhsState transitions and component
-        manager abort task.
-
-        :return: tuple containing a return code and a unique command identifier
-        """
-        # TODO: argin currently unused
-
-        # Trigger task executor shutdown before submitting component manager abort
-        # task to immediately clear out any tasks in progress.
-        abort_tasks_event = Event()
-        status, message = self.component_manager.abort_tasks(
-            task_callback=lambda status, result=None: abort_tasks_event.set() if status is TaskStatus.COMPLETED else None
-        )
-
-        # Abort command succeeds if the task executor is successfully shut down
-        # and restarted.
-        if status is not TaskStatus.IN_PROGRESS:
-            return ([ResultCode.FAILED], [message])
-        if not abort_tasks_event.wait(3):
-            return ([ResultCode.FAILED], ["Failed to shut down TaskExecutor"])
-        return ([ResultCode.OK], ["Abort command completed OK"])
-
-    @command(
-        dtype_in="DevString",
-        dtype_out="DevVarLongStringArray",
-        doc_in="JSON String following the AutoSetFilterGains schema.",
-    )
-    def AutoSetFilterGains(self: VCCAllBandsController, auto_set_filter_gains_argin: str | None = None) -> DevVarLongStringArrayType:
-        """Tango command to start a scan operation.
-
-        Args:
-            auto_set_filter_gains_argin (:obj:`str`): JSON String following the AutoSetFilterGains schema.
-
-        Returns:
-            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
-            message indicating status. The message is for information purpose only.
-        """
-        command_handler = self.get_command_object(command_name="AutoSetFilterGains")
-        # It is important that the argin keyword be provided, as the
-        # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=auto_set_filter_gains_argin)
-        return [[result_code], [command_id]]
-
-    @command(
-        dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
         doc_in="Configuration JSON.",
     )
@@ -224,6 +171,42 @@ class VCCAllBandsController(
         # component manager method will be overriden in simulation mode
         result_code, message = command_handler(argin=config)
         return [[result_code], [message]]
+
+    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the GoToIdle schema.")
+    def GoToIdle(self, go_to_idle_argin: str) -> DevVarLongStringArrayType:
+        """Tango command to return the device to IDLE state.
+
+        Args:
+            go_to_idle_argin (:obj:`str`): JSON string following the GoToIdle schema.
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="GoToIdle")
+        result_code, message = command_handler(argin=go_to_idle_argin)
+        return [[result_code], [message]]
+
+    @command(
+        dtype_in="DevUShort",
+        dtype_out="DevVarLongStringArray",
+        doc_in="Subarray ID to assign to the VCC.",
+    )
+    def UpdateSubarrayMembership(self, subarray_id: int) -> DevVarLongStringArrayType:
+        """Tango command to update the subarray currently assigned to this VCC.
+
+        Args:
+            subarray_id (:obj:`int`): The subarray ID to assign.
+
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
+        """
+        command_handler = self.get_command_object(command_name="UpdateSubarrayMembership")
+        # It is important that the argin keyword be provided, as the
+        # component manager method will be overriden in simulation mode
+        result_code, command_id = command_handler(argin=subarray_id)
+        return [[result_code], [command_id]]
 
     @command(
         dtype_in="DevString",
@@ -267,41 +250,58 @@ class VCCAllBandsController(
         result_code, command_id = command_handler(argin=deconfigure_vcc_bite_argin)
         return [[result_code], [command_id]]
 
-    @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the GoToIdle schema.")
-    def GoToIdle(self, go_to_idle_argin: str) -> DevVarLongStringArrayType:
-        """Tango command to return the device to IDLE state.
-
-        Args:
-            go_to_idle_argin (:obj:`str`): JSON string following the GoToIdle schema.
-
-        Returns:
-            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
-            message indicating status. The message is for information purpose only.
-        """
-        command_handler = self.get_command_object(command_name="GoToIdle")
-        result_code, message = command_handler(argin=go_to_idle_argin)
-        return [[result_code], [message]]
-
     @command(
-        dtype_in="DevUShort",
+        dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
-        doc_in="Subarray ID to assign to the VCC.",
+        doc_in="JSON String following the AutoSetFilterGains schema.",
     )
-    def UpdateSubarrayMembership(self, subarray_id: int) -> DevVarLongStringArrayType:
-        """Tango command to update the subarray currently assigned to this VCC.
+    def AutoSetFilterGains(self: VCCAllBandsController, auto_set_filter_gains_argin: str | None = None) -> DevVarLongStringArrayType:
+        """Tango command to start a scan operation.
 
         Args:
-            subarray_id (:obj:`int`): The subarray ID to assign.
+            auto_set_filter_gains_argin (:obj:`str`): JSON String following the AutoSetFilterGains schema.
 
         Returns:
             :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
             message indicating status. The message is for information purpose only.
         """
-        command_handler = self.get_command_object(command_name="UpdateSubarrayMembership")
+        command_handler = self.get_command_object(command_name="AutoSetFilterGains")
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=subarray_id)
+        result_code, command_id = command_handler(argin=auto_set_filter_gains_argin)
         return [[result_code], [command_id]]
+
+    @command(
+        dtype_in="DevString",
+        doc_in="JSON string conforming to the ska-mid-cbf-abort schema",
+        dtype_out="DevVarLongStringArray",
+        doc_out=("A tuple containing a return code and a string message indicating status. The message is for information purpose only."),
+    )
+    def Abort(self: VCCAllBandsController, argin: str) -> DevVarLongStringArrayType:
+        """
+        Abort the current observing process and move to ABORTED FhsState.
+
+        Overrides base LRC mixin to trigger FhsState transitions and component
+        manager abort task.
+
+        :return: tuple containing a return code and a unique command identifier
+        """
+        # TODO: argin currently unused
+
+        # Trigger task executor shutdown before submitting component manager abort
+        # task to immediately clear out any tasks in progress.
+        abort_tasks_event = Event()
+        status, message = self.component_manager.abort_tasks(
+            task_callback=lambda status, result=None: abort_tasks_event.set() if status is TaskStatus.COMPLETED else None
+        )
+
+        # Abort command succeeds if the task executor is successfully shut down
+        # and restarted.
+        if status is not TaskStatus.IN_PROGRESS:
+            return ([ResultCode.FAILED], [message])
+        if not abort_tasks_event.wait(3):
+            return ([ResultCode.FAILED], ["Failed to shut down TaskExecutor"])
+        return ([ResultCode.OK], ["Abort command completed OK"])
 
     def init_device(self) -> None:
         """Initialize the Tango device after startup."""
