@@ -130,7 +130,7 @@ This document serves as the internal ICD between MCS and the FHS-VCC. The FHS-VC
 **FSLaneConfig**
 | Name        | Type                       | Description                                                                                             | Range                     |
 | ----------- | -------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------- |
-| vlan_id     | Integer                    | VLAN identifier for use in network switch map to the given FS to an FSP (Used for the VCC Stream Merge) | [[2, 1001], [1006, 4094]] |
+| `vlan_alias`   | str | String for mapping to the VLAN ID, as specified in the vcc-product-definitions YAML file, or provided by upstream helm charts                                                                                                                                                                                   | Mapped VLAN must be within $[[2, 1001], [1006, 4094]]$                           |
 | fs_id       | Integer                    | Identifier of the frequency slice                                                                       | [1, 26]                   |
 | power_meter | Object[`PowerMeterConfig`] | Power Meter configuration to configure the ND Power Meter for the fs lane equal to `fs_id`.             |                           |
 
