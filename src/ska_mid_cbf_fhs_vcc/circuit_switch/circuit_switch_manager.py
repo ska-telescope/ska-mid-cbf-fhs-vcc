@@ -24,7 +24,7 @@ class CircuitSwitchStatus(DataClassJsonMixin):
 
 @dataclass
 class CircuitSwitchConfigureArgin(DataClassJsonMixin):
-    band: list[dict]
+    band: list[CircuitSwitchConfig]
 
 
 class CircuitSwitchManager(BaseIPBlockManager[CircuitSwitchConfig, CircuitSwitchStatus]):
@@ -48,7 +48,7 @@ class CircuitSwitchManager(BaseIPBlockManager[CircuitSwitchConfig, CircuitSwitch
     def configure(self, config: CircuitSwitchConfigureArgin):
         """Configure the Circuit Switch."""
         for band in config.band:
-            cs_config = CircuitSwitchConfig(output=band.get("output"), input=band.get("input"))
+            cs_config = CircuitSwitchConfig(output=band.output, input=band.input)
             result = super().configure(cs_config)
             if result == 1:
                 self.logger.error("Configuring Circuit Switch failed.")

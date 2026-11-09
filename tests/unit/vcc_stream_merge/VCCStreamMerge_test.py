@@ -1,4 +1,5 @@
 import pytest
+from ska_mid_cbf_fhs_common import dataclass_from_json
 
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 
@@ -23,7 +24,7 @@ class TestVCCStreamMerge:
         """Test the configure method of the VCC Stream Merge block."""
         with open("tests/test_data/device_config/vcc_stream_merge.json", "r") as f:
             config_json = f.read()
-        result = vcc_stream_merge.configure(VCCStreamMergeConfigureArgin.schema().loads(config_json))
+        result = vcc_stream_merge.configure(dataclass_from_json(VCCStreamMergeConfigureArgin, config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_deconfigure(self, vcc_stream_merge: VCCStreamMergeManager):

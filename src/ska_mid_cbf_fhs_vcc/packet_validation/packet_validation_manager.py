@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-import numpy as np
 from dataclasses_json import DataClassJsonMixin
 from ska_mid_cbf_fhs_common import BaseIPBlockManager, non_blocking
 
@@ -14,10 +13,10 @@ class PacketValidationConfig(DataClassJsonMixin):
     drop_ethertype: bool = True
     drop_antenna_id: bool = True
     clr_cnt: bool = True
-    exp_dst_mac: np.uint64 = 0
-    exp_src_mac: np.uint64 = 0
-    exp_ethertype: np.uint64 = 0
-    exp_antenna_id: np.uint64 = 0
+    exp_dst_mac: int = 0
+    exp_src_mac: int = 0
+    exp_ethertype: int = 0
+    exp_antenna_id: int = 0
 
 
 ##
@@ -29,21 +28,21 @@ class PacketValidationStatus(DataClassJsonMixin):
     drop_src_mac: bool = True
     drop_ethertype: bool = True
     drop_antenna_id: bool = True
-    egress_cnt: np.uint32 = 0
-    ingress_error_cnt: np.uint32 = 0
-    size_error_cnt: np.uint32 = 0
-    exp_dst_mac: np.uint64 = 0
-    last_wrong_dst_mac: np.uint64 = 0
-    wrong_dst_mac_cnt: np.uint32 = 0
-    exp_src_mac: np.uint64 = 0
-    last_wrong_src_mac: np.uint64 = 0
-    wrong_src_mac_cnt: np.uint32 = 0
-    exp_ethertype: np.uint64 = 0
-    last_wrong_ethertype: np.uint64 = 0
-    wrong_ethertype_cnt: np.uint32 = 0
-    exp_antenna_id: np.uint64 = 0
-    last_wrong_antenna_id: np.uint64 = 0
-    wrong_antenna_id_cnt: np.uint32 = 0
+    egress_cnt: int = 0
+    ingress_error_cnt: int = 0
+    size_error_cnt: int = 0
+    exp_dst_mac: int = 0
+    last_wrong_dst_mac: int = 0
+    wrong_dst_mac_cnt: int = 0
+    exp_src_mac: int = 0
+    last_wrong_src_mac: int = 0
+    wrong_src_mac_cnt: int = 0
+    exp_ethertype: int = 0
+    last_wrong_ethertype: int = 0
+    wrong_ethertype_cnt: int = 0
+    exp_antenna_id: int = 0
+    last_wrong_antenna_id: int = 0
+    wrong_antenna_id_cnt: int = 0
 
 
 class PacketValidationManager(BaseIPBlockManager[PacketValidationConfig, PacketValidationStatus]):

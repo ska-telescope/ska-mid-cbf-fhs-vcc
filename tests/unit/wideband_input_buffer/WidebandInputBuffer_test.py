@@ -1,6 +1,7 @@
 import time
 import pytest
 from ska_control_model import HealthState
+from ska_mid_cbf_fhs_common import dataclass_from_json
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
 
@@ -29,7 +30,7 @@ class TestWidebandInputBuffer:
         """Test the configure method of the Wideband Input Buffer."""
         with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()
-        result = wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+        result = wideband_input_buffer.configure(dataclass_from_json(WidebandInputBufferConfig, config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_status(self, wideband_input_buffer: WidebandInputBufferManager):
@@ -56,7 +57,7 @@ class TestWidebandInputBuffer:
         with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()
 
-        wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+        wideband_input_buffer.configure(dataclass_from_json(WidebandInputBufferConfig, config_json))
         wideband_input_buffer.expected_dish_id = "MKT001"
         wideband_input_buffer.start().await_result()
 
@@ -72,7 +73,7 @@ class TestWidebandInputBuffer:
         with open("tests/test_data/device_config/wideband_input_buffer_health_failure.json", "r") as f:
             config_json = f.read()
 
-        wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+        wideband_input_buffer.configure(dataclass_from_json(WidebandInputBufferConfig, config_json))
         wideband_input_buffer.expected_dish_id = "MKT001"
         wideband_input_buffer.start().await_result()
 

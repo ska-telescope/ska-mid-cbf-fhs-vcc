@@ -1,4 +1,5 @@
 import pytest
+from ska_mid_cbf_fhs_common import dataclass_from_json
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import B123VccOsppfbChannelizerConfigureArgin, B123VccOsppfbChannelizerManager
 
@@ -23,7 +24,7 @@ class TestB123VccOsppfbChannelizer:
         """Test the configure method of the B123 VCC."""
         with open("tests/test_data/device_config/b123_vcc_osppfb_channelizer.json", "r") as f:
             config_json = f.read()
-        result = b123_vcc.configure(B123VccOsppfbChannelizerConfigureArgin.schema().loads(config_json))
+        result = b123_vcc.configure(dataclass_from_json(B123VccOsppfbChannelizerConfigureArgin, config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_deconfigure(self, b123_vcc: B123VccOsppfbChannelizerManager):

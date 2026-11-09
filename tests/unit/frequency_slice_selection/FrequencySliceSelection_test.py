@@ -1,4 +1,5 @@
 import pytest
+from ska_mid_cbf_fhs_common import dataclass_from_json
 
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_manager import FrequencySliceSelectionConfig, FrequencySliceSelectionManager
 
@@ -23,7 +24,7 @@ class TestFrequencySliceSelection:
         """Test the configure method of the Frequency Slice Selection block."""
         with open("tests/test_data/device_config/frequency_slice_selection.json", "r") as f:
             config_json = f.read()
-        result = frequency_slice_selection.configure(FrequencySliceSelectionConfig.schema().loads(config_json))
+        result = frequency_slice_selection.configure(dataclass_from_json(FrequencySliceSelectionConfig, config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_deconfigure(self, frequency_slice_selection: FrequencySliceSelectionManager):

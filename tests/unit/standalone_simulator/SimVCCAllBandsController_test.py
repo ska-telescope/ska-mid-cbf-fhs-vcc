@@ -164,7 +164,7 @@ class TestVCCAllBandsSim:
         assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
             event_timeout
         ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
+            device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
             attribute_name="healthState",
             attribute_value=HealthState.FAILED,
             previous_value=HealthState.OK,
@@ -278,7 +278,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
@@ -317,7 +317,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
@@ -358,7 +358,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
@@ -394,7 +394,7 @@ class TestVCCAllBandsSim:
         assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
             event_timeout
         ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
+            device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
             attribute_name="adminMode",
             attribute_value=AdminMode.OFFLINE,
             previous_value=AdminMode.ONLINE,
@@ -407,7 +407,7 @@ class TestVCCAllBandsSim:
         assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
             event_timeout
         ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,
+            device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
             attribute_name="longRunningCommandResult",
             attribute_value=(
                 f"{command_id}",
@@ -463,7 +463,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
@@ -523,7 +523,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
@@ -586,7 +586,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
@@ -744,7 +744,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
@@ -783,7 +783,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
@@ -812,7 +812,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
@@ -824,7 +824,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
@@ -863,7 +863,7 @@ class TestVCCAllBandsSim:
             assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
                 event_timeout
             ).has_change_event_occurred(
-                device_name=sim_vcc_all_bands_device,
+                device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,

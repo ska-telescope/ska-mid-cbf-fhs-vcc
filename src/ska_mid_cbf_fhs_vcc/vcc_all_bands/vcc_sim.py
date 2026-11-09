@@ -153,6 +153,8 @@ class SimVCCAllBandsCM(SimModeCMBase):
 
 
 class SimVCCAllBandsController(VCCAllBandsController, FhsSimMode):
+    component_manager: SimVCCAllBandsCM
+
     change_event_attributes = VCC_SIM_CHANGE_EVENT_ATTRS
     archive_event_attributes = VCC_SIM_ARCHIVE_EVENT_ATTRS
 

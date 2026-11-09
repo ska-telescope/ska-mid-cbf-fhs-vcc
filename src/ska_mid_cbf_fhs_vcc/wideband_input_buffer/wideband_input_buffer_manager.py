@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
 
-import numpy as np
 from dataclasses_json import DataClassJsonMixin
 from ska_control_model import HealthState
 from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, convert_dish_id_uint16_t_to_mnemonic, non_blocking
@@ -11,9 +10,9 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator i
 
 @dataclass
 class WidebandInputBufferConfig(DataClassJsonMixin):
-    expected_sample_rate: np.uint64
+    expected_sample_rate: int
     noise_diode_transition_holdoff_count: int
-    expected_dish_band: np.uint8
+    expected_dish_band: int
     transaction_id: str | None = None
 
 
@@ -23,20 +22,20 @@ class WidebandInputBufferConfig(DataClassJsonMixin):
 @dataclass
 class WidebandInputBufferStatus(DataClassJsonMixin):
     buffer_overflow: bool
-    loss_of_signal: np.uint32
+    loss_of_signal: int
     error: bool
     packet_error: bool
-    packet_error_count: np.uint32
+    packet_error_count: int
     packet_drop: bool
-    packet_drop_count: np.uint32
-    loss_of_signal_seconds: np.uint32
-    meta_band_id: np.uint8
-    meta_dish_id: np.uint16
-    rx_sample_rate: np.uint32
-    rx_packet_rate: np.uint32
-    meta_transport_sample_rate: np.uint32
+    packet_drop_count: int
+    loss_of_signal_seconds: int
+    meta_band_id: int
+    meta_dish_id: int
+    rx_sample_rate: int
+    rx_packet_rate: int
+    meta_transport_sample_rate: int
     link_failure: bool
-    expected_sample_rate: np.uint32
+    expected_sample_rate: int
 
 
 class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBufferConfig, WidebandInputBufferStatus]):
@@ -58,8 +57,8 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         return WidebandInputBufferSimulator
 
     def _manager_specific_setup(self, **kwargs):
-        self.expected_sample_rate = None
-        self.expected_dish_id = None
+        self.expected_sample_rate: int | None = None
+        self.expected_dish_id: str | None = None
 
     def configure(self, config: WidebandInputBufferConfig) -> int:
         """Configure the Wideband Input Buffer."""

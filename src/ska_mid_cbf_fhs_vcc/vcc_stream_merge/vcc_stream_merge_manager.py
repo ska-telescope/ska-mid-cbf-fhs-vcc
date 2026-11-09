@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 
-import numpy as np
 from dataclasses_json import DataClassJsonMixin
 from ska_mid_cbf_fhs_common import BaseIPBlockManager
 
@@ -9,9 +8,11 @@ from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_simulator import VCCS
 
 @dataclass
 class VCCStreamMergeConfig(DataClassJsonMixin):
-    vid: np.uint16  # VLAN identifier, for unique VLAN identification.
-    vcc_id: np.uint16  # Influences the Source MAC address.
-    fs_id: np.uint16  # Frequency slice identifier.
+    mac_destination: int  # Destination MAC Address.
+    vid: int  # VLAN identifier, for unique VLAN identification.
+    vcc_id: int  # Influences the Source MAC address.
+    fs_id: int  # Frequency slice identifier.
+    fs_index: int  # Index of the FS within the Stream Merge block (1 to 13).
 
 
 ##
@@ -19,11 +20,14 @@ class VCCStreamMergeConfig(DataClassJsonMixin):
 ##
 @dataclass
 class VCCStreamMergeStatus(DataClassJsonMixin):
-    mac_source_register: np.uint64  # Source MAC Address.
-    vid_register: np.uint16  # VLAN identifier.
-    flags_register: np.uint16  # Various flags, currently used for noise diode state.
-    psn_register: np.uint16  # Packet sequence number.
-    packet_count_register: np.uint32  # Packet count.
+    mac_destination: int  # Destination MAC Address.
+    vid: int  # VLAN identifier.
+    vcc_id: int  # VCC ID.
+    fs_id: int  # Frequency Slice ID.
+    timestamp: int  # Timestamp.
+    psn: list[int]  # Packet sequence number.
+    packet_count: int  # Packet count.
+    diag_stop_monitor: int
 
 
 @dataclass

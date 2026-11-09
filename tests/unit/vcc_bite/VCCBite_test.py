@@ -2,6 +2,7 @@ import logging
 import pytest
 
 from ska_control_model import SimulationMode
+from ska_mid_cbf_fhs_common import dataclass_from_json
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteArgin
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager
 
@@ -58,7 +59,7 @@ class TestVCCBite:
         """Test the configure method of the VCC Bite."""
         with open("tests/test_data/device_config/vcc_bite.json", "r") as f:
             config_json = f.read()
-        result = vcc_bite.configure(VCCAllBandsConfigureVCCBiteArgin.schema().loads(config_json))
+        result = vcc_bite.configure(dataclass_from_json(VCCAllBandsConfigureVCCBiteArgin, config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_deconfigure(self, vcc_bite: VCCBiteManager):
@@ -88,7 +89,7 @@ class TestVCCBite:
     #     """Test the configure method of the VCC Bite."""
     #     with open("tests/test_data/device_config/vcc_bite.json", "r") as f:
     #         config_json = f.read()
-    #     result = vcc_bite_firmware.configure(VCCAllBandsConfigureVCCBiteArgin.schema().loads(config_json))
+    #     result = vcc_bite_firmware.configure(dataclass_from_json(VCCAllBandsConfigureVCCBiteArgin, config_json))
     #     assert result == 0, f"Expected return code 0, got {result}"
 
     # def test_deconfigure_firmware(self, vcc_bite_firmware: VCCBiteManager):

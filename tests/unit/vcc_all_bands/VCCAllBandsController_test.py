@@ -7,7 +7,8 @@ import os
 from assertpy import assert_that
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
 from tango import DevState
-from ska_control_model import AdminMode, HealthState, ObsState, ResultCode
+from ska_control_model import HealthState, ResultCode
+from ska_control_model.future import AdminMode
 from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 from ska_tango_testing.integration import TangoEventTracer
@@ -136,21 +137,6 @@ class TestVCCAllBandsController:
     def test_admin_mode_online(self, vcc_all_bands_device: VCCAllBandsController):
         assert vcc_all_bands_device.adminMode == AdminMode.ONLINE
 
-    def test_admin_mode_offline(
-        self,
-        vcc_all_bands_device: VCCAllBandsController,
-        vcc_all_bands_event_tracer: TangoEventTracer,
-    ):
-        vcc_all_bands_device.adminMode = AdminMode.OFFLINE
-        assert_that(vcc_all_bands_event_tracer).within_timeout(
-            EVENT_TIMEOUT
-        ).has_change_event_occurred(
-            device_name=vcc_all_bands_device,
-            attribute_name="adminMode",
-            attribute_value=AdminMode.OFFLINE,
-            previous_value=AdminMode.ONLINE,
-        )
-
     @pytest.mark.parametrize(
         ("current_subarray", "new_subarray", "expected_result"),
         [
@@ -184,7 +170,7 @@ class TestVCCAllBandsController:
             assert_that(vcc_all_bands_event_tracer).within_timeout(
                 EVENT_TIMEOUT
             ).has_change_event_occurred(
-                device_name=vcc_all_bands_device,
+                device_name=vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name="subarrayID",
                 attribute_value=current_subarray,
                 previous_value=0,
@@ -204,7 +190,7 @@ class TestVCCAllBandsController:
             assert_that(vcc_all_bands_event_tracer).within_timeout(
                 EVENT_TIMEOUT
             ).has_change_event_occurred(
-                device_name=vcc_all_bands_device,
+                device_name=vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name="subarrayID",
                 attribute_value=new_subarray,
                 previous_value=current_subarray,

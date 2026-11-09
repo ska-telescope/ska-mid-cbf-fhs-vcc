@@ -1,7 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-import numpy as np
 from dataclasses_json import DataClassJsonMixin
 from ska_mid_cbf_fhs_common import BaseIPBlockManager
 
@@ -10,10 +9,10 @@ from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer
 
 @dataclass
 class B123VccOsppfbChannelizerConfig(DataClassJsonMixin):
-    sample_rate: np.uint64
-    pol: dict
-    channel: np.uint16
-    gain: np.float32
+    sample_rate: int
+    pol: int
+    channel: int
+    gain: float
 
 
 ##
@@ -21,15 +20,15 @@ class B123VccOsppfbChannelizerConfig(DataClassJsonMixin):
 ##
 @dataclass
 class B123VccOsppfbChannelizerStatus(DataClassJsonMixin):
-    sample_rate: np.uint32
+    sample_rate: int
     num_channels: int
     num_polarisations: int
-    gains: list[np.float32]
+    gains: list[float]
 
 
 @dataclass
 class B123VccOsppfbChannelizerConfigureArgin(DataClassJsonMixin):
-    sample_rate: np.uint64 = 3960000000  # default values
+    sample_rate: int = 3960000000  # default values
     gains: list[float] = field(
         default_factory=lambda: [
             1.0,

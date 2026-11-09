@@ -5,8 +5,13 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+0.7.0
+*****
+* CIP-6575: Various fixes.
+* Various miscellaneous updates to address potential issues found by enabling stricter type-checking.
+
 0.6.8
-****
+*****
 * CIP-6593: 
   * Swap to use "vlan_alias" in configurescan rather than directly providing "vlan_id", add basic file for these mappings.
   * Enables mappings to be specified via Charts, under the vcc_product_definition section. 

@@ -13,6 +13,8 @@ __all__ = ["main"]
 def main(args=None, **kwargs):
     # Wait for the download path size to stop increasing
     bitstream_mount_path = os.getenv("BITSTREAM_MOUNT_PATH")
+    if bitstream_mount_path is None:
+        sys.exit("Error: the BITSTREAM_MOUNT_PATH environment variable is not set")
     wait_for_download_completion(Path(bitstream_mount_path))
 
     return run(
@@ -36,7 +38,7 @@ def dir_size(root: Path) -> int:
     return total
 
 
-def wait_for_download_completion(folder: Path, interval: float = 5.0) -> bool:
+def wait_for_download_completion(folder: Path, interval: float = 5.0) -> None:
     if not folder.is_dir():
         sys.exit(f"Error: {folder} is not a directory")
 

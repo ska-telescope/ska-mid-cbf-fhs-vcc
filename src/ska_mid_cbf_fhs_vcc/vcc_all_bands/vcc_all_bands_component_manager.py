@@ -128,9 +128,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         device,
         logger: logging.Logger,
         simulation_mode: SimulationMode = SimulationMode.FALSE,
-        attr_change_callback: Callable[[str, Any], None] | None = None,
-        attr_archive_callback: Callable[[str, Any], None] | None = None,
-        health_state_callback: Callable[[HealthState], None] | None = None,
+        attr_change_callback: Callable[[str, Any], None] = lambda *_, **__: None,
+        attr_archive_callback: Callable[[str, Any], None] = lambda *_, **__: None,
+        health_state_callback: Callable[[HealthState, dict[str, HealthState]], None] = lambda *_, **__: None,
         emulation_mode: bool = False,
         create_log_file: bool = True,
         long_running_command_result_buffer_max_size=LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE,
@@ -144,12 +144,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             simulation_mode (:obj:`SimulationMode`, optional): Whether the controller is deployed
                 in simulation mode (SimulationMode.TRUE) or not (SimulationMode.FALSE).
                 Default is SimulationMode.FALSE.
-            attr_change_callback (:obj:`Callable[[str, Any], None] | None`, optional): Callback that is called when
-                an attribute change event occurs. Default is None.
-            attr_archive_callback (:obj:`Callable[[str, Any], None] | None`, optional): Callback that is called when
-                an attribute archive event occurs. Default is None.
-            health_state_callback (:obj:`Callable[[HealthState], None] | None`, optional): Callback that is called when
-                a HealthState change occurs. Default is None.
+            attr_change_callback (:obj:`Callable[[str, Any], None]`, optional): Callback that is called when
+                an attribute change event occurs. Default is an empty function.
+            attr_archive_callback (:obj:`Callable[[str, Any], None]`, optional): Callback that is called when
+                an attribute archive event occurs. Default is an empty function.
+            health_state_callback (:obj:`Callable[[HealthState, dict[str, HealthState]], None]`, optional): Callback that is called when
+                a HealthState change occurs. Default is an empty function.
             emulation_mode (:obj:`bool`, optional): Whether the controller is deployed
                 in emulation mode or not. Default is False.
             create_log_file (:obj:`bool`, optional): Whether or not to create a log file for this controller. Default is True.
@@ -182,7 +182,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
         self.admin_mode_online_check = VccAdminOnline(
             logger=self.logger,
-            simulation_mode=self.simulation_mode,
+            simulation_mode=(self.simulation_mode is SimulationMode.TRUE),
         )
 
         self._vcc_id = self.device.device_id
@@ -250,36 +250,16 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self._attr_change_callback("configurationState", dest_state)
         self._attr_archive_callback("configurationState", dest_state)
 
-    def update_subarray_membership(
-        self: VCCAllBandsComponentManager,
-        argin: int,
-        task_callback: Callable | None = None,
-    ) -> tuple[TaskStatus, str]:
-        """Submit the task to start running the UpdateSubarrayMembership command implementation.
-
-        Args:
-            argin (:obj:`int`): The subarray ID.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
-
-        Returns:
-            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
-        """
-        return self.submit_task(
-            func=self._update_subarray_membership,
-            args=[argin],
-            task_callback=task_callback,
-        )
-
     def configure_scan(
         self,
         argin: str,
-        task_callback: Callable | None = None,
+        task_callback: Callable,
     ) -> tuple[TaskStatus, str]:
         """Submit the task to start running the ConfigureScan command implementation.
 
         Args:
             argin (:obj:`str`): The configuration JSON string from the command's input argument.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
@@ -293,13 +273,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     def go_to_idle(
         self,
         argin: str,
-        task_callback: Callable | None = None,
+        task_callback: Callable,
     ) -> tuple[TaskStatus, str]:
         """Submit the task to start running the GoToIdle command implementation.
 
         Args:
             argin (:obj:`str`): The input JSON string to the GoToIdle command.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
@@ -310,16 +290,59 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             task_callback=task_callback,
         )
 
+    def update_subarray_membership(
+        self: VCCAllBandsComponentManager,
+        argin: int,
+        task_callback: Callable,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the UpdateSubarrayMembership command implementation.
+
+        Args:
+            argin (:obj:`int`): The subarray ID.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=self._update_subarray_membership,
+            args=[argin],
+            task_callback=task_callback,
+        )
+
+    def auto_set_filter_gains(
+        self: VCCAllBandsComponentManager,
+        argin: str,
+        task_callback: Callable,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the AutoSetFilterGains command implementation.
+
+        Args:
+            argin (:obj:`str`): JSON String following the auto set filter gains command schema
+                Requested RFI headroom, in decibels (dB).
+                Must be a list containing either a single value to apply to all frequency slices,
+                or a value per frequency slice to be applied separately.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=self._auto_set_filter_gains,
+            args=[argin],
+            task_callback=task_callback,
+        )
+
     def configure_vcc_bite(
         self,
-        argin: str | None = None,
-        task_callback: Callable | None = None,
+        argin: str,
+        task_callback: Callable,
     ) -> tuple[TaskStatus, str]:
         """Submit the task to start running the ConfigureVCCBite command implementation.
 
         Args:
             argin (:obj:`str`): The input JSON string to the ConfigureVCCBite command.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
@@ -332,14 +355,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def deconfigure_vcc_bite(
         self,
-        argin: str | None = None,
-        task_callback: Callable | None = None,
+        argin: str,
+        task_callback: Callable,
     ) -> tuple[TaskStatus, str]:
         """Submit the task to start running the DeconfigureVCCBite command implementation.
 
         Args:
             argin (:obj:`str`): The input JSON string to the DeconfigureVCCBite command.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
@@ -352,14 +375,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def abort_tasks(
         self,
-        task_callback: Callable | None = None,
+        task_callback: Callable,
     ) -> tuple[TaskStatus, str]:
         """
         Run a task to abort all commands and stop any started IP blocks.
 
         Args:
-            task_callback (:obj:`Callable | None`, optional): A callback to pass to the superclass
-                to be run when the task status changes. Default is None. Default is None.
+            task_callback (:obj:`Callable`): A callback to pass to the superclass
+                to be run when the task status changes.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
@@ -371,8 +394,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     def _configure_scan(
         self,
         argin: str,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """Wrapper for the ConfigureScan command implementation for all controllers,
         to handle task management as well as error handling.
@@ -497,7 +520,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 }
 
                 for band_group in VCCBandGroup:
-                    config = self._pre_channelizer_power_meter_configs.get(band_group)
+                    config = self._pre_channelizer_power_meter_configs[band_group]
                     self.log_debug(f"Configuring {band_group.value} power meter with {config}", transaction_id)
                     result = self.wideband_power_meters[band_group].configure(
                         WidebandPowerMeterConfig(
@@ -548,14 +571,16 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                             transaction_id=transaction_id,
                             fs_lane_configs=[
                                 VCCStreamMergeConfig(
+                                    mac_destination=0,  # TODO?
                                     vid=self.vlan_lookup[lane.vlan_alias],
                                     vcc_id=self._vcc_id,
                                     fs_id=lane.fs_id,
+                                    fs_index=fs_index,
                                 )
-                                for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
+                                for fs_index, lane in enumerate(self._fs_lanes[13 * (i - 1) : 13 * i])
                             ],
                         )
-                    )
+                    )  # fmt: skip
                     if result == 1:
                         self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
                         self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
@@ -593,9 +618,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def _go_to_idle(
         self,
-        argin: str | None = None,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        argin: str,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """GoToIdle command implementation for all controllers."""
         try:
@@ -629,34 +654,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             # Reset the ID so it's not used in a different Command call
             self.transaction_ids_per_command[CommandType.GOTOIDLE] = None
 
-    def auto_set_filter_gains(
-        self: VCCAllBandsComponentManager,
-        argin: str,
-        task_callback: Callable | None = None,
-    ) -> tuple[TaskStatus, str]:
-        """Submit the task to start running the AutoSetFilterGains command implementation.
-
-        Args:
-            argin (:obj:`str`): JSON String following the auto set filter gains command schema
-                Requested RFI headroom, in decibels (dB).
-                Must be a list containing either a single value to apply to all frequency slices,
-                or a value per frequency slice to be applied separately.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
-
-        Returns:
-            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
-        """
-        return self.submit_task(
-            func=self._auto_set_filter_gains,
-            args=[argin],
-            task_callback=task_callback,
-        )
-
     def _update_subarray_membership(
         self,
         argin: int,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """Update subarray membership for this VCC. This is the implementation for the UpdateSubarrayMembership command.
 
@@ -702,9 +704,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def _auto_set_filter_gains(
         self,
-        argin: str | None = None,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        argin: str,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """Calculate and apply optimal gain multipliers for VCC coarse channels.
         This is the implementation for the AutoSetFilterGains command.
@@ -726,7 +728,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 auto_set_filter_gains_argin = VCCAllBandsAutoSetFilterGainsArgin.from_json(argin)
                 transaction_id = auto_set_filter_gains_argin.transaction_id
                 self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = transaction_id
-                headrooms = auto_set_filter_gains_argin.headrooms
+                if auto_set_filter_gains_argin.headrooms is not None:
+                    headrooms = auto_set_filter_gains_argin.headrooms
 
             self.log_info("Received Command AutoSetFilterGains", transaction_id)
 
@@ -857,8 +860,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     def _configure_vcc_bite(
         self,
         argin: str,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """ConfigureVCCBite command implementation for VCC All bands controller,
         to handle task management as well as error handling.
@@ -911,8 +914,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     def _deconfigure_vcc_bite(
         self,
         argin: str,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """DeconfigureVCCBite command implementation for VCC All bands controller,
         to handle task management as well as error handling.
