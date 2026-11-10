@@ -3,7 +3,7 @@ from typing import Any
 
 from dataclasses_json import DataClassJsonMixin
 from ska_control_model import HealthState
-from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, convert_dish_id_uint16_t_to_mnemonic, non_blocking
+from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, convert_dish_id_uint16_to_str, non_blocking
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 
@@ -82,11 +82,11 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
     def get_status_healthstates(self, status: WidebandInputBufferStatus) -> dict[str, HealthState]:
         status_healthstates = {}
 
-        meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(status.meta_dish_id)
+        meta_dish_id_str = convert_dish_id_uint16_to_str(status.meta_dish_id)
         status_healthstates["meta_dish_id"] = self.get_health_state_by_expected_value(
             self.expected_dish_id,
-            meta_dish_id_mnemonic,
-            failure_msg=f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_mnemonic} ({status.meta_dish_id})",
+            meta_dish_id_str,
+            failure_msg=f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_str} ({status.meta_dish_id})",
         )
 
         status_healthstates["rx_sample_rate"] = self.get_health_state_by_expected_value(

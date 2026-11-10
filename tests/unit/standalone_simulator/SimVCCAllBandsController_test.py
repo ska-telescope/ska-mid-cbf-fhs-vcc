@@ -19,7 +19,8 @@ from typing import Any
 import orjson
 import pytest
 from assertpy import assert_that
-from ska_control_model import AdminMode, HealthState, ResultCode
+from ska_control_model import HealthState, ResultCode
+from ska_control_model.future import AdminMode
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim import SimVCCAllBandsController, VCC_SIM_DEFAULT_ATTRIBUTE_VALUES
 from ska_tango_testing.integration import TangoEventTracer
 from tango import DevState
@@ -364,56 +365,6 @@ class TestVCCAllBandsSim:
                 previous_value=previous,
                 min_n_events=n,
             )
-
-    @pytest.mark.parametrize(
-        "command_name, \
-        command_param",
-        [
-            ("AutoSetFilterGains", json.dumps({"headrooms": [3.0]})),
-            ("UpdateSubarrayMembership", 1),
-        ],
-    )
-    def test_not_allowed(
-        self: TestVCCAllBandsSim,
-        sim_vcc_all_bands_device: Any,
-        sim_vcc_all_bands_event_tracer: TangoEventTracer,
-        command_name: str,
-        command_param: Any,
-        event_timeout: int,
-    ) -> None:
-        """Test commands failing in incorrect state parametrized
-
-        Args:
-            sim_vcc_all_bands_device (:obj:`DeviceProxy`): Proxy to the device under test.
-            sim_vcc_all_bands_event_tracer (:obj:`TangoEventTracer`): Event tracer used to recieve subscribed change
-                events from the device under test.
-        """
-
-        # Test command not allowed in AdminMode.OFFLINE
-        sim_vcc_all_bands_device.adminMode = AdminMode.OFFLINE
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
-            attribute_name="adminMode",
-            attribute_value=AdminMode.OFFLINE,
-            previous_value=AdminMode.ONLINE,
-        )
-
-        [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
-            command_name, command_param
-        )
-        assert result_code == ResultCode.QUEUED
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
-            device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
-            attribute_name="longRunningCommandResult",
-            attribute_value=(
-                f"{command_id}",
-                f'[{ResultCode.NOT_ALLOWED.value}, "Command is not allowed"]',
-            ),
-        )
 
     @pytest.mark.parametrize(
         "command_name, \

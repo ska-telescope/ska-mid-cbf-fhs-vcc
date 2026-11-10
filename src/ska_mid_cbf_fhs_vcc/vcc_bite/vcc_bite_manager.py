@@ -5,6 +5,7 @@ from enum import IntEnum
 from dataclasses_json import DataClassJsonMixin
 from ska_control_model import SimulationMode
 from ska_mid_cbf_fhs_common import FirmwareApi, GRPCInfo
+from ska_mid_cbf_fhs_common.helpers.dish_id import convert_dish_id_str_to_uint16
 from ska_mid_cbf_fhs_vcc_grpc_controller.generated import vcc_drivers_pb2, vcc_drivers_pb2_grpc
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteArgin, VCCAllBandsDeconfigureVCCBiteArgin
@@ -381,7 +382,7 @@ class VCCBiteManager:
             local_mac=0x112233445566,
             remote_mac=0x778899AABBCC,
             ethertype=0xFEED,
-            dish_id=int(config.receiver.dish_id),
+            dish_id=convert_dish_id_str_to_uint16(config.receiver.dish_id),
             hw_src_id=0,
             band=config.band,
             sample_rate=config.receiver.dish_sample_rate,
