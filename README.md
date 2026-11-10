@@ -21,3 +21,15 @@ Please see the [readthedocs](https://developer.skao.int/projects/ska-mid-cbf-fhs
 ### Installing the chart
 ```make k8s-deploy-dev```
 
+# Repository Best Practices
+* When working in this repository, if using VS Code, please set at least the following in your workspace settings:
+```json
+{
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportPrivateImportUsage": "none",
+        "reportRedeclaration": "information",
+    },
+}
+```
+This enables very basic type-checking which can help catch unexpected issues early.

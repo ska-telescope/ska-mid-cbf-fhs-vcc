@@ -1,11 +1,8 @@
 import logging
-from dataclasses import dataclass
 from enum import IntEnum
 
-from dataclasses_json import DataClassJsonMixin
 from ska_control_model import SimulationMode
-from ska_mid_cbf_fhs_common import FirmwareApi, GRPCInfo
-from ska_mid_cbf_fhs_common.helpers.dish_id import convert_dish_id_str_to_uint16
+from ska_mid_cbf_fhs_common import FhsDataclass, FirmwareApi, GRPCInfo, convert_dish_id_str_to_uint16
 from ska_mid_cbf_fhs_vcc_grpc_controller.generated import vcc_drivers_pb2, vcc_drivers_pb2_grpc
 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteArgin, VCCAllBandsDeconfigureVCCBiteArgin
@@ -27,51 +24,44 @@ class VCCSourceSelect(IntEnum):
     RESERVED = 3
 
 
-@dataclass
-class VCCSourceSelectApiConfig(DataClassJsonMixin):
+class VCCSourceSelectApiConfig(FhsDataclass):
     source_select: VCCSourceSelect
     test_select: bool
 
 
-@dataclass
-class VCCBiteApiConfig(DataClassJsonMixin):
+class VCCBiteApiConfig(FhsDataclass):
     band: int = 1
     start_time: int = 0
     sample_rate: int = 3_960_000_000
     speed: int = 1
 
 
-@dataclass
-class VCCBiteToneGenApiConfig(DataClassJsonMixin):
+class VCCBiteToneGenApiConfig(FhsDataclass):
     sample_rate: int
     frequency: int
     magnitude: float
     band: int
 
 
-@dataclass
-class GaussianNoiseDriverApiConfig(DataClassJsonMixin):
+class GaussianNoiseDriverApiConfig(FhsDataclass):
     seed: int
     mean: int
     std_dev: int
 
 
-@dataclass
-class NoiseDiodeApiConfig(DataClassJsonMixin):
+class NoiseDiodeApiConfig(FhsDataclass):
     sample_rate: int
     switching_period: float
     seed: int
     std_dev: float
 
 
-@dataclass
-class PolarizationCouplerApiConfig(DataClassJsonMixin):
+class PolarizationCouplerApiConfig(FhsDataclass):
     correlation_coefficient: float
     delay_enable: bool
 
 
-@dataclass
-class SPFRxPacketizerApiConfig(DataClassJsonMixin):
+class SPFRxPacketizerApiConfig(FhsDataclass):
     local_mac: int
     remote_mac: int
     ethertype: int
@@ -84,51 +74,44 @@ class SPFRxPacketizerApiConfig(DataClassJsonMixin):
     noise_diode_rising_holdoff_b: float
 
 
-@dataclass
-class VCCSourceSelectStatus(DataClassJsonMixin):
+class VCCSourceSelectStatus(FhsDataclass):
     source_select: int
     test_select: bool
 
 
-@dataclass
-class VCCBiteStatus(DataClassJsonMixin):
+class VCCBiteStatus(FhsDataclass):
     band: int
     start_time: int
     sample_rate: int
     speed: int
 
 
-@dataclass
-class VCCBiteToneGenStatus(DataClassJsonMixin):
+class VCCBiteToneGenStatus(FhsDataclass):
     sample_rate: int
     frequency: int
     magnitude: float
     band: int
 
 
-@dataclass
-class GaussianNoiseDriverStatus(DataClassJsonMixin):
+class GaussianNoiseDriverStatus(FhsDataclass):
     seed: int
     mean: int
     std_dev: int
 
 
-@dataclass
-class NoiseDiodeStatus(DataClassJsonMixin):
+class NoiseDiodeStatus(FhsDataclass):
     sample_rate: int
     switching_period: float
     seed: int
     std_dev: float
 
 
-@dataclass
-class PolarizationCouplerStatus(DataClassJsonMixin):
+class PolarizationCouplerStatus(FhsDataclass):
     correlation_coefficient: float
     delay_enable: bool
 
 
-@dataclass
-class SPFRxPacketizerStatus(DataClassJsonMixin):
+class SPFRxPacketizerStatus(FhsDataclass):
     running: bool
     fifo_overflow_error: int
     local_mac: int
@@ -146,8 +129,7 @@ class SPFRxPacketizerStatus(DataClassJsonMixin):
 ##
 # status class that will be populated by the APIs and returned to provide the status of VCC Bite
 ##
-@dataclass
-class VCCBiteManagerStatus(DataClassJsonMixin):
+class VCCBiteManagerStatus(FhsDataclass):
     source_select: list[VCCSourceSelectStatus]
     bite_control: list[VCCBiteStatus]
     bite_tone_gen: list[VCCBiteToneGenStatus]

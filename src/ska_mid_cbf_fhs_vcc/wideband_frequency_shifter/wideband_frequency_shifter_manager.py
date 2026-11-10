@@ -1,13 +1,9 @@
-from dataclasses import dataclass
-
-from dataclasses_json import DataClassJsonMixin
-from ska_mid_cbf_fhs_common import BaseIPBlockManager
+from ska_mid_cbf_fhs_common import BaseIPBlockManager, FhsDataclass
 
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_simulator import WidebandFrequencyShifterSimulator
 
 
-@dataclass
-class WidebandFrequencyShifterConfig(DataClassJsonMixin):
+class WidebandFrequencyShifterConfig(FhsDataclass):
     transaction_id: str | None = None
     shift_frequency: float = 0.0
 
@@ -15,8 +11,7 @@ class WidebandFrequencyShifterConfig(DataClassJsonMixin):
 ##
 # status class that will be populated by the APIs and returned to provide the status of Wideband frequency shifter
 ##
-@dataclass
-class WidebandFrequencyShifterStatus(DataClassJsonMixin):
+class WidebandFrequencyShifterStatus(FhsDataclass):
     shift_frequency: float
 
 

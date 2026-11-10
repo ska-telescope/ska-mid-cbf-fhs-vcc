@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import json
 import logging
 import os
 import textwrap
@@ -18,12 +17,12 @@ from ska_mid_cbf_fhs_common import (
     LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE,
     BaseIPBlockManager,
     FhsControllerComponentManagerBase,
+    FhsState,
     FtileEthernetManager,
     WidebandPowerMeterConfig,
     WidebandPowerMeterManager,
     calculate_gain_multiplier,
 )
-from ska_mid_cbf_fhs_common.enums.fhs_state import FhsState
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
     B123VccOsppfbChannelizerConfigureArgin,
@@ -210,7 +209,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         vlan_mapping_file = os.getenv("VCC_PRODUCT_PATH", "/app/mnt/vcc") + "/vcc-product-definitions.yaml"
         self._parse_vlan_mapping(vlan_mapping_file)
 
-    def _init_ip_block_managers(self) -> list[BaseIPBlockManager]:
+    def _init_ip_block_managers(self) -> list[BaseIPBlockManager[Any, Any]]:
         """Instantiate all the IP block managers for the VCC controller."""
 
         self.ethernet_200g = FtileEthernetManager(**self._ip_block_props("Ethernet200Gb", additional_props=["ethernet_mode"]))
@@ -405,12 +404,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
                 return
 
+            # Note: We do manual JSON validation here as we have a dedicated schema for it
             self.set_configuration_state_if_transition_is_allowed(FhsState.CONFIGURING)
-            config_dict = json.loads(argin)
-            transaction_id = config_dict.get("transaction_id", None)
+            configuration = self.config_dataclass.from_validated_json(argin, additional_schema=self.config_schema)
+            transaction_id = configuration.transaction_id
             self.transaction_ids_per_command[CommandType.CONFIGURESCAN] = transaction_id
-            jsonschema.validate(config_dict, self.config_schema)
-            configuration = self.config_dataclass.from_dict(config_dict)
 
             # WIB must be stopped prior to reconfiguration if the sample rate changed
             wib_stop_required = configuration.dish_sample_rate != self._sample_rate and self._sample_rate != 0
@@ -628,7 +626,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
                 return
 
-            go_to_idle_argin = VCCAllBandsGoToIdleArgin.from_json(argin)
+            go_to_idle_argin = VCCAllBandsGoToIdleArgin.from_validated_json(argin)
             transaction_id = go_to_idle_argin.transaction_id
             self.transaction_ids_per_command[CommandType.GOTOIDLE] = transaction_id
             self.log_info("Received Command GoToIdle", transaction_id)
@@ -725,7 +723,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             transaction_id = None
 
             if argin:
-                auto_set_filter_gains_argin = VCCAllBandsAutoSetFilterGainsArgin.from_json(argin)
+                auto_set_filter_gains_argin = VCCAllBandsAutoSetFilterGainsArgin.from_validated_json(argin)
                 transaction_id = auto_set_filter_gains_argin.transaction_id
                 self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = transaction_id
                 if auto_set_filter_gains_argin.headrooms is not None:
@@ -867,14 +865,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         to handle task management as well as error handling.
         """
         try:
-            configure_vcc_bite_argin_dict = json.loads(argin)
-            transaction_id = configure_vcc_bite_argin_dict.get("transaction_id", None)
-            self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
-            jsonschema.validate(
-                configure_vcc_bite_argin_dict,
-                vcc_all_bands_configure_vcc_bite_schema,
+            configure_vcc_bite_argin = VCCAllBandsConfigureVCCBiteArgin.from_validated_json(
+                argin,
+                additional_schema=vcc_all_bands_configure_vcc_bite_schema,
             )
-            configure_vcc_bite_argin = VCCAllBandsConfigureVCCBiteArgin.from_dict(configure_vcc_bite_argin_dict)
+            transaction_id = configure_vcc_bite_argin.transaction_id
+            self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
 
             self.log_info("Received Command ConfigureVCCBite", transaction_id)
 
@@ -921,7 +917,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         to handle task management as well as error handling.
         """
         try:
-            deconfigure_vcc_bite_argin = VCCAllBandsDeconfigureVCCBiteArgin.from_json(argin)
+            deconfigure_vcc_bite_argin = VCCAllBandsDeconfigureVCCBiteArgin.from_validated_json(argin)
             transaction_id = deconfigure_vcc_bite_argin.transaction_id
             self.transaction_ids_per_command[CommandType.DECONFIGUREVCCBITE] = transaction_id
 

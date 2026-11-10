@@ -1,5 +1,4 @@
 import pytest
-from ska_mid_cbf_fhs_common import dataclass_from_json
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
 
 
@@ -23,7 +22,7 @@ class TestWidebandFrequencyShifter:
         """Test the configure method of the Wideband Frequency Shifter."""
         with open("tests/test_data/device_config/wideband_frequency_shifter.json", "r") as f:
             config_json = f.read()
-        result = wideband_frequency_shifter.configure(dataclass_from_json(WidebandFrequencyShifterConfig, config_json))
+        result = wideband_frequency_shifter.configure(WidebandFrequencyShifterConfig.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_deconfigure(self, wideband_frequency_shifter: WidebandFrequencyShifterManager):

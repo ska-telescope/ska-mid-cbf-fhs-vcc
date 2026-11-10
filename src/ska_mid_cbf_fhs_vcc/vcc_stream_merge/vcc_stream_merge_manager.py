@@ -1,39 +1,34 @@
-from dataclasses import dataclass, field
-
-from dataclasses_json import DataClassJsonMixin
-from ska_mid_cbf_fhs_common import BaseIPBlockManager
+from pydantic import Field
+from ska_mid_cbf_fhs_common import BaseIPBlockManager, FhsDataclass, UInt8, UInt16, UInt32, UInt64
 
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_simulator import VCCStreamMergeSimulator
 
 
-@dataclass
-class VCCStreamMergeConfig(DataClassJsonMixin):
-    mac_destination: int  # Destination MAC Address.
-    vid: int  # VLAN identifier, for unique VLAN identification.
-    vcc_id: int  # Influences the Source MAC address.
-    fs_id: int  # Frequency slice identifier.
-    fs_index: int  # Index of the FS within the Stream Merge block (1 to 13).
+class VCCStreamMergeConfig(FhsDataclass):
+    mac_destination: UInt64  # Destination MAC Address.
+    vid: UInt16  # VLAN identifier, for unique VLAN identification.
+    vcc_id: UInt16  # Influences the Source MAC address.
+    fs_id: UInt16  # Frequency slice identifier.
+    fs_index: UInt8  # Index of the FS within the Stream Merge block (1 to 13).
 
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of VCC Stream Merge
 ##
-@dataclass
-class VCCStreamMergeStatus(DataClassJsonMixin):
-    mac_destination: int  # Destination MAC Address.
-    vid: int  # VLAN identifier.
-    vcc_id: int  # VCC ID.
-    fs_id: int  # Frequency Slice ID.
-    timestamp: int  # Timestamp.
-    psn: list[int]  # Packet sequence number.
-    packet_count: int  # Packet count.
-    diag_stop_monitor: int
+class VCCStreamMergeStatus(FhsDataclass):
+    mac_destination: UInt64  # Destination MAC Address.
+    vid: UInt16  # VLAN identifier.
+    vcc_id: UInt16  # VCC ID.
+    fs_id: UInt16  # Frequency Slice ID.
+    timestamp: UInt64  # Timestamp.
+    psn: list[UInt8]  # Packet sequence number.
+    packet_count: UInt32  # Packet count.
+    diag_stop_monitor: UInt16
 
 
-@dataclass
-class VCCStreamMergeConfigureArgin(DataClassJsonMixin):
+class VCCStreamMergeConfigureArgin(FhsDataclass):
     transaction_id: str | None = None
-    fs_lane_configs: list[VCCStreamMergeConfig] = field(default_factory=list)
+    fs_lane_configs: list[VCCStreamMergeConfig] = Field(default_factory=list)
 
 
 class VCCStreamMergeManager(BaseIPBlockManager[VCCStreamMergeConfig, VCCStreamMergeStatus]):

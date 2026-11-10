@@ -1,13 +1,9 @@
-from dataclasses import dataclass
-
-from dataclasses_json import DataClassJsonMixin
-from ska_mid_cbf_fhs_common import BaseIPBlockManager
+from ska_mid_cbf_fhs_common import BaseIPBlockManager, FhsDataclass
 
 from ska_mid_cbf_fhs_vcc.circuit_switch.circuit_switch_simulator import CircuitSwitchSimulator
 
 
-@dataclass
-class CircuitSwitchConfig(DataClassJsonMixin):
+class CircuitSwitchConfig(FhsDataclass):
     output: int
     input: int
 
@@ -15,15 +11,13 @@ class CircuitSwitchConfig(DataClassJsonMixin):
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
 ##
-@dataclass
-class CircuitSwitchStatus(DataClassJsonMixin):
+class CircuitSwitchStatus(FhsDataclass):
     num_inputs: int
     num_outputs: int
     connected: list[int]
 
 
-@dataclass
-class CircuitSwitchConfigureArgin(DataClassJsonMixin):
+class CircuitSwitchConfigureArgin(FhsDataclass):
     band: list[CircuitSwitchConfig]
 
 

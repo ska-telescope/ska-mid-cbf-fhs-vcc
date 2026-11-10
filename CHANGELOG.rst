@@ -8,6 +8,8 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 0.7.0
 *****
 * CIP-6575: Various fixes.
+* Remove all references to the deprecated ``ska_control_model.AdminMode`` enum
+  in favor of the new ``ska_control_model.future.AdminMode`` which removes the ``OFFLINE`` state.
 * Various miscellaneous updates to address potential issues found by enabling stricter type-checking.
 
 0.6.8

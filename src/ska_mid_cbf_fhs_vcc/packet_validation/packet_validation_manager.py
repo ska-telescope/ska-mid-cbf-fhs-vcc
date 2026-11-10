@@ -1,48 +1,43 @@
-from dataclasses import dataclass
-
-from dataclasses_json import DataClassJsonMixin
-from ska_mid_cbf_fhs_common import BaseIPBlockManager, non_blocking
+from ska_mid_cbf_fhs_common import BaseIPBlockManager, FhsDataclass, UInt32, UInt64, non_blocking
 
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_simulator import PacketValidationSimulator
 
 
-@dataclass
-class PacketValidationConfig(DataClassJsonMixin):
+class PacketValidationConfig(FhsDataclass):
     drop_dst_mac: bool = True
     drop_src_mac: bool = True
     drop_ethertype: bool = True
     drop_antenna_id: bool = True
     clr_cnt: bool = True
-    exp_dst_mac: int = 0
-    exp_src_mac: int = 0
-    exp_ethertype: int = 0
-    exp_antenna_id: int = 0
+    exp_dst_mac: UInt64 = 0
+    exp_src_mac: UInt64 = 0
+    exp_ethertype: UInt64 = 0
+    exp_antenna_id: UInt64 = 0
 
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of Packet Validation
 ##
-@dataclass
-class PacketValidationStatus(DataClassJsonMixin):
+class PacketValidationStatus(FhsDataclass):
     drop_dst_mac: bool = True
     drop_src_mac: bool = True
     drop_ethertype: bool = True
     drop_antenna_id: bool = True
-    egress_cnt: int = 0
-    ingress_error_cnt: int = 0
-    size_error_cnt: int = 0
-    exp_dst_mac: int = 0
-    last_wrong_dst_mac: int = 0
-    wrong_dst_mac_cnt: int = 0
-    exp_src_mac: int = 0
-    last_wrong_src_mac: int = 0
-    wrong_src_mac_cnt: int = 0
-    exp_ethertype: int = 0
-    last_wrong_ethertype: int = 0
-    wrong_ethertype_cnt: int = 0
-    exp_antenna_id: int = 0
-    last_wrong_antenna_id: int = 0
-    wrong_antenna_id_cnt: int = 0
+    egress_cnt: UInt32 = 0
+    ingress_error_cnt: UInt32 = 0
+    size_error_cnt: UInt32 = 0
+    exp_dst_mac: UInt64 = 0
+    last_wrong_dst_mac: UInt64 = 0
+    wrong_dst_mac_cnt: UInt32 = 0
+    exp_src_mac: UInt64 = 0
+    last_wrong_src_mac: UInt64 = 0
+    wrong_src_mac_cnt: UInt32 = 0
+    exp_ethertype: UInt64 = 0
+    last_wrong_ethertype: UInt64 = 0
+    wrong_ethertype_cnt: UInt32 = 0
+    exp_antenna_id: UInt64 = 0
+    last_wrong_antenna_id: UInt64 = 0
+    wrong_antenna_id_cnt: UInt32 = 0
 
 
 class PacketValidationManager(BaseIPBlockManager[PacketValidationConfig, PacketValidationStatus]):

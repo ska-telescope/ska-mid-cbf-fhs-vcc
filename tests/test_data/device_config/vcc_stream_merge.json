@@ -1,69 +1,95 @@
 {
   "fs_lane_configs": [
     {
+      "mac_destination": 0,
       "vid": 2,
       "vcc_id": 1,
-      "fs_id": 1
+      "fs_id": 1,
+      "fs_index": 0
     },
     {
+      "mac_destination": 0,
       "vid": 3,
       "vcc_id": 1,
-      "fs_id": 2
+      "fs_id": 2,
+      "fs_index": 1
     },
     {
+      "mac_destination": 0,
       "vid": 4,
       "vcc_id": 1,
-      "fs_id": 3
+      "fs_id": 3,
+      "fs_index": 2
     },
     {
+      "mac_destination": 0,
       "vid": 5,
       "vcc_id": 1,
-      "fs_id": 4
+      "fs_id": 4,
+      "fs_index": 3
     },
     {
+      "mac_destination": 0,
       "vid": 6,
       "vcc_id": 1,
-      "fs_id": 5
+      "fs_id": 5,
+      "fs_index": 4
     },
     {
+      "mac_destination": 0,
       "vid": 7,
       "vcc_id": 1,
-      "fs_id": 6
+      "fs_id": 6,
+      "fs_index": 5
     },
     {
+      "mac_destination": 0,
       "vid": 8,
       "vcc_id": 1,
-      "fs_id": 7
+      "fs_id": 7,
+      "fs_index": 6
     },
     {
+      "mac_destination": 0,
       "vid": 9,
       "vcc_id": 1,
-      "fs_id": 8
+      "fs_id": 8,
+      "fs_index": 7
     },
     {
+      "mac_destination": 0,
       "vid": 10,
       "vcc_id": 1,
-      "fs_id": 9
+      "fs_id": 9,
+      "fs_index": 8
     },
     {
+      "mac_destination": 0,
       "vid": 11,
       "vcc_id": 1,
-      "fs_id": 10
+      "fs_id": 10,
+      "fs_index": 9
     },
     {
+      "mac_destination": 0,
       "vid": 12,
       "vcc_id": 1,
-      "fs_id": 11
+      "fs_id": 11,
+      "fs_index": 10
     },
     {
+      "mac_destination": 0,
       "vid": 13,
       "vcc_id": 1,
-      "fs_id": 12
+      "fs_id": 12,
+      "fs_index": 11
     },
     {
+      "mac_destination": 0,
       "vid": 14,
       "vcc_id": 1,
-      "fs_id": 13
+      "fs_id": 13,
+      "fs_index": 12
     }
   ],
   "transaction_id": "TEST_VCC_STREAM_MERGE"

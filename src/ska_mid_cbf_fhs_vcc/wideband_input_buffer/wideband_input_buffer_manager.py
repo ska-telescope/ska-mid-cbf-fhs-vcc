@@ -1,41 +1,37 @@
-from dataclasses import dataclass
 from typing import Any
 
-from dataclasses_json import DataClassJsonMixin
 from ska_control_model import HealthState
-from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, convert_dish_id_uint16_to_str, non_blocking
+from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, FhsDataclass, UInt8, UInt16, UInt32, UInt64, convert_dish_id_uint16_to_str, non_blocking
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 
 
-@dataclass
-class WidebandInputBufferConfig(DataClassJsonMixin):
-    expected_sample_rate: int
+class WidebandInputBufferConfig(FhsDataclass):
+    expected_sample_rate: UInt64
     noise_diode_transition_holdoff_count: int
-    expected_dish_band: int
+    expected_dish_band: UInt8
     transaction_id: str | None = None
 
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Wideband Input Buffer
 ##
-@dataclass
-class WidebandInputBufferStatus(DataClassJsonMixin):
+class WidebandInputBufferStatus(FhsDataclass):
     buffer_overflow: bool
-    loss_of_signal: int
+    loss_of_signal: UInt32
     error: bool
     packet_error: bool
-    packet_error_count: int
+    packet_error_count: UInt32
     packet_drop: bool
-    packet_drop_count: int
-    loss_of_signal_seconds: int
-    meta_band_id: int
-    meta_dish_id: int
-    rx_sample_rate: int
-    rx_packet_rate: int
-    meta_transport_sample_rate: int
+    packet_drop_count: UInt32
+    loss_of_signal_seconds: UInt32
+    meta_band_id: UInt8
+    meta_dish_id: UInt16
+    rx_sample_rate: UInt32
+    rx_packet_rate: UInt32
+    meta_transport_sample_rate: UInt32
     link_failure: bool
-    expected_sample_rate: int
+    expected_sample_rate: UInt32
 
 
 class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBufferConfig, WidebandInputBufferStatus]):

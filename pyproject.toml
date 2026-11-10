@@ -17,14 +17,14 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "dataclasses-json >= 0.6.7, < 0.7",
   "grpcio >= 1.62.0, < 2",
   "grpcio-health-checking >= 1.62.0, < 2",
   "grpcio-tools >= 1.62.0, < 2",
   "jsonschema >= 4.26.0, < 5",
   "protobuf >= 6.33.0, < 7.0.0",
+  "pydantic >= 2.14.3, < 3",
   "ska-tango-testing == 0.10.0",
-  "ska-mid-cbf-fhs-common == 0.7.0+dev.cc4c3aad1",
+  "ska-mid-cbf-fhs-common == 0.7.0+dev.cfb7aa688",
   "ska-mid-cbf-common == 0.2.14",
   "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
 ]

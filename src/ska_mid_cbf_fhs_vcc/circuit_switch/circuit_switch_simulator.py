@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-
 from ska_mid_cbf_fhs_common import BaseSimulatorApi
 
 __all__ = ["CircuitSwitchSimulator"]
@@ -9,4 +7,8 @@ __all__ = ["CircuitSwitchSimulator"]
 
 class CircuitSwitchSimulator(BaseSimulatorApi):
     def status(self, clear: bool = False) -> dict:
-        return json.loads('{"num_inputs": 10, "num_outputs": 10, "connected": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}')
+        return {
+            "num_inputs": 10,
+            "num_outputs": 10,
+            "connected": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        }

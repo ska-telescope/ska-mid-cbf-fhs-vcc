@@ -1,16 +1,14 @@
 from collections.abc import Callable
-from dataclasses import dataclass, field
 
-from dataclasses_json import DataClassJsonMixin
-from ska_mid_cbf_fhs_common import BaseIPBlockManager
+from pydantic import Field
+from ska_mid_cbf_fhs_common import BaseIPBlockManager, FhsDataclass, UInt8, UInt64
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_simulator import B123VccOsppfbChannelizerSimulator
 
 
-@dataclass
-class B123VccOsppfbChannelizerConfig(DataClassJsonMixin):
-    sample_rate: int
-    pol: int
+class B123VccOsppfbChannelizerConfig(FhsDataclass):
+    sample_rate: UInt64
+    pol: UInt8
     channel: int
     gain: float
 
@@ -18,41 +16,16 @@ class B123VccOsppfbChannelizerConfig(DataClassJsonMixin):
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
 ##
-@dataclass
-class B123VccOsppfbChannelizerStatus(DataClassJsonMixin):
-    sample_rate: int
+class B123VccOsppfbChannelizerStatus(FhsDataclass):
+    sample_rate: UInt64
     num_channels: int
     num_polarisations: int
     gains: list[float]
 
 
-@dataclass
-class B123VccOsppfbChannelizerConfigureArgin(DataClassJsonMixin):
-    sample_rate: int = 3960000000  # default values
-    gains: list[float] = field(
-        default_factory=lambda: [
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-        ]
-    )  # default gain values
+class B123VccOsppfbChannelizerConfigureArgin(FhsDataclass):
+    sample_rate: UInt64 = 3960000000  # default values
+    gains: list[float] = Field(default_factory=lambda: [1.0] * 20)  # default gain values
     transaction_id: str | None = None
 
 

@@ -1363,10 +1363,9 @@ wheels = [
 
 [[package]]
 name = "ska-mid-cbf-fhs-common"
-version = "0.7.0+dev.cc4c3aad1"
+version = "0.7.0+dev.cfb7aa688"
 source = { registry = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple" }
 dependencies = [
-    { name = "dataclasses-json" },
     { name = "mpmath" },
     { name = "numpy" },
     { name = "pydantic" },
@@ -1378,9 +1377,9 @@ dependencies = [
     { name = "ska-tango-testing" },
     { name = "tenacity" },
 ]
-sdist = { url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/files/dd4aaba74451293aeff75c4264cf514d2e77add10d98ea9a3cd5ded0f677b484/ska_mid_cbf_fhs_common-0.7.0+dev.cc4c3aad1.tar.gz", hash = "sha256:dd4aaba74451293aeff75c4264cf514d2e77add10d98ea9a3cd5ded0f677b484" }
+sdist = { url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/files/ba79b4d7a73a26f44398ea92c07413340de7a63f8f14a288695d048a61dcb130/ska_mid_cbf_fhs_common-0.7.0+dev.cfb7aa688.tar.gz", hash = "sha256:ba79b4d7a73a26f44398ea92c07413340de7a63f8f14a288695d048a61dcb130" }
 wheels = [
-    { url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/files/f97fc6f1d8c6d620d8f004bbfbdd66e152385cd5891972876896115905c1c91c/ska_mid_cbf_fhs_common-0.7.0+dev.cc4c3aad1-py3-none-any.whl", hash = "sha256:f97fc6f1d8c6d620d8f004bbfbdd66e152385cd5891972876896115905c1c91c" },
+    { url = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/files/9c042deb490e06f10998929112641fb73e96b965e19dcdd3864b95ec42540d6f/ska_mid_cbf_fhs_common-0.7.0+dev.cfb7aa688-py3-none-any.whl", hash = "sha256:9c042deb490e06f10998929112641fb73e96b965e19dcdd3864b95ec42540d6f" },
 ]
 
 [[package]]
@@ -1412,12 +1411,12 @@ version = "0.7.0"
 source = { editable = "." }
 default-groups = "all"
 dependencies = [
-    { name = "dataclasses-json" },
     { name = "grpcio" },
     { name = "grpcio-health-checking" },
     { name = "grpcio-tools" },
     { name = "jsonschema" },
     { name = "protobuf" },
+    { name = "pydantic" },
     { name = "ska-mid-cbf-common" },
     { name = "ska-mid-cbf-fhs-common" },
     { name = "ska-mid-cbf-fhs-vcc-grpc-controller" },
@@ -1447,14 +1446,14 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dataclasses-json", specifier = ">=0.6.7,<0.7" },
     { name = "grpcio", specifier = ">=1.62.0,<2" },
     { name = "grpcio-health-checking", specifier = ">=1.62.0,<2" },
     { name = "grpcio-tools", specifier = ">=1.62.0,<2" },
     { name = "jsonschema", specifier = ">=4.26.0,<5" },
     { name = "protobuf", specifier = ">=6.33.0,<7.0.0" },
+    { name = "pydantic", specifier = ">=2.14.3,<3" },
     { name = "ska-mid-cbf-common", specifier = "==0.2.14", index = "https://artefact.skao.int/repository/pypi-internal/simple" },
-    { name = "ska-mid-cbf-fhs-common", specifier = "==0.7.0+dev.cc4c3aad1", index = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple" },
+    { name = "ska-mid-cbf-fhs-common", specifier = "==0.7.0+dev.cfb7aa688", index = "https://gitlab.com/api/v4/projects/66141956/packages/pypi/simple" },
     { name = "ska-mid-cbf-fhs-vcc-grpc-controller", specifier = "==0.0.5", index = "https://artefact.skao.int/repository/pypi-internal/simple" },
     { name = "ska-tango-testing", specifier = "==0.10.0" },
 ]
