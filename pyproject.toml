@@ -24,7 +24,7 @@ dependencies = [
   "jsonschema >= 4.26.0, < 5",
   "protobuf >= 6.33.0, < 7.0.0",
   "ska-tango-testing == 0.10.0",
-  "ska-mid-cbf-fhs-common == 0.7.0+dev.c37301ce5",
+  "ska-mid-cbf-fhs-common == 0.7.0+dev.c5c3a83cd",
   "ska-mid-cbf-common == 0.2.14",
   "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
 ]
