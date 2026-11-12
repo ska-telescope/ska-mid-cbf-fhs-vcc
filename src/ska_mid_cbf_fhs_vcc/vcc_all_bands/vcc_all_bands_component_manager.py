@@ -9,12 +9,12 @@ from math import isnan
 from threading import Event
 from typing import Any
 
-import jsonschema
 import yaml
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_mid_cbf_common.enums.command_type import CommandType
 from ska_mid_cbf_fhs_common import (
     LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE,
+    VALIDATION_ERRORS,
     BaseIPBlockManager,
     FhsControllerComponentManagerBase,
     FhsState,
@@ -592,9 +592,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
             self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.OK, transaction_id=transaction_id)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
-        except jsonschema.ValidationError:
+        except VALIDATION_ERRORS:
             transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
-            self.log_exception("Invalid json provided for ConfigureScan", transaction_id)
+            self.log_exception("JSON validation failed for ConfigureScan", transaction_id)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan")
             self.long_running_command_result_buffer.insert(
                 command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id
@@ -884,7 +884,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 "ConfigureVCCBite completed OK",
             )
             self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id)
-        except jsonschema.ValidationError:
+        except VALIDATION_ERRORS:
             transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
             self.log_exception("Invalid json provided for ConfigureVCCBite", transaction_id)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureVCCBite")
