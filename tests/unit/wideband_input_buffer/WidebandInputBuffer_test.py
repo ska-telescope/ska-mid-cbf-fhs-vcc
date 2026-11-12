@@ -34,8 +34,7 @@ class TestWidebandInputBuffer:
 
     def test_status(self, wideband_input_buffer: WidebandInputBufferManager):
         """Test the status method of the Wideband Input Buffer."""
-        result = wideband_input_buffer.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        wideband_input_buffer.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, wideband_input_buffer: WidebandInputBufferManager):
         """Test the recover method of the Wideband Input Buffer."""

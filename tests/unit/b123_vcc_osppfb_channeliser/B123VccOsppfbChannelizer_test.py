@@ -34,8 +34,7 @@ class TestB123VccOsppfbChannelizer:
 
     def test_status(self, b123_vcc: B123VccOsppfbChannelizerManager):
         """Test the status method of the B123 VCC."""
-        result = b123_vcc.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        b123_vcc.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, b123_vcc: B123VccOsppfbChannelizerManager):
         """Test the recover method of the B123 VCC."""

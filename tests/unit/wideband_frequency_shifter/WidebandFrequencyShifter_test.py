@@ -33,8 +33,7 @@ class TestWidebandFrequencyShifter:
 
     def test_status(self, wideband_frequency_shifter: WidebandFrequencyShifterManager):
         """Test the status method of the Wideband Frequency Shifter."""
-        result = wideband_frequency_shifter.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        wideband_frequency_shifter.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, wideband_frequency_shifter: WidebandFrequencyShifterManager):
         """Test the recover method of the Wideband Frequency Shifter."""

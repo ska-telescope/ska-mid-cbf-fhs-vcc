@@ -34,8 +34,7 @@ class TestFrequencySliceSelection:
 
     def test_status(self, frequency_slice_selection: FrequencySliceSelectionManager):
         """Test the status method of the Frequency Slice Selection block."""
-        result = frequency_slice_selection.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        frequency_slice_selection.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, frequency_slice_selection: FrequencySliceSelectionManager):
         """Test the recover method of the Frequency Slice Selection block."""

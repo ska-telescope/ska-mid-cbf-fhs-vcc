@@ -182,6 +182,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.admin_mode_online_check = VccAdminOnline(
             logger=self.logger,
             simulation_mode=(self.simulation_mode is SimulationMode.TRUE),
+            emulator_id=self.device.emulator_id,
+            emulator_port=str(self.device.emulator_port),
+            emulation_mode=self.emulation_mode,
         )
 
         self._vcc_id = self.device.device_id
@@ -748,14 +751,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             # Read all power meters
             for i in range(self._num_fs):
                 # Read power
-                status = self.wideband_power_meters[i + 1].status()
-                if status is None:
-                    self._set_task_callback(
-                        task_callback,
-                        TaskStatus.COMPLETED,
-                        ResultCode.FAILED,
-                        (f"Failed to auto-set gains: Failed to retrieve status from the FS {i + 1} power meter."),
-                    )
+                try:
+                    status = self.wideband_power_meters[i + 1].status()
+                except Exception:
+                    msg = f"Failed to auto-set gains: Failed to retrieve status from the FS {i + 1} power meter."
+                    self.log_exception(msg, transaction_id)
+                    self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, msg)
                     self.long_running_command_result_buffer.insert(
                         command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
                     )

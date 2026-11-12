@@ -45,8 +45,7 @@ class TestVCCStreamMerge:
 
     def test_status(self, vcc_stream_merge: VCCStreamMergeManager):
         """Test the status method of the VCC Stream Merge block."""
-        result = vcc_stream_merge.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        vcc_stream_merge.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, vcc_stream_merge: VCCStreamMergeManager):
         """Test the recover method of the VCC Stream Merge block."""

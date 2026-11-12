@@ -4,8 +4,7 @@ from threading import Event
 
 import tango
 from ska_control_model import ResultCode, SimulationMode, TaskStatus
-from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
-from ska_mid_cbf_fhs_common.enums.fhs_state import FhsState
+from ska_mid_cbf_fhs_common import FhsControllerBaseDevice, FhsState
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command
 
