@@ -107,10 +107,10 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
                 case _:
                     self.logger.error(f"Unrecognized band ID: {status.meta_band_id}")
 
-            if self.bit_error_rate > BER_FAILED_THRESHOLD:
+            if self.bit_error_rate >= BER_FAILED_THRESHOLD:
                 self.bit_error_rate_health_state = HealthState.FAILED
                 self.logger.debug(f"Bit Error Rate exceeded FAILED threshold: {self.bit_error_rate} > {BER_FAILED_THRESHOLD}")
-            elif self.bit_error_rate > BER_DEGRADED_THRESHOLD:
+            elif self.bit_error_rate >= BER_DEGRADED_THRESHOLD:
                 self.bit_error_rate_health_state = HealthState.DEGRADED
                 self.logger.debug(f"Bit Error Rate exceeded DEGRADED threshold: {self.bit_error_rate} > {BER_DEGRADED_THRESHOLD}")
             else:
