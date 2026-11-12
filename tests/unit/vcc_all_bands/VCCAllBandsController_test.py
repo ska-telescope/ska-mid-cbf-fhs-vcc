@@ -541,10 +541,17 @@ class TestVCCAllBandsController:
             "ska_mid_cbf_fhs_common.ip_blocks.wideband_power_meter.wideband_power_meter_manager.WidebandPowerMeterManager.status",
             side_effect=[
                 WidebandPowerMeterStatus(
-                    0,
-                    measured_power[i],
-                    measured_power[i + len(measured_power) // 2],
-                    0, 0, 0, 0, 0, 0, False, 0
+                    timestamp=0,
+                    avg_power_pol_x=measured_power[i],
+                    avg_power_pol_y=measured_power[i + len(measured_power) // 2],
+                    nd_on_power_pol_x=0,
+                    nd_on_power_pol_y=0,
+                    nd_off_power_pol_x=0,
+                    nd_off_power_pol_y=0,
+                    nd_trn_power_pol_x=0,
+                    nd_trn_power_pol_y=0,
+                    flag=False,
+                    overflow=0,
                 )
             for i in range(len(measured_power) // 2)],
             create=True,
