@@ -598,21 +598,21 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         except VALIDATION_ERRORS:
             transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
             self.log_exception("JSON validation failed for ConfigureScan", transaction_id)
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan")
             self.long_running_command_result_buffer.insert(
                 command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id
             )
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan")
         except Exception as ex:
             transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
             self.log_exception("An unexpected exception occurred during ConfigureScan.", transaction_id)
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.FAILED, transaction_id=transaction_id)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
                 textwrap.shorten(f"An unexpected exception occurred during ConfigureScan: {ex}", width=400),
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.FAILED, transaction_id=transaction_id)
         finally:
             # Reset the ID so it's not used in a different Command call
             self.transaction_ids_per_command[CommandType.CONFIGURESCAN] = None
@@ -644,13 +644,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         except Exception as ex:
             transaction_id = self.transaction_ids_per_command.get(CommandType.GOTOIDLE, None)
             self.log_exception("An unexpected exception occurred during GoToIdle", transaction_id)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.GOTOIDLE, result_code=ResultCode.FAILED, transaction_id=transaction_id)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
                 textwrap.shorten(f"An unexpected exception occurred during GoToIdle: {ex}", width=400),
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.GOTOIDLE, result_code=ResultCode.FAILED, transaction_id=transaction_id)
         finally:
             # Reset the ID so it's not used in a different Command call
             self.transaction_ids_per_command[CommandType.GOTOIDLE] = None
@@ -815,14 +815,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             else:
                 # TODO: Implement routing to the 5 Channelizer once outlined
+                self.long_running_command_result_buffer.insert(
+                    command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+                )
                 self._set_task_callback(
                     task_callback,
                     TaskStatus.COMPLETED,
                     ResultCode.FAILED,
                     "Failed to auto-set gains: currently selected frequency band is not supported.",
-                )
-                self.long_running_command_result_buffer.insert(
-                    command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
                 )
                 return
             # Update vccGains and publish change
@@ -831,26 +831,26 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             self.log_info(f"Successfully set Autofilter gains with headrooms {headrooms}", transaction_id)
 
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.OK, transaction_id=transaction_id
+            )
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.OK,
                 "AutoSetFilterGains completed OK",
             )
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.OK, transaction_id=transaction_id
-            )
         except Exception as ex:
             transaction_id = self.transaction_ids_per_command.get(CommandType.AUTOSETFILTERGAINS, None)
             self.log_exception("An unexpected exception occurred during AutoSetFilterGains.", transaction_id)
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+            )
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
                 textwrap.shorten(f"An unexpected exception occurred during AutoSetFilterGains: {ex}", width=400),
-            )
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
             )
         finally:
             # Reset the ID so it's not used in a different Command call
@@ -878,31 +878,31 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self.vcc_bite_manager.configure(config=configure_vcc_bite_argin)
             self.vcc_source_select = VCCSourceSelect.VCC_BITE
 
+            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.OK,
                 "ConfigureVCCBite completed OK",
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id)
         except VALIDATION_ERRORS:
             transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
             self.log_exception("Invalid json provided for ConfigureVCCBite", transaction_id)
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureVCCBite")
             self.long_running_command_result_buffer.insert(
                 command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.REJECTED, transaction_id=transaction_id
             )
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureVCCBite")
         except Exception as ex:
             transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
             self.log_exception("An unexpected exception occurred during ConfigureVCCBite.", transaction_id)
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
+            )
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
                 textwrap.shorten(f"An unexpected exception occurred during ConfigureVCCBite: {ex}", width=400),
-            )
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
             )
         finally:
             # Reset the ID so it's not used in a different Command call
@@ -927,26 +927,26 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self.vcc_bite_manager.deconfigure(config=deconfigure_vcc_bite_argin)
             self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id
+            )
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.OK,
                 "DeconfigureVCCBite completed OK",
             )
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id
-            )
         except Exception as ex:
             transaction_id = self.transaction_ids_per_command.get(CommandType.DECONFIGUREVCCBITE, None)
             self.log_exception("An unexpected exception occurred during DeconfigureVCCBite.", transaction_id)
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
+            )
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
                 textwrap.shorten(f"An unexpected exception occurred during DeconfigureVCCBite: {ex}", width=400),
-            )
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
             )
         finally:
             # Reset the ID so it's not used in a different Command call

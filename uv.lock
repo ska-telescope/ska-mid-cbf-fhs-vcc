@@ -9,6 +9,7 @@ resolution-markers = [
 [manifest]
 constraints = [
     { name = "certifi", specifier = ">=2026.10.23" },
+    { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "requests", specifier = ">=2.32.4,<3" },
     { name = "scipy", specifier = ">=1.18.1,<2" },
     { name = "ska-ser-skuid", specifier = "<5.3" },
@@ -1414,7 +1415,6 @@ dependencies = [
     { name = "grpcio" },
     { name = "grpcio-health-checking" },
     { name = "grpcio-tools" },
-    { name = "jsonschema" },
     { name = "protobuf" },
     { name = "pydantic" },
     { name = "ska-mid-cbf-common" },
@@ -1425,6 +1425,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "jsonschema" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-forked" },
@@ -1449,7 +1450,6 @@ requires-dist = [
     { name = "grpcio", specifier = ">=1.62.0,<2" },
     { name = "grpcio-health-checking", specifier = ">=1.62.0,<2" },
     { name = "grpcio-tools", specifier = ">=1.62.0,<2" },
-    { name = "jsonschema", specifier = ">=4.26.0,<5" },
     { name = "protobuf", specifier = ">=6.33.0,<7.0.0" },
     { name = "pydantic", specifier = ">=2.14.3,<3" },
     { name = "ska-mid-cbf-common", specifier = "==0.2.14", index = "https://artefact.skao.int/repository/pypi-internal/simple" },
@@ -1460,6 +1460,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "jsonschema", specifier = ">=4.26.0,<5" },
     { name = "pytest", specifier = "==9.1.1" },
     { name = "pytest-cov", specifier = ">=7.1.0,<8" },
     { name = "pytest-forked", specifier = ">=1.6.0,<2" },
