@@ -29,7 +29,7 @@ class VCCStreamMergeStatus(FhsDataclass):
     fs_id: UInt16  # Frequency Slice ID.
     fs_index: UInt8  # Frequency Slice ID.
     packet_count: UInt32  # Packet count.
-    lut: list[VCCStreamMergeStatusLutEntry]
+    lut: list[VCCStreamMergeStatusLutEntry | None]
 
 
 class VCCStreamMergeConfigureArgin(FhsDataclass):
