@@ -12,6 +12,13 @@ class VCCStreamMergeConfig(FhsDataclass):
     fs_index: UInt8  # Index of the FS within the Stream Merge block (1 to 13).
 
 
+class VCCStreamMergeStatusLutEntry(FhsDataclass):
+    mac_destination: UInt64  # Destination MAC Address.
+    vid: UInt16  # VLAN identifier.
+    vcc_id: UInt16  # VCC ID.
+    fs_id: UInt16  # Frequency Slice ID.
+
+
 ##
 # status class that will be populated by the APIs and returned to provide the status of VCC Stream Merge
 ##
@@ -20,10 +27,9 @@ class VCCStreamMergeStatus(FhsDataclass):
     vid: UInt16  # VLAN identifier.
     vcc_id: UInt16  # VCC ID.
     fs_id: UInt16  # Frequency Slice ID.
-    timestamp: UInt64  # Timestamp.
-    psn: list[UInt8]  # Packet sequence number.
+    fs_index: UInt8  # Frequency Slice ID.
     packet_count: UInt32  # Packet count.
-    diag_stop_monitor: UInt16
+    lut: list[VCCStreamMergeStatusLutEntry]
 
 
 class VCCStreamMergeConfigureArgin(FhsDataclass):
