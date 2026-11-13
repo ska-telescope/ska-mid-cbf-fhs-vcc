@@ -11,6 +11,8 @@ system: csp
 subsystem: fhs-vcc
 telescope: SKA-mid
 
+use_internal_mapping: True
+
 labels:
   app: ska-mid-cbf-fhs-vcc
 

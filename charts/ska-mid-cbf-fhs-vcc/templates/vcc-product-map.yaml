@@ -1,4 +1,4 @@
-{{- if .Values.vcc_product_definition}}
+{{- if .Values.use_internal_mapping}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
