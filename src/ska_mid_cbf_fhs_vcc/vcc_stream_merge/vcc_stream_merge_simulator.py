@@ -12,8 +12,7 @@ class VCCStreamMergeSimulator(BaseSimulatorApi):
             "vid": 0,
             "vcc_id": 0,
             "fs_id": 0,
-            "timestamp": 0,
-            "psn": [0],
+            "fs_index": 0,
             "packet_count": 0,
-            "diag_stop_monitor": 0,
+            "lut": [],
         }
