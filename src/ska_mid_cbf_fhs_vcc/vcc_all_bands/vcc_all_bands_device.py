@@ -50,15 +50,14 @@ class VCCAllBandsController(
         enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURING.name, FhsState.CONFIGURED.name, FhsState.FAULT.name],
         doc="Device's configuration state",
     )
-    def configurationState(self) -> str:
+    def configurationState(self) -> FhsState:
         """
-        Read-only Tango attribute that contains a string with the FhsState value for this device.
+        Read-only Tango attribute that contains the FhsState value for this device.
 
-        :return: FhsState of this device
-        :rtype: FhsState
+        Returns:
+            :obj:`FhsState`: the FhsState value for this device.
         """
-
-        return self.component_manager.configuration_state.name
+        return self.component_manager.configuration_state
 
     @attribute(
         dtype=str,
@@ -80,8 +79,7 @@ class VCCAllBandsController(
         """Read-only Tango attribute specifying the frequency band in which this VCC is operating.
 
         Returns:
-            :obj:`FrequencyBandEnum`: the frequency band (being observed by the current scan, one of
-            ["1", "2", "3", "4", "5a", "5b"]).
+            :obj:`FrequencyBandEnum`: the frequency band enum value.
         """
         return self.component_manager.frequency_band
 

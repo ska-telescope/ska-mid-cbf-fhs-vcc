@@ -7,14 +7,29 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 0.7.0
 *****
-* CIP-6575: Various fixes.
-* Remove all references to the deprecated ``ska_control_model.AdminMode`` enum
+* CIP-6575:
+
+  * Update to ska-mid-cbf-fhs-common 0.7.0, which contains several breaking changes,
+  including moving from dataclasses_json to Pydantic for dataclass definitions and validation.
+  * Stop the WIB when GoToIdle is called.
+  * Update most simulators to return dicts directly instead of doing pointless JSON operations.
+  * Add emulator readiness to the ``VccAdminOnline`` checks.
+  * Move LRC command result buffer insertions after task callbacks to avoid a race condition.
+  * Fix the ``configurationState`` attribute to correctly return the enum value rather than the label (``DevEnum`` type only supports integer/IntEnum values).
+  * Ensure the DISH ID sent to the SPFRx Packetizer in VCC BITE is in its integer representation rather than a string.
+  * Update certain status dataclasses that did not match the actual values currently provided by emulators.
+    Note that due to some discrepancies between the drivers and emulators, these will likely be updated again in the near future
+    once consistent data structures have been finalized.
+  * Remove all references to the deprecated ``ska_control_model.AdminMode`` enum
   in favor of the new ``ska_control_model.future.AdminMode`` which removes the ``OFFLINE`` state.
-* Various miscellaneous updates to address potential issues found by enabling stricter type-checking.
+  * Remove the unused ``fsp`` field from the ``ConfigureScan`` test data.
+  * Fix VCC BITE test data to provide integers to certain integer fields where floats were actually being provided instead.
+  * Various miscellaneous updates to address potential issues found by enabling stricter type-checking.
 
 0.6.8
 *****
 * CIP-6593: 
+
   * Swap to use "vlan_alias" in configurescan rather than directly providing "vlan_id", add basic file for these mappings.
   * Enables mappings to be specified via Charts, under the vcc_product_definition section. 
   * Added vlanLookup attribute to enable validation of these mappings.
