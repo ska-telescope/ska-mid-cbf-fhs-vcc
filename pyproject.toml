@@ -23,7 +23,7 @@ dependencies = [
   "protobuf >= 6.33.0, < 7.0.0",
   "pydantic >= 2.14.3, < 3",
   "ska-tango-testing == 0.10.0",
-  "ska-mid-cbf-fhs-common == 0.7.0+dev.cedca746d",
+  "ska-mid-cbf-fhs-common == 0.7.0+dev.c47482777",
   "ska-mid-cbf-common == 0.2.14",
   "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
 ]
