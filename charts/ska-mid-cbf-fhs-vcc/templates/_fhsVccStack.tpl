@@ -68,7 +68,7 @@ affinity:
               - {{ $fhsVccUnit.affinity }}
 {{- end }}
 
-{{- if .Values.use_internal_mapping}}
+{{- if .Values.vcc_product_definition}}
 extraVolumes:
   - name: vcc-product-mount
     configMap:
