@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Any
 
 import numpy as np
@@ -85,7 +84,6 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
 
     @non_blocking
     def start(self) -> int:
-        # self.logger.info("WIB STARTING!!!")
         return super().start()
 
     @non_blocking
@@ -96,7 +94,6 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         self.poll_counter += 1
 
         if self.poll_counter == BER_MEASUREMENT_PERIOD:
-            self.logger.info(f"Poll counter reset @ {datetime.now()}")
             self.poll_counter = 0
 
             match status.meta_band_id:
@@ -120,8 +117,6 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
 
     def get_status_healthstates(self, status: WidebandInputBufferStatus) -> dict[str, HealthState]:
         status_healthstates = {}
-
-        # self.logger.info(f"Poll counter = {self.poll_counter}")
 
         meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(status.meta_dish_id)
         status_healthstates["meta_dish_id"] = self.get_health_state_by_expected_value(
