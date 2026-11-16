@@ -979,10 +979,6 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self.log_error("Deconfiguration of FS Selection failed.", transaction_id)
             raise RuntimeError("Deconfiguration of FS Selection failed.")
 
-        # Stop WIB if started
-        if self.wideband_input_buffer.is_health_polling and self.wideband_input_buffer.stop().await_result() == 1:
-            self.log_warning("Failed to stop WIB during deconfiguration.", transaction_id)
-
         # WIB Deconfiguration
         if self.wideband_input_buffer.deconfigure() == 1:
             self.log_error("Deconfiguration of WIB failed.", transaction_id)
