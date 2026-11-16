@@ -293,7 +293,9 @@ class VCCAllBandsController(
         Overrides base LRC mixin to trigger FhsState transitions and component
         manager abort task.
 
-        :return: tuple containing a return code and a unique command identifier
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
         """
         # TODO: argin currently unused
 
