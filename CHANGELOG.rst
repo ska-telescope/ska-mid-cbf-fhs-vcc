@@ -5,6 +5,10 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+0.6.9
+****
+* CIP-6593: Added BER attribute to All Bands Controller/WIB Manager
+
 0.6.8
 ****
 * CIP-6593: 
