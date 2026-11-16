@@ -14,7 +14,7 @@ class B123VccOsppfbChannelizerConfig(FhsDataclass):
 
 
 class B123VccOsppfbChannelizerStatusGain(FhsDataclass):
-    pol: int
+    pol: UInt8
     channel: int
     gain: float
 
@@ -23,7 +23,7 @@ class B123VccOsppfbChannelizerStatusGain(FhsDataclass):
 # status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
 ##
 class B123VccOsppfbChannelizerStatus(FhsDataclass):
-    sample_rate: int
+    sample_rate: UInt64
     num_channels: int
     num_polarisations: int
     gains: list[B123VccOsppfbChannelizerStatusGain]

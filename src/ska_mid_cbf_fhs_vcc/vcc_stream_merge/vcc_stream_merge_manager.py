@@ -1,5 +1,5 @@
 from pydantic import Field
-from ska_mid_cbf_fhs_common import BaseIPBlockManager, FhsDataclass, UInt8, UInt16, UInt64
+from ska_mid_cbf_fhs_common import BaseIPBlockManager, FhsDataclass, UInt8, UInt16, UInt32, UInt64
 
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_simulator import VCCStreamMergeSimulator
 
@@ -13,22 +13,22 @@ class VCCStreamMergeConfig(FhsDataclass):
 
 
 class VCCStreamMergeStatusLutEntry(FhsDataclass):
-    mac_destination: int  # Destination MAC Address.
-    vid: int  # VLAN identifier.
-    vcc_id: int  # VCC ID.
-    fs_id: int  # Frequency Slice ID.
+    mac_destination: UInt64  # Destination MAC Address.
+    vid: UInt16  # VLAN identifier.
+    vcc_id: UInt16  # VCC ID.
+    fs_id: UInt16  # Frequency Slice ID.
 
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of VCC Stream Merge
 ##
 class VCCStreamMergeStatus(FhsDataclass):
-    mac_destination: int  # Destination MAC Address.
-    vid: int  # VLAN identifier.
-    vcc_id: int  # VCC ID.
-    fs_id: int  # Frequency Slice ID.
-    fs_index: int  # Frequency Slice ID.
-    packet_count: int  # Packet count.
+    mac_destination: UInt64  # Destination MAC Address.
+    vid: UInt16  # VLAN identifier.
+    vcc_id: UInt16  # VCC ID.
+    fs_id: UInt16  # Frequency Slice ID.
+    fs_index: UInt8  # Frequency Slice ID.
+    packet_count: UInt32  # Packet count.
     lut: list[VCCStreamMergeStatusLutEntry | None]
 
 
