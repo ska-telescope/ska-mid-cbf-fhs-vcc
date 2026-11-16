@@ -252,6 +252,21 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self._attr_change_callback("configurationState", dest_state)
         self._attr_archive_callback("configurationState", dest_state)
 
+    def teardown(self) -> None:
+        """Reset all IP blocks and stop all active polling/monitoring."""
+        self.ethernet_200g.recover()
+        self.b123_vcc.recover()
+        self.frequency_slice_selection.recover()
+        self.packet_validation.recover()
+        self.wideband_frequency_shifter.recover()
+        self.wideband_input_buffer.recover()
+
+        for vcc_stream_merge in self.vcc_stream_merges.values():
+            vcc_stream_merge.recover()
+
+        for wideband_power_meter in self.wideband_power_meters.values():
+            wideband_power_meter.recover()
+
     def configure_scan(
         self,
         argin: str,
