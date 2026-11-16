@@ -20,6 +20,7 @@ dependencies = [
   "grpcio >= 1.62.0, < 2",
   "grpcio-health-checking >= 1.62.0, < 2",
   "grpcio-tools >= 1.62.0, < 2",
+  "orjson >= 3.13.0, < 4",
   "protobuf >= 6.33.0, < 7.0.0",
   "pydantic >= 2.14.3, < 3",
   "ska-tango-testing == 0.10.0",
