@@ -6,7 +6,8 @@ import pytest
 import os
 from assertpy import assert_that
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
-from tango import DevState, DeviceProxy
+import tango
+from tango import DevState
 from ska_control_model import HealthState, ResultCode
 from ska_control_model.future import AdminMode
 from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE
@@ -28,27 +29,27 @@ def event_timeout() -> int:
 @pytest.fixture(name="vcc_all_bands_device")
 def vcc_all_bands_device_fixture(
     test_context: TangoTestHarnessContext,
-) -> DeviceProxy:
+) -> tango.DeviceProxy:
     """Fixture that returns the device under test.
 
     Args:
         test_context (:obj:`TangoTestHarnessContext`): The context in which the tests run.
 
     Returns:
-        :obj:`DeviceProxy`: A proxy to the device under test.
+        :obj:`tango.DeviceProxy`: A proxy to the device under test.
     """
     return test_context.get_device("test/vccallbands/1")
 
 
 @pytest.fixture(name="vcc_all_bands_event_tracer", autouse=True)
 def vcc_all_bands_tango_event_tracer(
-    vcc_all_bands_device,
+    vcc_all_bands_device: tango.DeviceProxy,
 ) -> Generator[TangoEventTracer, None, None]:
     """Fixture that returns a TangoEventTracer for pertinent devices.
     Takes as parameter all required device proxy fixtures for this test module.
 
     Args:
-        device_under_test (:obj:`DeviceProxy`): Proxy to the device under test.
+        device_under_test (:obj:`tango.DeviceProxy`): Proxy to the device under test.
 
     Returns:
         :obj:`TangoEventTracer`: An event tracer for the device under test.
@@ -131,10 +132,10 @@ class TestVCCAllBandsController:
         with harness as test_context:
             yield test_context
 
-    def test_init(self, vcc_all_bands_device: DeviceProxy):
+    def test_init(self, vcc_all_bands_device: tango.DeviceProxy):
         assert vcc_all_bands_device.state() == DevState.ON
 
-    def test_admin_mode_online(self, vcc_all_bands_device: DeviceProxy):
+    def test_admin_mode_online(self, vcc_all_bands_device: tango.DeviceProxy):
         assert vcc_all_bands_device.adminMode == AdminMode.ONLINE
 
     @pytest.mark.parametrize(
@@ -152,7 +153,7 @@ class TestVCCAllBandsController:
         current_subarray: int,
         new_subarray: int,
         expected_result: ResultCode,
-        vcc_all_bands_device: DeviceProxy,
+        vcc_all_bands_device: tango.DeviceProxy,
         vcc_all_bands_event_tracer: TangoEventTracer,
     ):
         # Setup for unassign cases by first assigning subarray membership
@@ -520,7 +521,7 @@ class TestVCCAllBandsController:
         headrooms_str: str,
         expected_multipliers: list[MPFloat],
         expected_result: ResultCode,
-        vcc_all_bands_device: DeviceProxy,
+        vcc_all_bands_device: tango.DeviceProxy,
         vcc_all_bands_event_tracer: TangoEventTracer,
     ):
         headroom_dict = json.loads(headrooms_str)
