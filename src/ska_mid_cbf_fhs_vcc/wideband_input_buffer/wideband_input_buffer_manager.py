@@ -102,7 +102,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
                 case 4 | 5:
                     self.bit_error_rate = status.packet_error_count / ((status.meta_transport_sample_rate * BITS_PER_SAMPLE_BAND45) * BER_MEASUREMENT_PERIOD)
                 case _:
-                    self.logger.error(f"Unrecognized band ID: {status.meta_band_id}")
+                    raise RuntimeError(f"Unrecognized band ID: {status.meta_band_id}")
 
             if self.bit_error_rate >= BER_FAILED_THRESHOLD:
                 self.bit_error_rate_health_state = HealthState.FAILED
