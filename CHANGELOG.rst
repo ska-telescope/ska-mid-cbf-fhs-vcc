@@ -16,6 +16,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
     This enables us to catch unexpected errors caused by type mismatches more quickly, rather than only finding such issues after a full deployment cycle,
     and thus should reduce the overall amount of time spent debugging.
   * Add the ``teardown()`` method to the ``VCCAllBandsComponentManager``, required by the updated base class.
+  * Update ``ConfigureScan`` to trigger a return to ``FhsState.NOT_CONFIGURED`` state if configuration is unsuccessful.
   * Update most simulators to return dicts directly instead of doing pointless JSON operations.
   * Add emulator readiness to the ``VccAdminOnline`` checks.
   * Move LRC command result buffer insertions after task callbacks to avoid a race condition.

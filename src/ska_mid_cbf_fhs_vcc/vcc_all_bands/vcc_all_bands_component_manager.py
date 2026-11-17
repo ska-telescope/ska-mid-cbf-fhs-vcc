@@ -243,6 +243,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             FhsState.NOT_CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.FAULT],
             FhsState.CONFIGURING: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURED, FhsState.FAULT],
             FhsState.CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.FAULT],
+            FhsState.FAULT: [FhsState.FAULT],
         }
 
         if dest_state not in allowed_transitions[self.configuration_state]:
@@ -611,6 +612,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.OK, transaction_id=transaction_id)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
         except FhsValidationError as exc:
+            self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
             transaction_id = exc.data.get("transaction_id", None) or self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
             self.log_exception("JSON validation failed for ConfigureScan", transaction_id)
             self.long_running_command_result_buffer.insert(
@@ -618,6 +620,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             )
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan")
         except Exception as exc:
+            self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
             transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
             self.log_exception("An unexpected exception occurred during ConfigureScan.", transaction_id)
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
@@ -650,9 +653,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self.log_info("Received Command GoToIdle", transaction_id)
 
             self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
-            self._reset_data()
+            self._reset_data()  # configurationState is set to NOT_CONFIGURED here
 
-            self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
             self.log_info("Command GoToIdle Successful", transaction_id)
             self.long_running_command_result_buffer.insert(command_type=CommandType.GOTOIDLE, result_code=ResultCode.OK, transaction_id=transaction_id)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
@@ -988,6 +990,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def _reset_data(self) -> None:
         """Reset all attributes and other data."""
+        self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
         self._config_id = ""
         self._scan_id = 0
         self.frequency_band = FrequencyBandEnum._1
