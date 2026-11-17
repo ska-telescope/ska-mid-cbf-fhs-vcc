@@ -571,7 +571,7 @@ class TestVCCAllBandsController:
             multipliers = DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "vccGains")
             assert multipliers is not None
             assert len(multipliers) == len(expected_multipliers)
-            for multiplier, expected_multiplier in zip(multipliers.value, expected_multipliers):
+            for multiplier, expected_multiplier in zip(multipliers, expected_multipliers):
                 MPFloat.assert_almosteq(multiplier, expected_multiplier, rel_tolerance=1e-12, abs_tolerance=1e-14)
 
             requested_headrooms_after = DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "requestedRFIHeadroom")
