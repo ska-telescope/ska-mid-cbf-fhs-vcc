@@ -24,7 +24,7 @@ dependencies = [
   "protobuf >= 6.33.0, < 7.0.0",
   "pydantic >= 2.14.3, < 3",
   "ska-tango-testing == 0.10.0",
-  "ska-mid-cbf-fhs-common == 0.7.0+dev.c0a4cfffc",
+  "ska-mid-cbf-fhs-common == 0.7.0+dev.c883ab140",
   "ska-mid-cbf-common == 0.2.14",
   "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
 ]
@@ -36,6 +36,7 @@ SimVCCAllBandsController = "ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim:main"
 [dependency-groups]
 dev = [
   "jsonschema >= 4.26.0, < 5",
+  "pyright[nodejs] >= 1.1.414, < 2",
   "pytest == 9.1.1",
   "pytest-cov >= 7.1.0, < 8",
   "pytest-forked >= 1.6.0, < 2",

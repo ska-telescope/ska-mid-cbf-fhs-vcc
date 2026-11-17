@@ -164,9 +164,17 @@ k8s-destroy:
 build-and-deploy:
 	make oci-build-all && make k8s-deploy-dev
 
+python-typecheck:
+	uv run pyright --level warning
+
 format-and-lint:
 	make python-format
 	make python-lint
+	make python-typecheck
+
+full-lint:
+	make python-lint
+	make python-typecheck
 
 build-docs-local:
 	@echo "Cleaning up old build(s)..."

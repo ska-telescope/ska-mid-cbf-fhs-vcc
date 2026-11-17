@@ -11,6 +11,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
   * Update to ska-mid-cbf-fhs-common 0.7.0, which contains several breaking changes,
     including moving from dataclasses_json to Pydantic for dataclass definitions and validation.
+  * Basic type-checking using Pyright is now mandatory and will be enforced in the CI pipeline. You can run this locally via ``make python-typecheck``.
+    Refer to the README for workspace-level settings you can add to VS Code to show (most) type-checker errors as you work.
+    This enables us to catch unexpected errors caused by type mismatches more quickly, rather than only finding such issues after a full deployment cycle,
+    and thus should reduce the overall amount of time spent debugging.
   * Add the ``teardown()`` method to the ``VCCAllBandsComponentManager``, required by the updated base class.
   * Update most simulators to return dicts directly instead of doing pointless JSON operations.
   * Add emulator readiness to the ``VccAdminOnline`` checks.

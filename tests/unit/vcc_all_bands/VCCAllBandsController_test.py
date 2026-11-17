@@ -6,7 +6,7 @@ import pytest
 import os
 from assertpy import assert_that
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
-from tango import DevState
+from tango import DevState, DeviceProxy
 from ska_control_model import HealthState, ResultCode
 from ska_control_model.future import AdminMode
 from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE
@@ -28,7 +28,7 @@ def event_timeout() -> int:
 @pytest.fixture(name="vcc_all_bands_device")
 def vcc_all_bands_device_fixture(
     test_context: TangoTestHarnessContext,
-) -> VCCAllBandsController:
+) -> DeviceProxy:
     """Fixture that returns the device under test.
 
     Args:
@@ -131,10 +131,10 @@ class TestVCCAllBandsController:
         with harness as test_context:
             yield test_context
 
-    def test_init(self, vcc_all_bands_device: VCCAllBandsController):
+    def test_init(self, vcc_all_bands_device: DeviceProxy):
         assert vcc_all_bands_device.state() == DevState.ON
 
-    def test_admin_mode_online(self, vcc_all_bands_device: VCCAllBandsController):
+    def test_admin_mode_online(self, vcc_all_bands_device: DeviceProxy):
         assert vcc_all_bands_device.adminMode == AdminMode.ONLINE
 
     @pytest.mark.parametrize(
@@ -152,7 +152,7 @@ class TestVCCAllBandsController:
         current_subarray: int,
         new_subarray: int,
         expected_result: ResultCode,
-        vcc_all_bands_device: VCCAllBandsController,
+        vcc_all_bands_device: DeviceProxy,
         vcc_all_bands_event_tracer: TangoEventTracer,
     ):
         # Setup for unassign cases by first assigning subarray membership
@@ -520,7 +520,7 @@ class TestVCCAllBandsController:
         headrooms_str: str,
         expected_multipliers: list[MPFloat],
         expected_result: ResultCode,
-        vcc_all_bands_device: VCCAllBandsController,
+        vcc_all_bands_device: DeviceProxy,
         vcc_all_bands_event_tracer: TangoEventTracer,
     ):
         headroom_dict = json.loads(headrooms_str)
@@ -556,7 +556,7 @@ class TestVCCAllBandsController:
             for i in range(len(measured_power) // 2)],
             create=True,
         ):
-            requested_headrooms_before = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
+            requested_headrooms_before = DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "requestedRFIHeadroom")
 
             vcc_all_bands_device.command_inout("AutoSetFilterGains", headrooms_str)
 
@@ -568,15 +568,17 @@ class TestVCCAllBandsController:
                 [expected_result]
             )
 
-            multipliers = vcc_all_bands_device.read_attribute("vccGains")
-            assert len(multipliers.value) == len(expected_multipliers)
+            multipliers = DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "vccGains")
+            assert multipliers is not None
+            assert len(multipliers) == len(expected_multipliers)
             for multiplier, expected_multiplier in zip(multipliers.value, expected_multipliers):
                 MPFloat.assert_almosteq(multiplier, expected_multiplier, rel_tolerance=1e-12, abs_tolerance=1e-14)
 
-            requested_headrooms_after = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
-            expected_headrooms = headrooms if expected_result == ResultCode.OK else requested_headrooms_before.value
-            assert len(requested_headrooms_after.value) == len(expected_headrooms)
+            requested_headrooms_after = DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "requestedRFIHeadroom")
+
+            expected_headrooms = headrooms if expected_result == ResultCode.OK else requested_headrooms_before
+            assert len(requested_headrooms_after) == len(expected_headrooms)
             assert all(
                 requested_headroom == expected_headroom
-                for requested_headroom, expected_headroom in zip(requested_headrooms_after.value, expected_headrooms)
+                for requested_headroom, expected_headroom in zip(requested_headrooms_after, expected_headrooms)
             )

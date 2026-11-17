@@ -58,6 +58,9 @@ python-uv-test:
 
 python-uv-lint:
   needs: []
+  script:
+    - make python-lint
+    - make python-typecheck
 
 docs-build:
   needs: []

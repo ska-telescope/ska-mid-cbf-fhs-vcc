@@ -33,3 +33,9 @@ Please see the [readthedocs](https://developer.skao.int/projects/ska-mid-cbf-fhs
 }
 ```
 This enables very basic type-checking which can help catch unexpected issues early.
+
+To validate that the entire repository adheres to the type-checking rules, run:
+```bash
+make python-typecheck
+```
+
