@@ -7,7 +7,7 @@ import textwrap
 from collections.abc import Callable
 from math import isnan
 from threading import Event
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
@@ -45,6 +45,9 @@ from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager, VCCSou
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
+
+if TYPE_CHECKING:
+    from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 
 
 class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
@@ -124,7 +127,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     def __init__(
         self,
         *args: Any,
-        device,
+        device: VCCAllBandsController,
         logger: logging.Logger,
         simulation_mode: SimulationMode = SimulationMode.FALSE,
         attr_change_callback: Callable[[str, Any], None] = lambda *_, **__: None,
@@ -169,6 +172,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             long_running_command_result_buffer_max_size=long_running_command_result_buffer_max_size,
             **kwargs,
         )
+        self.device = device
 
         self.log_debug(f"LRC Result Buffer Size: {self.long_running_command_result_buffer.max_size}")
 
