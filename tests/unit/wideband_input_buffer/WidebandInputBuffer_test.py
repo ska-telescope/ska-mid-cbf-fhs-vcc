@@ -117,7 +117,7 @@ class TestWidebandInputBuffer:
             "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status",
             return_value=bad_status
         ):
-            wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+            wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
             wideband_input_buffer.expected_dish_id = "MKT001"
             wideband_input_buffer.start().await_result()
             wideband_input_buffer.poll_counter = 29
@@ -157,7 +157,7 @@ class TestWidebandInputBuffer:
             "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status",
             return_value=bad_status
         ):
-            wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+            wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
             wideband_input_buffer.expected_dish_id = "MKT001"
             wideband_input_buffer.start().await_result()
             wideband_input_buffer.poll_counter = 29
@@ -198,7 +198,7 @@ class TestWidebandInputBuffer:
             "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status",
             return_value=bad_status
         ):
-            wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+            wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
             wideband_input_buffer.expected_dish_id = "MKT001"
             wideband_input_buffer.start().await_result()
             wideband_input_buffer.poll_counter = 29
