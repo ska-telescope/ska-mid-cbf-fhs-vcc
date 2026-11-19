@@ -107,6 +107,8 @@ PYTHON_LINT_TARGET = ./src/
 K8S_VARS_AFTER_PYTEST = -s
 
 PYTHON_TEST_FILE = ./tests/unit/
+PYTEST_MAX_WORKERS = 8
+PYTHON_VARS_AFTER_PYTEST = -n auto --maxprocesses=$(PYTEST_MAX_WORKERS) --dist worksteal
 
 #
 # include makefile to pick up the standard Make targets, e.g., 'make build'
