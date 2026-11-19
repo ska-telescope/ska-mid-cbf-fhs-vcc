@@ -85,13 +85,13 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
     @non_blocking
     def stop(self) -> int:
         ret = super().stop()
-        timeout = time.time() + 60.0
+        timeout = time.time() + 15.0
         if ret != 0:
             return ret
         if self._emulation_mode and isinstance(self._api, EmulatorApi):
             while self._api.state() != "READY":
                 if time.time() > timeout:
-                    self.logger.error("WIB stop failure: Emulator was not in READY state within 60 seconds.")
+                    self.logger.error("WIB stop failure: Emulator was not in READY state within 15 seconds.")
                     return 1
                 time.sleep(1)
         return ret
