@@ -1,13 +1,12 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import numpy as np
 from dataclasses_json import DataClassJsonMixin
 from ska_control_model import HealthState
 from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, convert_dish_id_uint16_t_to_mnemonic, non_blocking
-from ska_mid_cbf_fhs_common.services.health.health_info_dataclass import HealthInfo
+from ska_mid_cbf_fhs_common.services.health.dataclasses import ComponentStatus
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.constants import (
     BER_DEGRADED_THRESHOLD,
@@ -71,7 +70,9 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         self.expected_sample_rate = None
         self.expected_dish_id = None
         self.bit_error_rate = 0
-        self.bit_error_rate_health_info = HealthInfo(HealthState.UNKNOWN, "BER data has not yet been received from the IP Block.")
+        self.bit_error_rate_health_info = ComponentStatus(
+            HealthState.UNKNOWN, "BER data has not yet been received from the IP Block.", datetime.now(UTC).isoformat()
+        )
         self.poll_counter = 0
 
     def configure(self, config: WidebandInputBufferConfig) -> int:
@@ -93,7 +94,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
     def stop(self) -> int:
         return super().stop()
 
-    def determine_ber_healthinfo(self, status: WidebandInputBufferStatus) -> HealthInfo:
+    def determine_ber_status(self, status: WidebandInputBufferStatus) -> ComponentStatus:
         self.poll_counter += 1
 
         if self.poll_counter == BER_MEASUREMENT_PERIOD:
@@ -109,18 +110,18 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
 
             if self.bit_error_rate >= BER_FAILED_THRESHOLD:
                 message = f"Bit Error Rate exceeded FAILED threshold: {self.bit_error_rate} > {BER_FAILED_THRESHOLD}"
-                self.bit_error_rate_health_info = HealthInfo(HealthState.FAILED, message, datetime.now(ZoneInfo("UTC")))
+                self.bit_error_rate_health_info = ComponentStatus(HealthState.FAILED, message, datetime.now(UTC).isoformat())
                 self.logger.debug(message)
             elif self.bit_error_rate >= BER_DEGRADED_THRESHOLD:
                 message = f"Bit Error Rate exceeded DEGRADED threshold: {self.bit_error_rate} > {BER_DEGRADED_THRESHOLD}"
-                self.bit_error_rate_health_info = HealthInfo(HealthState.DEGRADED, message, datetime.now(ZoneInfo("UTC")))
+                self.bit_error_rate_health_info = ComponentStatus(HealthState.DEGRADED, message, datetime.now(UTC).isoformat())
                 self.logger.debug(message)
             else:
-                self.bit_error_rate_health_info = HealthInfo(HealthState.OK)
+                self.bit_error_rate_health_info = ComponentStatus(HealthState.OK)
 
         return self.bit_error_rate_health_info
 
-    def get_status_healthmonitor(self, status: WidebandInputBufferStatus) -> dict[str, HealthInfo]:
+    def get_status_healthmonitor(self, status: WidebandInputBufferStatus) -> dict[str, ComponentStatus]:
         status_healthstates = {}
 
         meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(status.meta_dish_id)
@@ -166,7 +167,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
             failure_msg=f"buffer_overflow mismatch. Expected False, Actual: {status.buffer_overflow}",
         )
 
-        status_healthstates["bit_error_rate"] = self.determine_ber_healthinfo(status)
+        status_healthstates["bit_error_rate"] = self.determine_ber_status(status)
 
         self.logger.info(f"REGISTER_STATUSES={status_healthstates}")
 
@@ -180,11 +181,11 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         failure_msg: str | None = None,
         health_on_success: HealthState = HealthState.OK,
         health_on_failure: HealthState = HealthState.FAILED,
-    ) -> HealthInfo:
+    ) -> ComponentStatus:
         if expected_value == actual_value:
             if success_msg:
                 self.logger.info(success_msg)
-            return HealthInfo(health_on_success)
+            return ComponentStatus(health_on_success)
         if failure_msg:
             self.logger.error(failure_msg)
-        return HealthInfo(health_on_failure, failure_msg, datetime.now(ZoneInfo("UTC")))
+        return ComponentStatus(health_on_failure, failure_msg, datetime.now(UTC).isoformat())
