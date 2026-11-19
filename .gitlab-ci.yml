@@ -102,3 +102,6 @@ helm-chart-publish:
   needs:
     - job: python-uv-build-for-publication
       optional: true
+
+gemnasium-python-dependency_scanning:
+  needs: []
