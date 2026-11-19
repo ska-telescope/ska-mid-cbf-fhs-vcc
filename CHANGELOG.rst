@@ -31,6 +31,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
   * Fix VCC BITE test data to provide integers to certain integer fields where floats were actually being provided instead.
   * Various miscellaneous updates to address potential issues found by enabling stricter type-checking.
 
+0.6.9
+****
+* CIP-6593: Added BER attribute to All Bands Controller/WIB Manager
+
 0.6.8
 *****
 * CIP-6593: 
