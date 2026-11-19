@@ -15,6 +15,8 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
     Refer to the README for workspace-level settings you can add to VS Code to show (most) type-checker errors as you work.
     This enables us to catch unexpected errors caused by type mismatches more quickly, rather than only finding such issues after a full deployment cycle,
     and thus should reduce the overall amount of time spent debugging.
+  * Add a temporary patch for ``WidebandInputBufferManager.stop()`` in emulation mode, which waits for the emulator to enter a fully stopped state before returning.
+    This will be adjusted after a future driver + emulator update to expose this fully stopped state via ``status()``.
   * Add the ``teardown()`` method to the ``VCCAllBandsComponentManager``, required by the updated base class.
   * Update ``ConfigureScan`` to trigger a return to ``FhsState.NOT_CONFIGURED`` state if configuration is unsuccessful.
   * Update most simulators to return dicts directly instead of doing pointless JSON operations.
