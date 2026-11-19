@@ -93,6 +93,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
                 if time.time() > timeout:
                     self.logger.error("WIB stop failure: Emulator was not in READY state within 60 seconds.")
                     return 1
+                time.sleep(1)
         return ret
 
     def get_status_healthstates(self, status: WidebandInputBufferStatus) -> dict[str, HealthState]:
