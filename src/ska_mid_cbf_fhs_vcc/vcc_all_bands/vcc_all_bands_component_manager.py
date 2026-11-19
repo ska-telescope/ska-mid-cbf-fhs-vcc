@@ -511,8 +511,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                     raise RuntimeError("Configuration of FS Selection failed.")
 
                 # WIB Configuration
-                if wib_stop_required:
-                    self.wideband_input_buffer.stop().await_result()
+                if wib_stop_required and self.wideband_input_buffer.stop().await_result() == 1:
+                    self.log_error("ConfigureScan failed: WIB stop() failed.", transaction_id)
+                    self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
+                    self._reset_data()
+                    raise RuntimeError("ConfigureScan failed: WIB stop() failed.")
 
                 self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
                 result = self.wideband_input_buffer.configure(

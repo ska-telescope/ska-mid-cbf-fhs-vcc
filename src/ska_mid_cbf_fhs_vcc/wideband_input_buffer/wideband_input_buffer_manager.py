@@ -1,7 +1,18 @@
+import time
 from typing import Any
 
 from ska_control_model import HealthState
-from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, FhsDataclass, UInt8, UInt16, UInt32, UInt64, convert_dish_id_uint16_to_str, non_blocking
+from ska_mid_cbf_fhs_common import (
+    BaseMonitoringIPBlockManager,
+    EmulatorApi,
+    FhsDataclass,
+    UInt8,
+    UInt16,
+    UInt32,
+    UInt64,
+    convert_dish_id_uint16_to_str,
+    non_blocking,
+)
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 
@@ -73,7 +84,16 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
 
     @non_blocking
     def stop(self) -> int:
-        return super().stop()
+        ret = super().stop()
+        timeout = time.time() + 60.0
+        if ret != 0:
+            return ret
+        if isinstance(self._api, EmulatorApi):
+            while self._api.state() != "READY":
+                if time.time() > timeout:
+                    self.logger.error("WIB stop failure: Emulator was not in READY state within 60 seconds.")
+                    return 1
+        return ret
 
     def get_status_healthstates(self, status: WidebandInputBufferStatus) -> dict[str, HealthState]:
         status_healthstates = {}
