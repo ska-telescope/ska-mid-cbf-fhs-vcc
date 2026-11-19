@@ -69,6 +69,20 @@ docs-build-rtd:
   rules:
     - when: never
 
+helm-chart-lint:
+  needs: []
+  
+helm-chart-build:
+  needs:
+    - helm-chart-lint
+
+oci-image-lint:
+  needs: []
+  
+oci-image-build:
+  needs:
+    - oci-image-lint
+
 python-uv-build-for-development:
   variables:
     PYTHON_RUNNER: "uv run "
@@ -95,11 +109,13 @@ python-uv-publish-to-car:
 
 oci-image-publish:
   needs:
+    - oci-image-build
     - job: python-uv-build-for-publication
       optional: true
 
 helm-chart-publish:
   needs:
+    - helm-chart-build
     - job: python-uv-build-for-publication
       optional: true
 
