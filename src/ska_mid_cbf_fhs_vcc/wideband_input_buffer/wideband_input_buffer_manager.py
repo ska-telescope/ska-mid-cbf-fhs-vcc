@@ -88,7 +88,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         timeout = time.time() + 60.0
         if ret != 0:
             return ret
-        if isinstance(self._api, EmulatorApi):
+        if self._emulation_mode and isinstance(self._api, EmulatorApi):
             while self._api.state() != "READY":
                 if time.time() > timeout:
                     self.logger.error("WIB stop failure: Emulator was not in READY state within 60 seconds.")
