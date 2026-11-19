@@ -82,6 +82,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
     def start(self) -> int:
         return super().start()
 
+    # TODO: make logic generic/remove state() calls once both FW+Emu expose reset state in status
     @non_blocking
     def stop(self) -> int:
         ret = super().stop()
