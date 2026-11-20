@@ -108,11 +108,7 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         return ret
 
     def calculate_ber_healthstate(self, status: WidebandInputBufferStatus) -> HealthState:
-        self.poll_counter += 1
-
-        if self.poll_counter == BER_MEASUREMENT_PERIOD:
-            self.poll_counter = 0
-
+        if self.poll_counter == 0:
             match status.meta_band_id:
                 case 1 | 2 | 3:
                     self.bit_error_rate = status.packet_error_count / ((status.meta_transport_sample_rate * BITS_PER_SAMPLE_BAND123) * BER_MEASUREMENT_PERIOD)
@@ -129,6 +125,8 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
                 self.logger.debug(f"Bit Error Rate exceeded DEGRADED threshold: {self.bit_error_rate} > {BER_DEGRADED_THRESHOLD}")
             else:
                 self.bit_error_rate_health_state = HealthState.OK
+
+        self.poll_counter = (self.poll_counter + 1) % BER_MEASUREMENT_PERIOD
 
         return self.bit_error_rate_health_state
 
