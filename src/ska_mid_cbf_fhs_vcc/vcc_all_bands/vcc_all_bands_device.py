@@ -3,9 +3,8 @@ from __future__ import annotations
 from threading import Event
 
 import tango
-from ska_control_model import ResultCode, TaskStatus
-from ska_mid_cbf_fhs_common import FhsControllerBaseDevice
-from ska_mid_cbf_fhs_common.enums.fhs_state import FhsState
+from ska_control_model import ResultCode, SimulationMode, TaskStatus
+from ska_mid_cbf_fhs_common import FhsControllerBaseDevice, FhsState
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command
 
@@ -65,14 +64,13 @@ class VCCAllBandsController(
         enum_labels=[FhsState.NOT_CONFIGURED.name, FhsState.CONFIGURING.name, FhsState.CONFIGURED.name, FhsState.FAULT.name],
         doc="Device's configuration state",
     )
-    def configurationState(self) -> str:
+    def configurationState(self) -> FhsState:
         """
-        Read-only Tango attribute that contains a string with the FhsState value for this device.
+        Read-only Tango attribute that contains the FhsState value for this device.
 
-        :return: FhsState of this device
-        :rtype: FhsState
+        Returns:
+            :obj:`FhsState`: the FhsState value for this device.
         """
-
         return self.component_manager.configuration_state
 
     @attribute(
@@ -84,7 +82,7 @@ class VCCAllBandsController(
         Returns:
             :obj:`str`: The expected dish ID.
         """
-        return self.component_manager.expected_dish_id
+        return str(self.component_manager.expected_dish_id)
 
     @attribute(
         abs_change=1,
@@ -95,10 +93,9 @@ class VCCAllBandsController(
         """Read-only Tango attribute specifying the frequency band in which this VCC is operating.
 
         Returns:
-            :obj:`FrequencyBandEnum`: the frequency band (being observed by the current scan, one of
-            ["1", "2", "3", "4", "5a", "5b"]).
+            :obj:`FrequencyBandEnum`: the frequency band enum value.
         """
-        return self.component_manager.frequency_band.value
+        return self.component_manager.frequency_band
 
     @attribute(
         dtype=tango.DevLong,
@@ -196,7 +193,7 @@ class VCCAllBandsController(
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
         result_code, message = command_handler(argin=config)
-        return [[result_code], [message]]
+        return [result_code], [message]
 
     @command(dtype_in="DevString", dtype_out="DevVarLongStringArray", doc_in="JSON string following the GoToIdle schema.")
     def GoToIdle(self, go_to_idle_argin: str) -> DevVarLongStringArrayType:
@@ -211,7 +208,7 @@ class VCCAllBandsController(
         """
         command_handler = self.get_command_object(command_name="GoToIdle")
         result_code, message = command_handler(argin=go_to_idle_argin)
-        return [[result_code], [message]]
+        return [result_code], [message]
 
     @command(
         dtype_in="DevUShort",
@@ -232,7 +229,7 @@ class VCCAllBandsController(
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=subarray_id)
-        return [[result_code], [command_id]]
+        return [result_code], [command_id]
 
     @command(
         dtype_in="DevString",
@@ -253,7 +250,7 @@ class VCCAllBandsController(
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=configure_vcc_bite_argin)
-        return [[result_code], [command_id]]
+        return [result_code], [command_id]
 
     @command(
         dtype_in="DevString",
@@ -274,7 +271,7 @@ class VCCAllBandsController(
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=deconfigure_vcc_bite_argin)
-        return [[result_code], [command_id]]
+        return [result_code], [command_id]
 
     @command(
         dtype_in="DevString",
@@ -295,7 +292,7 @@ class VCCAllBandsController(
         # It is important that the argin keyword be provided, as the
         # component manager method will be overriden in simulation mode
         result_code, command_id = command_handler(argin=auto_set_filter_gains_argin)
-        return [[result_code], [command_id]]
+        return [result_code], [command_id]
 
     @command(
         dtype_in="DevString",
@@ -310,7 +307,9 @@ class VCCAllBandsController(
         Overrides base LRC mixin to trigger FhsState transitions and component
         manager abort task.
 
-        :return: tuple containing a return code and a unique command identifier
+        Returns:
+            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+            message indicating status. The message is for information purpose only.
         """
         # TODO: argin currently unused
 
@@ -350,8 +349,8 @@ class VCCAllBandsController(
             health_state_callback=self._update_health_state_wrapper,
             communication_state_callback=self._communication_state_changed,
             component_state_callback=self._component_state_changed,
-            simulation_mode=self.simulation_mode,
-            emulation_mode=self.emulation_mode,
+            simulation_mode=SimulationMode(self.simulation_mode),
+            emulation_mode=bool(self.emulation_mode),
             long_running_command_result_buffer_max_size=self.long_running_command_result_buffer_max_size,
         )
 

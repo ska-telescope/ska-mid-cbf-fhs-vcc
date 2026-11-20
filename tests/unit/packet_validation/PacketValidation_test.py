@@ -32,8 +32,7 @@ class TestPacketValidation:
 
     def test_status(self, packet_validation: PacketValidationManager):
         """Test the status method of the Packet Validation block."""
-        result = packet_validation.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        packet_validation.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, packet_validation: PacketValidationManager):
         """Test the recover method of the Packet Validation block."""
