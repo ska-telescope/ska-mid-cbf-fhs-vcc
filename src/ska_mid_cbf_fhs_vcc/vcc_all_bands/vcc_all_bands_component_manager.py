@@ -466,28 +466,30 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                     self._reset_data()
                     raise RuntimeError("Configuration of FS Selection failed.")
 
-                # WIB Configuration
-                if wib_stop_required:
-                    self.wideband_input_buffer.stop().await_result()
+            # WIB Configuration
+            # CIP-6726: WIB IP block does not need to be avoided in Simulation mode
+            if wib_stop_required:
+                self.wideband_input_buffer.stop().await_result()
 
-                self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
-                result = self.wideband_input_buffer.configure(
-                    WidebandInputBufferConfig(
-                        transaction_id=transaction_id,
-                        expected_sample_rate=self._sample_rate,
-                        noise_diode_transition_holdoff_count=configuration.noise_diode_transition_holdoff_count,
-                        expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
-                    )
+            self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
+            result = self.wideband_input_buffer.configure(
+                WidebandInputBufferConfig(
+                    transaction_id=transaction_id,
+                    expected_sample_rate=self._sample_rate,
+                    noise_diode_transition_holdoff_count=configuration.noise_diode_transition_holdoff_count,
+                    expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
                 )
+            )
 
-                if result == 1:
-                    self.log_error("Configuration of WIB failed.", transaction_id)
-                    self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
-                    self._reset_data()
-                    raise RuntimeError("Configuration of WIB failed.")
+            if result == 1:
+                self.log_error("Configuration of WIB failed.", transaction_id)
+                self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
+                self._reset_data()
+                raise RuntimeError("Configuration of WIB failed.")
 
-                self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
+            self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
 
+            if not self.simulation_mode:
                 # Pre-channelizer WPM Configuration
                 self.log_debug("Pre-channelizer Wideband Power Meters Configuring..", transaction_id)
                 self._pre_channelizer_power_meter_configs = {
@@ -562,8 +564,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                         self._reset_data()
                         raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
-                # Enables downstream processing
-                self.wideband_input_buffer.start().await_result()
+            # Enables downstream processing
+            # CIP-6726: WIB IP block does not need to be avoided in Simulation mode
+            self.wideband_input_buffer.start().await_result()
 
             self.set_configuration_state_if_transition_is_allowed(FhsState.CONFIGURED)
             self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)

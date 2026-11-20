@@ -1,13 +1,14 @@
 from base64 import b64encode
 from collections.abc import Generator
 import json
+import time
 from unittest import mock
 import pytest
 import os
 from assertpy import assert_that
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
 from tango import DevState
-from ska_control_model import AdminMode, HealthState, ObsState, ResultCode
+from ska_control_model import AdminMode, HealthState, ResultCode
 from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 from ska_tango_testing.integration import TangoEventTracer
@@ -22,7 +23,6 @@ TEST_MAPPING_PATH = "tests/test_data"
 def event_timeout() -> int:
     """Event tracer timeout."""
     return 10
-
 
 @pytest.fixture(name="vcc_all_bands_device")
 def vcc_all_bands_device_fixture(
@@ -100,7 +100,7 @@ class TestVCCAllBandsController:
             "PacketValidation": default_ip_block,
             "WidebandFrequencyShifter": default_ip_block,
             "WidebandInputBuffer": default_ip_block | {
-                "health_monitor_poll_interval": "3",
+                "health_monitor_poll_interval": "1",
             }, 
             "VCCStreamMerge1": default_ip_block,
             "VCCStreamMerge2": default_ip_block,
@@ -587,3 +587,43 @@ class TestVCCAllBandsController:
                 requested_headroom == expected_headroom
                 for requested_headroom, expected_headroom in zip(requested_headrooms_after.value, expected_headrooms)
             )
+
+    def test_healthinfo(self, vcc_all_bands_device: VCCAllBandsController, vcc_all_bands_event_tracer: TangoEventTracer):
+        wib_status = {
+            "link_failure": False,
+            "buffer_overflow": False,
+            "loss_of_signal": 0,
+            "error": False,
+            "loss_of_signal_seconds": 0,
+            "meta_band_id": 1,
+            "meta_dish_id": 1,
+            "rx_sample_rate": 3960000000,
+            "meta_transport_sample_rate": 3960000000,
+            "packet_error": True,
+            "packet_error_count": 2,
+            "packet_drop": False,
+            "packet_drop_count": 0,
+            "rx_packet_rate": 1500000,
+            "expected_sample_rate": 3960000000
+        }
+        
+        with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
+            config_json = f.read()
+
+        vcc_all_bands_device.command_inout("ConfigureScan", config_json)
+            
+        DeviceTestUtils.assert_lrc_completed(
+            vcc_all_bands_device,
+            vcc_all_bands_event_tracer,
+            EVENT_TIMEOUT,
+            "ConfigureScan",
+        )
+        
+        time.sleep(5)
+        
+        with mock.patch(
+            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator.WidebandInputBufferSimulator.status",
+            return_value=wib_status,
+        ):
+            print(f"HealthInfo: {vcc_all_bands_device.healthInfo}\nHealthState: {vcc_all_bands_device.healthState}")
+            assert vcc_all_bands_device.healthState == HealthState.OK

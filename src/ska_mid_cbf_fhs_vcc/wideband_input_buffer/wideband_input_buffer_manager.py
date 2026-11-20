@@ -123,7 +123,6 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
 
     def get_status_healthmonitor(self, status: WidebandInputBufferStatus) -> dict[str, ComponentStatus]:
         status_healthstates = {}
-
         meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(status.meta_dish_id)
         status_healthstates["meta_dish_id"] = self.get_health_info_by_expected_value(
             self.expected_dish_id,
