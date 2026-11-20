@@ -5,13 +5,44 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+0.7.0
+*****
+* CIP-6575:
+
+  * Update to ska-mid-cbf-fhs-common 0.7.0, which contains several breaking changes,
+    including moving from dataclasses_json to Pydantic for dataclass definitions and validation.
+  * Basic type-checking using Pyright is now mandatory and will be enforced in the CI pipeline. You can run this locally via ``make python-typecheck``.
+    Refer to the README for workspace-level settings you can add to VS Code to show (most) type-checker errors as you work.
+    This enables us to catch unexpected errors caused by type mismatches more quickly, rather than only finding such issues after a full deployment cycle,
+    and thus should reduce the overall amount of time spent debugging.
+  * Add a temporary patch for ``WidebandInputBufferManager.stop()`` in emulation mode, which waits for the emulator to enter a fully stopped state before returning.
+    This will be adjusted after a future driver + emulator update to expose this fully stopped state via ``status()``.
+  * Add the ``teardown()`` method to the ``VCCAllBandsComponentManager``, required by the updated base class.
+  * Update ``ConfigureScan`` to trigger a return to ``FhsState.NOT_CONFIGURED`` state if configuration is unsuccessful.
+  * Update most simulators to return dicts directly instead of doing pointless JSON operations.
+  * Add emulator readiness to the ``VccAdminOnline`` checks.
+  * Move LRC command result buffer insertions after task callbacks to avoid a race condition.
+  * Fix the ``configurationState`` attribute to correctly return the enum value rather than the label (``DevEnum`` type only supports integer/IntEnum values).
+  * Ensure the DISH ID sent to the SPFRx Packetizer in VCC BITE is in its integer representation rather than a string.
+  * Update certain status dataclasses that did not match the actual values currently provided by emulators.
+    Note that due to some discrepancies between the drivers and emulators, these will likely be updated again in the near future
+    once consistent data structures have been finalized.
+  * Remove all references to the deprecated ``ska_control_model.AdminMode`` enum
+    in favor of the new ``ska_control_model.future.AdminMode`` which removes the ``OFFLINE`` state.
+  * Remove the unused ``fsp`` field from the ``ConfigureScan`` test data.
+  * Fix VCC BITE test data to provide integers to certain integer fields where floats were actually being provided instead.
+  * Ensure the Bit Error Rate health state in the ``WidebandInputBufferManager`` is calculated immediately before waiting the first 30-second interval
+    (otherwise it stays UNKNOWN for the full 30 seconds even if the WIB is fine).
+  * Various miscellaneous updates to address potential issues found by enabling stricter type-checking.
+
 0.6.9
 ****
 * CIP-6593: Added BER attribute to All Bands Controller/WIB Manager
 
 0.6.8
-****
+*****
 * CIP-6593: 
+
   * Swap to use "vlan_alias" in configurescan rather than directly providing "vlan_id", add basic file for these mappings.
   * Enables mappings to be specified via Charts, under the vcc_product_definition section. 
   * Added vlanLookup attribute to enable validation of these mappings.

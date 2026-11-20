@@ -23,7 +23,7 @@ class TestFrequencySliceSelection:
         """Test the configure method of the Frequency Slice Selection block."""
         with open("tests/test_data/device_config/frequency_slice_selection.json", "r") as f:
             config_json = f.read()
-        result = frequency_slice_selection.configure(FrequencySliceSelectionConfig.schema().loads(config_json))
+        result = frequency_slice_selection.configure(FrequencySliceSelectionConfig.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_deconfigure(self, frequency_slice_selection: FrequencySliceSelectionManager):
@@ -34,8 +34,7 @@ class TestFrequencySliceSelection:
 
     def test_status(self, frequency_slice_selection: FrequencySliceSelectionManager):
         """Test the status method of the Frequency Slice Selection block."""
-        result = frequency_slice_selection.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        frequency_slice_selection.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, frequency_slice_selection: FrequencySliceSelectionManager):
         """Test the recover method of the Frequency Slice Selection block."""

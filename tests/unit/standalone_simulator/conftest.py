@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import Generator
 
 import pytest
-from ska_control_model import AdminMode, HealthState, ObsState
+from ska_control_model import HealthState, ObsState
+from ska_control_model.future import AdminMode
 from ska_tango_testing.harness import TangoTestHarnessContext
 from ska_tango_testing.integration import TangoEventTracer
 

@@ -26,28 +26,6 @@
     1
   ],
   "frequency_band": "2",
-  "fsp": [
-    {
-      "fsp_id": 1,
-      "frequency_slice_id": 1,
-      "function_mode": "CORR"
-    },
-    {
-      "fsp_id": 4,
-      "frequency_slice_id": 4,
-      "function_mode": "CORR"
-    },
-    {
-      "fsp_id": 2,
-      "frequency_slice_id": 2,
-      "function_mode": "CORR"
-    },
-    {
-      "fsp_id": 3,
-      "frequency_slice_id": 3,
-      "function_mode": "CORR"
-    }
-  ],
   "noise_diode_transition_holdoff_count": 0,
   "frequency_band_offset_stream1": 110,
   "frequency_band_offset_stream2": 56,
