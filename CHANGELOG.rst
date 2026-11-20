@@ -31,6 +31,8 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
     in favor of the new ``ska_control_model.future.AdminMode`` which removes the ``OFFLINE`` state.
   * Remove the unused ``fsp`` field from the ``ConfigureScan`` test data.
   * Fix VCC BITE test data to provide integers to certain integer fields where floats were actually being provided instead.
+  * Ensure the Bit Error Rate health state in the ``WidebandInputBufferManager`` is calculated immediately before waiting the first 30-second interval
+    (otherwise it stays UNKNOWN for the full 30 seconds even if the WIB is fine).
   * Various miscellaneous updates to address potential issues found by enabling stricter type-checking.
 
 0.6.9
