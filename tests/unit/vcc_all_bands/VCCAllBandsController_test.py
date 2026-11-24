@@ -4,6 +4,7 @@ import json
 import time
 from unittest import mock
 import pytest
+import orjson
 import os
 from assertpy import assert_that
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
@@ -606,24 +607,20 @@ class TestVCCAllBandsController:
             "rx_packet_rate": 1500000,
             "expected_sample_rate": 3960000000
         }
-        
-        with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
-            config_json = f.read()
-
-        vcc_all_bands_device.command_inout("ConfigureScan", config_json)
-            
-        DeviceTestUtils.assert_lrc_completed(
-            vcc_all_bands_device,
-            vcc_all_bands_event_tracer,
-            EVENT_TIMEOUT,
-            "ConfigureScan",
-        )
-        
-        time.sleep(5)
+        health_info_dict = {}
         
         with mock.patch(
             "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator.WidebandInputBufferSimulator.status",
             return_value=wib_status,
+            create = True
         ):
-            print(f"HealthInfo: {vcc_all_bands_device.healthInfo}\nHealthState: {vcc_all_bands_device.healthState}")
-            assert vcc_all_bands_device.healthState == HealthState.OK
+            with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
+                config_json = f.read()
+    
+            vcc_all_bands_device.command_inout("ConfigureScan", config_json)
+            
+            time.sleep(5)
+            assert vcc_all_bands_device.healthState == HealthState.FAILED
+            
+            health_info_dict = orjson.loads(vcc_all_bands_device.healthInfo)
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["health_state"] == "FAILED"

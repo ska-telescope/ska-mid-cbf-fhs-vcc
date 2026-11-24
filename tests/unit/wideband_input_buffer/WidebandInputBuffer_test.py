@@ -12,7 +12,7 @@ from ska_mid_cbf_fhs_vcc.wideband_input_buffer.constants import (
 
 class TestWidebandInputBuffer:
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def wideband_input_buffer(self):
         """Fixture to set up the Wideband Input Buffer."""
         manager = WidebandInputBufferManager(

@@ -146,12 +146,14 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
             False,
             status.packet_error,
             health_on_failure=HealthState.DEGRADED,
+            failure_msg=f"{status.packet_error_count} packet errors detected. Expected 0",
         )
 
         status_healthstates["packet_drop"] = self.get_health_info_by_expected_value(
             False,
             status.packet_drop,
             health_on_failure=HealthState.DEGRADED,
+            failure_msg=f"{status.packet_drop_count} dropped packets detected. Expected 0",
         )
 
         status_healthstates["link_failure"] = self.get_health_info_by_expected_value(
