@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from pydantic import Field
 from ska_mid_cbf_fhs_common import FhsControllerBaseConfig, FhsDataclass
 
@@ -5,7 +7,7 @@ from ska_mid_cbf_fhs_common import FhsControllerBaseConfig, FhsDataclass
 class VCCAllBandsConfigureScanPowerMeterConfig(FhsDataclass):
     """Dataclass representing a power meter configuration as part of the VCC All Bands ConfigureScan input parameter."""
 
-    averaging: float
+    averaging: Annotated[int, Field(ge=1)]
     flagging: int
 
 

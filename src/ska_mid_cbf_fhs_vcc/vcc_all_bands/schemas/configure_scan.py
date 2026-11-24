@@ -29,7 +29,7 @@ vcc_all_bands_configure_scan_schema = {
         "b123_power_meter": {
             "type": "object",
             "properties": {
-                "averaging": {"type": "number"},
+                "averaging": {"type": "integer", "minimum": 1},
                 "flagging": {"type": "integer"},
             },
             "required": [
@@ -40,7 +40,7 @@ vcc_all_bands_configure_scan_schema = {
         "b45_1_power_meter": {
             "type": "object",
             "properties": {
-                "averaging": {"type": "number"},
+                "averaging": {"type": "integer", "minimum": 1},
                 "flagging": {"type": "integer"},
             },
             "required": [
@@ -51,7 +51,7 @@ vcc_all_bands_configure_scan_schema = {
         "b45_2_power_meter": {
             "type": "object",
             "properties": {
-                "averaging": {"type": "number"},
+                "averaging": {"type": "integer", "minimum": 1},
                 "flagging": {"type": "integer"},
             },
             "required": [
@@ -69,7 +69,7 @@ vcc_all_bands_configure_scan_schema = {
                     "power_meter": {
                         "type": "object",
                         "properties": {
-                            "averaging": {"type": "number"},
+                            "averaging": {"type": "integer", "minimum": 1},
                             "flagging": {"type": "integer"},
                         },
                         "required": [

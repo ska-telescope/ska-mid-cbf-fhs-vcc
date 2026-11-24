@@ -180,6 +180,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
         self._sample_rate = 0
+        self._wideband_power_meter_measurement_intervals: dict[VCCBandGroup, int] = {}
+        self._fs_power_meter_measurement_intervals: dict[int, int] = {}
 
     def _device_specific_setup(self) -> None:
         """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
@@ -452,167 +454,162 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                     raise ValueError("Bands 3/4 not implemented")
                     # self._num_fs = 15
                 case _:
-                    self._reset_data()
-                    raise ValueError("Bands 5A/B not implemented")
-                    # self._num_fs = 26
+                    self._num_fs = 26
 
             # number of channels * number of polarizations
             self._num_vcc_gains = self._num_fs * 2
-
             self.vcc_gains = configuration.vcc_gains_stream_1
 
             if len(self.vcc_gains) != self._num_vcc_gains:
                 self._reset_data()
                 raise ValueError(f"Incorrect number of gain values supplied: {self.vcc_gains} != {self._num_vcc_gains}")
 
-            if not self.simulation_mode:
-                # VCC123 Channelizer Configuration
-                self.log_debug("VCC123 Channelizer Configuring..", transaction_id)
-                if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                    result = self.b123_vcc.configure(
-                        B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains, transaction_id=transaction_id)
+            # VCC123 Channelizer Configuration
+            self.log_debug("VCC123 Channelizer Configuring..", transaction_id)
+            if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
+                result = self.b123_vcc.configure(
+                    B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains, transaction_id=transaction_id)
+                )
+
+                if result == 1:
+                    self.log_error("Configuration of VCC123 Channelizer failed.", transaction_id)
+                    self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
+                    self._reset_data()
+                    raise RuntimeError("Configuration of VCC123 failed.")
+
+            else:
+                # TODO: Implement routing to the 5 Channelizer once outlined
+                self._reset_data()
+                raise ValueError(f"ConfigureScan failed unsupported band specified: {self.frequency_band}")
+
+            # WFS Configuration
+            self.log_debug("Wideband Frequency Shifter Configuring..", transaction_id)
+            result = self.wideband_frequency_shifter.configure(
+                WidebandFrequencyShifterConfig(shift_frequency=self.frequency_band_offset[0], transaction_id=transaction_id)
+            )
+            if result == 1:
+                self.log_error("Configuration of Wideband Frequency Shifter failed.", transaction_id)
+                self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
+                self._reset_data()
+                raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
+
+            # FSS Configuration
+            result = self.frequency_slice_selection.configure(
+                FrequencySliceSelectionConfig(
+                    band_select=self.frequency_band.value + 1,
+                    band_start_channel=[0, 1],
+                    transaction_id=transaction_id,
+                )
+            )
+
+            if result == 1:
+                self.log_error("Configuration of FS Selection failed.", transaction_id)
+                self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
+                self._reset_data()
+                raise RuntimeError("Configuration of FS Selection failed.")
+
+            # WIB Configuration
+            if wib_stop_required and self.wideband_input_buffer.stop().await_result() == 1:
+                self.log_error("ConfigureScan failed: WIB stop() failed.", transaction_id)
+                self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
+                self._reset_data()
+                raise RuntimeError("ConfigureScan failed: WIB stop() failed.")
+
+            self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
+            result = self.wideband_input_buffer.configure(
+                WidebandInputBufferConfig(
+                    transaction_id=transaction_id,
+                    expected_sample_rate=self._sample_rate,
+                    noise_diode_transition_holdoff_count=configuration.noise_diode_transition_holdoff_count,
+                    expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
+                )
+            )
+
+            if result == 1:
+                self.log_error("Configuration of WIB failed.", transaction_id)
+                self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
+                self._reset_data()
+                raise RuntimeError("Configuration of WIB failed.")
+
+            self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
+
+            # Wideband Power Meter Configuration
+            self.log_debug("Wideband Power Meters Configuring..", transaction_id)
+            for band_group, config in (
+                (VCCBandGroup.B123, configuration.b123_power_meter),
+                (VCCBandGroup.B45A, configuration.b45_1_power_meter),
+                (VCCBandGroup.B5B, configuration.b45_2_power_meter),
+            ):
+                self.log_debug(f"Configuring {band_group.value} power meter with {config}", transaction_id)
+                self._wideband_power_meter_measurement_intervals[band_group] = config.averaging
+                result = self.wideband_power_meters[band_group].configure(
+                    WidebandPowerMeterConfig(
+                        transaction_id=transaction_id,
+                        averaging_time=config.averaging,
+                        flagging=config.flagging,
                     )
+                )
+                if result == 1:
+                    self.log_error(f"Configuration of {band_group.value} Wideband Power Meter failed.", transaction_id)
+                    self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
+                    self._reset_data()
+                    raise RuntimeError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
 
-                    if result == 1:
-                        self.log_error("Configuration of VCC123 Channelizer failed.", transaction_id)
-                        self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
-                        self._reset_data()
-                        raise RuntimeError("Configuration of VCC123 failed.")
+            # FS Power Meter Configuration
+            self.log_debug("FS Power Meters Configuring..", transaction_id)
+            self._fs_lanes = configuration.fs_lanes
 
+            # Verify vlan_alias is within the provided keys and result is in range
+            for config in self._fs_lanes:
+                if config.vlan_alias in self.vlan_lookup:
+                    if not (2 <= self.vlan_lookup[config.vlan_alias] <= 1001 or 1006 <= self.vlan_lookup[config.vlan_alias] <= 4094):
+                        raise ValueError(f"VLAN ID {self.vlan_lookup[config.vlan_alias]} for alias {config.vlan_alias} is not within range")
                 else:
-                    # TODO: Implement routing to the 5 Channelizer once outlined
-                    self._reset_data()
-                    raise ValueError(f"ConfigureScan failed unsupported band specified: {self.frequency_band}")
+                    raise KeyError(f"Could not find the requested vlan_alias ({config.vlan_alias}) in the VLAN mapping provided")
 
-                # WFS Configuration
-                self.log_debug("Wideband Frequency Shifter Configuring..", transaction_id)
-                result = self.wideband_frequency_shifter.configure(
-                    WidebandFrequencyShifterConfig(shift_frequency=self.frequency_band_offset[0], transaction_id=transaction_id)
-                )
-                if result == 1:
-                    self.log_error("Configuration of Wideband Frequency Shifter failed.", transaction_id)
-                    self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
-                    self._reset_data()
-                    raise RuntimeError("Configuration of Wideband Frequency Shifter failed.")
-
-                # FSS Configuration
-                result = self.frequency_slice_selection.configure(
-                    FrequencySliceSelectionConfig(
-                        band_select=self.frequency_band.value + 1,
-                        band_start_channel=[0, 1],
+            for config in self._fs_lanes:
+                fs_id = int(config.fs_id)
+                self.log_debug(f"Configuring FS {fs_id} power meter with {config}", transaction_id)
+                self._fs_power_meter_measurement_intervals[fs_id] = config.power_meter.averaging
+                result = self.wideband_power_meters[fs_id].configure(
+                    WidebandPowerMeterConfig(
                         transaction_id=transaction_id,
+                        averaging_time=config.power_meter.averaging,
+                        flagging=config.power_meter.flagging,
                     )
                 )
-
                 if result == 1:
-                    self.log_error("Configuration of FS Selection failed.", transaction_id)
+                    self.log_error(f"Configuration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
                     self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
                     self._reset_data()
-                    raise RuntimeError("Configuration of FS Selection failed.")
+                    raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
 
-                # WIB Configuration
-                if wib_stop_required and self.wideband_input_buffer.stop().await_result() == 1:
-                    self.log_error("ConfigureScan failed: WIB stop() failed.", transaction_id)
-                    self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
-                    self._reset_data()
-                    raise RuntimeError("ConfigureScan failed: WIB stop() failed.")
-
-                self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
-                result = self.wideband_input_buffer.configure(
-                    WidebandInputBufferConfig(
+            # VCC Stream Merge Configuration
+            self.log_debug("VCC Stream Merge Configuring..", transaction_id)
+            for i in range(1, 3):
+                result = self.vcc_stream_merges[i].configure(
+                    VCCStreamMergeConfigureArgin(
                         transaction_id=transaction_id,
-                        expected_sample_rate=self._sample_rate,
-                        noise_diode_transition_holdoff_count=configuration.noise_diode_transition_holdoff_count,
-                        expected_dish_band=self.frequency_band.value + 1,  # FW Drivers rely on integer indexes, that are 1-based
+                        fs_lane_configs=[
+                            VCCStreamMergeConfig(
+                                mac_destination=0,  # TODO?
+                                vid=self.vlan_lookup[lane.vlan_alias],
+                                vcc_id=self._vcc_id,
+                                fs_id=lane.fs_id,
+                                fs_index=fs_index,
+                            )
+                            for fs_index, lane in enumerate(self._fs_lanes[13 * (i - 1) : 13 * i])
+                        ],
                     )
-                )
-
+                )  # fmt: skip
                 if result == 1:
-                    self.log_error("Configuration of WIB failed.", transaction_id)
+                    self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
                     self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
                     self._reset_data()
-                    raise RuntimeError("Configuration of WIB failed.")
+                    raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
-                self.wideband_input_buffer.expected_dish_id = self.expected_dish_id
-
-                # Pre-channelizer WPM Configuration
-                self.log_debug("Pre-channelizer Wideband Power Meters Configuring..", transaction_id)
-                self._pre_channelizer_power_meter_configs = {
-                    VCCBandGroup.B123: configuration.b123_power_meter,
-                    VCCBandGroup.B45A: configuration.b45_1_power_meter,
-                    VCCBandGroup.B5B: configuration.b45_2_power_meter,
-                }
-
-                for band_group in VCCBandGroup:
-                    config = self._pre_channelizer_power_meter_configs[band_group]
-                    self.log_debug(f"Configuring {band_group.value} power meter with {config}", transaction_id)
-                    result = self.wideband_power_meters[band_group].configure(
-                        WidebandPowerMeterConfig(
-                            transaction_id=transaction_id,
-                            averaging_time=config.averaging,
-                            flagging=config.flagging,
-                        )
-                    )
-                    if result == 1:
-                        self.log_error(f"Configuration of {band_group.value} Wideband Power Meter failed.", transaction_id)
-                        self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
-                        self._reset_data()
-                        raise RuntimeError(f"Configuration of {band_group.value} Wideband Power Meter failed.")
-
-                # Post-channelizer WPM Configuration
-                self.log_debug("Post-channelizer Wideband Power Meters Configuring..", transaction_id)
-                self._fs_lanes = configuration.fs_lanes
-
-                # Verify vlan_alias is within the provided keys and result is in range
-                for config in self._fs_lanes:
-                    if config.vlan_alias in self.vlan_lookup:
-                        if not (2 <= self.vlan_lookup[config.vlan_alias] <= 1001 or 1006 <= self.vlan_lookup[config.vlan_alias] <= 4094):
-                            raise ValueError(f"VLAN ID {self.vlan_lookup[config.vlan_alias]} for alias {config.vlan_alias} is not within range")
-                    else:
-                        raise KeyError(f"Could not find the requested vlan_alias ({config.vlan_alias}) in the VLAN mapping provided")
-
-                for config in self._fs_lanes:
-                    fs_id = int(config.fs_id)
-                    self.log_debug(f"Configuring FS {fs_id} power meter with {config}", transaction_id)
-                    result = self.wideband_power_meters[fs_id].configure(
-                        WidebandPowerMeterConfig(
-                            transaction_id=transaction_id,
-                            averaging_time=config.power_meter.averaging,
-                            flagging=config.power_meter.flagging,
-                        )
-                    )
-                    if result == 1:
-                        self.log_error(f"Configuration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
-                        self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
-                        self._reset_data()
-                        raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
-
-                # VCC Stream Merge Configuration
-                self.log_debug("VCC Stream Merge Configuring..", transaction_id)
-                for i in range(1, 3):
-                    result = self.vcc_stream_merges[i].configure(
-                        VCCStreamMergeConfigureArgin(
-                            transaction_id=transaction_id,
-                            fs_lane_configs=[
-                                VCCStreamMergeConfig(
-                                    mac_destination=0,  # TODO?
-                                    vid=self.vlan_lookup[lane.vlan_alias],
-                                    vcc_id=self._vcc_id,
-                                    fs_id=lane.fs_id,
-                                    fs_index=fs_index,
-                                )
-                                for fs_index, lane in enumerate(self._fs_lanes[13 * (i - 1) : 13 * i])
-                            ],
-                        )
-                    )  # fmt: skip
-                    if result == 1:
-                        self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
-                        self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
-                        self._reset_data()
-                        raise RuntimeError("Configuration of VCC Stream Merge failed.")
-
-                # Enables downstream processing
-                self.wideband_input_buffer.start().await_result()
+            # Enables downstream processing
+            self.wideband_input_buffer.start().await_result()
 
             self.set_configuration_state_if_transition_is_allowed(FhsState.CONFIGURED)
             self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
