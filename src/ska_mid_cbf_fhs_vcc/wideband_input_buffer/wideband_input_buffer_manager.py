@@ -194,8 +194,8 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         self,
         expected_value: Any,
         actual_value: Any,
-        success_msg: str | None = "",
-        failure_msg: str | None = "",
+        success_msg: str = "",
+        failure_msg: str = "",
         health_on_success: HealthState = HealthState.OK,
         health_on_failure: HealthState = HealthState.FAILED,
     ) -> ComponentStatus:
