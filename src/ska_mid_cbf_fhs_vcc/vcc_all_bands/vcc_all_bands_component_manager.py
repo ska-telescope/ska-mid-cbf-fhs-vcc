@@ -242,6 +242,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             *self.wideband_power_meters.values(),
         ]
 
+    def start_communicating(self) -> None:
+        """Establish communication with the component, then start monitoring."""
+        super().start_communicating()
+        self.ethernet_200g.start().await_result()
+
     def set_configuration_state_if_transition_is_allowed(self, dest_state: FhsState):
         allowed_transitions = {
             FhsState.NOT_CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.FAULT],

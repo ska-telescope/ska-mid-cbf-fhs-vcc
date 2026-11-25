@@ -16,6 +16,7 @@ from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, 
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 from ska_tango_testing.integration import TangoEventTracer
 from ska_tango_testing.harness import TangoTestHarnessContext
+from ska_mid_cbf_fhs_common.ip_blocks.ftile_ethernet.ftile_ethernet_manager import FtileEthernetCastStats, FtileEthernetMacStats, FtileEthernetStatus
 
 EVENT_TIMEOUT = 30
 
@@ -96,7 +97,7 @@ class TestVCCAllBandsController:
         ip_blocks = {
             "Ethernet200Gb": default_ip_block | {
                 "ethernet_mode": "200GbE",
-                "health_monitor_poll_interval": "60",
+                "health_monitor_poll_interval": "1",
             }, 
             "B123VccOsppfbChannelizer": default_ip_block,
             "FrequencySliceSelection": default_ip_block,
@@ -585,7 +586,94 @@ class TestVCCAllBandsController:
                 for requested_headroom, expected_headroom in zip(requested_headrooms_after, expected_headrooms)
             )
 
-    def test_healthinfo(self, vcc_all_bands_device: tango.DeviceProxy, vcc_all_bands_event_tracer: TangoEventTracer):
+    def test_healthinfo_healthy(self, vcc_all_bands_device: tango.DeviceProxy, vcc_all_bands_event_tracer: TangoEventTracer):
+        wib_status = {
+            "link_failure": False,
+            "buffer_overflow": False,
+            "loss_of_signal": 0,
+            "error": False,
+            "loss_of_signal_seconds": 0,
+            "meta_band_id": 1,
+            "meta_dish_id": 1,
+            "rx_sample_rate": 3960000000,
+            "meta_transport_sample_rate": 3960000000,
+            "packet_error": False,
+            "packet_error_count": 0,
+            "packet_drop": False,
+            "packet_drop_count": 0,
+            "rx_packet_rate": 1500000,
+            "expected_sample_rate": 3960000000
+        }
+        health_info_dict = {}
+                
+        with mock.patch(
+            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator.WidebandInputBufferSimulator.status",
+            return_value=wib_status,
+            create = True
+        ):            
+            with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
+                config_json = f.read()
+    
+            vcc_all_bands_device.command_inout("ConfigureScan", config_json)
+            
+            DeviceTestUtils.assert_lrc_completed(
+                vcc_all_bands_device,
+                vcc_all_bands_event_tracer,
+                EVENT_TIMEOUT,
+                "ConfigureScan",
+            )
+            time.sleep(1)   # Potentially unnecessary
+            assert vcc_all_bands_device.healthState == HealthState.OK
+            
+            health_info_dict = orjson.loads(DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo")) if DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo") else {}
+            assert health_info_dict == {}
+
+    def test_healthinfo_degraded(self, vcc_all_bands_device: tango.DeviceProxy, vcc_all_bands_event_tracer: TangoEventTracer):
+        wib_status = {
+            "link_failure": False,
+            "buffer_overflow": False,
+            "loss_of_signal": 0,
+            "error": False,
+            "loss_of_signal_seconds": 0,
+            "meta_band_id": 1,
+            "meta_dish_id": 1,
+            "rx_sample_rate": 3960000000,
+            "meta_transport_sample_rate": 3960000000,
+            "packet_error": True,
+            "packet_error_count": 1,
+            "packet_drop": False,
+            "packet_drop_count": 0,
+            "rx_packet_rate": 1500000,
+            "expected_sample_rate": 3960000000
+        }
+        health_info_dict = {}
+                
+        with mock.patch(
+            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator.WidebandInputBufferSimulator.status",
+            return_value=wib_status,
+            create = True
+        ):            
+            with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
+                config_json = f.read()
+    
+            vcc_all_bands_device.command_inout("ConfigureScan", config_json)
+            
+            DeviceTestUtils.assert_lrc_completed(
+                vcc_all_bands_device,
+                vcc_all_bands_event_tracer,
+                EVENT_TIMEOUT,
+                "ConfigureScan",
+            )
+            time.sleep(1)   # Potentially unnecessary
+            assert vcc_all_bands_device.healthState == HealthState.DEGRADED
+            
+            health_info_dict = orjson.loads(DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo")) if DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo") else {}
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["health_state"] == "DEGRADED"
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["timestamp"] != ""
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["messages"]["WidebandInputBuffer"] == "WidebandInputBuffer IP Block health state is DEGRADED"
+            assert ("packet_error", "1 packet errors detected. Expected 0") in health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["messages"].items()
+            
+    def test_healthinfo_failed(self, vcc_all_bands_device: tango.DeviceProxy, vcc_all_bands_event_tracer: TangoEventTracer):
         wib_status = {
             "link_failure": False,
             "buffer_overflow": False,
@@ -624,5 +712,206 @@ class TestVCCAllBandsController:
             time.sleep(1)   # Potentially unnecessary
             assert vcc_all_bands_device.healthState == HealthState.FAILED
             
-            health_info_dict = orjson.loads(DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo"))
+            health_info_dict = orjson.loads(DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo")) if DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo") else {}
             assert health_info_dict[vcc_all_bands_device.dev_name()]["health_state"] == "FAILED"
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["timestamp"] != ""
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["messages"]["WidebandInputBuffer"] == "WidebandInputBuffer IP Block health state is FAILED"
+            assert ("packet_error", "2 packet errors detected. Expected 0") in health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["messages"].items()
+            
+    def test_healthinfo_update_given_same_health_state(self, vcc_all_bands_device: tango.DeviceProxy, vcc_all_bands_event_tracer: TangoEventTracer):
+        wib_status = {
+            "link_failure": False,
+            "buffer_overflow": False,
+            "loss_of_signal": 0,
+            "error": False,
+            "loss_of_signal_seconds": 0,
+            "meta_band_id": 1,
+            "meta_dish_id": 1,
+            "rx_sample_rate": 3960000000,
+            "meta_transport_sample_rate": 3960000000,
+            "packet_error": True,
+            "packet_error_count": 1,
+            "packet_drop": False,
+            "packet_drop_count": 0,
+            "rx_packet_rate": 1500000,
+            "expected_sample_rate": 3960000000
+        }
+        health_info_dict = {}
+                
+        with mock.patch(
+            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator.WidebandInputBufferSimulator.status",
+            return_value=wib_status,
+            create = True
+        ):            
+            with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
+                config_json = f.read()
+    
+            vcc_all_bands_device.command_inout("ConfigureScan", config_json)
+            
+            DeviceTestUtils.assert_lrc_completed(
+                vcc_all_bands_device,
+                vcc_all_bands_event_tracer,
+                EVENT_TIMEOUT,
+                "ConfigureScan",
+            )
+            time.sleep(1)   # Potentially unnecessary
+            assert vcc_all_bands_device.healthState == HealthState.DEGRADED
+            
+            health_info_dict = orjson.loads(DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo")) if DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo") else {}
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["health_state"] == "DEGRADED"
+            
+            wib_timestamp = health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["timestamp"]
+            assert wib_timestamp != ""
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["messages"]["WidebandInputBuffer"] == "WidebandInputBuffer IP Block health state is DEGRADED"
+            assert ("packet_error", "1 packet errors detected. Expected 0") in health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["messages"].items()
+            assert ("packet_drop", "1 dropped packets detected. Expected 0") not in health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["messages"].items()
+                    
+            
+        wib_status = {
+            "link_failure": False,
+            "buffer_overflow": False,
+            "loss_of_signal": 0,
+            "error": False,
+            "loss_of_signal_seconds": 0,
+            "meta_band_id": 1,
+            "meta_dish_id": 1,
+            "rx_sample_rate": 3960000000,
+            "meta_transport_sample_rate": 3960000000,
+            "packet_error": False,
+            "packet_error_count": 0,
+            "packet_drop": True,
+            "packet_drop_count": 1,
+            "rx_packet_rate": 1500000,
+            "expected_sample_rate": 3960000000
+        }
+                
+        with mock.patch(
+            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator.WidebandInputBufferSimulator.status",
+            return_value=wib_status,
+            create = True
+        ): 
+            time.sleep(1)   # Potentially unnecessary
+            assert vcc_all_bands_device.healthState == HealthState.DEGRADED
+            
+            health_info_dict = orjson.loads(DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo")) if DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo") else {}
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["health_state"] == "DEGRADED"
+            
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["timestamp"] > wib_timestamp
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["messages"]["WidebandInputBuffer"] == "WidebandInputBuffer IP Block health state is DEGRADED"
+            assert ("packet_error", "1 packet errors detected. Expected 0") not in health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["messages"].items()
+            assert ("packet_drop", "1 dropped packets detected. Expected 0") in health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["messages"].items()
+            
+    def test_healthinfo_child_rollup_and_recovery(self, vcc_all_bands_device: tango.DeviceProxy, vcc_all_bands_event_tracer: TangoEventTracer):
+        wib_status = {
+            "link_failure": False,
+            "buffer_overflow": False,
+            "loss_of_signal": 0,
+            "error": False,
+            "loss_of_signal_seconds": 0,
+            "meta_band_id": 1,
+            "meta_dish_id": 1,
+            "rx_sample_rate": 3960000000,
+            "meta_transport_sample_rate": 3960000000,
+            "packet_error": False,
+            "packet_error_count": 0,
+            "packet_drop": True,
+            "packet_drop_count": 1,
+            "rx_packet_rate": 1500000,
+            "expected_sample_rate": 3960000000
+        }
+        ftile_status = FtileEthernetStatus(rx_mac=FtileEthernetMacStats(broadcast=FtileEthernetCastStats(data_err=2))).to_dict()
+        health_info_dict = {}
+        
+        # Both FTile and WIB have health issues
+        with mock.patch(
+            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator.WidebandInputBufferSimulator.status",
+            return_value=wib_status,
+            create = True
+        ), mock.patch(
+            'ska_mid_cbf_fhs_common.ip_blocks.ftile_ethernet.ftile_ethernet_simulator.FtileEthernetSimulator.status', 
+            return_value=ftile_status
+        ): 
+                   
+            with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
+                config_json = f.read()
+    
+            vcc_all_bands_device.command_inout("ConfigureScan", config_json)
+            
+            DeviceTestUtils.assert_lrc_completed(
+                vcc_all_bands_device,
+                vcc_all_bands_event_tracer,
+                EVENT_TIMEOUT,
+                "ConfigureScan",
+            )
+            time.sleep(1)   # Potentially unnecessary
+            assert vcc_all_bands_device.healthState == HealthState.FAILED
+            
+            health_info_dict = orjson.loads(DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo")) if DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo") else {}
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["health_state"] == "FAILED"
+            
+            wib_timestamp = health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["timestamp"]
+            ftile_timestamp = health_info_dict[vcc_all_bands_device.dev_name()]["Ethernet200Gb"]["timestamp"]
+            assert wib_timestamp != ""
+            assert ftile_timestamp != ""
+            
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["messages"]["WidebandInputBuffer"] == "WidebandInputBuffer IP Block health state is DEGRADED"
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["messages"]["Ethernet200Gb"] == "Ethernet200Gb IP Block health state is FAILED"
+            assert ("packet_drop", "1 dropped packets detected. Expected 0") in health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["messages"].items()
+            assert ("rx_mac_broadcast_data_err", "Stats reported 2 data errors") in health_info_dict[vcc_all_bands_device.dev_name()]["Ethernet200Gb"]["messages"].items()
+        
+        ftile_status = FtileEthernetStatus().to_dict()
+
+        # FTile issue recovered, WIB issue remains   
+        with mock.patch(
+            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator.WidebandInputBufferSimulator.status",
+            return_value=wib_status,
+            create = True
+        ), mock.patch(
+            'ska_mid_cbf_fhs_common.ip_blocks.ftile_ethernet.ftile_ethernet_simulator.FtileEthernetSimulator.status', 
+            return_value=ftile_status
+        ): 
+            time.sleep(1)
+            assert vcc_all_bands_device.healthState == HealthState.DEGRADED
+            
+            health_info_dict = orjson.loads(DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo")) if DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo") else {}
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["health_state"] == "DEGRADED"
+            
+            wib_timestamp_2 = health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["timestamp"]
+            assert wib_timestamp_2 > wib_timestamp
+            
+            assert "Ethernet200Gb" not in health_info_dict[vcc_all_bands_device.dev_name()]["messages"]
+            assert health_info_dict[vcc_all_bands_device.dev_name()]["messages"]["WidebandInputBuffer"] == "WidebandInputBuffer IP Block health state is DEGRADED"
+            assert ("packet_drop", "1 dropped packets detected. Expected 0") in health_info_dict[vcc_all_bands_device.dev_name()]["WidebandInputBuffer"]["messages"].items()
+            
+        wib_status = {
+            "link_failure": False,
+            "buffer_overflow": False,
+            "loss_of_signal": 0,
+            "error": False,
+            "loss_of_signal_seconds": 0,
+            "meta_band_id": 1,
+            "meta_dish_id": 1,
+            "rx_sample_rate": 3960000000,
+            "meta_transport_sample_rate": 3960000000,
+            "packet_error": False,
+            "packet_error_count": 0,
+            "packet_drop": False,
+            "packet_drop_count": 0,
+            "rx_packet_rate": 1500000,
+            "expected_sample_rate": 3960000000
+        }
+        
+        # All issues recovered
+        with mock.patch(
+            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator.WidebandInputBufferSimulator.status",
+            return_value=wib_status,
+            create = True
+        ), mock.patch(
+            'ska_mid_cbf_fhs_common.ip_blocks.ftile_ethernet.ftile_ethernet_simulator.FtileEthernetSimulator.status', 
+            return_value=ftile_status
+        ): 
+            time.sleep(1)
+            assert vcc_all_bands_device.healthState == HealthState.OK
+            
+            health_info_dict = orjson.loads(DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo")) if DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo") else {}
+            assert health_info_dict == {}

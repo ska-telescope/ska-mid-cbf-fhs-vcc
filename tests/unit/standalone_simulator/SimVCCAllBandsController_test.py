@@ -131,7 +131,6 @@ class TestVCCAllBandsSim:
         self: TestVCCAllBandsSim,
         sim_vcc_all_bands_device: Any,
     ):
-        
         """
         Test checking if attributes returns the correct value
         
