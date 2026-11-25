@@ -27,11 +27,11 @@
     "rfi": [
         {
             "pol_x": {
-                "frequency": 100e6,
+                "frequency": 100000000,
                 "scale": 0.0025
             },
             "pol_y": {
-                "frequency": 100e6,
+                "frequency": 100000000,
                 "scale": 0.0025
             }
         }

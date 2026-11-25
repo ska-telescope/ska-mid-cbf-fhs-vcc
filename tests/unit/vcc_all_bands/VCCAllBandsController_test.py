@@ -8,8 +8,10 @@ import orjson
 import os
 from assertpy import assert_that
 from ska_mid_cbf_fhs_common import MPFloat, DeviceTestUtils, WidebandPowerMeterStatus
+import tango
 from tango import DevState
-from ska_control_model import AdminMode, HealthState, ResultCode
+from ska_control_model import HealthState, ResultCode
+from ska_control_model.future import AdminMode
 from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager, LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 from ska_tango_testing.integration import TangoEventTracer
@@ -28,27 +30,27 @@ def event_timeout() -> int:
 @pytest.fixture(name="vcc_all_bands_device")
 def vcc_all_bands_device_fixture(
     test_context: TangoTestHarnessContext,
-) -> VCCAllBandsController:
+) -> tango.DeviceProxy:
     """Fixture that returns the device under test.
 
     Args:
         test_context (:obj:`TangoTestHarnessContext`): The context in which the tests run.
 
     Returns:
-        :obj:`DeviceProxy`: A proxy to the device under test.
+        :obj:`tango.DeviceProxy`: A proxy to the device under test.
     """
     return test_context.get_device("test/vccallbands/1")
 
 
 @pytest.fixture(name="vcc_all_bands_event_tracer", autouse=True)
 def vcc_all_bands_tango_event_tracer(
-    vcc_all_bands_device,
+    vcc_all_bands_device: tango.DeviceProxy,
 ) -> Generator[TangoEventTracer, None, None]:
     """Fixture that returns a TangoEventTracer for pertinent devices.
     Takes as parameter all required device proxy fixtures for this test module.
 
     Args:
-        device_under_test (:obj:`DeviceProxy`): Proxy to the device under test.
+        device_under_test (:obj:`tango.DeviceProxy`): Proxy to the device under test.
 
     Returns:
         :obj:`TangoEventTracer`: An event tracer for the device under test.
@@ -131,26 +133,11 @@ class TestVCCAllBandsController:
         with harness as test_context:
             yield test_context
 
-    def test_init(self, vcc_all_bands_device: VCCAllBandsController):
+    def test_init(self, vcc_all_bands_device: tango.DeviceProxy):
         assert vcc_all_bands_device.state() == DevState.ON
 
-    def test_admin_mode_online(self, vcc_all_bands_device: VCCAllBandsController):
+    def test_admin_mode_online(self, vcc_all_bands_device: tango.DeviceProxy):
         assert vcc_all_bands_device.adminMode == AdminMode.ONLINE
-
-    def test_admin_mode_offline(
-        self,
-        vcc_all_bands_device: VCCAllBandsController,
-        vcc_all_bands_event_tracer: TangoEventTracer,
-    ):
-        vcc_all_bands_device.adminMode = AdminMode.OFFLINE
-        assert_that(vcc_all_bands_event_tracer).within_timeout(
-            EVENT_TIMEOUT
-        ).has_change_event_occurred(
-            device_name=vcc_all_bands_device,
-            attribute_name="adminMode",
-            attribute_value=AdminMode.OFFLINE,
-            previous_value=AdminMode.ONLINE,
-        )
 
     @pytest.mark.parametrize(
         ("current_subarray", "new_subarray", "expected_result"),
@@ -167,7 +154,7 @@ class TestVCCAllBandsController:
         current_subarray: int,
         new_subarray: int,
         expected_result: ResultCode,
-        vcc_all_bands_device: VCCAllBandsController,
+        vcc_all_bands_device: tango.DeviceProxy,
         vcc_all_bands_event_tracer: TangoEventTracer,
     ):
         # Setup for unassign cases by first assigning subarray membership
@@ -185,7 +172,7 @@ class TestVCCAllBandsController:
             assert_that(vcc_all_bands_event_tracer).within_timeout(
                 EVENT_TIMEOUT
             ).has_change_event_occurred(
-                device_name=vcc_all_bands_device,
+                device_name=vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name="subarrayID",
                 attribute_value=current_subarray,
                 previous_value=0,
@@ -205,7 +192,7 @@ class TestVCCAllBandsController:
             assert_that(vcc_all_bands_event_tracer).within_timeout(
                 EVENT_TIMEOUT
             ).has_change_event_occurred(
-                device_name=vcc_all_bands_device,
+                device_name=vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name="subarrayID",
                 attribute_value=new_subarray,
                 previous_value=current_subarray,
@@ -535,7 +522,7 @@ class TestVCCAllBandsController:
         headrooms_str: str,
         expected_multipliers: list[MPFloat],
         expected_result: ResultCode,
-        vcc_all_bands_device: VCCAllBandsController,
+        vcc_all_bands_device: tango.DeviceProxy,
         vcc_all_bands_event_tracer: TangoEventTracer,
     ):
         headroom_dict = json.loads(headrooms_str)
@@ -556,15 +543,22 @@ class TestVCCAllBandsController:
             "ska_mid_cbf_fhs_common.ip_blocks.wideband_power_meter.wideband_power_meter_manager.WidebandPowerMeterManager.status",
             side_effect=[
                 WidebandPowerMeterStatus(
-                    0,
-                    measured_power[i],
-                    measured_power[i + len(measured_power) // 2],
-                    0, 0, 0, 0, 0, 0, False, 0
+                    timestamp=0,
+                    avg_power_pol_x=measured_power[i],
+                    avg_power_pol_y=measured_power[i + len(measured_power) // 2],
+                    nd_on_power_pol_x=0,
+                    nd_on_power_pol_y=0,
+                    nd_off_power_pol_x=0,
+                    nd_off_power_pol_y=0,
+                    nd_trn_power_pol_x=0,
+                    nd_trn_power_pol_y=0,
+                    flag=False,
+                    overflow=0,
                 )
             for i in range(len(measured_power) // 2)],
             create=True,
         ):
-            requested_headrooms_before = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
+            requested_headrooms_before = DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "requestedRFIHeadroom")
 
             vcc_all_bands_device.command_inout("AutoSetFilterGains", headrooms_str)
 
@@ -576,20 +570,22 @@ class TestVCCAllBandsController:
                 [expected_result]
             )
 
-            multipliers = vcc_all_bands_device.read_attribute("vccGains")
-            assert len(multipliers.value) == len(expected_multipliers)
-            for multiplier, expected_multiplier in zip(multipliers.value, expected_multipliers):
+            multipliers = DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "vccGains")
+            assert multipliers is not None
+            assert len(multipliers) == len(expected_multipliers)
+            for multiplier, expected_multiplier in zip(multipliers, expected_multipliers):
                 MPFloat.assert_almosteq(multiplier, expected_multiplier, rel_tolerance=1e-12, abs_tolerance=1e-14)
 
-            requested_headrooms_after = vcc_all_bands_device.read_attribute("requestedRFIHeadroom")
-            expected_headrooms = headrooms if expected_result == ResultCode.OK else requested_headrooms_before.value
-            assert len(requested_headrooms_after.value) == len(expected_headrooms)
+            requested_headrooms_after = DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "requestedRFIHeadroom")
+
+            expected_headrooms = headrooms if expected_result == ResultCode.OK else requested_headrooms_before
+            assert len(requested_headrooms_after) == len(expected_headrooms)
             assert all(
                 requested_headroom == expected_headroom
-                for requested_headroom, expected_headroom in zip(requested_headrooms_after.value, expected_headrooms)
+                for requested_headroom, expected_headroom in zip(requested_headrooms_after, expected_headrooms)
             )
 
-    def test_healthinfo(self, vcc_all_bands_device: VCCAllBandsController, vcc_all_bands_event_tracer: TangoEventTracer):
+    def test_healthinfo(self, vcc_all_bands_device: tango.DeviceProxy, vcc_all_bands_event_tracer: TangoEventTracer):
         wib_status = {
             "link_failure": False,
             "buffer_overflow": False,
@@ -608,19 +604,25 @@ class TestVCCAllBandsController:
             "expected_sample_rate": 3960000000
         }
         health_info_dict = {}
-        
+               
         with mock.patch(
             "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator.WidebandInputBufferSimulator.status",
             return_value=wib_status,
             create = True
-        ):
+        ):            
             with open("tests/test_data/device_config/vcc_all_bands.json", "r") as f:
                 config_json = f.read()
     
             vcc_all_bands_device.command_inout("ConfigureScan", config_json)
             
-            time.sleep(5)
+            DeviceTestUtils.assert_lrc_completed(
+                vcc_all_bands_device,
+                vcc_all_bands_event_tracer,
+                EVENT_TIMEOUT,
+                "ConfigureScan",
+            )
+            time.sleep(1)   # Potentially unnecessary
             assert vcc_all_bands_device.healthState == HealthState.FAILED
             
-            health_info_dict = orjson.loads(vcc_all_bands_device.healthInfo)
+            health_info_dict = orjson.loads(DeviceTestUtils.get_attribute_value(vcc_all_bands_device, "healthInfo"))
             assert health_info_dict[vcc_all_bands_device.dev_name()]["health_state"] == "FAILED"

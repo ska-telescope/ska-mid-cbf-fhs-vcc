@@ -58,6 +58,9 @@ python-uv-test:
 
 python-uv-lint:
   needs: []
+  script:
+    - make python-lint
+    - make python-typecheck
 
 docs-build:
   needs: []
@@ -65,6 +68,20 @@ docs-build:
 docs-build-rtd:
   rules:
     - when: never
+
+helm-chart-lint:
+  needs: []
+  
+helm-chart-build:
+  needs:
+    - helm-chart-lint
+
+oci-image-lint:
+  needs: []
+  
+oci-image-build:
+  needs:
+    - oci-image-lint
 
 python-uv-build-for-development:
   variables:
@@ -92,10 +109,19 @@ python-uv-publish-to-car:
 
 oci-image-publish:
   needs:
+    - oci-image-build
     - job: python-uv-build-for-publication
       optional: true
 
 helm-chart-publish:
   needs:
+    - helm-chart-build
     - job: python-uv-build-for-publication
       optional: true
+
+gemnasium-python-dependency_scanning:
+  needs: []
+
+container_scanning:
+  needs:
+    - oci-image-build

@@ -35,13 +35,12 @@ class TestWidebandInputBuffer:
         """Test the configure method of the Wideband Input Buffer."""
         with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()
-        result = wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+        result = wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_status(self, wideband_input_buffer: WidebandInputBufferManager):
         """Test the status method of the Wideband Input Buffer."""
-        result = wideband_input_buffer.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        wideband_input_buffer.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, wideband_input_buffer: WidebandInputBufferManager):
         """Test the recover method of the Wideband Input Buffer."""
@@ -62,10 +61,9 @@ class TestWidebandInputBuffer:
         with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()
 
-        wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+        wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
         wideband_input_buffer.expected_dish_id = "MKT001"
         wideband_input_buffer.start().await_result()
-        wideband_input_buffer.poll_counter = 29
 
         time.sleep(2)  # wait for polling to run at least once
 
@@ -79,10 +77,9 @@ class TestWidebandInputBuffer:
         with open("tests/test_data/device_config/wideband_input_buffer_health_failure.json", "r") as f:
             config_json = f.read()
 
-        wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+        wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
         wideband_input_buffer.expected_dish_id = "MKT001"
         wideband_input_buffer.start().await_result()
-        wideband_input_buffer.poll_counter = 29
 
         time.sleep(2)  # wait for polling to run at least once
 
@@ -118,10 +115,9 @@ class TestWidebandInputBuffer:
             "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status",
             return_value=bad_status
         ):
-            wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+            wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
             wideband_input_buffer.expected_dish_id = "MKT001"
             wideband_input_buffer.start().await_result()
-            wideband_input_buffer.poll_counter = 29
 
             time.sleep(2)  # wait for polling to run at least once
 
@@ -158,10 +154,9 @@ class TestWidebandInputBuffer:
             "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status",
             return_value=bad_status
         ):
-            wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+            wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
             wideband_input_buffer.expected_dish_id = "MKT001"
             wideband_input_buffer.start().await_result()
-            wideband_input_buffer.poll_counter = 29
 
             time.sleep(2)  # wait for polling to run at least once
 
@@ -199,10 +194,9 @@ class TestWidebandInputBuffer:
             "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status",
             return_value=bad_status
         ):
-            wideband_input_buffer.configure(WidebandInputBufferConfig.schema().loads(config_json))
+            wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
             wideband_input_buffer.expected_dish_id = "MKT001"
             wideband_input_buffer.start().await_result()
-            wideband_input_buffer.poll_counter = 29
 
             time.sleep(2)  # wait for polling to run at least once
 

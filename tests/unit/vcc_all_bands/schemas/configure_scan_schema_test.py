@@ -16,4 +16,4 @@ class TestVCCAllBandsConfigSchema:
         with open("tests/test_data/device_config/vcc_all_bands.json") as event_json_file:
             event_json_str = event_json_file.read()
         # Assert implicitly that the following does not error (i.e. from type mismatch, missing value, etc)
-        _ = VCCAllBandsConfigureScanArgin.from_json(event_json_str)
+        _ = VCCAllBandsConfigureScanArgin.from_validated_json(event_json_str)
