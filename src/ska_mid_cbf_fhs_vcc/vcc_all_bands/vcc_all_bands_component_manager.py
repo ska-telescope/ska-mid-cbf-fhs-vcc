@@ -18,6 +18,7 @@ from ska_mid_cbf_fhs_common import (
     FhsControllerComponentManagerBase,
     FhsState,
     FhsValidationError,
+    FtileEthernetConfig,
     FtileEthernetManager,
     WidebandPowerMeterConfig,
     WidebandPowerMeterManager,
@@ -242,10 +243,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             *self.wideband_power_meters.values(),
         ]
 
-    def start_communicating(self) -> None:
-        """Establish communication with the component, then start monitoring."""
-        super().start_communicating()
-        self.ethernet_200g.start().await_result()
+    def _post_start_communicating_hook(self) -> None:
+        """Functionality to run immediately after start_communicating (regardless of simulation mode)."""
+        self.ethernet_200g.configure(FtileEthernetConfig())
+        self.ethernet_200g.start()
 
     def set_configuration_state_if_transition_is_allowed(self, dest_state: FhsState):
         allowed_transitions = {
