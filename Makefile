@@ -17,6 +17,7 @@ DASHBOARD ?= webjive-dash.dump
 CLUSTER_DOMAIN ?= cluster.local
 FHS_SERVER_ID ?= fhs01
 CONFIG_LOCATION ?= /app/mnt/lowLevelConfigMap
+AJ_KUBE ?= false
 
 HELM_RELEASE ?= test## HELM_RELEASE is the release that all Kubernetes resources will be labelled with
 
@@ -66,12 +67,17 @@ PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=standard
 endif
 endif
 
+ifeq ($(AJ_KUBE),true)
+PV_STORAGE_PARAM = --set ska-mid-cbf-fhs-vcc.pvStorageClass=standard --set ska-mid-cbf-fhs-vcc.pvStorageAccess="ReadWriteOnce"
+endif
+
 # a portion of the BAR_URL from which to retrieve the RAW binary artefacts from
 # (NOT the full URL for downloading the raw binaries from)
 BAR_URL := https://binary.artefact.skao.int/api/v3/repositories/raw-artefacts/artefacts
 # set BAR_API_TOKEN as an environmental variable via command line if testing locally
 # get the value from Vault
 BAR_API_TOKEN ?=
+BAR_SECRET_NAME = fhs-vcc-bar-secret## DO NOT CHANGE needs to match the name in bar-secret.yaml
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set global.k3d=$(K3D) \
@@ -84,30 +90,25 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.fhsServerId=$(FHS_SERVER_ID) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.configLocation=$(CONFIG_LOCATION) \
 	--set ska-mid-cbf-fhs-vcc.hostInfo.namespace=$(KUBE_NAMESPACE) \
+	--values charts/ska-mid-cbf-fhs-vcc/vcc-product-definitions.yaml \
 	${TARANTA_PARAMS} \
 	${PV_STORAGE_PARAM}
 
 ifeq ($(MINIKUBE),true)
-K8S_CHART_PARAMS += --set ska-mid-cbf-fhs-vcc.bar.secret.bar_api_token="$(BAR_API_TOKEN)" \
-	--set ska-mid-cbf-fhs-vcc.bar.secret.vault.enabled=false
+K8S_CHART_PARAMS += --set ska-mid-cbf-fhs-vcc.bar.secret.enabled=false
 endif
 
-# shared lint config file var definitions
-LINTCFG_DIR = tools/ska-mid-cbf-linter
-PYLINT_CONFIG_FILE = $(LINTCFG_DIR)/.pylintrc
-FLAKE8_CONFIG_FILE = $(LINTCFG_DIR)/.flake8
-PYTHON_SWITCHES_FOR_FLAKE8 = --config=$(FLAKE8_CONFIG_FILE)
-PYTHON_SWITCHES_FOR_PYLINT = --rcfile=$(PYLINT_CONFIG_FILE)
-PYTHON_SWITCHES_FOR_PYLINT_LOCAL = --rcfile=$(PYLINT_CONFIG_FILE)
-
 PYTHON_LINE_LENGTH = 160
-POETRY_PYTHON_RUNNER = poetry run python3 -m
-LOCAL_PYTHON_RUNNER = poetry run python3 -m
+PYTHON_RUNNER = uv run python3 -m
+UV_PYTHON_RUNNER = uv run python3 -m
+LOCAL_PYTHON_RUNNER = uv run python3 -m
 
 PYTHON_LINT_TARGET = ./src/
 K8S_VARS_AFTER_PYTEST = -s
 
 PYTHON_TEST_FILE = ./tests/unit/
+PYTEST_MAX_WORKERS = 8
+PYTHON_VARS_AFTER_PYTEST = -n auto --maxprocesses=$(PYTEST_MAX_WORKERS) --dist worksteal
 
 #
 # include makefile to pick up the standard Make targets, e.g., 'make build'
@@ -115,28 +116,14 @@ PYTHON_TEST_FILE = ./tests/unit/
 # ('make interactive', 'make test', etc.) are defined in this file.
 #
 
-include .make/*.mk
-
-all: test lint
-
-# The following steps copy across useful output to this volume which can
-# then be extracted to form the CI summary for the test procedure.
-test:
-
-	 python setup.py test | tee ./build/setup_py_test.stdout; \
-	 mv coverage.xml ./build/reports/code-coverage.xml;
-
-# The following steps copy across useful output to this volume which can
-# then be extracted to form the CI summary for the test procedure.
-lint:
-
-	# FIXME pylint needs to run twice since there is no way go gather the text and junit xml output at the same time
-	pip3 install pylint2junit; \
-	pylint --output-format=parseable src/ska/skeleton | tee ./build/code_analysis.stdout; \
-	pylint --output-format=pylint2junit.JunitReporter src/ska/skeleton > ./build/reports/linting.xml;
-
-
-.PHONY: all test lint
+include .make/base.mk
+include .make/python-uv.mk
+include .make/utils.mk
+include .make/helm.mk
+include .make/k8s.mk
+include .make/release.mk
+include .make/oci.mk
+include .make/docs.mk
 
 check-minikube-eval:
 	@minikube status | grep -iE '^.*(docker-env: in-use).*$$'; \
@@ -147,27 +134,28 @@ check-minikube-eval:
 	fi
 
 k8s-pre-install-chart:
-	@if [ "$(MINIKUBE)" = "true" ]; then make check-minikube-eval; fi;
+	@if [ "$(MINIKUBE)" = "true" && "$(AJ_KUBE)" = "false" ]; then make check-minikube-eval; fi;
 	rm -f charts/ska-mid-cbf-fhs-vcc/Chart.lock
 
 k8s-deploy:
-	make k8s-install-chart MINIKUBE=$(MINIKUBE) DEV=$(DEV) BOOGIE=$(BOOGIE)
+	make k8s-namespace KUBE_NAMESPACE=$(KUBE_NAMESPACE)
 	@if [ "$(MINIKUBE)" = "true" ]; then make k8s-create-bar-secret BAR_API_TOKEN=$(BAR_API_TOKEN); fi
+	make k8s-install-chart MINIKUBE=$(MINIKUBE) USE_DEV_BUILD=$(USE_DEV_BUILD) BOOGIE=$(BOOGIE) AJ_KUBE=$(AJ_KUBE) K8S_SKIP_NAMESPACE=true
 	@echo "Waiting for all pods in namespace $(KUBE_NAMESPACE) to be ready..."
 	@time kubectl wait pod --selector=app=ska-mid-cbf-fhs-vcc --for=condition=ready --timeout=15m0s --namespace $(KUBE_NAMESPACE)
 
 k8s-create-bar-secret:
 	@if [ -z "$(BAR_API_TOKEN)" ]; then \
-		echo "ERROR: The required environmental variable BAR_API_TOKEN has not been set)"; \
+		echo "ERROR: The required environmental variable BAR_API_TOKEN has not been set"; \
 		exit 1; \
 	fi
 	@echo "Creating secret for bar token"
-	@kubectl create secret generic ska-mid-cbf-fhs-vcc-bar-secret --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
+	@kubectl create secret generic $(BAR_SECRET_NAME) --from-literal=BAR_API_TOKEN="$(BAR_API_TOKEN)" --dry-run=client -o yaml | kubectl apply --namespace $(KUBE_NAMESPACE) -f -
 
-k8s-deploy-dev: MINIKUBE=true
+k8s-deploy-dev: MINIKUBE=true AJ_KUBE=true
 k8s-deploy-dev: CLUSTER_DOMAIN=cluster.local
 k8s-deploy-dev:
-	make k8s-deploy MINIKUBE=$(MINIKUBE) CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) DEV=true BOOGIE=true
+	make k8s-deploy MINIKUBE=$(MINIKUBE) CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) DEV=true BOOGIE=true AJ_KUBE=true
 
 k8s-destroy:
 	make k8s-uninstall-chart
@@ -178,52 +166,27 @@ k8s-destroy:
 build-and-deploy:
 	make oci-build-all && make k8s-deploy-dev
 
-build-local-common: COMMON_LIB_PATH = ../ska-mid-cbf-fhs-common
-build-local-common:
-	cp -r $(COMMON_LIB_PATH) ./temp-common
-	-make oci-build-all OCI_IMAGE_FILE_PATH=./devcommon.Dockerfile
-	rm -rf ./temp-common
+python-typecheck:
+	uv run pyright --level warning
 
-lc-build-and-deploy:
-	make build-local-common && make k8s-deploy-dev
+format-and-lint:
+	make python-format
+	make python-lint
+	make python-typecheck
 
-format-python:
-	$(LOCAL_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)
-	$(LOCAL_PYTHON_RUNNER) black --exclude .+\.ipynb --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_BLACK) $(PYTHON_LINT_TARGET)
-
-fix-python-imports:
-	$(LOCAL_PYTHON_RUNNER) isort --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET)
-
-lint-python-local:
-	mkdir -p build/lint-output
-	@echo "Linting..."
-	-@ISORT_ERROR=0 BLACK_ERROR=0 FLAKE_ERROR=0 PYLINT_ERROR=0; \
-	$(LOCAL_PYTHON_RUNNER) isort --check-only --profile black --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_ISORT) $(PYTHON_LINT_TARGET) &> build/lint-output/1-isort-output.txt; \
-	if [ $$? -ne 0 ]; then ISORT_ERROR=1; fi; \
-	$(LOCAL_PYTHON_RUNNER) black --exclude .+\.ipynb --check --line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_BLACK) $(PYTHON_LINT_TARGET) &> build/lint-output/2-black-output.txt; \
-	if [ $$? -ne 0 ]; then BLACK_ERROR=1; fi; \
-	$(LOCAL_PYTHON_RUNNER) flake8 --show-source --statistics --max-line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_FLAKE8) $(PYTHON_LINT_TARGET) &> build/lint-output/3-flake8-output.txt; \
-	if [ $$? -ne 0 ]; then FLAKE_ERROR=1; fi; \
-	$(LOCAL_PYTHON_RUNNER) pylint --output-format=parseable --max-line-length $(PYTHON_LINE_LENGTH) $(PYTHON_SWITCHES_FOR_PYLINT_LOCAL) $(PYTHON_LINT_TARGET) &> build/lint-output/4-pylint-output.txt; \
-	if [ $$? -ne 0 ]; then PYLINT_ERROR=1; fi; \
-	if [ $$ISORT_ERROR -ne 0 ]; then echo "Isort lint errors were found. Check build/lint-output/1-isort-output.txt for details."; fi; \
-	if [ $$BLACK_ERROR -ne 0 ]; then echo "Black lint errors were found. Check build/lint-output/2-black-output.txt for details."; fi; \
-	if [ $$FLAKE_ERROR -ne 0 ]; then echo "Flake8 lint errors were found. Check build/lint-output/3-flake8-output.txt for details."; fi; \
-	if [ $$PYLINT_ERROR -ne 0 ]; then echo "Pylint lint errors were found. Check build/lint-output/4-pylint-output.txt for details."; fi; \
-	if [ $$ISORT_ERROR -eq 0 ] && [ $$BLACK_ERROR -eq 0 ] && [ $$FLAKE_ERROR -eq 0 ] && [ $$PYLINT_ERROR -eq 0 ]; then echo "Lint was successful. Check build/lint-output for any additional details."; fi;
+full-lint:
+	make python-lint
+	make python-typecheck
 
 build-docs-local:
 	@echo "Cleaning up old build(s)..."
 	-@rm -rf docs/src/_code/ska_mid_cbf_fhs_vcc/*.rst
 	-@rm -rf ./build/sphinx_local/
 	@echo "Generating API docs..."
-	-@poetry run sphinx-apidoc -t docs/src/_templates -o docs/src/_code/ska_mid_cbf_fhs_vcc -M -f -d 2 src/ska_mid_cbf_fhs_vcc/
+	-@uv run sphinx-apidoc -t docs/src/_templates -o docs/src/_code/ska_mid_cbf_fhs_vcc -M -f -d 2 src/ska_mid_cbf_fhs_vcc/
 	@echo "Building docs..."
 	-@$(LOCAL_PYTHON_RUNNER) sphinx -T -b html -d ./build/sphinx_local/cache/doctrees -D language=en ./docs/src ./build/sphinx_local/output
 	@echo "Done. Open build/sphinx_local/output/index.html to view the generated docs."
-
-lint-all:
-	@make fix-python-imports && make format-python && make lint-python-local
 
 NOTEBOOK_IGNORE_FILES = not notebook.ipynb
 

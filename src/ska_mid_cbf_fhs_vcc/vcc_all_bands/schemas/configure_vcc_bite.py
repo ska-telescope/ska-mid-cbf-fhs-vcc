@@ -40,6 +40,7 @@ vcc_all_bands_configure_vcc_bite_schema = {
                             "required": ["seed", "noise_std", "noise_mean"],
                         },
                     },
+                    "required": ["pol_x", "pol_y"],
                 },
             },
             "required": ["dish_id", "dish_sample_rate", "noise_diode"],
@@ -99,5 +100,5 @@ vcc_all_bands_configure_vcc_bite_schema = {
         "band": {"type": "integer"},
         "transaction_id": {"type": "string"},
     },
-    "required": ["receiver", "source", "rfi", "utc_start_time"],
+    "required": ["receiver", "source", "rfi", "utc_start_time", "band"],
 }

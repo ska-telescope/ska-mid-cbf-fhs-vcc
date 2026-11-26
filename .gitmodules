@@ -1,6 +1,3 @@
 [submodule ".make"]
 	path = .make
 	url = https://gitlab.com/ska-telescope/sdi/ska-cicd-makefile
-[submodule "tools/ska-mid-cbf-linter"]
-	path = tools/ska-mid-cbf-linter
-	url = https://gitlab.com/ska-telescope/ska-mid-cbf/infra/ska-mid-cbf-linter.git

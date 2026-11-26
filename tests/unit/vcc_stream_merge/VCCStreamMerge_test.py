@@ -27,7 +27,7 @@ class TestVCCStreamMerge:
         """Test the configure method of the VCC Stream Merge block."""
         with open("tests/test_data/device_config/vcc_stream_merge.json", "r") as f:
             config_json = f.read()
-        result = vcc_stream_merge.configure(VCCStreamMergeConfigureArgin.schema().loads(config_json))
+        result = vcc_stream_merge.configure(VCCStreamMergeConfigureArgin.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_deconfigure(self, vcc_stream_merge: VCCStreamMergeManager):
@@ -49,8 +49,7 @@ class TestVCCStreamMerge:
 
     def test_status(self, vcc_stream_merge: VCCStreamMergeManager):
         """Test the status method of the VCC Stream Merge block."""
-        result = vcc_stream_merge.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        vcc_stream_merge.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, vcc_stream_merge: VCCStreamMergeManager):
         """Test the recover method of the VCC Stream Merge block."""

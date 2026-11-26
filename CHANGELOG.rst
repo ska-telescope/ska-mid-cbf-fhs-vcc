@@ -5,8 +5,118 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-UNRELEASED CHANGES
-******************
+0.7.0
+*****
+* CIP-6575:
+
+  * Update to ska-mid-cbf-fhs-common 0.7.0, which contains several breaking changes,
+    including moving from dataclasses_json to Pydantic for dataclass definitions and validation.
+  * Basic type-checking using Pyright is now mandatory and will be enforced in the CI pipeline. You can run this locally via ``make python-typecheck``.
+    Refer to the README for workspace-level settings you can add to VS Code to show (most) type-checker errors as you work.
+    This enables us to catch unexpected errors caused by type mismatches more quickly, rather than only finding such issues after a full deployment cycle,
+    and thus should reduce the overall amount of time spent debugging.
+  * Add a temporary patch for ``WidebandInputBufferManager.stop()`` in emulation mode, which waits for the emulator to enter a fully stopped state before returning.
+    This will be adjusted after a future driver + emulator update to expose this fully stopped state via ``status()``.
+  * Add the ``teardown()`` method to the ``VCCAllBandsComponentManager``, required by the updated base class.
+  * Update ``ConfigureScan`` to trigger a return to ``FhsState.NOT_CONFIGURED`` state if configuration is unsuccessful.
+  * Update most simulators to return dicts directly instead of doing pointless JSON operations.
+  * Add emulator readiness to the ``VccAdminOnline`` checks.
+  * Move LRC command result buffer insertions after task callbacks to avoid a race condition.
+  * Fix the ``configurationState`` attribute to correctly return the enum value rather than the label (``DevEnum`` type only supports integer/IntEnum values).
+  * Ensure the DISH ID sent to the SPFRx Packetizer in VCC BITE is in its integer representation rather than a string.
+  * Update certain status dataclasses that did not match the actual values currently provided by emulators.
+    Note that due to some discrepancies between the drivers and emulators, these will likely be updated again in the near future
+    once consistent data structures have been finalized.
+  * Remove all references to the deprecated ``ska_control_model.AdminMode`` enum
+    in favor of the new ``ska_control_model.future.AdminMode`` which removes the ``OFFLINE`` state.
+  * Remove the unused ``fsp`` field from the ``ConfigureScan`` test data.
+  * Fix VCC BITE test data to provide integers to certain integer fields where floats were actually being provided instead.
+  * Ensure the Bit Error Rate health state in the ``WidebandInputBufferManager`` is calculated immediately before waiting the first 30-second interval
+    (otherwise it stays UNKNOWN for the full 30 seconds even if the WIB is fine).
+  * Various miscellaneous updates to address potential issues found by enabling stricter type-checking.
+
+0.6.9
+****
+* CIP-6593: Added BER attribute to All Bands Controller/WIB Manager
+
+0.6.8
+*****
+* CIP-6593: 
+
+  * Swap to use "vlan_alias" in configurescan rather than directly providing "vlan_id", add basic file for these mappings.
+  * Enables mappings to be specified via Charts, under the vcc_product_definition section. 
+  * Added vlanLookup attribute to enable validation of these mappings.
+
+0.6.7
+*****
+* CIP-6600: ICD updates, All Bands Controller CM constructor missing parameter caught. Code rearranged with alphabetical command/attribute definitions.
+
+0.6.6
+*****
+* CIP-5111: Remove obsolete bmcEndpointIp and rename networkSwitchId to switchIp in values.yaml
+
+0.6.5
+*****
+* CIP-6651: Update to ska-mid-cbf-fhs-common v0.6.2 to remove Obs device simulation.
+
+0.6.4
+*****
+* CIP-6650: 
+
+  * Update to ska-mid-cbf-fhs-common 0.6.1 to support emulator changes and how VCC pods will communicate with Emulator pods
+  * Replace ``emulator_base_url`` with ``emulator_port`` in unit tests, and ``emulatorBaseUrl`` with ``emulatorPort`` in helm values and templates accordingly
+
+
+0.6.3
+*****
+* CIP-6640: Ensure certifi minimum version 2026.10.23 for certificate vulnerability patch
+
+0.6.2
+*****
+* CIP-6640: Update SKA python runtime image to 1.1.4 to address certificate vulnerability
+
+0.6.1
+*****
+* CIP-6640: Update SKA base image to 1.1.4 to address certificate vulnerability
+* Explicitly update minimum required python version to 3.13 (was technically already required due to certain features in use).
+* Migrate linter/formatter from isort/black/flake8/pylint to ruff, and fix linting/formatting to match.
+* Update pipeline to use uv stages and remove the no-longer-needed CI image.
+* The "devcommon" docker image has been removed; to use a custom version of FHS common, push it to GitLab first.
+
+0.6.0
+*****
+* CIP-6263:
+
+  * Moved common BAR params into the global section of the values.yaml
+  * Moved the template for the bar secret into its own file: bar-secret.yaml
+  * Each VCC unit will have its own bitstream download job. This allows the deployment repo to set diff bitstream versions for each VCC unit
+
+0.5.0
+*****
+* CIP-6553: Removed Scan, EndScan, and ObsReset commands from All bands device, as well as all traces of the ObsState model.
+* CIP-6553: WIB stops before configuration when sample rate changes.
+* Updated k8s-deploy make target to work with latest ska-cicd-makefile commit.
+
+0.4.5
+*****
+* Migrating from poetry to UV
+* Removing dependency on kubectl. 
+
+0.4.4
+*****
+* CIP-6475: Update to ska-mid-cbf-fhs-common 0.5.0
+
+  * Update scan sequence commands to replace functionality that was removed from the common library
+  * Naming updates for clarity
+  * Miscellaneous code cleanup
+
+0.4.3
+*****
+* CIP-6551: Updated ConfigureScan config schema to better align with ICD, including removing the samples_per_frame field.
+
+0.4.2
+*****
+* CIP-6279: update sim-device for ConfigureVCCBite and DeconfigureVCCBite
 
 0.4.1
 *****

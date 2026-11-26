@@ -26,7 +26,7 @@ class TestWidebandFrequencyShifter:
         """Test the configure method of the Wideband Frequency Shifter."""
         with open("tests/test_data/device_config/wideband_frequency_shifter.json", "r") as f:
             config_json = f.read()
-        result = wideband_frequency_shifter.configure(WidebandFrequencyShifterConfig.schema().loads(config_json))
+        result = wideband_frequency_shifter.configure(WidebandFrequencyShifterConfig.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_deconfigure(self, wideband_frequency_shifter: WidebandFrequencyShifterManager):
@@ -37,8 +37,7 @@ class TestWidebandFrequencyShifter:
 
     def test_status(self, wideband_frequency_shifter: WidebandFrequencyShifterManager):
         """Test the status method of the Wideband Frequency Shifter."""
-        result = wideband_frequency_shifter.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        wideband_frequency_shifter.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, wideband_frequency_shifter: WidebandFrequencyShifterManager):
         """Test the recover method of the Wideband Frequency Shifter."""

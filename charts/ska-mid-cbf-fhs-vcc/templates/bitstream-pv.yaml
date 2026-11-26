@@ -17,7 +17,7 @@ metadata:
 spec:
   storageClassName: {{ .Values.pvStorageClass }}
   accessModes:
-    - ReadWriteMany
+    - {{ .Values.pvStorageAccess }}
   resources:
     requests:
       storage: "1Gi"

@@ -1,60 +1,38 @@
-from dataclasses import dataclass, field
-from typing import Callable, Optional
+from collections.abc import Callable
 
-import numpy as np
-from dataclasses_json import DataClassJsonMixin
-from ska_mid_cbf_fhs_common import BaseIPBlockManager
+from pydantic import Field
+from ska_mid_cbf_fhs_common import BaseIPBlockManager, FhsDataclass, UInt8, UInt64
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_simulator import B123VccOsppfbChannelizerSimulator
 
 
-@dataclass
-class B123VccOsppfbChannelizerConfig(DataClassJsonMixin):
-    sample_rate: np.uint64
-    pol: dict
-    channel: np.uint16
-    gain: np.float32
+class B123VccOsppfbChannelizerConfig(FhsDataclass):
+    sample_rate: UInt64
+    pol: UInt8
+    channel: int
+    gain: float
+
+
+class B123VccOsppfbChannelizerStatusGain(FhsDataclass):
+    pol: UInt8
+    channel: int
+    gain: float
 
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
 ##
-@dataclass
-class B123VccOsppfbChannelizerStatus(DataClassJsonMixin):
-    sample_rate: np.uint32
+class B123VccOsppfbChannelizerStatus(FhsDataclass):
+    sample_rate: UInt64
     num_channels: int
     num_polarisations: int
-    gains: list[np.float32]
+    gains: list[B123VccOsppfbChannelizerStatusGain]
 
 
-@dataclass
-class B123VccOsppfbChannelizerConfigureArgin(DataClassJsonMixin):
-    sample_rate: np.uint64 = 3960000000  # default values
-    gains: list[float] = field(
-        default_factory=lambda: [
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-        ]
-    )  # default gain values
-    transaction_id: Optional[str] = None
+class B123VccOsppfbChannelizerConfigureArgin(FhsDataclass):
+    sample_rate: UInt64 = 3960000000  # default values
+    gains: list[float] = Field(default_factory=lambda: [1.0] * 20)  # default gain values
+    transaction_id: str | None = None
 
 
 class B123VccOsppfbChannelizerManager(BaseIPBlockManager[B123VccOsppfbChannelizerConfig, B123VccOsppfbChannelizerStatus]):

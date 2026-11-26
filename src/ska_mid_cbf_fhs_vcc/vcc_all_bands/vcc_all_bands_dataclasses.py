@@ -1,60 +1,63 @@
-from dataclasses import field
-from typing import Optional
-
-from dataclasses_json import DataClassJsonMixin
-from pydantic.dataclasses import dataclass
-from ska_mid_cbf_fhs_common import FhsControllerBaseConfig
+from pydantic import Field
+from ska_mid_cbf_fhs_common import FhsControllerBaseConfig, FhsDataclass
 
 
-@dataclass
-class VCCAllBandsConfigureScanPowerMeterConfig(DataClassJsonMixin):
+class VCCAllBandsConfigureScanPowerMeterConfig(FhsDataclass):
     """Dataclass representing a power meter configuration as part of the VCC All Bands ConfigureScan input parameter."""
 
-    averaging_time: float
+    averaging: float
     flagging: int
 
 
-@dataclass
-class VCCAllBandsConfigureScanFSLaneConfig(DataClassJsonMixin):
+class VCCAllBandsConfigureScanFSLaneConfig(FhsDataclass):
     """Dataclass representing an element of the fs_lanes property of the VCC All Bands ConfigureScan input parameter."""
 
-    vlan_id: int
+    vlan_alias: str
     fs_id: int
-    averaging_time: float
-    flagging: int
+    power_meter: VCCAllBandsConfigureScanPowerMeterConfig
 
 
-@dataclass
-class VCCAllBandsConfigureScanConfig(FhsControllerBaseConfig, DataClassJsonMixin):
+class VCCAllBandsConfigureScanArgin(FhsControllerBaseConfig, FhsDataclass):
     """Dataclass representing the VCC All Bands ConfigureScan input parameter."""
 
     config_id: str
     expected_dish_id: str
     dish_sample_rate: int
-    samples_per_frame: int
     frequency_band: str
-    frequency_band_offset_stream_1: int
-    vcc_gain: list[float]
-    noise_diode_transition_holdoff_seconds: int
-    b123_pwrm: VCCAllBandsConfigureScanPowerMeterConfig
-    b45a_pwrm: VCCAllBandsConfigureScanPowerMeterConfig
-    b5b_pwrm: VCCAllBandsConfigureScanPowerMeterConfig
+    frequency_band_offset_stream1: int
+    vcc_gains_stream_1: list[float]
+    noise_diode_transition_holdoff_count: int
+    b123_power_meter: VCCAllBandsConfigureScanPowerMeterConfig
+    b45_1_power_meter: VCCAllBandsConfigureScanPowerMeterConfig
+    b45_2_power_meter: VCCAllBandsConfigureScanPowerMeterConfig
     fs_lanes: list[VCCAllBandsConfigureScanFSLaneConfig]
-    frequency_band_offset_stream_2: int = 0
+    frequency_band_offset_stream2: int = 0
     band_5_tuning: float = 0.0
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None
 
 
-@dataclass
-class VCCAllBandsAutoSetFilterGainsSchema(DataClassJsonMixin):
+class VCCAllBandsAbortArgin(FhsDataclass):
+    """Dataclass representing the VCC All Bands Abort input parameter."""
+
+    subarray_id: int
+    transaction_id: str | None = None
+
+
+class VCCAllBandsGoToIdleArgin(FhsDataclass):
+    """Dataclass representing the VCC All Bands GoToIdle input parameter."""
+
+    subarray_id: int
+    transaction_id: str | None = None
+
+
+class VCCAllBandsAutoSetFilterGainsArgin(FhsDataclass):
     """Dataclass representing the VCC All Bands AutoSetFilterGains input parameter."""
 
-    headrooms: Optional[list[float]] = field(default_factory=lambda: [3.0])
-    transaction_id: Optional[str] = None
+    headrooms: list[float] | None = Field(default_factory=lambda: [3.0])
+    transaction_id: str | None = None
 
 
-@dataclass
-class VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig(FhsDataclass):
     """Dataclass representing Polarity config for Noise Info field in VCC Bite Config"""
 
     seed: int
@@ -62,16 +65,14 @@ class VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig(DataClassJsonMixin):
     noise_mean: float
 
 
-@dataclass
-class VCCAllBandsConfigureVCCBiteNoiseInfoConfig(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteNoiseInfoConfig(FhsDataclass):
     """Dataclass representing Noise Info config in VCC Bite Config"""
 
     pol_x: VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig
     pol_y: VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig
 
 
-@dataclass
-class VCCAllBandsConfigureVCCBiteNoiseDiodeConfig(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteNoiseDiodeConfig(FhsDataclass):
     """Dataclass representing Noise Diode config in VCC Bite Config"""
 
     dwell_time_us: int
@@ -79,46 +80,41 @@ class VCCAllBandsConfigureVCCBiteNoiseDiodeConfig(DataClassJsonMixin):
     on_state_scaling_factor: float
 
 
-@dataclass
-class VCCAllBandsConfigureVCCBiteReceiverConfig(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteReceiverConfig(FhsDataclass):
     """Dataclass representing the VCC All Bands ConfigureVCCBite Receiver parameter."""
 
     dish_id: str
-    dish_sample_rate: int  # pylint: disable=invalid-name
+    dish_sample_rate: int
     noise_diode: VCCAllBandsConfigureVCCBiteNoiseDiodeConfig
-    noise_info: Optional[VCCAllBandsConfigureVCCBiteNoiseInfoConfig] = None
+    noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig | None = None
 
 
-@dataclass
-class VCCAllBandsConfigureVCCBiteSourceConfig(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteSourceConfig(FhsDataclass):
     """Dataclass representing the VCC All Bands ConfigureVCCBite Sources parameter."""
 
     noise_info: VCCAllBandsConfigureVCCBiteNoiseInfoConfig
     pol_coupling_rho: float
-    pol_Y_1_sample_delay: bool  # pylint: disable=invalid-name
+    pol_Y_1_sample_delay: bool
 
 
-@dataclass
-class VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig(FhsDataclass):
     """Dataclass representing Polarity config for RFI in VCC Bite Config"""
 
     frequency: int
     scale: float
 
 
-@dataclass
-class VCCAllBandsConfigureVCCBiteRfiConfig(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteRfiConfig(FhsDataclass):
     """Dataclass representing the VCC All Bands ConfigureVCCBite RFI parameter."""
 
     pol_x: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig
     # TODO: pol_y is currently not used even if provided.
     # It should used in case there is an x and y bite tone gen driver,
     # but currently there is a single driver so pol_y is ignored
-    pol_y: Optional[VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig] = None
+    pol_y: VCCAllBandsConfigureVCCBiteRfiInfoPolarityConfig | None = None
 
 
-@dataclass
-class VCCAllBandsConfigureVCCBiteSchema(DataClassJsonMixin):
+class VCCAllBandsConfigureVCCBiteArgin(FhsDataclass):
     """Dataclass representing the VCC All Bands ConfigureVCCBite input parameter."""
 
     receiver: VCCAllBandsConfigureVCCBiteReceiverConfig
@@ -126,11 +122,10 @@ class VCCAllBandsConfigureVCCBiteSchema(DataClassJsonMixin):
     rfi: list[VCCAllBandsConfigureVCCBiteRfiConfig]
     utc_start_time: int
     band: int
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None
 
 
-@dataclass
-class VCCAllBandsDeconfigureVCCBiteSchema(DataClassJsonMixin):
+class VCCAllBandsDeconfigureVCCBiteArgin(FhsDataclass):
     """Dataclass representing the VCC All Bands DeconfigureVCCBite input parameter."""
 
-    transaction_id: Optional[str] = None
+    transaction_id: str | None = None

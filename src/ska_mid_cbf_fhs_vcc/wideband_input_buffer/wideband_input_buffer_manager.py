@@ -1,48 +1,55 @@
-from dataclasses import dataclass
-from typing import Any, Optional
+import time
+from typing import Any
 
-import numpy as np
-from dataclasses_json import DataClassJsonMixin
 from ska_control_model import HealthState
-from ska_mid_cbf_fhs_common import BaseMonitoringIPBlockManager, convert_dish_id_uint16_t_to_mnemonic, non_blocking
+from ska_mid_cbf_fhs_common import (
+    BaseMonitoringIPBlockManager,
+    EmulatorApi,
+    FhsDataclass,
+    UInt8,
+    UInt16,
+    UInt32,
+    UInt64,
+    convert_dish_id_uint16_to_str,
+    non_blocking,
+)
 
+from ska_mid_cbf_fhs_vcc.wideband_input_buffer.constants import (
+    BER_DEGRADED_THRESHOLD,
+    BER_FAILED_THRESHOLD,
+    BER_MEASUREMENT_PERIOD,
+    BITS_PER_SAMPLE_BAND45,
+    BITS_PER_SAMPLE_BAND123,
+)
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_simulator import WidebandInputBufferSimulator
 
 
-@dataclass
-class WidebandInputBufferConfig(DataClassJsonMixin):
-    expected_sample_rate: np.uint64
-    noise_diode_transition_holdoff_seconds: float
-    expected_dish_band: np.uint8
-    transaction_id: Optional[str] = None
+class WidebandInputBufferConfig(FhsDataclass):
+    expected_sample_rate: UInt64
+    noise_diode_transition_holdoff_count: int
+    expected_dish_band: UInt8
+    transaction_id: str | None = None
 
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Wideband Input Buffer
 ##
-@dataclass
-class WidebandInputBufferStatus(DataClassJsonMixin):
-    receive_enable: bool
-    packet_error: bool
-    packet_drop: bool
-    link_failure: bool
+class WidebandInputBufferStatus(FhsDataclass):
     buffer_overflow: bool
+    loss_of_signal: UInt32
     error: bool
-    firmware_band: np.uint32
-    stream_rate: np.uint32
-    packet_rate: np.uint32
-    noise_diode_transition_holdoff_count: np.uint32
-    packet_error_count: np.uint32
-    packet_drop_count: np.uint32
-    loss_of_signal_seconds: np.uint32
-    meta_ethertype: np.uint32
-    meta_dish_id: np.uint32
-    meta_band_id: np.uint32
-    meta_utc_time_code: np.uint32
-    meta_transport_sample_rate: np.uint64
-    meta_hardware_source_id: np.uint64
-    rx_packet_rate: np.uint32
-    rx_sample_rate: np.uint32
+    packet_error: bool
+    packet_error_count: UInt32
+    packet_drop: bool
+    packet_drop_count: UInt32
+    loss_of_signal_seconds: UInt32
+    meta_band_id: UInt8
+    meta_dish_id: UInt16
+    rx_sample_rate: UInt32
+    rx_packet_rate: UInt32
+    meta_transport_sample_rate: UInt32
+    link_failure: bool
+    expected_sample_rate: UInt32
 
 
 class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBufferConfig, WidebandInputBufferStatus]):
@@ -64,8 +71,11 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         return WidebandInputBufferSimulator
 
     def _manager_specific_setup(self, **kwargs):
-        self.expected_sample_rate = None
-        self.expected_dish_id = None
+        self.expected_sample_rate: int | None = None
+        self.expected_dish_id: str | None = None
+        self.bit_error_rate = 0
+        self.bit_error_rate_health_state = HealthState.UNKNOWN
+        self.poll_counter = 0
 
     def configure(self, config: WidebandInputBufferConfig) -> int:
         """Configure the Wideband Input Buffer."""
@@ -82,18 +92,52 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
     def start(self) -> int:
         return super().start()
 
+    # TODO: make logic generic/remove state() calls once both FW+Emu expose reset state in status
     @non_blocking
     def stop(self) -> int:
-        return super().stop()
+        ret = super().stop()
+        timeout = time.time() + 15.0
+        if ret != 0:
+            return ret
+        if self._emulation_mode and isinstance(self._api, EmulatorApi):
+            while self._api.state() != "READY":
+                if time.time() > timeout:
+                    self.logger.error("WIB stop failure: Emulator was not in READY state within 15 seconds.")
+                    return 1
+                time.sleep(1)
+        return ret
+
+    def calculate_ber_healthstate(self, status: WidebandInputBufferStatus) -> HealthState:
+        if self.poll_counter == 0:
+            match status.meta_band_id:
+                case 1 | 2 | 3:
+                    self.bit_error_rate = status.packet_error_count / ((status.meta_transport_sample_rate * BITS_PER_SAMPLE_BAND123) * BER_MEASUREMENT_PERIOD)
+                case 4 | 5:
+                    self.bit_error_rate = status.packet_error_count / ((status.meta_transport_sample_rate * BITS_PER_SAMPLE_BAND45) * BER_MEASUREMENT_PERIOD)
+                case _:
+                    raise RuntimeError(f"Unrecognized band ID: {status.meta_band_id}")
+
+            if self.bit_error_rate >= BER_FAILED_THRESHOLD:
+                self.bit_error_rate_health_state = HealthState.FAILED
+                self.logger.debug(f"Bit Error Rate exceeded FAILED threshold: {self.bit_error_rate} > {BER_FAILED_THRESHOLD}")
+            elif self.bit_error_rate >= BER_DEGRADED_THRESHOLD:
+                self.bit_error_rate_health_state = HealthState.DEGRADED
+                self.logger.debug(f"Bit Error Rate exceeded DEGRADED threshold: {self.bit_error_rate} > {BER_DEGRADED_THRESHOLD}")
+            else:
+                self.bit_error_rate_health_state = HealthState.OK
+
+        self.poll_counter = (self.poll_counter + 1) % BER_MEASUREMENT_PERIOD
+
+        return self.bit_error_rate_health_state
 
     def get_status_healthstates(self, status: WidebandInputBufferStatus) -> dict[str, HealthState]:
         status_healthstates = {}
 
-        meta_dish_id_mnemonic = convert_dish_id_uint16_t_to_mnemonic(status.meta_dish_id)
+        meta_dish_id_str = convert_dish_id_uint16_to_str(status.meta_dish_id)
         status_healthstates["meta_dish_id"] = self.get_health_state_by_expected_value(
             self.expected_dish_id,
-            meta_dish_id_mnemonic,
-            failure_msg=f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_mnemonic} ({status.meta_dish_id})",
+            meta_dish_id_str,
+            failure_msg=f"meta_dish_id mismatch. Expected: {self.expected_dish_id}, Actual: {meta_dish_id_str} ({status.meta_dish_id})",
         )
 
         status_healthstates["rx_sample_rate"] = self.get_health_state_by_expected_value(
@@ -132,6 +176,8 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
             failure_msg=f"buffer_overflow mismatch. Expected False, Actual: {status.buffer_overflow}",
         )
 
+        status_healthstates["bit_error_rate"] = self.calculate_ber_healthstate(status)
+
         self.logger.info(f"REGISTER_STATUSES={status_healthstates}")
 
         return status_healthstates
@@ -140,8 +186,8 @@ class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBuffe
         self,
         expected_value: Any,
         actual_value: Any,
-        success_msg: str = None,
-        failure_msg: str = None,
+        success_msg: str | None = None,
+        failure_msg: str | None = None,
         health_on_success: HealthState = HealthState.OK,
         health_on_failure: HealthState = HealthState.FAILED,
     ) -> HealthState:

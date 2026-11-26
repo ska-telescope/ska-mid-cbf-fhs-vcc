@@ -27,7 +27,7 @@ class TestB123VccOsppfbChannelizer:
         """Test the configure method of the B123 VCC."""
         with open("tests/test_data/device_config/b123_vcc_osppfb_channelizer.json", "r") as f:
             config_json = f.read()
-        result = b123_vcc.configure(B123VccOsppfbChannelizerConfigureArgin.schema().loads(config_json))
+        result = b123_vcc.configure(B123VccOsppfbChannelizerConfigureArgin.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_deconfigure(self, b123_vcc: B123VccOsppfbChannelizerManager):
@@ -38,8 +38,7 @@ class TestB123VccOsppfbChannelizer:
 
     def test_status(self, b123_vcc: B123VccOsppfbChannelizerManager):
         """Test the status method of the B123 VCC."""
-        result = b123_vcc.status(clear=False)
-        assert result is not None, f"Expected valid return value, got {result}"
+        b123_vcc.status(clear=False)  # implicitly assert no errors raised
 
     def test_recover(self, b123_vcc: B123VccOsppfbChannelizerManager):
         """Test the recover method of the B123 VCC."""

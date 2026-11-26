@@ -1,0 +1,6 @@
+{
+  "include": ["src", "tests"],
+  "typeCheckingMode": "basic",
+  "reportPrivateImportUsage": "none",
+  "reportRedeclaration": "information"
+}

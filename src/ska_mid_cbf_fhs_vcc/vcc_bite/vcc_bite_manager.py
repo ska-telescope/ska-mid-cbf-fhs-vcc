@@ -1,8 +1,6 @@
 import logging
-from dataclasses import dataclass
 from enum import IntEnum
 
-from dataclasses_json import DataClassJsonMixin
 from ska_control_model import SimulationMode
 
 from ska_mid_cbf_fhs_vcc.grpc.vcc_grpc_client import VccGrpcClient
@@ -25,51 +23,44 @@ class VCCSourceSelect(IntEnum):
     RESERVED = 3
 
 
-@dataclass
-class VCCSourceSelectApiConfig(DataClassJsonMixin):
+class VCCSourceSelectApiConfig(FhsDataclass):
     source_select: VCCSourceSelect
     test_select: bool
 
 
-@dataclass
-class VCCBiteApiConfig(DataClassJsonMixin):
+class VCCBiteApiConfig(FhsDataclass):
     band: int = 1
     start_time: int = 0
     sample_rate: int = 3_960_000_000
     speed: int = 1
 
 
-@dataclass
-class VCCBiteToneGenApiConfig(DataClassJsonMixin):
+class VCCBiteToneGenApiConfig(FhsDataclass):
     sample_rate: int
     frequency: float
     magnitude: float
     band: int
 
 
-@dataclass
-class GaussianNoiseDriverApiConfig(DataClassJsonMixin):
+class GaussianNoiseDriverApiConfig(FhsDataclass):
     seed: int
     mean: int
     std_dev: int
 
 
-@dataclass
-class NoiseDiodeApiConfig(DataClassJsonMixin):
+class NoiseDiodeApiConfig(FhsDataclass):
     sample_rate: int
     switching_period: float
     seed: int
     std_dev: float
 
 
-@dataclass
-class PolarizationCouplerApiConfig(DataClassJsonMixin):
+class PolarizationCouplerApiConfig(FhsDataclass):
     correlation_coefficient: float
     delay_enable: bool
 
 
-@dataclass
-class SPFRxPacketizerApiConfig(DataClassJsonMixin):
+class SPFRxPacketizerApiConfig(FhsDataclass):
     local_mac: int
     remote_mac: int
     ethertype: int
@@ -82,51 +73,44 @@ class SPFRxPacketizerApiConfig(DataClassJsonMixin):
     noise_diode_rising_holdoff_b: float
 
 
-@dataclass
-class VCCSourceSelectStatus(DataClassJsonMixin):
+class VCCSourceSelectStatus(FhsDataclass):
     source_select: int
     test_select: bool
 
 
-@dataclass
-class VCCBiteStatus(DataClassJsonMixin):
+class VCCBiteStatus(FhsDataclass):
     band: int
     start_time: int
     sample_rate: int
     speed: int
 
 
-@dataclass
-class VCCBiteToneGenStatus(DataClassJsonMixin):
+class VCCBiteToneGenStatus(FhsDataclass):
     sample_rate: int
     frequency: float
     magnitude: float
     band: int
 
 
-@dataclass
-class GaussianNoiseDriverStatus(DataClassJsonMixin):
+class GaussianNoiseDriverStatus(FhsDataclass):
     seed: int
     mean: int
     std_dev: int
 
 
-@dataclass
-class NoiseDiodeStatus(DataClassJsonMixin):
+class NoiseDiodeStatus(FhsDataclass):
     sample_rate: int
     switching_period: float
     seed: int
     std_dev: float
 
 
-@dataclass
-class PolarizationCouplerStatus(DataClassJsonMixin):
+class PolarizationCouplerStatus(FhsDataclass):
     correlation_coefficient: float
     delay_enable: bool
 
 
-@dataclass
-class SPFRxPacketizerStatus(DataClassJsonMixin):
+class SPFRxPacketizerStatus(FhsDataclass):
     running: bool
     fifo_overflow_error: int
     local_mac: int
@@ -144,15 +128,14 @@ class SPFRxPacketizerStatus(DataClassJsonMixin):
 ##
 # status class that will be populated by the APIs and returned to provide the status of VCC Bite
 ##
-@dataclass
-class VCCBiteManagerStatus(DataClassJsonMixin):
+class VCCBiteManagerStatus(FhsDataclass):
     source_select: list[VCCSourceSelectStatus]
     bite_control: list[VCCBiteStatus]
     bite_tone_gen: list[VCCBiteToneGenStatus]
-    bite_noise_gen_polX: list[GaussianNoiseDriverStatus]  # pylint: disable=invalid-name
-    bite_noise_gen_polY: list[GaussianNoiseDriverStatus]  # pylint: disable=invalid-name
-    bite_noise_diode_polX: list[NoiseDiodeStatus]  # pylint: disable=invalid-name
-    bite_noise_diode_polY: list[NoiseDiodeStatus]  # pylint: disable=invalid-name
+    bite_noise_gen_polX: list[GaussianNoiseDriverStatus]
+    bite_noise_gen_polY: list[GaussianNoiseDriverStatus]
+    bite_noise_diode_polX: list[NoiseDiodeStatus]
+    bite_noise_diode_polY: list[NoiseDiodeStatus]
     polarization_coupler: list[PolarizationCouplerStatus]
     spfrx_packetizer: list[SPFRxPacketizerStatus]
 
@@ -279,9 +262,8 @@ class VCCBiteManager:
                 )
             )
 
-    def configure(self, config: VCCAllBandsConfigureVCCBiteSchema) -> int:
+    def configure(self, config: VCCAllBandsConfigureVCCBiteArgin) -> int:
         """Configure the VCC Bite."""
-        result = 0
 
         # Gaussian Noise Driver Config
         gaussian_noise_driver_x_config = GaussianNoiseDriverApiConfig(
@@ -290,6 +272,7 @@ class VCCBiteManager:
             std_dev=config.source.noise_info.pol_x.noise_std,
         )
         for api in self._gaussian_noise_driver_x_apis:
+            result = api.configure(gaussian_noise_driver_x_config.to_dict())
             result = api.configure(gaussian_noise_driver_x_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure Gaussian Noise Driver X")
@@ -300,6 +283,7 @@ class VCCBiteManager:
             std_dev=config.source.noise_info.pol_y.noise_std,
         )
         for api in self._gaussian_noise_driver_y_apis:
+            result = api.configure(gaussian_noise_driver_y_config.to_dict())
             result = api.configure(gaussian_noise_driver_y_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure Gaussian Noise Driver Y")
@@ -326,6 +310,7 @@ class VCCBiteManager:
         )
         for api in self._polarization_coupler_apis:
             result = api.configure(config=polarization_coupler_config.to_dict())
+            result = api.configure(config=polarization_coupler_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure Polarization Coupler")
                 return result
@@ -346,6 +331,7 @@ class VCCBiteManager:
             noise_diode_rising_holdoff_b=0.0,
         )
         for api in self._spfrx_packetizer_apis:
+            result = api.configure(config=spfrx_packetizer_config.to_dict())
             result = api.configure(config=spfrx_packetizer_config.to_dict())
             if result == 1:
                 self.logger.error("Could not configure SPFRx Packetizer")
@@ -413,9 +399,8 @@ class VCCBiteManager:
 
         return result
 
-    def deconfigure(self, config: VCCAllBandsDeconfigureVCCBiteSchema | None = None) -> int:
+    def deconfigure(self, config: VCCAllBandsDeconfigureVCCBiteArgin | None = None) -> int:
         """Deconfigure the VCC Bite."""
-        result = 0
 
         # stop the deconfigure the ip blocks
         result = self.stop()
@@ -429,61 +414,60 @@ class VCCBiteManager:
 
         # VCC Bite
         for api in self._vcc_bite_apis:
-            result = api.deconfigure(config=config)
+            result = api.deconfigure(config=config_dict)
             if result == 1:
                 self.logger.error("Could not deconfigure VCC Bite")
                 return result
 
         # VCC Bite Tone Gen
         for api in self._vcc_bite_tone_gen_apis:
-            result = api.deconfigure(config=config)
+            result = api.deconfigure(config=config_dict)
             if result == 1:
                 self.logger.error("Could not deconfigure VCC Bite Tone Gen")
                 return result
 
         # Gaussian Noise Driver
         for api in self._gaussian_noise_driver_x_apis:
-            result = api.deconfigure(config=config)
+            result = api.deconfigure(config=config_dict)
             if result == 1:
                 self.logger.error("Could not deconfigure Gaussian Noise Driver X")
                 return result
         for api in self._gaussian_noise_driver_y_apis:
-            result = api.deconfigure(config=config)
+            result = api.deconfigure(config=config_dict)
             if result == 1:
                 self.logger.error("Could not deconfigure Gaussian Noise Driver Y")
                 return result
 
         # Noise Diode
         for api in self._noise_diode_driver_x_apis:
-            result = api.deconfigure(config=config)
+            result = api.deconfigure(config=config_dict)
             if result == 1:
                 self.logger.error("Could not deconfigure Noise Diode X")
                 return result
         for api in self._noise_diode_driver_y_apis:
-            result = api.deconfigure(config=config)
+            result = api.deconfigure(config=config_dict)
             if result == 1:
                 self.logger.error("Could not deconfigure Noise Diode Y")
                 return result
 
         # Polarization Coupler
         for api in self._polarization_coupler_apis:
-            result = api.deconfigure(config=config)
+            result = api.deconfigure(config=config_dict)
             if result == 1:
                 self.logger.error("Could not deconfigure Polarization Coupler")
                 return result
 
         # SPFRx Packetizer
         for api in self._spfrx_packetizer_apis:
-            result = api.deconfigure(config=config)
+            result = api.deconfigure(config=config_dict)
             if result == 1:
                 self.logger.error("Could not deconfigure SPFRx Packetizer")
                 return result
 
-        return result
+        return 0
 
     def start(self) -> int:
         """Start the VCC Bite."""
-        result = 0
 
         # VCC Source Select
         for api in self._vcc_source_select_apis:
@@ -544,11 +528,10 @@ class VCCBiteManager:
                 self.logger.error("Could not start SPFRx Packetizer")
                 return result
 
-        return result
+        return 0
 
     def stop(self, force: bool = False) -> int:
         """Stop the VCC Bite."""
-        result = 0
 
         # VCC Source Select
         for api in self._vcc_source_select_apis:
@@ -609,7 +592,7 @@ class VCCBiteManager:
                 self.logger.error("Could not stop Spfrx Packetizer")
                 return result
 
-        return result
+        return 0
 
     def status(self, clear: bool = False) -> VCCBiteManagerStatus | None:
         """Get status for all the VCC Bite components."""
