@@ -7,11 +7,12 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 0.7.2
 *****
-* CIP-6726: Integrate FHS common interface updates
-  * Added FTileEthernet IP block initialization with a post start_communicating hook
-  * Moved all WIB manager calls outside of the simulationMode check
-  * Updated the WIB Manager's get_status function for the FhsHealthMonitor changes
-  * Added unit tests to validate the behaviour of the VCCAllBandsController's healthInfo attribute
+CIP-6726: Integrate FHS common interface updates
+
+* Added FTileEthernet IP block initialization with a post start_communicating hook
+* Moved all WIB manager calls outside of the simulationMode check
+* Updated the WIB Manager's get_status function for the FhsHealthMonitor changes
+* Added unit tests to validate the behaviour of the VCCAllBandsController's healthInfo attribute
 
 0.7.1
 ****
