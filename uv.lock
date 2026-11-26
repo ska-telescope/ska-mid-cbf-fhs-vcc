@@ -1458,7 +1458,7 @@ wheels = [
 
 [[package]]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.7.0"
+version = "0.7.1"
 source = { editable = "." }
 default-groups = "all"
 dependencies = [
