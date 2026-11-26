@@ -1,23 +1,19 @@
-from dataclasses import dataclass, field
-
-from dataclasses_json import DataClassJsonMixin
-from ska_mid_cbf_fhs_common import BaseIPBlockManager
+from pydantic import Field
+from ska_mid_cbf_fhs_common import BaseIPBlockManager, FhsDataclass
 
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_simulator import FrequencySliceSelectionSimulator
 
 
-@dataclass
-class FrequencySliceSelectionConfig(DataClassJsonMixin):
+class FrequencySliceSelectionConfig(FhsDataclass):
     transaction_id: str | None = None
     band_select: int = 1
-    band_start_channel: list[int] = field(default_factory=lambda: [0, 1, 2])
+    band_start_channel: list[int] = Field(default_factory=lambda: [0, 1, 2])
 
 
 ##
 # status class that will be populated by the APIs and returned to provide the status of the Frequency Slice Selection
 ##
-@dataclass
-class FrequencySliceSelectionStatus(DataClassJsonMixin):
+class FrequencySliceSelectionStatus(FhsDataclass):
     band_select: int
     band_start_channel: list[int]
 

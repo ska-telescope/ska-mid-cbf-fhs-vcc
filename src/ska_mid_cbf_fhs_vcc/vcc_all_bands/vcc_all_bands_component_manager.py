@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 import copy
-import json
 import logging
 import os
 import textwrap
 from collections.abc import Callable
 from math import isnan
 from threading import Event
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import jsonschema
 import yaml
 from ska_control_model import CommunicationStatus, HealthState, ResultCode, SimulationMode, TaskStatus
 from ska_mid_cbf_common.enums.command_type import CommandType
@@ -18,12 +16,13 @@ from ska_mid_cbf_fhs_common import (
     LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE,
     BaseIPBlockManager,
     FhsControllerComponentManagerBase,
+    FhsState,
+    FhsValidationError,
     FtileEthernetManager,
     WidebandPowerMeterConfig,
     WidebandPowerMeterManager,
     calculate_gain_multiplier,
 )
-from ska_mid_cbf_fhs_common.enums.fhs_state import FhsState
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
     B123VccOsppfbChannelizerConfigureArgin,
@@ -46,6 +45,9 @@ from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager, VCCSou
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
+
+if TYPE_CHECKING:
+    from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_device import VCCAllBandsController
 
 
 class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
@@ -125,12 +127,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     def __init__(
         self,
         *args: Any,
-        device,
+        device: VCCAllBandsController,
         logger: logging.Logger,
         simulation_mode: SimulationMode = SimulationMode.FALSE,
-        attr_change_callback: Callable[[str, Any], None] | None = None,
-        attr_archive_callback: Callable[[str, Any], None] | None = None,
-        health_state_callback: Callable[[HealthState], None] | None = None,
+        attr_change_callback: Callable[[str, Any], None] = lambda *_, **__: None,
+        attr_archive_callback: Callable[[str, Any], None] = lambda *_, **__: None,
+        health_state_callback: Callable[[HealthState, dict[str, HealthState]], None] = lambda *_, **__: None,
         emulation_mode: bool = False,
         create_log_file: bool = True,
         long_running_command_result_buffer_max_size=LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE,
@@ -144,12 +146,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             simulation_mode (:obj:`SimulationMode`, optional): Whether the controller is deployed
                 in simulation mode (SimulationMode.TRUE) or not (SimulationMode.FALSE).
                 Default is SimulationMode.FALSE.
-            attr_change_callback (:obj:`Callable[[str, Any], None] | None`, optional): Callback that is called when
-                an attribute change event occurs. Default is None.
-            attr_archive_callback (:obj:`Callable[[str, Any], None] | None`, optional): Callback that is called when
-                an attribute archive event occurs. Default is None.
-            health_state_callback (:obj:`Callable[[HealthState], None] | None`, optional): Callback that is called when
-                a HealthState change occurs. Default is None.
+            attr_change_callback (:obj:`Callable[[str, Any], None]`, optional): Callback that is called when
+                an attribute change event occurs. Default is an empty function.
+            attr_archive_callback (:obj:`Callable[[str, Any], None]`, optional): Callback that is called when
+                an attribute archive event occurs. Default is an empty function.
+            health_state_callback (:obj:`Callable[[HealthState, dict[str, HealthState]], None]`, optional): Callback that is called when
+                a HealthState change occurs. Default is an empty function.
             emulation_mode (:obj:`bool`, optional): Whether the controller is deployed
                 in emulation mode or not. Default is False.
             create_log_file (:obj:`bool`, optional): Whether or not to create a log file for this controller. Default is True.
@@ -170,6 +172,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             long_running_command_result_buffer_max_size=long_running_command_result_buffer_max_size,
             **kwargs,
         )
+        self.device = device
 
         self.log_debug(f"LRC Result Buffer Size: {self.long_running_command_result_buffer.max_size}")
 
@@ -182,7 +185,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
         self.admin_mode_online_check = VccAdminOnline(
             logger=self.logger,
-            simulation_mode=self.simulation_mode,
+            simulation_mode=(self.simulation_mode is SimulationMode.TRUE),
+            emulator_id=self.device.emulator_id,
+            emulator_port=str(self.device.emulator_port),
+            emulation_mode=self.emulation_mode,
         )
 
         self._vcc_id = self.device.device_id
@@ -210,7 +216,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         vlan_mapping_file = os.getenv("VCC_PRODUCT_PATH", "/app/mnt/vcc") + "/vcc-product-definitions.yaml"
         self._parse_vlan_mapping(vlan_mapping_file)
 
-    def _init_ip_block_managers(self) -> list[BaseIPBlockManager]:
+    def _init_ip_block_managers(self) -> list[BaseIPBlockManager[Any, Any]]:
         """Instantiate all the IP block managers for the VCC controller."""
 
         self.ethernet_200g = FtileEthernetManager(**self._ip_block_props("Ethernet200Gb", additional_props=["ethernet_mode"]))
@@ -241,6 +247,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             FhsState.NOT_CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.FAULT],
             FhsState.CONFIGURING: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURED, FhsState.FAULT],
             FhsState.CONFIGURED: [FhsState.NOT_CONFIGURED, FhsState.CONFIGURING, FhsState.FAULT],
+            FhsState.FAULT: [FhsState.FAULT],
         }
 
         if dest_state not in allowed_transitions[self.configuration_state]:
@@ -250,36 +257,31 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         self._attr_change_callback("configurationState", dest_state)
         self._attr_archive_callback("configurationState", dest_state)
 
-    def update_subarray_membership(
-        self: VCCAllBandsComponentManager,
-        argin: int,
-        task_callback: Callable | None = None,
-    ) -> tuple[TaskStatus, str]:
-        """Submit the task to start running the UpdateSubarrayMembership command implementation.
+    def teardown(self) -> None:
+        """Reset all IP blocks and stop all active polling/monitoring."""
+        self.ethernet_200g.recover()
+        self.b123_vcc.recover()
+        self.frequency_slice_selection.recover()
+        self.packet_validation.recover()
+        self.wideband_frequency_shifter.recover()
+        self.wideband_input_buffer.recover()
 
-        Args:
-            argin (:obj:`int`): The subarray ID.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
+        for vcc_stream_merge in self.vcc_stream_merges.values():
+            vcc_stream_merge.recover()
 
-        Returns:
-            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
-        """
-        return self.submit_task(
-            func=self._update_subarray_membership,
-            args=[argin],
-            task_callback=task_callback,
-        )
+        for wideband_power_meter in self.wideband_power_meters.values():
+            wideband_power_meter.recover()
 
     def configure_scan(
         self,
         argin: str,
-        task_callback: Callable | None = None,
+        task_callback: Callable,
     ) -> tuple[TaskStatus, str]:
         """Submit the task to start running the ConfigureScan command implementation.
 
         Args:
             argin (:obj:`str`): The configuration JSON string from the command's input argument.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
@@ -293,13 +295,13 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     def go_to_idle(
         self,
         argin: str,
-        task_callback: Callable | None = None,
+        task_callback: Callable,
     ) -> tuple[TaskStatus, str]:
         """Submit the task to start running the GoToIdle command implementation.
 
         Args:
             argin (:obj:`str`): The input JSON string to the GoToIdle command.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
@@ -310,16 +312,59 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             task_callback=task_callback,
         )
 
+    def update_subarray_membership(
+        self: VCCAllBandsComponentManager,
+        argin: int,
+        task_callback: Callable,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the UpdateSubarrayMembership command implementation.
+
+        Args:
+            argin (:obj:`int`): The subarray ID.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=self._update_subarray_membership,
+            args=[argin],
+            task_callback=task_callback,
+        )
+
+    def auto_set_filter_gains(
+        self: VCCAllBandsComponentManager,
+        argin: str,
+        task_callback: Callable,
+    ) -> tuple[TaskStatus, str]:
+        """Submit the task to start running the AutoSetFilterGains command implementation.
+
+        Args:
+            argin (:obj:`str`): JSON String following the auto set filter gains command schema
+                Requested RFI headroom, in decibels (dB).
+                Must be a list containing either a single value to apply to all frequency slices,
+                or a value per frequency slice to be applied separately.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
+
+        Returns:
+            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+        """
+        return self.submit_task(
+            func=self._auto_set_filter_gains,
+            args=[argin],
+            task_callback=task_callback,
+        )
+
     def configure_vcc_bite(
         self,
-        argin: str | None = None,
-        task_callback: Callable | None = None,
+        argin: str,
+        task_callback: Callable,
     ) -> tuple[TaskStatus, str]:
         """Submit the task to start running the ConfigureVCCBite command implementation.
 
         Args:
             argin (:obj:`str`): The input JSON string to the ConfigureVCCBite command.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
@@ -332,14 +377,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def deconfigure_vcc_bite(
         self,
-        argin: str | None = None,
-        task_callback: Callable | None = None,
+        argin: str,
+        task_callback: Callable,
     ) -> tuple[TaskStatus, str]:
         """Submit the task to start running the DeconfigureVCCBite command implementation.
 
         Args:
             argin (:obj:`str`): The input JSON string to the DeconfigureVCCBite command.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
+            task_callback (:obj:`Callable`): A callback to run when the task status changes.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
@@ -352,14 +397,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def abort_tasks(
         self,
-        task_callback: Callable | None = None,
+        task_callback: Callable,
     ) -> tuple[TaskStatus, str]:
         """
         Run a task to abort all commands and stop any started IP blocks.
 
         Args:
-            task_callback (:obj:`Callable | None`, optional): A callback to pass to the superclass
-                to be run when the task status changes. Default is None. Default is None.
+            task_callback (:obj:`Callable`): A callback to pass to the superclass
+                to be run when the task status changes.
 
         Returns:
             :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
@@ -371,8 +416,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     def _configure_scan(
         self,
         argin: str,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """Wrapper for the ConfigureScan command implementation for all controllers,
         to handle task management as well as error handling.
@@ -382,12 +427,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             if self.task_abort_event_is_set("ConfigureScan", task_callback, task_abort_event):
                 return
 
+            # Note: We do manual JSON validation here as we have a dedicated schema for it
             self.set_configuration_state_if_transition_is_allowed(FhsState.CONFIGURING)
-            config_dict = json.loads(argin)
-            transaction_id = config_dict.get("transaction_id", None)
+            configuration = self.config_dataclass.from_validated_json(argin, additional_schema=self.config_schema)
+            transaction_id = configuration.transaction_id
             self.transaction_ids_per_command[CommandType.CONFIGURESCAN] = transaction_id
-            jsonschema.validate(config_dict, self.config_schema)
-            configuration = self.config_dataclass.from_dict(config_dict)
 
             # WIB must be stopped prior to reconfiguration if the sample rate changed
             wib_stop_required = configuration.dish_sample_rate != self._sample_rate and self._sample_rate != 0
@@ -467,8 +511,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                     raise RuntimeError("Configuration of FS Selection failed.")
 
                 # WIB Configuration
-                if wib_stop_required:
-                    self.wideband_input_buffer.stop().await_result()
+                if wib_stop_required and self.wideband_input_buffer.stop().await_result() == 1:
+                    self.log_error("ConfigureScan failed: WIB stop() failed.", transaction_id)
+                    self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
+                    self._reset_data()
+                    raise RuntimeError("ConfigureScan failed: WIB stop() failed.")
 
                 self.log_debug("Wideband Input Buffer Configuring..", transaction_id)
                 result = self.wideband_input_buffer.configure(
@@ -497,7 +544,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 }
 
                 for band_group in VCCBandGroup:
-                    config = self._pre_channelizer_power_meter_configs.get(band_group)
+                    config = self._pre_channelizer_power_meter_configs[band_group]
                     self.log_debug(f"Configuring {band_group.value} power meter with {config}", transaction_id)
                     result = self.wideband_power_meters[band_group].configure(
                         WidebandPowerMeterConfig(
@@ -548,14 +595,16 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                             transaction_id=transaction_id,
                             fs_lane_configs=[
                                 VCCStreamMergeConfig(
+                                    mac_destination=0,  # TODO?
                                     vid=self.vlan_lookup[lane.vlan_alias],
                                     vcc_id=self._vcc_id,
                                     fs_id=lane.fs_id,
+                                    fs_index=fs_index,
                                 )
-                                for lane in self._fs_lanes[13 * (i - 1) : 13 * i]
+                                for fs_index, lane in enumerate(self._fs_lanes[13 * (i - 1) : 13 * i])
                             ],
                         )
-                    )
+                    )  # fmt: skip
                     if result == 1:
                         self.log_error("Configuration of VCC Stream Merge failed.", transaction_id)
                         self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
@@ -569,33 +618,35 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
             self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.OK, transaction_id=transaction_id)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "ConfigureScan completed OK")
-        except jsonschema.ValidationError:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
-            self.log_exception("Invalid json provided for ConfigureScan", transaction_id)
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan")
+        except FhsValidationError as exc:
+            self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
+            transaction_id = exc.data.get("transaction_id", None) or self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
+            self.log_exception("JSON validation failed for ConfigureScan", transaction_id)
             self.long_running_command_result_buffer.insert(
                 command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.REJECTED, transaction_id=transaction_id
             )
-        except Exception as ex:
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureScan")
+        except Exception as exc:
+            self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
             transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGURESCAN, None)
             self.log_exception("An unexpected exception occurred during ConfigureScan.", transaction_id)
             self._update_communication_state(communication_state=CommunicationStatus.NOT_ESTABLISHED)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.FAILED, transaction_id=transaction_id)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
-                textwrap.shorten(f"An unexpected exception occurred during ConfigureScan: {ex}", width=400),
+                textwrap.shorten(f"An unexpected exception occurred during ConfigureScan: {exc}", width=400),
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGURESCAN, result_code=ResultCode.FAILED, transaction_id=transaction_id)
         finally:
             # Reset the ID so it's not used in a different Command call
             self.transaction_ids_per_command[CommandType.CONFIGURESCAN] = None
 
     def _go_to_idle(
         self,
-        argin: str | None = None,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        argin: str,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """GoToIdle command implementation for all controllers."""
         try:
@@ -603,60 +654,41 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             if self.task_abort_event_is_set("GoToIdle", task_callback, task_abort_event):
                 return
 
-            go_to_idle_argin = VCCAllBandsGoToIdleArgin.from_json(argin)
+            go_to_idle_argin = VCCAllBandsGoToIdleArgin.from_validated_json(argin)
             transaction_id = go_to_idle_argin.transaction_id
             self.transaction_ids_per_command[CommandType.GOTOIDLE] = transaction_id
             self.log_info("Received Command GoToIdle", transaction_id)
 
             self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
-            self._reset_data()
+            self._reset_data()  # configurationState is set to NOT_CONFIGURED here
 
-            self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
             self.log_info("Command GoToIdle Successful", transaction_id)
             self.long_running_command_result_buffer.insert(command_type=CommandType.GOTOIDLE, result_code=ResultCode.OK, transaction_id=transaction_id)
             self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.OK, "GoToIdle completed OK")
-        except Exception as ex:
+        except FhsValidationError as exc:
+            transaction_id = exc.data.get("transaction_id", None) or self.transaction_ids_per_command.get(CommandType.GOTOIDLE, None)
+            self.log_exception("JSON validation failed for GoToIdle", transaction_id)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.GOTOIDLE, result_code=ResultCode.REJECTED, transaction_id=transaction_id)
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for GoToIdle")
+        except Exception as exc:
             transaction_id = self.transaction_ids_per_command.get(CommandType.GOTOIDLE, None)
             self.log_exception("An unexpected exception occurred during GoToIdle", transaction_id)
+            self.long_running_command_result_buffer.insert(command_type=CommandType.GOTOIDLE, result_code=ResultCode.FAILED, transaction_id=transaction_id)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
-                textwrap.shorten(f"An unexpected exception occurred during GoToIdle: {ex}", width=400),
+                textwrap.shorten(f"An unexpected exception occurred during GoToIdle: {exc}", width=400),
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.GOTOIDLE, result_code=ResultCode.FAILED, transaction_id=transaction_id)
         finally:
             # Reset the ID so it's not used in a different Command call
             self.transaction_ids_per_command[CommandType.GOTOIDLE] = None
 
-    def auto_set_filter_gains(
-        self: VCCAllBandsComponentManager,
-        argin: str,
-        task_callback: Callable | None = None,
-    ) -> tuple[TaskStatus, str]:
-        """Submit the task to start running the AutoSetFilterGains command implementation.
-
-        Args:
-            argin (:obj:`str`): JSON String following the auto set filter gains command schema
-                Requested RFI headroom, in decibels (dB).
-                Must be a list containing either a single value to apply to all frequency slices,
-                or a value per frequency slice to be applied separately.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
-
-        Returns:
-            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
-        """
-        return self.submit_task(
-            func=self._auto_set_filter_gains,
-            args=[argin],
-            task_callback=task_callback,
-        )
-
     def _update_subarray_membership(
         self,
         argin: int,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """Update subarray membership for this VCC. This is the implementation for the UpdateSubarrayMembership command.
 
@@ -691,20 +723,20 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                     ResultCode.OK,
                     "UpdateSubarrayMembership completed OK",
                 )
-        except Exception as ex:
+        except Exception as exc:
             self.log_exception("An unexpected exception occurred during UpdateSubarrayMembership.")
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
-                textwrap.shorten(f"An unexpected exception occurred during UpdateSubarrayMembership: {ex}", width=400),
+                textwrap.shorten(f"An unexpected exception occurred during UpdateSubarrayMembership: {exc}", width=400),
             )
 
     def _auto_set_filter_gains(
         self,
-        argin: str | None = None,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        argin: str,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """Calculate and apply optimal gain multipliers for VCC coarse channels.
         This is the implementation for the AutoSetFilterGains command.
@@ -723,10 +755,11 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             transaction_id = None
 
             if argin:
-                auto_set_filter_gains_argin = VCCAllBandsAutoSetFilterGainsArgin.from_json(argin)
+                auto_set_filter_gains_argin = VCCAllBandsAutoSetFilterGainsArgin.from_validated_json(argin)
                 transaction_id = auto_set_filter_gains_argin.transaction_id
                 self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = transaction_id
-                headrooms = auto_set_filter_gains_argin.headrooms
+                if auto_set_filter_gains_argin.headrooms is not None:
+                    headrooms = auto_set_filter_gains_argin.headrooms
 
             self.log_info("Received Command AutoSetFilterGains", transaction_id)
 
@@ -747,14 +780,12 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             # Read all power meters
             for i in range(self._num_fs):
                 # Read power
-                status = self.wideband_power_meters[i + 1].status()
-                if status is None:
-                    self._set_task_callback(
-                        task_callback,
-                        TaskStatus.COMPLETED,
-                        ResultCode.FAILED,
-                        (f"Failed to auto-set gains: Failed to retrieve status from the FS {i + 1} power meter."),
-                    )
+                try:
+                    status = self.wideband_power_meters[i + 1].status()
+                except Exception:
+                    msg = f"Failed to auto-set gains: Failed to retrieve status from the FS {i + 1} power meter."
+                    self.log_exception(msg, transaction_id)
+                    self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, msg)
                     self.long_running_command_result_buffer.insert(
                         command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
                     )
@@ -813,14 +844,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             else:
                 # TODO: Implement routing to the 5 Channelizer once outlined
+                self.long_running_command_result_buffer.insert(
+                    command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+                )
                 self._set_task_callback(
                     task_callback,
                     TaskStatus.COMPLETED,
                     ResultCode.FAILED,
                     "Failed to auto-set gains: currently selected frequency band is not supported.",
-                )
-                self.long_running_command_result_buffer.insert(
-                    command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
                 )
                 return
             # Update vccGains and publish change
@@ -829,26 +860,33 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
             self.log_info(f"Successfully set Autofilter gains with headrooms {headrooms}", transaction_id)
 
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.OK, transaction_id=transaction_id
+            )
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.OK,
                 "AutoSetFilterGains completed OK",
             )
+        except FhsValidationError as exc:
+            transaction_id = exc.data.get("transaction_id", None) or self.transaction_ids_per_command.get(CommandType.AUTOSETFILTERGAINS, None)
+            self.log_exception("JSON validation failed for AutoSetFilterGains", transaction_id)
             self.long_running_command_result_buffer.insert(
-                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.OK, transaction_id=transaction_id
+                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.REJECTED, transaction_id=transaction_id
             )
-        except Exception as ex:
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for AutoSetFilterGains")
+        except Exception as exc:
             transaction_id = self.transaction_ids_per_command.get(CommandType.AUTOSETFILTERGAINS, None)
             self.log_exception("An unexpected exception occurred during AutoSetFilterGains.", transaction_id)
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+            )
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
-                textwrap.shorten(f"An unexpected exception occurred during AutoSetFilterGains: {ex}", width=400),
-            )
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+                textwrap.shorten(f"An unexpected exception occurred during AutoSetFilterGains: {exc}", width=400),
             )
         finally:
             # Reset the ID so it's not used in a different Command call
@@ -857,52 +895,50 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     def _configure_vcc_bite(
         self,
         argin: str,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """ConfigureVCCBite command implementation for VCC All bands controller,
         to handle task management as well as error handling.
         """
         try:
-            configure_vcc_bite_argin_dict = json.loads(argin)
-            transaction_id = configure_vcc_bite_argin_dict.get("transaction_id", None)
-            self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
-            jsonschema.validate(
-                configure_vcc_bite_argin_dict,
-                vcc_all_bands_configure_vcc_bite_schema,
+            configure_vcc_bite_argin = VCCAllBandsConfigureVCCBiteArgin.from_validated_json(
+                argin,
+                additional_schema=vcc_all_bands_configure_vcc_bite_schema,
             )
-            configure_vcc_bite_argin = VCCAllBandsConfigureVCCBiteArgin.from_dict(configure_vcc_bite_argin_dict)
+            transaction_id = configure_vcc_bite_argin.transaction_id
+            self.transaction_ids_per_command[CommandType.CONFIGUREVCCBITE] = transaction_id
 
             self.log_info("Received Command ConfigureVCCBite", transaction_id)
 
             self.vcc_bite_manager.configure(config=configure_vcc_bite_argin)
             self.vcc_source_select = VCCSourceSelect.VCC_BITE
 
+            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id)
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.OK,
                 "ConfigureVCCBite completed OK",
             )
-            self.long_running_command_result_buffer.insert(command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id)
-        except jsonschema.ValidationError:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
+        except FhsValidationError as exc:
+            transaction_id = exc.data.get("transaction_id", None) or self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
             self.log_exception("Invalid json provided for ConfigureVCCBite", transaction_id)
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureVCCBite")
             self.long_running_command_result_buffer.insert(
                 command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.REJECTED, transaction_id=transaction_id
             )
-        except Exception as ex:
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for ConfigureVCCBite")
+        except Exception as exc:
             transaction_id = self.transaction_ids_per_command.get(CommandType.CONFIGUREVCCBITE, None)
             self.log_exception("An unexpected exception occurred during ConfigureVCCBite.", transaction_id)
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
+            )
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
-                textwrap.shorten(f"An unexpected exception occurred during ConfigureVCCBite: {ex}", width=400),
-            )
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.CONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
+                textwrap.shorten(f"An unexpected exception occurred during ConfigureVCCBite: {exc}", width=400),
             )
         finally:
             # Reset the ID so it's not used in a different Command call
@@ -911,14 +947,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     def _deconfigure_vcc_bite(
         self,
         argin: str,
-        task_callback: Callable | None = None,
-        task_abort_event: Event | None = None,
+        task_callback: Callable,
+        task_abort_event: Event,
     ) -> None:
         """DeconfigureVCCBite command implementation for VCC All bands controller,
         to handle task management as well as error handling.
         """
         try:
-            deconfigure_vcc_bite_argin = VCCAllBandsDeconfigureVCCBiteArgin.from_json(argin)
+            deconfigure_vcc_bite_argin = VCCAllBandsDeconfigureVCCBiteArgin.from_validated_json(argin)
             transaction_id = deconfigure_vcc_bite_argin.transaction_id
             self.transaction_ids_per_command[CommandType.DECONFIGUREVCCBITE] = transaction_id
 
@@ -927,26 +963,33 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self.vcc_bite_manager.deconfigure(config=deconfigure_vcc_bite_argin)
             self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id
+            )
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.OK,
                 "DeconfigureVCCBite completed OK",
             )
+        except FhsValidationError as exc:
+            transaction_id = exc.data.get("transaction_id", None) or self.transaction_ids_per_command.get(CommandType.DECONFIGUREVCCBITE, None)
+            self.log_exception("Invalid json provided for DeconfigureVCCBite", transaction_id)
             self.long_running_command_result_buffer.insert(
-                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.OK, transaction_id=transaction_id
+                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.REJECTED, transaction_id=transaction_id
             )
-        except Exception as ex:
+            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for DeconfigureVCCBite")
+        except Exception as exc:
             transaction_id = self.transaction_ids_per_command.get(CommandType.DECONFIGUREVCCBITE, None)
             self.log_exception("An unexpected exception occurred during DeconfigureVCCBite.", transaction_id)
+            self.long_running_command_result_buffer.insert(
+                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
+            )
             self._set_task_callback(
                 task_callback,
                 TaskStatus.COMPLETED,
                 ResultCode.FAILED,
-                textwrap.shorten(f"An unexpected exception occurred during DeconfigureVCCBite: {ex}", width=400),
-            )
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.DECONFIGUREVCCBITE, result_code=ResultCode.FAILED, transaction_id=transaction_id
+                textwrap.shorten(f"An unexpected exception occurred during DeconfigureVCCBite: {exc}", width=400),
             )
         finally:
             # Reset the ID so it's not used in a different Command call
@@ -954,6 +997,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
     def _reset_data(self) -> None:
         """Reset all attributes and other data."""
+        self.set_configuration_state_if_transition_is_allowed(FhsState.NOT_CONFIGURED)
         self._config_id = ""
         self._scan_id = 0
         self.frequency_band = FrequencyBandEnum._1
@@ -965,50 +1009,43 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
         """Deconfigure all ip blocks"""
 
         # VCC123 Channelizer Deconfiguration
-        b123_vcc_deconfigure_result = self.b123_vcc.deconfigure()
-        if b123_vcc_deconfigure_result == 1:
+        if self.b123_vcc.deconfigure() == 1:
             self.log_error("Deconfiguration of VCC123 Channelizer failed.", transaction_id)
             raise RuntimeError("Deconfiguration of VCC123 failed.")
 
         # WFS Deconfiguration
-        wfs_deconfigure_result = self.wideband_frequency_shifter.deconfigure()
-        if wfs_deconfigure_result == 1:
+        if self.wideband_frequency_shifter.deconfigure() == 1:
             self.log_error("Deconfiguration of Wideband Frequency Shifter failed.", transaction_id)
             raise RuntimeError("Deconfiguration of Wideband Frequency Shifter failed.")
 
         # FSS Deconfiguration
-        fss_deconfigure_result = self.frequency_slice_selection.deconfigure()
-        if fss_deconfigure_result == 1:
+        if self.frequency_slice_selection.deconfigure() == 1:
             self.log_error("Deconfiguration of FS Selection failed.", transaction_id)
             raise RuntimeError("Deconfiguration of FS Selection failed.")
 
         # WIB Deconfiguration
-        wib_deconfigure_result = self.wideband_input_buffer.deconfigure()
-        if wib_deconfigure_result == 1:
+        if self.wideband_input_buffer.deconfigure() == 1:
             self.log_error("Deconfiguration of WIB failed.", transaction_id)
             raise RuntimeError("Deconfiguration of WIB failed.")
 
         # Pre-channelizer WPM Deconfiguration
         for band_group in VCCBandGroup:
-            pre_channelizer_wpm_deconfiguration_result = self.wideband_power_meters[band_group].deconfigure()
-            if pre_channelizer_wpm_deconfiguration_result == 1:
+            if self.wideband_power_meters[band_group].deconfigure() == 1:
                 self.log_error(f"Deconfiguration of {band_group.value} Wideband Power Meter failed.", transaction_id)
                 raise RuntimeError(f"Deconfiguration of {band_group.value} Wideband Power Meter failed.")
 
         # Post-channelizer WPM Deconfiguration
         for config in self._fs_lanes:
             fs_id = int(config.fs_id)
-            post_channelizer_wpm_deconfiguration_result = self.wideband_power_meters[fs_id].deconfigure()
-            if post_channelizer_wpm_deconfiguration_result == 1:
+            if self.wideband_power_meters[fs_id].deconfigure() == 1:
                 self.log_error(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.", transaction_id)
                 raise RuntimeError(f"Deconfiguration of FS {fs_id} Wideband Power Meter failed.")
 
         # VCC Stream Merge Deconfiguration
         for i in range(1, 3):
-            vcc_stream_merge_deconfiguration_result = self.vcc_stream_merges[i].deconfigure()
-            if vcc_stream_merge_deconfiguration_result == 1:
-                self.log_error("Deconfiguration of VCC Stream Merge failed.", transaction_id)
-                raise RuntimeError("Deconfiguration of VCC Stream Merge failed.")
+            if self.vcc_stream_merges[i].deconfigure() == 1:
+                self.log_error(f"Deconfiguration of VCC Stream Merge {i} failed.", transaction_id)
+                raise RuntimeError(f"Deconfiguration of VCC Stream Merge {i} failed.")
 
         self.log_info("Sucessfully deconfigured all IP Blocks", transaction_id)
 

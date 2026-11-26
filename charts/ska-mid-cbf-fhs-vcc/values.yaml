@@ -46,7 +46,7 @@ midcbf:
   image:
     registry: artefact.skao.int
     image: ska-mid-cbf-fhs-vcc
-    tag: 0.6.9
+    tag: 0.7.1
     pullPolicy: IfNotPresent
 
 resources:
@@ -157,7 +157,7 @@ vccAllBandsDevice:
         WidebandInputBuffer:
           emulator_ip_block_id: "wideband_input_buffer"
           firmware_ip_block_id: "wideband_input_buffer_unimplemented"
-          health_monitor_poll_interval: "3"
+          health_monitor_poll_interval: "1"
         VCCStreamMerge1:
           emulator_ip_block_id: "fs1_vcc_stream_merge"
           firmware_ip_block_id: "receptor{{.receptorId}}_vcc_stream_merge1"

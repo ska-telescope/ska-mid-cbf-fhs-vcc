@@ -10,13 +10,13 @@ __all__ = ["WidebandInputBufferSimulator"]
 
 # link_failure: bool
 # buffer_overflow: bool
-# loss_of_signal: np.uint32
+# loss_of_signal: int
 # error: bool
-# loss_of_signal_seconds: np.uint32
-# meta_band_id: np.uint8
-# meta_dish_id: np.uint16
-# rx_sample_rate: np.uint32
-# meta_transport_sample_rate: np.uint32
+# loss_of_signal_seconds: int
+# meta_band_id: int
+# meta_dish_id: int
+# rx_sample_rate: int
+# meta_transport_sample_rate: int
 
 
 class WidebandInputBufferSimulator(BaseSimulatorApi):

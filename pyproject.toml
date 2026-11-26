@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.6.9"
+version = "0.7.1"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },
@@ -12,19 +12,18 @@ readme = "README.md"
 license = "BSD-3-Clause"
 classifiers = [
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "dataclasses-json >= 0.6.7, < 0.7",
   "grpcio >= 1.62.0, < 2",
   "grpcio-health-checking >= 1.62.0, < 2",
   "grpcio-tools >= 1.62.0, < 2",
-  "jsonschema >= 4.26.0, < 5",
+  "orjson >= 3.13.0, < 4",
   "protobuf >= 6.33.0, < 7.0.0",
+  "pydantic >= 2.14.3, < 3",
   "ska-tango-testing == 0.10.0",
-  "ska-mid-cbf-fhs-common == 0.6.3",
+  "ska-mid-cbf-fhs-common == 0.7.0",
   "ska-mid-cbf-common == 0.2.14",
   "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
 ]
@@ -35,6 +34,8 @@ SimVCCAllBandsController = "ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim:main"
 
 [dependency-groups]
 dev = [
+  "jsonschema >= 4.26.0, < 5",
+  "pyright[nodejs] >= 1.1.414, < 2",
   "pytest == 9.1.1",
   "pytest-cov >= 7.1.0, < 8",
   "pytest-forked >= 1.6.0, < 2",
@@ -60,6 +61,7 @@ package = true
 default-groups = "all"
 constraint-dependencies = [
   "certifi >= 2026.10.23",
+  "jsonschema >= 4.26.0",
   "requests >= 2.32.4, < 3",
   "scipy >= 1.18.1, < 2",
   "ska-ser-skuid < 5.3",
