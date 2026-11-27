@@ -1,6 +1,6 @@
 [project]
 name = "ska-mid-cbf-fhs-vcc"
-version = "0.7.0"
+version = "0.7.1"
 description = "SKA Mid.CBF FHS VCC"
 authors = [
   { name = "Jason Turner", email = "jason.turner@mda.space" },
@@ -16,16 +16,16 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "grpcio >= 1.62.0, < 2",
-  "grpcio-health-checking >= 1.62.0, < 2",
-  "grpcio-tools >= 1.62.0, < 2",
+  "grpcio == 1.85.1",
+  "grpcio-tools == 1.85.1",
+  "grpcio-health-checking == 1.85.1",
   "orjson >= 3.13.0, < 4",
-  "protobuf >= 6.33.0, < 7.0.0",
+  "protobuf == 7.36.2",
   "pydantic >= 2.14.3, < 3",
   "ska-tango-testing == 0.10.0",
-  "ska-mid-cbf-fhs-common == 0.7.0",
+  "ska-mid-cbf-fhs-common == 0.7.0+dev.ca3a8f439",
   "ska-mid-cbf-common == 0.2.14",
-  "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
+  "ska-mid-cbf-fhs-vcc-grpc-controller == 0.1.0",
 ]
 
 [project.scripts]
@@ -69,9 +69,9 @@ constraint-dependencies = [
 
 [tool.uv.sources]
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = { index = "ska-nexus" }
+#ska-mid-cbf-fhs-common = { index = "ska-nexus" }
 # Commit hash version from Gitlab
-# ska-mid-cbf-fhs-common = { index = "gitlab-fhs-common" }
+ska-mid-cbf-fhs-common = { index = "gitlab-fhs-common" }
 # Local dev version
 # ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", editable = true }
 

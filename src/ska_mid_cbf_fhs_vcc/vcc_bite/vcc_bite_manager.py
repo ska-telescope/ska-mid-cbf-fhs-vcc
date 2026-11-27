@@ -2,9 +2,10 @@ import logging
 from enum import IntEnum
 
 from ska_control_model import SimulationMode
+from ska_mid_cbf_fhs_common import FhsDataclass, UInt32, UInt64
 
 from ska_mid_cbf_fhs_vcc.grpc.vcc_grpc_client import VccGrpcClient
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteSchema, VCCAllBandsDeconfigureVCCBiteSchema
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteArgin, VCCAllBandsDeconfigureVCCBiteArgin
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_simulator import (
     GaussianNoiseDriverSimulator,
     NoiseDiodeSimulator,
@@ -29,29 +30,29 @@ class VCCSourceSelectApiConfig(FhsDataclass):
 
 
 class VCCBiteApiConfig(FhsDataclass):
-    band: int = 1
-    start_time: int = 0
-    sample_rate: int = 3_960_000_000
-    speed: int = 1
+    band: UInt32 = 1
+    start_time: UInt32 = 0
+    sample_rate: UInt64 = 3_960_000_000
+    speed: float = 1
 
 
 class VCCBiteToneGenApiConfig(FhsDataclass):
-    sample_rate: int
+    sample_rate: UInt64
     frequency: float
     magnitude: float
-    band: int
+    band: UInt32
 
 
 class GaussianNoiseDriverApiConfig(FhsDataclass):
-    seed: int
-    mean: int
-    std_dev: int
+    seed: UInt32
+    mean: float
+    std_dev: float
 
 
 class NoiseDiodeApiConfig(FhsDataclass):
-    sample_rate: int
+    sample_rate: UInt64
     switching_period: float
-    seed: int
+    seed: UInt32
     std_dev: float
 
 
@@ -61,47 +62,46 @@ class PolarizationCouplerApiConfig(FhsDataclass):
 
 
 class SPFRxPacketizerApiConfig(FhsDataclass):
-    local_mac: int
-    remote_mac: int
-    ethertype: int
-    dish_id: int
-    hw_src_id: int
-    band: int
-    sample_rate: int
-    sample_rate_b: int
+    local_mac: UInt64
+    remote_mac: UInt64
+    ethertype: UInt64
+    dish_id: UInt32
+    hw_src_id: UInt64
+    band: UInt32
+    sample_rate: UInt64
+    sample_rate_b: UInt64
     noise_diode_rising_holdoff: float
     noise_diode_rising_holdoff_b: float
 
 
 class VCCSourceSelectStatus(FhsDataclass):
-    source_select: int
+    source_select: UInt32
     test_select: bool
 
 
 class VCCBiteStatus(FhsDataclass):
-    band: int
-    start_time: int
-    sample_rate: int
-    speed: int
+    band: UInt32
+    start_time: UInt32
+    sample_rate: UInt64
+    speed: float
 
 
 class VCCBiteToneGenStatus(FhsDataclass):
-    sample_rate: int
+    sample_rate: UInt64
     frequency: float
     magnitude: float
-    band: int
+    band: UInt64
 
 
 class GaussianNoiseDriverStatus(FhsDataclass):
-    seed: int
-    mean: int
-    std_dev: int
+    mean: float
+    std_dev: float
 
 
 class NoiseDiodeStatus(FhsDataclass):
-    sample_rate: int
+    sample_rate: UInt64
     switching_period: float
-    seed: int
+    seed: UInt32
     std_dev: float
 
 
@@ -112,15 +112,15 @@ class PolarizationCouplerStatus(FhsDataclass):
 
 class SPFRxPacketizerStatus(FhsDataclass):
     running: bool
-    fifo_overflow_error: int
-    local_mac: int
-    remote_mac: int
-    ethertype: int
-    dish_id: int
-    hw_src_id: int
-    band: int
-    sample_rate: int
-    sample_rate_b: int
+    fifo_overflow_error: UInt32
+    local_mac: UInt64
+    remote_mac: UInt64
+    ethertype: UInt32
+    dish_id: UInt32
+    hw_src_id: UInt64
+    band: UInt32
+    sample_rate: UInt64
+    sample_rate_b: UInt64
     noise_diode_rising_holdoff: float
     noise_diode_rising_holdoff_b: float
 
@@ -159,15 +159,15 @@ class VCCBiteManager:
         self.grpc_port = grpc_port
         self.card_name = card_name
         self.receptor_id = receptor_id
-        self._vcc_source_select_apis: list[VCCSourceSelectSimulator] | list[VccGrpcClient] = []
-        self._vcc_bite_apis: list[VCCBiteSimulator] | list[VccGrpcClient] = []
-        self._vcc_bite_tone_gen_apis: list[VCCBiteToneGenSimulator] | list[VccGrpcClient] = []
-        self._gaussian_noise_driver_x_apis: list[GaussianNoiseDriverSimulator] | list[VccGrpcClient] = []
-        self._noise_diode_driver_x_apis: list[NoiseDiodeSimulator] | list[VccGrpcClient] = []
-        self._gaussian_noise_driver_y_apis: list[GaussianNoiseDriverSimulator] | list[VccGrpcClient] = []
-        self._noise_diode_driver_y_apis: list[NoiseDiodeSimulator] | list[VccGrpcClient] = []
-        self._polarization_coupler_apis: list[PolarizationCouplerSimulator] | list[VccGrpcClient] = []
-        self._spfrx_packetizer_apis: list[SPFRxPacketizerSimulator] | list[VccGrpcClient] = []
+        self._vcc_source_select_apis: list[VCCSourceSelectSimulator | VccGrpcClient] = []
+        self._vcc_bite_apis: list[VCCBiteSimulator | VccGrpcClient] = []
+        self._vcc_bite_tone_gen_apis: list[VCCBiteToneGenSimulator | VccGrpcClient] = []
+        self._gaussian_noise_driver_x_apis: list[GaussianNoiseDriverSimulator | VccGrpcClient] = []
+        self._noise_diode_driver_x_apis: list[NoiseDiodeSimulator | VccGrpcClient] = []
+        self._gaussian_noise_driver_y_apis: list[GaussianNoiseDriverSimulator | VccGrpcClient] = []
+        self._noise_diode_driver_y_apis: list[NoiseDiodeSimulator | VccGrpcClient] = []
+        self._polarization_coupler_apis: list[PolarizationCouplerSimulator | VccGrpcClient] = []
+        self._spfrx_packetizer_apis: list[SPFRxPacketizerSimulator | VccGrpcClient] = []
 
         if self._simulation_mode == SimulationMode.TRUE:
             self._vcc_source_select_apis.append(VCCSourceSelectSimulator(f"{self.card_name}_receptor{self.receptor_id}_source_select", self.logger))
@@ -318,8 +318,8 @@ class VCCBiteManager:
         # TODO: Fix default values here
         # SPFRx Packetizer Config
         spfrx_packetizer_config = SPFRxPacketizerApiConfig(
-            local_mac=None,
-            remote_mac=None,
+            local_mac=0,
+            remote_mac=0,
             ethertype=0xFEED,
             # dish_id=config.receiver.dish_id,
             dish_id=0,
@@ -387,27 +387,20 @@ class VCCBiteManager:
                 self.logger.error("Could not configure VCC Source Select")
                 return result
 
-
-
-
-
-
-
-
-
-
-
-        return result
+        return 0
 
     def deconfigure(self, config: VCCAllBandsDeconfigureVCCBiteArgin | None = None) -> int:
         """Deconfigure the VCC Bite."""
 
+        config_dict = {}
+        if config is not None:
+            config_dict = config.to_dict()
         # stop the deconfigure the ip blocks
         result = self.stop()
 
         # VCC Source Select
         for api in self._vcc_source_select_apis:
-            result = api.deconfigure(config=None if config is None else config.to_dict())
+            result = api.deconfigure(config=config_dict)
             if result == 1:
                 self.logger.error("Could not deconfigure VCC Source Select")
                 return result

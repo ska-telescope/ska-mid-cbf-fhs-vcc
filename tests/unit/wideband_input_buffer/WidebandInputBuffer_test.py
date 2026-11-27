@@ -70,7 +70,7 @@ class TestWidebandInputBuffer:
         wideband_input_buffer.start().await_result()
         wideband_input_buffer.poll_counter = 29
 
-        time.sleep(2)  # wait for polling to run at least once
+        time.sleep(5)  # wait for polling to run at least once
 
         health_state = wideband_input_buffer.get_health_state()
 
@@ -97,21 +97,27 @@ class TestWidebandInputBuffer:
         
     def test_ber_healthy(self, wideband_input_buffer: WidebandInputBufferManager):
         bad_status = {
-            "link_failure": False,
-            "buffer_overflow": False,
-            "loss_of_signal": 0,
-            "error": False,
-            "loss_of_signal_seconds": 0,
-            "meta_band_id": 1,
-            "meta_dish_id": 1,
-            "rx_sample_rate": 3960000000,
-            "meta_transport_sample_rate": 3960000000,
-            "packet_error": False,
-            "packet_error_count": 0,
-            "packet_drop": False,
-            "packet_drop_count": 0,
-            "rx_packet_rate": 1500000,
-            "expected_sample_rate": 3960000000
+                "receive_enable": True,
+                "packet_error": False,
+                "packet_drop": False,
+                "link_failure": False,
+                "buffer_overflow": False,
+                "error": False,
+                "firmware_band": 1,
+                "stream_rate": 1500000,
+                "packet_rate": 1500000,
+                "noise_diode_transition_holdoff_count": 1,
+                "packet_error_count": 0,
+                "packet_drop_count": 0,
+                "loss_of_signal_seconds": 0,
+                "meta_ethertype": 1,
+                "meta_dish_id": 1,
+                "meta_band_id": 1,
+                "meta_utc_time_code": 0,
+                "meta_transport_sample_rate": 3960000000,
+                "meta_hardware_source_id": 0,
+                "rx_packet_rate": 1500000,
+                "rx_sample_rate": 3960000000
         }
         
         with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
@@ -137,22 +143,30 @@ class TestWidebandInputBuffer:
 
     def test_ber_degraded(self, wideband_input_buffer: WidebandInputBufferManager):
         bad_status = {
+            "receive_enable": True,
+            "packet_error": True,
+            "packet_drop": False,
             "link_failure": False,
             "buffer_overflow": False,
-            "loss_of_signal": 0,
             "error": False,
-            "loss_of_signal_seconds": 0,
-            "meta_band_id": 1,
-            "meta_dish_id": 1,
-            "rx_sample_rate": 3960000000,
-            "meta_transport_sample_rate": 3960000000,
-            "packet_error": True,
+            "firmware_band": 1,
+            "stream_rate": 1500000,
+            "packet_rate": 1500000,
+            "noise_diode_transition_holdoff_count": 1,
             "packet_error_count": 1,
-            "packet_drop": False,
             "packet_drop_count": 0,
+            "loss_of_signal_seconds": 0,
+            "meta_ethertype": 1,
+            "meta_dish_id": 1,
+            "meta_band_id": 1,
+            "meta_utc_time_code": 0,
+            "meta_transport_sample_rate": 3960000000,
+            "meta_hardware_source_id": 0,
             "rx_packet_rate": 1500000,
-            "expected_sample_rate": 3960000000
+            "rx_sample_rate": 3960000000
         }
+
+
         
         with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()
@@ -178,22 +192,30 @@ class TestWidebandInputBuffer:
             
     def test_ber_failed(self, wideband_input_buffer: WidebandInputBufferManager):
         bad_status = {
+            "receive_enable": True,
+            "packet_error": True,
+            "packet_drop": False,
             "link_failure": False,
             "buffer_overflow": False,
-            "loss_of_signal": 0,
             "error": False,
-            "loss_of_signal_seconds": 0,
-            "meta_band_id": 1,
-            "meta_dish_id": 1,
-            "rx_sample_rate": 3960000000,
-            "meta_transport_sample_rate": 3960000000,
-            "packet_error": True,
+            "firmware_band": 1,
+            "stream_rate": 1500000,
+            "packet_rate": 1500000,
+            "noise_diode_transition_holdoff_count": 1,
             "packet_error_count": 2,
-            "packet_drop": False,
             "packet_drop_count": 0,
+            "loss_of_signal_seconds": 0,
+            "meta_ethertype": 1,
+            "meta_dish_id": 1,
+            "meta_band_id": 1,
+            "meta_utc_time_code": 0,
+            "meta_transport_sample_rate": 3960000000,
+            "meta_hardware_source_id": 0,
             "rx_packet_rate": 1500000,
-            "expected_sample_rate": 3960000000
+            "rx_sample_rate": 3960000000
         }
+
+
         
         with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()

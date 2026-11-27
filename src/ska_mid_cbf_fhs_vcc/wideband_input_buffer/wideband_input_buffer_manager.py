@@ -7,7 +7,6 @@ from ska_mid_cbf_fhs_common import (
     EmulatorApi,
     FhsDataclass,
     UInt8,
-    UInt16,
     UInt32,
     UInt64,
     convert_dish_id_uint16_to_str,
@@ -35,21 +34,27 @@ class WidebandInputBufferConfig(FhsDataclass):
 # status class that will be populated by the APIs and returned to provide the status of the Wideband Input Buffer
 ##
 class WidebandInputBufferStatus(FhsDataclass):
-    buffer_overflow: bool
-    loss_of_signal: UInt32
-    error: bool
+    receive_enable: bool
     packet_error: bool
-    packet_error_count: UInt32
     packet_drop: bool
+    link_failure: bool
+    buffer_overflow: bool
+    error: bool
+    firmware_band: UInt32
+    stream_rate: UInt32
+    packet_rate: UInt32
+    noise_diode_transition_holdoff_count: UInt32
+    packet_error_count: UInt32
     packet_drop_count: UInt32
     loss_of_signal_seconds: UInt32
-    meta_band_id: UInt8
-    meta_dish_id: UInt16
-    rx_sample_rate: UInt32
+    meta_ethertype: UInt32
+    meta_dish_id: UInt32
+    meta_band_id: UInt32
+    meta_utc_time_code: UInt32
+    meta_transport_sample_rate: UInt64
+    meta_hardware_source_id: UInt64
     rx_packet_rate: UInt32
-    meta_transport_sample_rate: UInt32
-    link_failure: bool
-    expected_sample_rate: UInt32
+    rx_sample_rate: UInt32
 
 
 class WidebandInputBufferManager(BaseMonitoringIPBlockManager[WidebandInputBufferConfig, WidebandInputBufferStatus]):

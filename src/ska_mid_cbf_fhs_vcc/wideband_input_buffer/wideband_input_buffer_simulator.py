@@ -52,7 +52,8 @@ class WidebandInputBufferSimulator(BaseSimulatorApi):
         try:
             return json.loads(self.status_str)
         except Exception as ex:
-            self._logger.error(f"Unable to convert status to dict: {ex.with_traceback()}")
+            self._logger.error(f"Unable to convert status to dict: {ex.with_traceback(None)}")
+            raise
 
     def update_status(self, new_status: str):
         self.status_str = new_status

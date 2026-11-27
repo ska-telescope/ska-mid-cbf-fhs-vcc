@@ -6,14 +6,14 @@ import math
 import grpc
 import pytest
 
-from ska_mid_cbf_fhs_common.grpc.driver_registry_base import DriverInfo
+from ska_mid_cbf_fhs_vcc_grpc_controller.driver_registry.driver_registry_base import DriverInfo
 from ska_mid_cbf_fhs_vcc_grpc_controller.driver_registry.vcc_driver_registry import VccDriverRegistry
 from ska_mid_cbf_fhs_vcc_grpc_controller.generated.vcc_drivers import vcc_drivers_pb2, vcc_drivers_pb2_grpc, vcc_fs_selection_pb2, gaussian_noise_pb2, vcc_bite_tone_gen_pb2, polarization_coupler_pb2, spfrx_packetizer_pb2, vcc_bite_pb2,vcc_source_select_pb2, vcc_pkt_filter_pb2, wideband_input_buffer_pb2, vcc_pkt_capture_pb2, frequency_shifter_pb2, vcc_ch20_pb2, vcc_ch30_pb2, wideband_power_meter_pb2, vcc_stream_merge_pb2, pcie_stream_merge_pb2, noise_diode_pb2, ftile_ethernet_pb2
 from ska_mid_cbf_fhs_vcc_grpc_controller.generated.common import sys_id_pb2
 from ska_mid_cbf_fhs_vcc_grpc_controller.services.vcc_driver_servicer import VccDriverServicer
 from google.protobuf.json_format import MessageToDict
-from ska_mid_cbf_fhs_vcc_grpc_controller.simulators.mock_driver_instantiator import VccMockDriverInstantiator
-from ska_mid_cbf_fhs_common.grpc.utils.proto_utils import message_to_dict_int64_as_int
+from ska_mid_cbf_fhs_vcc_grpc_controller.simulators.vcc_mock_driver_instantiator import VccMockDriverInstantiator
+from ska_mid_cbf_fhs_vcc_grpc_controller.utils.proto_utils import message_to_dict_int64_as_int
 from google.protobuf import empty_pb2
 from ska_mid_cbf_fhs_vcc_grpc_controller.server import VccGrpcServer
 
@@ -33,9 +33,9 @@ def grpc_setup():
 
     driver_registry = VccDriverRegistry(logger)
 
-    mock_driver_instantiator = VccMockDriverInstantiator(driver_registry, card)
+    mock_driver_instantiator = VccMockDriverInstantiator(driver_registry)
 
-    mock_driver_instantiator.instantiate_mock_drivers()
+    mock_driver_instantiator.instantiate_mock_drivers("t1413c1")
 
     vcc_drivers_servicer = VccDriverServicer(logger, driver_registry)
 
@@ -60,8 +60,6 @@ class TestVccGrpcClient:
         vcc_grpc_client.configure(sys_id_config)
 
         assert driver_info.driver.configuration["scratch"] == 10
-
-        vcc_grpc_client.channel.close()
 
     def test_wideband_input_buffer_configure(self, grpc_setup: tuple):
         vcc_grpc_client = VccGrpcClient(f"{card}_receptor0_wideband_input_buffer_driver", logger, "localhost", grpc_setup[0])

@@ -3,7 +3,6 @@ from ska_mid_cbf_fhs_vcc_grpc_controller.generated.vcc_drivers import vcc_driver
 
 
 class VccGrpcClient(FirmwareApi):
-
     def __init__(self, firmware_ip_block_id, logger, host, port):
 
         logger.info(f"[VccGrpcClient.__init__] - CREATING VCCGRPC CLIENT FOR {firmware_ip_block_id}")

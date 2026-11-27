@@ -177,7 +177,16 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         self.log_debug(f"LRC Result Buffer Size: {self.long_running_command_result_buffer.max_size}")
 
-        self.vcc_bite_manager = VCCBiteManager(logger=logger)
+        sim_mode = simulation_mode | emulation_mode
+
+        self.vcc_bite_manager = VCCBiteManager(
+            logger=logger,
+            grpc_host=str(self.device.grpc_host),
+            grpc_port=str(self.device.grpc_port),
+            simulation_mode=SimulationMode(sim_mode),
+            card_name=str(self.device.fpga_card_id),
+            receptor_id=str(self.device.receptor_id),
+        )
         self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
         self._sample_rate = 0

@@ -127,6 +127,7 @@ class TestVCCAllBandsController:
             logging_level="DEBUG",
             ip_blocks=b64encode(json.dumps(ip_blocks).encode("utf-8")).decode("ascii"),
             long_running_command_result_buffer_max_size=LONG_RUNNING_COMMAND_RESULT_BUFFER_DEFAULT_MAX_SIZE, 
+            
         )
 
         with harness as test_context:
