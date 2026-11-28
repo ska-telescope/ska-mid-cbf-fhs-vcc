@@ -1,10 +1,12 @@
 import pytest
 
-from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import B123VccOsppfbChannelizerConfigureArgin, B123VccOsppfbChannelizerManager
+from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
+    B123VccOsppfbChannelizerConfigureArgin,
+    B123VccOsppfbChannelizerManager,
+)
 
 
 class TestB123VccOsppfbChannelizer:
-
     @pytest.fixture(scope="function")
     def b123_vcc(self):
         """Fixture to set up the B123 VCC."""
@@ -21,7 +23,7 @@ class TestB123VccOsppfbChannelizer:
 
     def test_configure(self, b123_vcc: B123VccOsppfbChannelizerManager):
         """Test the configure method of the B123 VCC."""
-        with open("tests/test_data/device_config/b123_vcc_osppfb_channelizer.json", "r") as f:
+        with open("tests/test_data/ip_block_config/b123_vcc_osppfb_channelizer.json", "r") as f:
             config_json = f.read()
         result = b123_vcc.configure(B123VccOsppfbChannelizerConfigureArgin.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"

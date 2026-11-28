@@ -1,4 +1,3 @@
-# # -*- coding: utf-8 -*-
 # #
 # # This file is part of the ska-mid-cbf-fhs-sim project
 # #
@@ -16,16 +15,17 @@ import json
 import os
 from typing import Any
 
+import numpy as np
 import orjson
 import pytest
 from assertpy import assert_that
 from ska_control_model import HealthState, ResultCode
 from ska_control_model.future import AdminMode
-from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim import SimVCCAllBandsController, VCC_SIM_DEFAULT_ATTRIBUTE_VALUES
+from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
 from ska_tango_testing.integration import TangoEventTracer
 from tango import DevState
 
-from ska_mid_cbf_fhs_common import ConfigurableThreadedTestTangoContextManager
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_sim import VCC_SIM_DEFAULT_ATTRIBUTE_VALUES, SimVCCAllBandsController
 
 # Path
 test_data_path = os.path.dirname(os.path.abspath(__file__)) + "/../../data/"
@@ -74,6 +74,23 @@ class TestVCCAllBandsSim:
         with harness as test_context:
             yield test_context
 
+    def safe_assert_attr_values_eq(self, val1: Any, val2: Any) -> None:
+        """Assert that two Tango attribute values are equal.
+        This helper exists because standard Python comparison will throw an exception if
+        either side is or contains a numpy array (which is exactly what happens when reading a tango IMAGE attribute)."""
+        if isinstance(val1, (list, np.ndarray)):
+            if isinstance(val2, (list, np.ndarray)):
+                l = len(val1)
+                assert l == len(val2)
+                for i in range(l):
+                    self.safe_assert_attr_values_eq(val1[i], val2[i])
+            else:
+                assert False, f"Expected {val1} to equal {val2}."
+        elif isinstance(val2, (list, np.ndarray)):
+            assert False, f"Expected {val1} to equal {val2}."
+        else:
+            assert val1 == val2
+
     def test_State(self: TestVCCAllBandsSim, sim_vcc_all_bands_device: Any) -> None:
         """Test the State attribute just after device initialization.
 
@@ -105,7 +122,6 @@ class TestVCCAllBandsSim:
         "attribute_name",
         [
             "expectedDishId",
-            "requestedRFIHeadroom",
             "vccGains",
             "frequencyBand",
             "inputSampleRate",
@@ -125,16 +141,15 @@ class TestVCCAllBandsSim:
             attribute_name (:obj:`str`): Name of the attribute to test.
         """
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
-        assert getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
+        self.safe_assert_attr_values_eq(getattr(sim_vcc_all_bands_device, attribute_name), attribute_value)
 
     def test_read_attribute_health_info(
         self: TestVCCAllBandsSim,
         sim_vcc_all_bands_device: Any,
     ):
-        
         """
         Test checking if attributes returns the correct value
-        
+
         HealthInfo is a special case where dumping the empty string will return a literal '""'
 
         Args:
@@ -162,9 +177,7 @@ class TestVCCAllBandsSim:
         )
 
         # Check event
-        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-            event_timeout
-        ).has_change_event_occurred(
+        assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
             device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
             attribute_name="healthState",
             attribute_value=HealthState.FAILED,
@@ -183,8 +196,7 @@ class TestVCCAllBandsSim:
         "attribute_name, attribute_new_value",
         [
             ("expectedDishId", "test"),
-            ("requestedRFIHeadroom", 26 * [1.0]),
-            ("vccGains", 26 * [1.0]),
+            ("vccGains", [[1.0] * 26] * 2),
             # "frequencyBand", # TODO fix enum test
             ("inputSampleRate", 1),
             ("frequencyBandOffset", 2 * [1]),
@@ -209,14 +221,7 @@ class TestVCCAllBandsSim:
         )
 
         # Check value change
-        if isinstance(attribute_new_value, list):
-            assert (
-                list(getattr(sim_vcc_all_bands_device, attribute_name)) == list(attribute_new_value)
-            )
-        else:
-            assert (
-                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value
-            )
+        self.safe_assert_attr_values_eq(getattr(sim_vcc_all_bands_device, attribute_name), attribute_new_value)
 
     def test_ConfigureScan_override_fail(
         self: TestVCCAllBandsSim,
@@ -247,9 +252,7 @@ class TestVCCAllBandsSim:
         )
 
         # Defaults to successful commands
-        [[result_code], [configure_scan_command_id]] = (
-            sim_vcc_all_bands_device.ConfigureScan("test")
-        )
+        [[result_code], [configure_scan_command_id]] = sim_vcc_all_bands_device.ConfigureScan("test")
         assert result_code == ResultCode.QUEUED
         [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle(json.dumps({"subarray_id": 1, "transaction_id": "TEST_GO_TO_IDLE"}))
         assert result_code == ResultCode.QUEUED
@@ -276,9 +279,7 @@ class TestVCCAllBandsSim:
 
         # Check events
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
@@ -297,9 +298,7 @@ class TestVCCAllBandsSim:
                 }
             }
         )
-        [[result_code], [configure_scan_command_id]] = (
-            sim_vcc_all_bands_device.ConfigureScan("test")
-        )
+        [[result_code], [configure_scan_command_id]] = sim_vcc_all_bands_device.ConfigureScan("test")
         assert result_code == ResultCode.QUEUED
         expected_events = [
             (
@@ -315,9 +314,7 @@ class TestVCCAllBandsSim:
 
         # Check events
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
@@ -327,9 +324,7 @@ class TestVCCAllBandsSim:
 
         # Reset overrides
         sim_vcc_all_bands_device.simOverrides = original_overrides
-        [[result_code], [configure_scan_command_id]] = (
-            sim_vcc_all_bands_device.ConfigureScan("test")
-        )
+        [[result_code], [configure_scan_command_id]] = sim_vcc_all_bands_device.ConfigureScan("test")
         assert result_code == ResultCode.QUEUED
         [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle(json.dumps({"subarray_id": 1, "transaction_id": "TEST_GO_TO_IDLE"}))
         assert result_code == ResultCode.QUEUED
@@ -356,9 +351,7 @@ class TestVCCAllBandsSim:
 
         # Check events
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
@@ -368,9 +361,8 @@ class TestVCCAllBandsSim:
 
     @pytest.mark.parametrize(
         "command_name, \
-        command_param", 
+        command_param",
         [
-            ("AutoSetFilterGains", json.dumps({"headrooms": [3.0]})),
             ("UpdateSubarrayMembership", 1),
             ("ConfigureVCCBite", json.dumps({"transaction_id": "txn-test"})),
             ("DeconfigureVCCBite", "txn-test"),
@@ -392,9 +384,7 @@ class TestVCCAllBandsSim:
                 events from the device under test.
         """
 
-        [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
-            command_name, command_param
-        )
+        [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(command_name, command_param)
 
         assert result_code == ResultCode.QUEUED
         expected_events = [
@@ -411,9 +401,7 @@ class TestVCCAllBandsSim:
 
         # Assert command events have been completed
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
@@ -422,7 +410,7 @@ class TestVCCAllBandsSim:
             )
 
     @pytest.mark.parametrize(
-        "subarray_id", 
+        "subarray_id",
         [1, 2, 16],
     )
     def test_UpdateSubarrayMembership_with_event(
@@ -471,9 +459,7 @@ class TestVCCAllBandsSim:
             ),
         ]
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
@@ -483,9 +469,8 @@ class TestVCCAllBandsSim:
 
     @pytest.mark.parametrize(
         "command_name, \
-        command_param", 
+        command_param",
         [
-            ("AutoSetFilterGains", json.dumps({"headrooms": [3.0]})),
             ("UpdateSubarrayMembership", 1),
         ],
     )
@@ -517,9 +502,7 @@ class TestVCCAllBandsSim:
             }
         )
 
-        [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(
-            command_name, command_param
-        )
+        [[result_code], [command_id]] = sim_vcc_all_bands_device.command_inout(command_name, command_param)
         assert result_code == ResultCode.QUEUED
         expected_events = [
             (
@@ -534,9 +517,7 @@ class TestVCCAllBandsSim:
         ]
 
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
@@ -548,8 +529,7 @@ class TestVCCAllBandsSim:
         "attribute_name, attribute_new_value",
         [
             ("expectedDishId", "test"),
-            ("requestedRFIHeadroom", 13 * [1.0]),
-            ("vccGains", 13 * [1.0]),
+            ("vccGains", [[1.0] * 26] * 2),
             # "frequencyBand", # TODO fix enum test
             ("inputSampleRate", 1),
             ("frequencyBandOffset", [1]),
@@ -562,7 +542,7 @@ class TestVCCAllBandsSim:
         attribute_name: Any,
         attribute_new_value: Any,
     ) -> None:
-        """ Test attribute overrides by queueing multiple and consuming from the queue. Additionally checks default overrides """
+        """Test attribute overrides by queueing multiple and consuming from the queue. Additionally checks default overrides"""
         attribute_value = VCC_SIM_DEFAULT_ATTRIBUTE_VALUES[attribute_name]
 
         # Queue up two attributes
@@ -573,52 +553,34 @@ class TestVCCAllBandsSim:
                 }
             }
         )
-        sim_vcc_all_bands_device.simOverrides = json.dumps(
-            {
-                "attributes": {
-                    attribute_name: attribute_new_value + attribute_new_value,
+        if attribute_name == "vccGains":
+            sim_vcc_all_bands_device.simOverrides = json.dumps(
+                {
+                    "attributes": {
+                        attribute_name: [[j + 1.0 for j in i] for i in attribute_new_value],
+                    }
                 }
-            }
-        )
-
-        # Check first value change
-        if isinstance(attribute_new_value, list):
-            assert (
-                list(getattr(sim_vcc_all_bands_device, attribute_name)) == list(attribute_new_value)
             )
         else:
-            assert (
-                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value
+            sim_vcc_all_bands_device.simOverrides = json.dumps(
+                {
+                    "attributes": {
+                        attribute_name: attribute_new_value + attribute_new_value,
+                    }
+                }
             )
 
-        sim_vcc_all_bands_device.simOverrides = json.dumps(
-            {
-                "attributes": {
-                    attribute_name: attribute_new_value
-                }
-            }
-        )
+        # Check first value change
+        self.safe_assert_attr_values_eq(getattr(sim_vcc_all_bands_device, attribute_name), attribute_new_value)
+
+        sim_vcc_all_bands_device.simOverrides = json.dumps({"attributes": {attribute_name: attribute_new_value}})
         # Check second third and default value change
-        if isinstance(attribute_new_value, list):
-            assert (
-                list(getattr(sim_vcc_all_bands_device, attribute_name)) == list(attribute_new_value + attribute_new_value)
-            )
-            assert (
-                list(getattr(sim_vcc_all_bands_device, attribute_name)) == list(attribute_new_value)
-            )
-            assert (
-                list(getattr(sim_vcc_all_bands_device, attribute_name)) == list(attribute_value)
-            )
-        else:         
-            assert (
-                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value + attribute_new_value
-            )
-            assert (
-                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_new_value
-            )
-            assert (
-                getattr(sim_vcc_all_bands_device, attribute_name) == attribute_value
-            )
+        if attribute_name == "vccGains":
+            self.safe_assert_attr_values_eq(getattr(sim_vcc_all_bands_device, attribute_name), [[j + 1.0 for j in i] for i in attribute_new_value])
+        else:
+            self.safe_assert_attr_values_eq(getattr(sim_vcc_all_bands_device, attribute_name), attribute_new_value + attribute_new_value)
+        self.safe_assert_attr_values_eq(getattr(sim_vcc_all_bands_device, attribute_name), attribute_new_value)
+        self.safe_assert_attr_values_eq(getattr(sim_vcc_all_bands_device, attribute_name), attribute_value)
 
     def test_command_queueing(
         self: TestVCCAllBandsSim,
@@ -626,7 +588,7 @@ class TestVCCAllBandsSim:
         sim_vcc_all_bands_event_tracer: TangoEventTracer,
         event_timeout: int,
     ) -> None:
-        """ Test command overrides by queueing multiple and consuming from the queue. Additionally checks default overrides """
+        """Test command overrides by queueing multiple and consuming from the queue. Additionally checks default overrides"""
 
         # Queue Up 3 commands
         sim_vcc_all_bands_device.simOverrides = json.dumps(
@@ -641,7 +603,7 @@ class TestVCCAllBandsSim:
         )
         sim_vcc_all_bands_device.simOverrides = json.dumps(
             {
-                "commands":{
+                "commands": {
                     "ConfigureScan": {
                         "allowed": True,
                         "allowed_states": ["ON"],
@@ -674,9 +636,7 @@ class TestVCCAllBandsSim:
         )
 
         # Test for first queued command
-        [[result_code], [configure_scan_command_id]] = (
-            sim_vcc_all_bands_device.ConfigureScan("test")
-        )
+        [[result_code], [configure_scan_command_id]] = sim_vcc_all_bands_device.ConfigureScan("test")
         assert result_code == ResultCode.QUEUED
         expected_events = [
             (
@@ -692,20 +652,16 @@ class TestVCCAllBandsSim:
 
         # Check events
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
                 min_n_events=n,
             )
-        
+
         # Test for second queued command
-        [[result_code], [configure_scan_command_id]] = (
-            sim_vcc_all_bands_device.ConfigureScan("test")
-        )
+        [[result_code], [configure_scan_command_id]] = sim_vcc_all_bands_device.ConfigureScan("test")
         assert result_code == ResultCode.QUEUED
         [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle(json.dumps({"subarray_id": 1, "transaction_id": "TEST_GO_TO_IDLE"}))
         assert result_code == ResultCode.QUEUED
@@ -731,9 +687,7 @@ class TestVCCAllBandsSim:
         ]
         # Check events
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
@@ -742,9 +696,7 @@ class TestVCCAllBandsSim:
             )
 
         # Test for 3rd queued command
-        [[result_code], [configure_scan_command_id]] = (
-            sim_vcc_all_bands_device.ConfigureScan("test")
-        )
+        [[result_code], [configure_scan_command_id]] = sim_vcc_all_bands_device.ConfigureScan("test")
         assert result_code == ResultCode.QUEUED
         expected_events = [
             (
@@ -760,9 +712,7 @@ class TestVCCAllBandsSim:
 
         # Check events
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
@@ -772,20 +722,16 @@ class TestVCCAllBandsSim:
 
         # Check events
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,
                 previous_value=previous,
                 min_n_events=n,
             )
-        
-        #Test for default command
-        [[result_code], [configure_scan_command_id]] = (
-            sim_vcc_all_bands_device.ConfigureScan("test")
-        )
+
+        # Test for default command
+        [[result_code], [configure_scan_command_id]] = sim_vcc_all_bands_device.ConfigureScan("test")
         assert result_code == ResultCode.QUEUED
         [[result_code], [go_to_idle_command_id]] = sim_vcc_all_bands_device.GoToIdle(json.dumps({"subarray_id": 1, "transaction_id": "TEST_GO_TO_IDLE"}))
         assert result_code == ResultCode.QUEUED
@@ -811,9 +757,7 @@ class TestVCCAllBandsSim:
         ]
         # Check events
         for name, value, previous, n in expected_events:
-            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(
-                event_timeout
-            ).has_change_event_occurred(
+            assert_that(sim_vcc_all_bands_event_tracer).within_timeout(event_timeout).has_change_event_occurred(
                 device_name=sim_vcc_all_bands_device,  # type: ignore[reportCallIssue]
                 attribute_name=name,
                 attribute_value=value,

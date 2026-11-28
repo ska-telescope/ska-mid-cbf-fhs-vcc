@@ -1,5 +1,7 @@
 [run]
 omit =
+    # TODO: remove if we ever use this
+    */circuit_switch/*
 patch =
     subprocess
     fork

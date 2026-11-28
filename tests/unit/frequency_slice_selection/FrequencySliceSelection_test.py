@@ -4,7 +4,6 @@ from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_man
 
 
 class TestFrequencySliceSelection:
-
     @pytest.fixture(scope="function")
     def frequency_slice_selection(self):
         """Fixture to set up the Frequency Slice Selection block."""
@@ -21,7 +20,7 @@ class TestFrequencySliceSelection:
 
     def test_configure(self, frequency_slice_selection: FrequencySliceSelectionManager):
         """Test the configure method of the Frequency Slice Selection block."""
-        with open("tests/test_data/device_config/frequency_slice_selection.json", "r") as f:
+        with open("tests/test_data/ip_block_config/frequency_slice_selection.json", "r") as f:
             config_json = f.read()
         result = frequency_slice_selection.configure(FrequencySliceSelectionConfig.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"

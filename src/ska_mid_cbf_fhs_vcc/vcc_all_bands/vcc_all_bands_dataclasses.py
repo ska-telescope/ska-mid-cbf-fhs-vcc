@@ -1,7 +1,8 @@
-from typing import Annotated
+from typing import Annotated, Any, cast
 
-from pydantic import Field
-from ska_mid_cbf_fhs_common import FhsControllerBaseConfig, FhsDataclass
+from mpmath import mp, mpf
+from pydantic import Field, computed_field
+from ska_mid_cbf_fhs_common import FHS_MPMATH_PRECISION, FhsControllerBaseConfig, FhsDataclass, FloatLike, MPFloat, UInt64
 
 
 class VCCAllBandsConfigureScanPowerMeterConfig(FhsDataclass):
@@ -52,11 +53,12 @@ class VCCAllBandsGoToIdleArgin(FhsDataclass):
     transaction_id: str | None = None
 
 
-class VCCAllBandsAutoSetFilterGainsArgin(FhsDataclass):
-    """Dataclass representing the VCC All Bands AutoSetFilterGains input parameter."""
+# TODO: Currently unused. Uncomment and refactor if needed for Transient Buffer; if determined unnecessary, delete entirely.
+# class VCCAllBandsAutoSetFilterGainsArgin(FhsDataclass):
+#     """Dataclass representing the VCC All Bands AutoSetFilterGains input parameter."""
 
-    headrooms: list[float] | None = Field(default_factory=lambda: [3.0])
-    transaction_id: str | None = None
+#     headrooms: list[float] | None = Field(default_factory=lambda: [3.0])
+#     transaction_id: str | None = None
 
 
 class VCCAllBandsConfigureVCCBiteNoiseInfoPolarityConfig(FhsDataclass):
@@ -131,3 +133,69 @@ class VCCAllBandsDeconfigureVCCBiteArgin(FhsDataclass):
     """Dataclass representing the VCC All Bands DeconfigureVCCBite input parameter."""
 
     transaction_id: str | None = None
+
+
+class VCCPowerMeasurement(FhsDataclass):
+    total: Annotated[FloatLike, Field(ge=0, le=1)]
+    nd_on: Annotated[FloatLike, Field(ge=0, le=1)]
+    nd_off: Annotated[FloatLike, Field(ge=0, le=1)]
+
+
+class VCCXYPowerMeasurements(FhsDataclass):
+    x: VCCPowerMeasurement
+    y: VCCPowerMeasurement
+    weight: FloatLike = MPFloat("1.0")
+
+
+class VCCPowerMeasurementResponse(FhsDataclass):
+    b123: VCCXYPowerMeasurements
+    b45a: VCCXYPowerMeasurements
+    b5b: VCCXYPowerMeasurements
+    fs: dict[int, VCCXYPowerMeasurements]
+    timestamp: UInt64
+
+
+class VCCAveragedPowerMeasurement(FhsDataclass):
+    total: FloatLike
+    nd_on: FloatLike
+    nd_off: FloatLike
+
+    def model_post_init(self, _context: Any) -> None:
+        mp.dps = FHS_MPMATH_PRECISION
+        self._gain: FloatLike = MPFloat("0.0")
+
+    @computed_field
+    @property
+    def headroom(self) -> FloatLike:
+        mp.dps = FHS_MPMATH_PRECISION
+        return cast(mpf, mp.fneg(self.total))
+
+    @computed_field
+    @property
+    def total_backed_out(self) -> FloatLike:
+        mp.dps = FHS_MPMATH_PRECISION
+        return cast(mpf, mp.fsub(self.total, self._gain))
+
+    @computed_field
+    @property
+    def nd_on_backed_out(self) -> FloatLike:
+        mp.dps = FHS_MPMATH_PRECISION
+        return cast(mpf, mp.fsub(self.nd_on, self._gain))
+
+    @computed_field
+    @property
+    def nd_off_backed_out(self) -> FloatLike:
+        mp.dps = FHS_MPMATH_PRECISION
+        return cast(mpf, mp.fsub(self.nd_off, self._gain))
+
+    def apply_gain(self, gain: FloatLike) -> None:
+        self._gain = gain
+
+
+class VCCXYAveragedPowerMeasurements(FhsDataclass):
+    x: VCCAveragedPowerMeasurement
+    y: VCCAveragedPowerMeasurement
+
+    def apply_gain(self, gain_x: FloatLike, gain_y: FloatLike):
+        self.x.apply_gain(gain_x)
+        self.y.apply_gain(gain_y)

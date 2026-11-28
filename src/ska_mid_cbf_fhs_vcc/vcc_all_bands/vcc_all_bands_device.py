@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from threading import Event
 
 import tango
 from ska_control_model import ResultCode, SimulationMode, TaskStatus
-from ska_mid_cbf_fhs_common import FhsControllerBaseDevice, FhsState
+from ska_mid_cbf_fhs_common import FhsControllerBaseDevice, FhsState, FloatLike
 from ska_tango_base.base.base_device import DevVarLongStringArrayType
 from tango.server import attribute, command
 
 from ska_mid_cbf_fhs_vcc import release as release_info
-from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum
+from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_component_manager import VCCAllBandsComponentManager
+from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAveragedPowerMeasurement
 
 
 class VCCAllBandsController(
@@ -40,7 +42,6 @@ class VCCAllBandsController(
             ("GoToIdle", "go_to_idle"),
             ("Abort", "abort"),
             ("UpdateSubarrayMembership", "update_subarray_membership"),
-            ("AutoSetFilterGains", "auto_set_filter_gains"),
             ("ConfigureVCCBite", "configure_vcc_bite"),
             ("DeconfigureVCCBite", "deconfigure_vcc_bite"),
         ]
@@ -124,18 +125,6 @@ class VCCAllBandsController(
         return self.component_manager.input_sample_rate
 
     @attribute(
-        dtype=(float,),
-        max_dim_x=26,
-    )
-    def requestedRFIHeadroom(self) -> list[float]:
-        """Read-only Tango attribute specifying the requested headrooms from the most recent call to AutoSetFilterGains.
-
-        Returns:
-            :obj:`list[float]`: The requested headrooms.
-        """
-        return self.component_manager.last_requested_headrooms
-
-    @attribute(
         dtype=tango.DevUShort,
         abs_change=1,
         min_value=0,
@@ -150,17 +139,154 @@ class VCCAllBandsController(
         return self.component_manager.subarray_id
 
     @attribute(
-        dtype=(float,),
-        max_dim_x=52,
+        dtype=((float,),),
+        max_dim_x=3,
+        max_dim_y=2,
+        doc=(
+            "Current average total power of the B123 or B45a power meter (depending on current band), in dB. "
+            "Format: `[[polX_pwr_nd_off, polX_pwr_nd_on, polX_pwr_total], [polY_pwr_nd_off, polY_pwr_nd_on, polY_pwr_total]]`"
+        ),
     )
-    def vccGains(self) -> list[float]:
-        """Read-only Tango attribute specifying the currently applied gain multipliers for VCC coarse channels.
+    def widebandPower1(self) -> list[list[FloatLike]]:
+        """Read-only Tango attribute specifying the current average total power of the B123 or B45a power meter
+        (depending on current band), in dB, for both the X and Y polarization.
 
         Returns:
-            :obj:`list[float]`: The VCC coarse channel gain multipliers, in the format
-            [ch0_polX, ch1_polX, ..., chN_polX, ch0_polY, ch1_polY, ..., chN_polY].
+            :obj:`list[list[FloatLike]]`: The current average total power of the B123 or B45a power meter, in the format:
+                `[[polX_pwr_nd_off, polX_pwr_nd_on, polX_pwr_total], [polY_pwr_nd_off, polY_pwr_nd_on, polY_pwr_total]]`.
         """
-        return self.component_manager.vcc_gains
+        if self.component_manager.frequency_band in (FrequencyBandEnum._1, FrequencyBandEnum._2):
+            measurements = self.component_manager.current_power.get(VCCBandGroup.B123, None)
+        else:
+            measurements = self.component_manager.current_power.get(VCCBandGroup.B45A, None)
+        if measurements is None:
+            return self._get_default_wideband_power()
+        return [
+            [measurements.x.nd_off, measurements.x.nd_on, measurements.x.total],
+            [measurements.y.nd_off, measurements.y.nd_on, measurements.y.total],
+        ]
+
+    @attribute(
+        dtype=((float,),),
+        max_dim_x=3,
+        max_dim_y=2,
+        doc=(
+            "Current average total power of the B5b power meter, in dB. "
+            "Format: `[[polX_pwr_nd_off, polX_pwr_nd_on, polX_pwr_total], [polY_pwr_nd_off, polY_pwr_nd_on, polY_pwr_total]]`"
+        ),
+    )
+    def widebandPower2(self) -> list[list[FloatLike]]:
+        """Read-only Tango attribute specifying the current average total power of the B5b power meter,
+        in dB, for both the X and Y polarization.
+
+        Returns:
+            :obj:`list[list[FloatLike]]`: The current average total power of the B5b power meter, in the format:
+                `[[polX_pwr_nd_off, polX_pwr_nd_on, polX_pwr_total], [polY_pwr_nd_off, polY_pwr_nd_on, polY_pwr_total]]`.
+        """
+        measurements = self.component_manager.current_power.get(VCCBandGroup.B5B, None)
+        if measurements is None:
+            return self._get_default_wideband_power()
+        return [
+            [measurements.x.nd_off, measurements.x.nd_on, measurements.x.total],
+            [measurements.y.nd_off, measurements.y.nd_on, measurements.y.total],
+        ]
+
+    @attribute(
+        dtype=(str,),
+        max_dim_x=3,
+        doc="Labels for the power measurements in widebandPower1 and widebandPower2.",
+    )
+    def widebandLabels(self) -> list[str]:
+        """Read-only Tango attribute specifying labels for the power measurements in widebandPower1 and widebandPower2.
+
+        Returns:
+            :obj:`list[str]`: The labels.
+        """
+        return ["Noise Diode Off", "Noise Diode On", "Total"]
+
+    @attribute(
+        dtype=((float,),),
+        max_dim_x=26,
+        max_dim_y=2,
+        doc="FS gains in dB for X and Y polarizations. Format: `[[fs1_gain_polX, fs2_gain_polX, ...], [fs1_gain_polY, fs2_gain_polY, ...]]`",
+    )
+    def vccGains(self) -> list[list[FloatLike]]:
+        """Read-only Tango attribute specifying the configured FS gains in dB for both the X and Y polarization.
+
+        Returns:
+            :obj:`list[list[FloatLike]]`: The configured FS gains, in the format:
+                `[[fs1_gain_polX, fs2_gain_polX, ...], [fs1_gain_polY, fs2_gain_polY, ...]]`.
+        """
+        return self.component_manager.fs_gains
+
+    @attribute(
+        dtype=((float,),),
+        max_dim_x=26,
+        max_dim_y=2,
+        doc=("Current average total power of each FS power meter, in dB. Format: `[[fs1_pwr_polX, fs2_pwr_polX, ...], [fs1_pwr_polY, fs2_pwr_polY, ...]]`"),
+    )
+    def vccPower(self) -> list[list[FloatLike]]:
+        """Read-only Tango attribute specifying the current average total power of each FS power meter,
+        in dB, for both the X and Y polarization.
+
+        Returns:
+            :obj:`list[list[FloatLike]]`: The current average total power of each FS power meter, in the format:
+                `[[fs1_pwr_polX, fs2_pwr_polX, ...], [fs1_pwr_polY, fs2_pwr_polY, ...]]`.
+        """
+        return self._generate_fs_power_attr(lambda power_measurement: power_measurement.total_backed_out)
+
+    @attribute(
+        dtype=((float,),),
+        max_dim_x=26,
+        max_dim_y=2,
+        doc=(
+            "Current average noise-diode-ON power of each FS power meter, in dB. "
+            "Format: `[[fs1_pwr_polX, fs2_pwr_polX, ...], [fs1_pwr_polY, fs2_pwr_polY, ...]]`"
+        ),
+    )
+    def ndOnPower(self) -> list[list[FloatLike]]:
+        """Read-only Tango attribute specifying the current average noise-diode-ON power of each FS power meter,
+        in dB, for both the X and Y polarization.
+
+        Returns:
+            :obj:`list[list[FloatLike]]`: The current average noise-diode-ON power of each FS power meter, in the format:
+                `[[fs1_pwr_polX, fs2_pwr_polX, ...], [fs1_pwr_polY, fs2_pwr_polY, ...]]`.
+        """
+        return self._generate_fs_power_attr(lambda power_measurement: power_measurement.nd_on_backed_out)
+
+    @attribute(
+        dtype=((float,),),
+        max_dim_x=26,
+        max_dim_y=2,
+        doc=(
+            "Current average noise-diode-OFF power of each FS power meter, in dB. "
+            "Format: `[[fs1_pwr_polX, fs2_pwr_polX, ...], [fs1_pwr_polY, fs2_pwr_polY, ...]]`"
+        ),
+    )
+    def ndOffPower(self) -> list[list[FloatLike]]:
+        """Read-only Tango attribute specifying the current average noise-diode-OFF power of each FS power meter,
+        in dB, for both the X and Y polarization.
+
+        Returns:
+            :obj:`list[list[FloatLike]]`: The current average noise-diode-OFF power of each FS power meter, in the format:
+                `[[fs1_pwr_polX, fs2_pwr_polX, ...], [fs1_pwr_polY, fs2_pwr_polY, ...]]`.
+        """
+        return self._generate_fs_power_attr(lambda power_measurement: power_measurement.nd_off_backed_out)
+
+    @attribute(
+        dtype=((float,),),
+        max_dim_x=26,
+        max_dim_y=2,
+        doc=("Current headroom of each FS, in dB. Format: `[[fs1_hr_x, fs2_hr_x, ...], [fs1_hr_y, fs2_hr_y, ...]]`"),
+    )
+    def headrooms(self) -> list[list[FloatLike]]:
+        """Read-only Tango attribute specifying the current headroom of each FS, in dB, for both the X and Y polarization.
+
+        Returns:
+            :obj:`list[list[FloatLike]]`: The current headroom of each FS, in the format:
+                `[[fs1_hr_x, fs2_hr_x, ...], [fs1_hr_y, fs2_hr_y, ...]]`.
+        """
+        return self._generate_fs_power_attr(lambda power_measurement: power_measurement.headroom)
 
     @attribute(
         dtype=(str,),
@@ -273,26 +399,27 @@ class VCCAllBandsController(
         result_code, command_id = command_handler(argin=deconfigure_vcc_bite_argin)
         return [result_code], [command_id]
 
-    @command(
-        dtype_in="DevString",
-        dtype_out="DevVarLongStringArray",
-        doc_in="JSON String following the AutoSetFilterGains schema.",
-    )
-    def AutoSetFilterGains(self: VCCAllBandsController, auto_set_filter_gains_argin: str | None = None) -> DevVarLongStringArrayType:
-        """Tango command to start a scan operation.
+    # TODO: Currently unused. Uncomment and refactor if needed for Transient Buffer; if determined unnecessary, delete entirely.
+    # @command(
+    #     dtype_in="DevString",
+    #     dtype_out="DevVarLongStringArray",
+    #     doc_in="JSON String following the AutoSetFilterGains schema.",
+    # )
+    # def AutoSetFilterGains(self: VCCAllBandsController, auto_set_filter_gains_argin: str | None = None) -> DevVarLongStringArrayType:
+    #     """Tango command to start a scan operation.
 
-        Args:
-            auto_set_filter_gains_argin (:obj:`str`): JSON String following the AutoSetFilterGains schema.
+    #     Args:
+    #         auto_set_filter_gains_argin (:obj:`str`): JSON String following the AutoSetFilterGains schema.
 
-        Returns:
-            :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
-            message indicating status. The message is for information purpose only.
-        """
-        command_handler = self.get_command_object(command_name="AutoSetFilterGains")
-        # It is important that the argin keyword be provided, as the
-        # component manager method will be overriden in simulation mode
-        result_code, command_id = command_handler(argin=auto_set_filter_gains_argin)
-        return [result_code], [command_id]
+    #     Returns:
+    #         :obj:`tuple[list[ResultCode], list[str]]`: The Tango result code and a string
+    #         message indicating status. The message is for information purpose only.
+    #     """
+    #     command_handler = self.get_command_object(command_name="AutoSetFilterGains")
+    #     # It is important that the argin keyword be provided, as the
+    #     # component manager method will be overriden in simulation mode
+    #     result_code, command_id = command_handler(argin=auto_set_filter_gains_argin)
+    #     return [result_code], [command_id]
 
     @command(
         dtype_in="DevString",
@@ -353,6 +480,21 @@ class VCCAllBandsController(
             emulation_mode=bool(self.emulation_mode),
             long_running_command_result_buffer_max_size=self.long_running_command_result_buffer_max_size,
         )
+
+    def _get_default_wideband_power(self) -> list[list[FloatLike]]:
+        return [[0.0] * 3] * 2
+
+    def _generate_fs_power_attr(self, extract_fn: Callable[[VCCAveragedPowerMeasurement], FloatLike]) -> list[list[FloatLike]]:
+        output: list[list[FloatLike]] = [[], []]
+        for fs in range(1, 27):
+            fs_power = self.component_manager.current_power.get(fs, None)
+            if fs_power is None:
+                output[0].append(0.0)
+                output[1].append(0.0)
+            else:
+                output[0].append(extract_fn(fs_power.x))
+                output[1].append(extract_fn(fs_power.y))
+        return output
 
 
 if __name__ == "__main__":

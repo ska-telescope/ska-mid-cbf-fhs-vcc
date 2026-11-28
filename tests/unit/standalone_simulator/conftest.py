@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
 from ska_control_model import HealthState, ObsState
@@ -10,10 +10,12 @@ from ska_control_model.future import AdminMode
 from ska_tango_testing.harness import TangoTestHarnessContext
 from ska_tango_testing.integration import TangoEventTracer
 
+
 @pytest.fixture(scope="session")  # Use "session" scope for true constants
 def event_timeout() -> int:
     """Event tracer timeout."""
     return 10
+
 
 @pytest.fixture(name="sim_vcc_all_bands_device")
 def sim_vcc_all_bands_device_fixture(
@@ -29,10 +31,11 @@ def sim_vcc_all_bands_device_fixture(
     """
     return test_context.get_device("test/vccallbands/1")
 
+
 @pytest.fixture(name="sim_vcc_all_bands_event_tracer", autouse=True)
 def sim_vcc_all_bands_tango_event_tracer(
     sim_vcc_all_bands_device,
-) -> Generator[TangoEventTracer, None, None]:
+) -> Generator[TangoEventTracer]:
     """Fixture that returns a TangoEventTracer for pertinent devices.
     Takes as parameter all required device proxy fixtures for this test module.
 

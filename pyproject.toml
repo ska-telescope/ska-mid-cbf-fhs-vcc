@@ -23,7 +23,7 @@ dependencies = [
   "protobuf >= 6.33.0, < 7.0.0",
   "pydantic >= 2.14.3, < 3",
   "ska-tango-testing == 0.10.0",
-  "ska-mid-cbf-fhs-common == 0.7.0",
+  "ska-mid-cbf-fhs-common == 0.8.0",
   "ska-mid-cbf-common == 0.2.14",
   "ska-mid-cbf-fhs-vcc-grpc-controller == 0.0.5",
 ]
@@ -69,11 +69,11 @@ constraint-dependencies = [
 
 [tool.uv.sources]
 # Official tagged release from CAR
-ska-mid-cbf-fhs-common = { index = "ska-nexus" }
+# ska-mid-cbf-fhs-common = { index = "ska-nexus" }
 # Commit hash version from Gitlab
 # ska-mid-cbf-fhs-common = { index = "gitlab-fhs-common" }
 # Local dev version
-# ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", editable = true }
+ska-mid-cbf-fhs-common = { path = "../ska-mid-cbf-fhs-common", editable = true }
 
 # Official tagged release from CAR
 ska-mid-cbf-common = { index = "ska-nexus" }

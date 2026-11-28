@@ -27,8 +27,7 @@ VCC_SIM_DEFAULT_ATTRIBUTE_VALUES = {
     "healthState": HealthState.OK,  # healthState updated here on top of sim base for unit tests
     "healthInfo": "",
     "expectedDishId": "",
-    "requestedRFIHeadroom": [0],
-    "vccGains": [0],
+    "vccGains": [[0.0] * 26] * 2,
     "vlanLookup": {},
     "frequencyBand": FrequencyBandEnum._1,
     "inputSampleRate": 0,
@@ -136,11 +135,7 @@ class SimVCCAllBandsCM(SimModeCMBase):
         return self.get_attribute_override("frequencyBandOffset")
 
     @property
-    def last_requested_headrooms(self: SimVCCAllBandsCM) -> list[int]:
-        return self.get_attribute_override("requestedRFIHeadroom")
-
-    @property
-    def vcc_gains(self: SimVCCAllBandsCM) -> list[int]:
+    def fs_gains(self: SimVCCAllBandsCM) -> list[int]:
         return self.get_attribute_override("vccGains")
 
     @property

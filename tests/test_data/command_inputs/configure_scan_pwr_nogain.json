@@ -1,0 +1,240 @@
+{
+  "config_id": "1",
+  "transaction_id": "TEST-VCC-ALL-BANDS-CONFIGURE-SCAN-POWER-METER-POLLING",
+  "expected_dish_id": "MKT001",
+  "dish_sample_rate": 3960000000,
+  "vcc_gains_stream_1": [
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+  ],
+  "frequency_band": "5b",
+  "noise_diode_transition_holdoff_count": 0,
+  "frequency_band_offset_stream1": 110,
+  "frequency_band_offset_stream2": 56,
+  "b123_power_meter": {
+    "averaging": 4,
+    "flagging": 0
+  },
+  "b45_1_power_meter": {
+    "averaging": 3,
+    "flagging": 0
+  },
+  "b45_2_power_meter": {
+    "averaging": 5,
+    "flagging": 0
+  },
+  "fs_lanes": [
+    {
+      "vlan_alias": "b51_fs_01",
+      "fs_id": 1,
+      "power_meter": {
+        "averaging": 4,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_02",
+      "fs_id": 2,
+      "power_meter": {
+        "averaging": 5,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_03",
+      "fs_id": 3,
+      "power_meter": {
+        "averaging": 3,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_04",
+      "fs_id": 4,
+      "power_meter": {
+        "averaging": 6,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_05",
+      "fs_id": 5,
+      "power_meter": {
+        "averaging": 5,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_06",
+      "fs_id": 6,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_07",
+      "fs_id": 7,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_08",
+      "fs_id": 8,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_09",
+      "fs_id": 9,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_10",
+      "fs_id": 10,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_11",
+      "fs_id": 11,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_12",
+      "fs_id": 12,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_13",
+      "fs_id": 13,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_14",
+      "fs_id": 14,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b51_fs_15",
+      "fs_id": 15,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_01",
+      "fs_id": 16,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_02",
+      "fs_id": 17,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_03",
+      "fs_id": 18,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_04",
+      "fs_id": 19,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_05",
+      "fs_id": 20,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_06",
+      "fs_id": 21,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_07",
+      "fs_id": 22,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_08",
+      "fs_id": 23,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_09",
+      "fs_id": 24,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_10",
+      "fs_id": 25,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    },
+    {
+      "vlan_alias": "b52_fs_11",
+      "fs_id": 26,
+      "power_meter": {
+        "averaging": 1,
+        "flagging": 0
+      }
+    }
+  ]
+}

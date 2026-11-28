@@ -1,17 +1,17 @@
 import time
 from unittest import mock
+
 import pytest
 from ska_control_model import HealthState
-
-from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
 
 from ska_mid_cbf_fhs_vcc.wideband_input_buffer.constants import (
     BER_DEGRADED_THRESHOLD,
     BER_FAILED_THRESHOLD,
 )
+from ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager import WidebandInputBufferConfig, WidebandInputBufferManager
+
 
 class TestWidebandInputBuffer:
-
     @pytest.fixture(scope="function")
     def wideband_input_buffer(self):
         """Fixture to set up the Wideband Input Buffer."""
@@ -33,7 +33,7 @@ class TestWidebandInputBuffer:
 
     def test_configure(self, wideband_input_buffer: WidebandInputBufferManager):
         """Test the configure method of the Wideband Input Buffer."""
-        with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
+        with open("tests/test_data/ip_block_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()
         result = wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"
@@ -58,7 +58,7 @@ class TestWidebandInputBuffer:
         assert result == 0, f"Expected return code 0, got {result}"
 
     def test_register_polling_healthstate_ok(self, wideband_input_buffer: WidebandInputBufferManager):
-        with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
+        with open("tests/test_data/ip_block_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()
 
         wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
@@ -75,7 +75,7 @@ class TestWidebandInputBuffer:
         assert health_state.value is HealthState.OK.value
 
     def test_register_polling_healthstate_failed(self, wideband_input_buffer: WidebandInputBufferManager):
-        with open("tests/test_data/device_config/wideband_input_buffer_health_failure.json", "r") as f:
+        with open("tests/test_data/ip_block_config/wideband_input_buffer_health_failure.json", "r") as f:
             config_json = f.read()
 
         wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
@@ -90,7 +90,7 @@ class TestWidebandInputBuffer:
         wideband_input_buffer.stop().await_result()
 
         assert health_state.value is HealthState.FAILED.value
-        
+
     def test_ber_healthy(self, wideband_input_buffer: WidebandInputBufferManager):
         bad_status = {
             "link_failure": False,
@@ -107,16 +107,13 @@ class TestWidebandInputBuffer:
             "packet_drop": False,
             "packet_drop_count": 0,
             "rx_packet_rate": 1500000,
-            "expected_sample_rate": 3960000000
+            "expected_sample_rate": 3960000000,
         }
-        
-        with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
+
+        with open("tests/test_data/ip_block_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()
 
-        with mock.patch(
-            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status",
-            return_value=bad_status
-        ):
+        with mock.patch("ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status", return_value=bad_status):
             wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
             wideband_input_buffer.expected_dish_id = "MKT001"
             wideband_input_buffer.start().await_result()
@@ -127,7 +124,7 @@ class TestWidebandInputBuffer:
             health_state = wideband_input_buffer.get_health_state()
 
             wideband_input_buffer.stop().await_result()
-            
+
             assert wideband_input_buffer.bit_error_rate < BER_DEGRADED_THRESHOLD
             assert health_state.value is HealthState.OK.value
 
@@ -147,16 +144,13 @@ class TestWidebandInputBuffer:
             "packet_drop": False,
             "packet_drop_count": 0,
             "rx_packet_rate": 1500000,
-            "expected_sample_rate": 3960000000
+            "expected_sample_rate": 3960000000,
         }
-        
-        with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
+
+        with open("tests/test_data/ip_block_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()
 
-        with mock.patch(
-            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status",
-            return_value=bad_status
-        ):
+        with mock.patch("ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status", return_value=bad_status):
             wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
             wideband_input_buffer.expected_dish_id = "MKT001"
             wideband_input_buffer.start().await_result()
@@ -167,11 +161,11 @@ class TestWidebandInputBuffer:
             health_state = wideband_input_buffer.get_health_state()
 
             wideband_input_buffer.stop().await_result()
-            
+
             assert wideband_input_buffer.bit_error_rate >= BER_DEGRADED_THRESHOLD
             assert wideband_input_buffer.bit_error_rate < BER_FAILED_THRESHOLD
             assert health_state.value is HealthState.DEGRADED.value
-            
+
     def test_ber_failed(self, wideband_input_buffer: WidebandInputBufferManager):
         bad_status = {
             "link_failure": False,
@@ -188,16 +182,13 @@ class TestWidebandInputBuffer:
             "packet_drop": False,
             "packet_drop_count": 0,
             "rx_packet_rate": 1500000,
-            "expected_sample_rate": 3960000000
+            "expected_sample_rate": 3960000000,
         }
-        
-        with open("tests/test_data/device_config/wideband_input_buffer.json", "r") as f:
+
+        with open("tests/test_data/ip_block_config/wideband_input_buffer.json", "r") as f:
             config_json = f.read()
 
-        with mock.patch(
-            "ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status",
-            return_value=bad_status
-        ):
+        with mock.patch("ska_mid_cbf_fhs_vcc.wideband_input_buffer.wideband_input_buffer_manager.WidebandInputBufferSimulator.status", return_value=bad_status):
             wideband_input_buffer.configure(WidebandInputBufferConfig.from_validated_json(config_json))
             wideband_input_buffer.expected_dish_id = "MKT001"
             wideband_input_buffer.start().await_result()
@@ -208,6 +199,6 @@ class TestWidebandInputBuffer:
             health_state = wideband_input_buffer.get_health_state()
 
             wideband_input_buffer.stop().await_result()
-            
+
             assert wideband_input_buffer.bit_error_rate >= BER_FAILED_THRESHOLD
             assert health_state.value is HealthState.FAILED.value

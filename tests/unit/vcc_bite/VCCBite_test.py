@@ -1,25 +1,17 @@
 import logging
-import pytest
 
+import pytest
 from ska_control_model import SimulationMode
+
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import VCCAllBandsConfigureVCCBiteArgin
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager
 
-import grpc
-from concurrent import futures
-from ska_mid_cbf_fhs_vcc_grpc_controller.driver_registry.driver_registry import DriverRegistry
-from ska_mid_cbf_fhs_vcc_grpc_controller.simulators.mock_driver_instantiator import MockDriverInstantiator
-from ska_mid_cbf_fhs_vcc_grpc_controller.services.vcc_driver_servicer import VccDriverServicer
-from ska_mid_cbf_fhs_vcc_grpc_controller.generated import vcc_drivers_pb2_grpc
-
-
 
 class TestVCCBite:
-
     @pytest.fixture(scope="function")
     def vcc_bite(self):
         """Fixture to set up the VCC Bite."""
-        logger = logging.Logger("VCC Bite Logger")
+        logger = logging.getLogger("VCC Bite Logger")
         manager = VCCBiteManager(
             logger=logger,
             simulation_mode=SimulationMode.TRUE,
@@ -56,7 +48,7 @@ class TestVCCBite:
 
     def test_configure(self, vcc_bite: VCCBiteManager):
         """Test the configure method of the VCC Bite."""
-        with open("tests/test_data/device_config/vcc_bite.json", "r") as f:
+        with open("tests/test_data/command_inputs/configure_vcc_bite.json", "r") as f:
             config_json = f.read()
         result = vcc_bite.configure(VCCAllBandsConfigureVCCBiteArgin.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"
@@ -86,7 +78,7 @@ class TestVCCBite:
     # TODO: Uncomment tests when firmware mode is working
     # def test_configure_firmware(self, vcc_bite_firmware: VCCBiteManager):
     #     """Test the configure method of the VCC Bite."""
-    #     with open("tests/test_data/device_config/vcc_bite.json", "r") as f:
+    #     with open("tests/test_data/command_inputs/configure_vcc_bite.json", "r") as f:
     #         config_json = f.read()
     #     result = vcc_bite_firmware.configure(VCCAllBandsConfigureVCCBiteArgin.from_validated_json(config_json))
     #     assert result == 0, f"Expected return code 0, got {result}"

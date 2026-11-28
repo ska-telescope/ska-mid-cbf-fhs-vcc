@@ -4,7 +4,6 @@ from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStr
 
 
 class TestVCCStreamMerge:
-
     @pytest.fixture(scope="function")
     def vcc_stream_merge(self):
         """Fixture to set up the VCC Stream Merge block."""
@@ -21,7 +20,7 @@ class TestVCCStreamMerge:
 
     def test_configure(self, vcc_stream_merge: VCCStreamMergeManager):
         """Test the configure method of the VCC Stream Merge block."""
-        with open("tests/test_data/device_config/vcc_stream_merge.json", "r") as f:
+        with open("tests/test_data/ip_block_config/vcc_stream_merge.json", "r") as f:
             config_json = f.read()
         result = vcc_stream_merge.configure(VCCStreamMergeConfigureArgin.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"

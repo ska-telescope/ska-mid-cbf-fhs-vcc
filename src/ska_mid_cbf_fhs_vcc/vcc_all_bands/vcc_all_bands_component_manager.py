@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import copy
 import logging
 import os
 import textwrap
+import time
 from collections.abc import Callable
-from math import isnan
+from math import lcm
 from threading import Event
 from typing import TYPE_CHECKING, Any
 
@@ -18,10 +18,13 @@ from ska_mid_cbf_fhs_common import (
     FhsControllerComponentManagerBase,
     FhsState,
     FhsValidationError,
+    FloatLike,
+    FtileEthernetConfig,
     FtileEthernetManager,
+    PollingThread,
     WidebandPowerMeterConfig,
     WidebandPowerMeterManager,
-    calculate_gain_multiplier,
+    gain_linear_to_db,
 )
 
 from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer_manager import (
@@ -30,16 +33,20 @@ from ska_mid_cbf_fhs_vcc.b123_vcc_osppfb_channelizer.b123_vcc_osppfb_channelizer
 )
 from ska_mid_cbf_fhs_vcc.frequency_slice_selection.frequency_slice_selection_manager import FrequencySliceSelectionConfig, FrequencySliceSelectionManager
 from ska_mid_cbf_fhs_vcc.helpers.frequency_band_enums import FrequencyBandEnum, VCCBandGroup, freq_band_dict
+from ska_mid_cbf_fhs_vcc.helpers.power_measurement import VCCXYPowerAccumulator
 from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import PacketValidationManager
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_scan import vcc_all_bands_configure_scan_schema
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.schemas.configure_vcc_bite import vcc_all_bands_configure_vcc_bite_schema
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.utils.admin_online import VccAdminOnline
 from ska_mid_cbf_fhs_vcc.vcc_all_bands.vcc_all_bands_dataclasses import (
-    VCCAllBandsAutoSetFilterGainsArgin,
     VCCAllBandsConfigureScanArgin,
     VCCAllBandsConfigureVCCBiteArgin,
     VCCAllBandsDeconfigureVCCBiteArgin,
     VCCAllBandsGoToIdleArgin,
+    VCCPowerMeasurement,
+    VCCPowerMeasurementResponse,
+    VCCXYAveragedPowerMeasurements,
+    VCCXYPowerMeasurements,
 )
 from ska_mid_cbf_fhs_vcc.vcc_bite.vcc_bite_manager import VCCBiteManager, VCCSourceSelect
 from ska_mid_cbf_fhs_vcc.vcc_stream_merge.vcc_stream_merge_manager import VCCStreamMergeConfig, VCCStreamMergeConfigureArgin, VCCStreamMergeManager
@@ -74,14 +81,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
     input_sample_rate: int
     """:obj:`int`: The input sample rate of this VCC."""
 
-    vcc_gains: list[float]
-    """:obj:`list[float]`: The currently applied gain multipliers for VCC coarse channels."""
+    fs_gains: list[list[FloatLike]]
+    """:obj:`list[list[FloatLike]]`: FS gains in dB for X and Y polarizations. Format: [[fs1_gain_x, fs2_gain_x, ...], [fs1_gain_y, fs2_gain_y, ...]]"""
+
+    current_power: dict[VCCBandGroup | int, VCCXYAveragedPowerMeasurements]
+    """:obj:`dict[VCCBandGroup | int, VCCXYAveragedPowerMeasurements]`: Current average power measurements for all power meters."""
 
     vlan_lookup: dict
     """dict containing the FS to VLAN mappings, parsed from the YAML file"""
-
-    last_requested_headrooms: list[float]
-    """:obj:`list[float]`: The requested headrooms from the most recent call to AutoSetFilterGains."""
 
     ethernet_200g: FtileEthernetManager
     """:obj:`FtileEthernetManager`: The IP block manager for the F-tile Ethernet block."""
@@ -173,18 +180,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             **kwargs,
         )
         self.device = device
+        self._vcc_id = self.device.device_id
 
-        self.log_debug(f"LRC Result Buffer Size: {self.long_running_command_result_buffer.max_size}")
-
-        self.vcc_bite_manager = VCCBiteManager(logger=logger)
-        self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
-
-        self._sample_rate = 0
-        self._wideband_power_meter_measurement_intervals: dict[VCCBandGroup, int] = {}
-        self._fs_power_meter_measurement_intervals: dict[int, int] = {}
-
-    def _device_specific_setup(self) -> None:
-        """Set up initial members/attributes/etc specific to the controller subclass. Executed as part of __init__."""
         self.admin_mode_online_check = VccAdminOnline(
             logger=self.logger,
             simulation_mode=(self.simulation_mode is SimulationMode.TRUE),
@@ -193,30 +190,49 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             emulation_mode=self.emulation_mode,
         )
 
-        self._vcc_id = self.device.device_id
         self._config_id = ""
         self._scan_id = 0
-
         self.subarray_id = 0
         self.expected_dish_id = None
+
+        self._sample_rate: int = 0
+        self.input_sample_rate: int = 0
 
         self.frequency_band: FrequencyBandEnum = FrequencyBandEnum._1
         self.frequency_band_offset: list[int] = [0, 0]
 
-        self.input_sample_rate: int = 0
-
-        # vcc channels * number of polarizations
         self._num_fs = 0
-        self._num_vcc_gains = 0
+        self._num_coarse_channels = 0
+        self._num_coarse_channel_gains = 0
 
         self._fs_lanes = []
+        self._coarse_channel_gains: list[float] = []
+        self.fs_gains: list[list[FloatLike]] = []
 
-        self.vcc_gains: list[float] = []
-        self.last_requested_headrooms: list[float] = []
+        self._power_meter_measurement_intervals: dict[VCCBandGroup | int, int] = {}
+        self._power_meter_measurement_accums: dict[VCCBandGroup | int, VCCXYPowerAccumulator] = {}
+        self._power_meter_poll_count = 0
+        self._power_meter_poll_reset = 1
+
+        self.current_power: dict[VCCBandGroup | int, VCCXYAveragedPowerMeasurements] = {}
+
+        self._create_power_meter_polling_thread()
+
+        self.vcc_bite_manager = VCCBiteManager(logger=logger)
+        self.vcc_source_select = VCCSourceSelect.ETHERNET_200GB
 
         self.vlan_lookup = {}
         vlan_mapping_file = os.getenv("VCC_PRODUCT_PATH", "/app/mnt/vcc") + "/vcc-product-definitions.yaml"
         self._parse_vlan_mapping(vlan_mapping_file)
+
+    def _post_start_communicating_hook(self) -> None:
+        """Functionality to run immediately after start_communicating (regardless of simulation mode)."""
+        self.ethernet_200g.configure(FtileEthernetConfig())
+        self.ethernet_200g.start()
+
+    def _post_stop_communicating_hook(self) -> None:
+        """Functionality to run immediately after stop_communicating (regardless of simulation mode)."""
+        self._stop_power_meter_polling()
 
     def _init_ip_block_managers(self) -> list[BaseIPBlockManager[Any, Any]]:
         """Instantiate all the IP block managers for the VCC controller."""
@@ -273,6 +289,10 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
 
         for wideband_power_meter in self.wideband_power_meters.values():
             wideband_power_meter.recover()
+
+        self._stop_power_meter_polling()
+
+        self.log_info("Teardown complete.")
 
     def configure_scan(
         self,
@@ -334,28 +354,29 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             task_callback=task_callback,
         )
 
-    def auto_set_filter_gains(
-        self: VCCAllBandsComponentManager,
-        argin: str,
-        task_callback: Callable,
-    ) -> tuple[TaskStatus, str]:
-        """Submit the task to start running the AutoSetFilterGains command implementation.
+    # TODO: Currently unused. Uncomment and refactor if needed for Transient Buffer; if determined unnecessary, delete entirely.
+    # def auto_set_filter_gains(
+    #     self: VCCAllBandsComponentManager,
+    #     argin: str,
+    #     task_callback: Callable,
+    # ) -> tuple[TaskStatus, str]:
+    #     """Submit the task to start running the AutoSetFilterGains command implementation.
 
-        Args:
-            argin (:obj:`str`): JSON String following the auto set filter gains command schema
-                Requested RFI headroom, in decibels (dB).
-                Must be a list containing either a single value to apply to all frequency slices,
-                or a value per frequency slice to be applied separately.
-            task_callback (:obj:`Callable`): A callback to run when the task status changes.
+    #     Args:
+    #         argin (:obj:`str`): JSON String following the auto set filter gains command schema
+    #             Requested RFI headroom, in decibels (dB).
+    #             Must be a list containing either a single value to apply to all frequency slices,
+    #             or a value per frequency slice to be applied separately.
+    #         task_callback (:obj:`Callable`): A callback to run when the task status changes.
 
-        Returns:
-            :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
-        """
-        return self.submit_task(
-            func=self._auto_set_filter_gains,
-            args=[argin],
-            task_callback=task_callback,
-        )
+    #     Returns:
+    #         :obj:`tuple[TaskStatus, str]`: The status of the task and an informative message string.
+    #     """
+    #     return self.submit_task(
+    #         func=self._auto_set_filter_gains,
+    #         args=[argin],
+    #         task_callback=task_callback,
+    #     )
 
     def configure_vcc_bite(
         self,
@@ -435,6 +456,9 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             transaction_id = configuration.transaction_id
             self.transaction_ids_per_command[CommandType.CONFIGURESCAN] = transaction_id
 
+            # stop power meter polling if currently running to safely change power meter configs
+            self._stop_power_meter_polling()
+
             # WIB must be stopped prior to reconfiguration if the sample rate changed
             wib_stop_required = configuration.dish_sample_rate != self._sample_rate and self._sample_rate != 0
             self._sample_rate = configuration.dish_sample_rate
@@ -449,26 +473,35 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             match self.frequency_band:
                 case FrequencyBandEnum._1 | FrequencyBandEnum._2:
                     self._num_fs = 10
+                    self._num_coarse_channels = 10
                 case FrequencyBandEnum._3 | FrequencyBandEnum._4:
                     self._reset_data()
                     raise ValueError("Bands 3/4 not implemented")
                     # self._num_fs = 15
+                    # self._num_cc_gains = 30
                 case _:
                     self._num_fs = 26
+                    self._num_coarse_channels = 30
+                    self._num_coarse_channel_gains = 60
 
-            # number of channels * number of polarizations
-            self._num_vcc_gains = self._num_fs * 2
-            self.vcc_gains = configuration.vcc_gains_stream_1
-
-            if len(self.vcc_gains) != self._num_vcc_gains:
+            self._num_coarse_channel_gains = self._num_coarse_channels * 2
+            if len(configuration.vcc_gains_stream_1) != self._num_coarse_channel_gains:
                 self._reset_data()
-                raise ValueError(f"Incorrect number of gain values supplied: {self.vcc_gains} != {self._num_vcc_gains}")
+                raise ValueError(f"Incorrect number of gain values supplied: {configuration.vcc_gains_stream_1} != {self._num_coarse_channel_gains}")
+
+            cc_fs_idxs = range(self._num_fs)  # TODO: placeholder until coarse channel idx -> fs_id mapping is known
+            self._coarse_channel_gains = configuration.vcc_gains_stream_1
+            self.fs_gains = [
+                [gain_linear_to_db(configuration.vcc_gains_stream_1[i]) for i in cc_fs_idxs],
+                [gain_linear_to_db(configuration.vcc_gains_stream_1[self._num_coarse_channels + i]) for i in cc_fs_idxs],
+            ]
 
             # VCC123 Channelizer Configuration
             self.log_debug("VCC123 Channelizer Configuring..", transaction_id)
-            if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
+            # TODO: simulation mode check temporary to allow certain unit testing until 30-channel VCC driver/emulator implemented
+            if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2} or self.simulation_mode is SimulationMode.TRUE:
                 result = self.b123_vcc.configure(
-                    B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self.vcc_gains, transaction_id=transaction_id)
+                    B123VccOsppfbChannelizerConfigureArgin(sample_rate=self._sample_rate, gains=self._coarse_channel_gains, transaction_id=transaction_id)
                 )
 
                 if result == 1:
@@ -541,12 +574,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 (VCCBandGroup.B5B, configuration.b45_2_power_meter),
             ):
                 self.log_debug(f"Configuring {band_group.value} power meter with {config}", transaction_id)
-                self._wideband_power_meter_measurement_intervals[band_group] = config.averaging
+                self._power_meter_measurement_intervals[band_group] = config.averaging
+                self._power_meter_measurement_accums[band_group] = VCCXYPowerAccumulator()  # all 0
                 result = self.wideband_power_meters[band_group].configure(
                     WidebandPowerMeterConfig(
                         transaction_id=transaction_id,
-                        averaging_time=config.averaging,
+                        averaging_time=1,
                         flagging=config.flagging,
+                        sample_rate=self._sample_rate,
                     )
                 )
                 if result == 1:
@@ -570,12 +605,14 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             for config in self._fs_lanes:
                 fs_id = int(config.fs_id)
                 self.log_debug(f"Configuring FS {fs_id} power meter with {config}", transaction_id)
-                self._fs_power_meter_measurement_intervals[fs_id] = config.power_meter.averaging
+                self._power_meter_measurement_intervals[fs_id] = config.power_meter.averaging
+                self._power_meter_measurement_accums[fs_id] = VCCXYPowerAccumulator()
                 result = self.wideband_power_meters[fs_id].configure(
                     WidebandPowerMeterConfig(
                         transaction_id=transaction_id,
-                        averaging_time=config.power_meter.averaging,
+                        averaging_time=1,
                         flagging=config.power_meter.flagging,
+                        sample_rate=self._sample_rate,
                     )
                 )
                 if result == 1:
@@ -583,6 +620,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                     self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
                     self._reset_data()
                     raise RuntimeError(f"Configuration of FS {fs_id} Wideband Power Meter failed.")
+
+            self._power_meter_poll_reset = lcm(*self._power_meter_measurement_intervals.values())
 
             # VCC Stream Merge Configuration
             self.log_debug("VCC Stream Merge Configuring..", transaction_id)
@@ -608,8 +647,8 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                     self._reset_data()
                     raise RuntimeError("Configuration of VCC Stream Merge failed.")
 
-            # Enables downstream processing
             self.wideband_input_buffer.start().await_result()
+            self._start_power_meter_polling()
 
             self.set_configuration_state_if_transition_is_allowed(FhsState.CONFIGURED)
             self.log_info(f"Sucessfully completed ConfigureScan for Config ID: {self._config_id}", transaction_id)
@@ -656,6 +695,7 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
             self.transaction_ids_per_command[CommandType.GOTOIDLE] = transaction_id
             self.log_info("Received Command GoToIdle", transaction_id)
 
+            self._stop_power_meter_polling()
             self._deconfigure_ip_blocks(self.subarray_id, transaction_id)
             self._reset_data()  # configurationState is set to NOT_CONFIGURED here
 
@@ -729,165 +769,166 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 textwrap.shorten(f"An unexpected exception occurred during UpdateSubarrayMembership: {exc}", width=400),
             )
 
-    def _auto_set_filter_gains(
-        self,
-        argin: str,
-        task_callback: Callable,
-        task_abort_event: Event,
-    ) -> None:
-        """Calculate and apply optimal gain multipliers for VCC coarse channels.
-        This is the implementation for the AutoSetFilterGains command.
+    # TODO: Currently unused. Uncomment and refactor if needed for Transient Buffer; if determined unnecessary, delete entirely.
+    # def _auto_set_filter_gains(
+    #     self,
+    #     argin: str,
+    #     task_callback: Callable,
+    #     task_abort_event: Event,
+    # ) -> None:
+    #     """Calculate and apply optimal gain multipliers for VCC coarse channels.
+    #     This is the implementation for the AutoSetFilterGains command.
 
-        Args:
-            argin (:obj:`str`): JSON String following the auto set filter gains command schema
-                Requested RFI headroom, in decibels (dB).
-                Must be a list containing either a single value to apply to all frequency slices,
-                or a value per frequency slice to be applied separately.
-            task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
-            task_abort_event (:obj:`Event | None`, optional): An event representing whether or not the task has aborted.
-                Default is None.
-        """
-        try:
-            headrooms = [3.0]
-            transaction_id = None
+    #     Args:
+    #         argin (:obj:`str`): JSON String following the auto set filter gains command schema
+    #             Requested RFI headroom, in decibels (dB).
+    #             Must be a list containing either a single value to apply to all frequency slices,
+    #             or a value per frequency slice to be applied separately.
+    #         task_callback (:obj:`Callable | None`, optional): A callback to run when the task status changes. Default is None.
+    #         task_abort_event (:obj:`Event | None`, optional): An event representing whether or not the task has aborted.
+    #             Default is None.
+    #     """
+    #     try:
+    #         headrooms = [3.0]
+    #         transaction_id = None
 
-            if argin:
-                auto_set_filter_gains_argin = VCCAllBandsAutoSetFilterGainsArgin.from_validated_json(argin)
-                transaction_id = auto_set_filter_gains_argin.transaction_id
-                self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = transaction_id
-                if auto_set_filter_gains_argin.headrooms is not None:
-                    headrooms = auto_set_filter_gains_argin.headrooms
+    #         if argin:
+    #             auto_set_filter_gains_argin = VCCAllBandsAutoSetFilterGainsArgin.from_validated_json(argin)
+    #             transaction_id = auto_set_filter_gains_argin.transaction_id
+    #             self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = transaction_id
+    #             if auto_set_filter_gains_argin.headrooms is not None:
+    #                 headrooms = auto_set_filter_gains_argin.headrooms
 
-            self.log_info("Received Command AutoSetFilterGains", transaction_id)
+    #         self.log_info("Received Command AutoSetFilterGains", transaction_id)
 
-            if (num_headrooms := len(headrooms)) not in [1, self._num_fs]:
-                self._set_task_callback(
-                    task_callback,
-                    TaskStatus.COMPLETED,
-                    ResultCode.REJECTED,
-                    f"Cannot auto-set gains as the input headroom {headrooms} is invalid.",
-                )
-                self.long_running_command_result_buffer.insert(
-                    command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.REJECTED, transaction_id=transaction_id
-                )
-                return
+    #         if (num_headrooms := len(headrooms)) not in [1, self._num_fs]:
+    #             self._set_task_callback(
+    #                 task_callback,
+    #                 TaskStatus.COMPLETED,
+    #                 ResultCode.REJECTED,
+    #                 f"Cannot auto-set gains as the input headroom {headrooms} is invalid.",
+    #             )
+    #             self.long_running_command_result_buffer.insert(
+    #                 command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.REJECTED, transaction_id=transaction_id
+    #             )
+    #             return
 
-            new_gains = copy.copy(self.vcc_gains)
+    #         new_gains = copy.copy(self.vcc_gains)
 
-            # Read all power meters
-            for i in range(self._num_fs):
-                # Read power
-                try:
-                    status = self.wideband_power_meters[i + 1].status()
-                except Exception:
-                    msg = f"Failed to auto-set gains: Failed to retrieve status from the FS {i + 1} power meter."
-                    self.log_exception(msg, transaction_id)
-                    self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, msg)
-                    self.long_running_command_result_buffer.insert(
-                        command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
-                    )
-                    return
-                measured_power_pol_x = status.avg_power_pol_x
-                measured_power_pol_y = status.avg_power_pol_y
+    #         # Read all power meters
+    #         for i in range(self._num_fs):
+    #             # Read power
+    #             try:
+    #                 status = self.wideband_power_meters[i + 1].status()
+    #             except Exception:
+    #                 msg = f"Failed to auto-set gains: Failed to retrieve status from the FS {i + 1} power meter."
+    #                 self.log_exception(msg, transaction_id)
+    #                 self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.FAILED, msg)
+    #                 self.long_running_command_result_buffer.insert(
+    #                     command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+    #                 )
+    #                 return
+    #             measured_power_pol_x = status.avg_power_pol_x
+    #             measured_power_pol_y = status.avg_power_pol_y
 
-                for power, pol in (measured_power_pol_x, "X"), (measured_power_pol_y, "Y"):
-                    if not isinstance(power, (int, float)) or isinstance(power, bool) or isnan(power) or power <= 0 or power > 1:
-                        self._set_task_callback(
-                            task_callback,
-                            TaskStatus.COMPLETED,
-                            ResultCode.FAILED,
-                            (f"Failed to auto-set gains: The FS {i + 1} power meter failed to provide a valid power measurement for polarization {pol}."),
-                        )
-                        self.long_running_command_result_buffer.insert(
-                            command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
-                        )
-                        return
+    #             for power, pol in (measured_power_pol_x, "X"), (measured_power_pol_y, "Y"):
+    #                 if not isinstance(power, (int, float)) or isinstance(power, bool) or isnan(power) or power <= 0 or power > 1:
+    #                     self._set_task_callback(
+    #                         task_callback,
+    #                         TaskStatus.COMPLETED,
+    #                         ResultCode.FAILED,
+    #                         (f"Failed to auto-set gains: The FS {i + 1} power meter failed to provide a valid power measurement for polarization {pol}."),
+    #                     )
+    #                     self.long_running_command_result_buffer.insert(
+    #                         command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+    #                     )
+    #                     return
 
-                headroom = headrooms[i % num_headrooms]
+    #             headroom = headrooms[i % num_headrooms]
 
-                # Convert to multiplier
-                new_gains[i] = float(calculate_gain_multiplier(0.0, measured_power_pol_x, headroom))
-                new_gains[i + self._num_fs] = float(calculate_gain_multiplier(0.0, measured_power_pol_y, headroom))
+    #             # Convert to multiplier
+    #             new_gains[i] = float(calculate_gain_multiplier(0.0, measured_power_pol_x, headroom))
+    #             new_gains[i + self._num_fs] = float(calculate_gain_multiplier(0.0, measured_power_pol_y, headroom))
 
-            # Reconfigure VCCs
-            if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
-                result = self.b123_vcc.configure(
-                    B123VccOsppfbChannelizerConfigureArgin(
-                        transaction_id=transaction_id,
-                        sample_rate=self._sample_rate,
-                        gains=new_gains,
-                    )
-                )
+    #         # Reconfigure VCCs
+    #         if self.frequency_band in {FrequencyBandEnum._1, FrequencyBandEnum._2}:
+    #             result = self.b123_vcc.configure(
+    #                 B123VccOsppfbChannelizerConfigureArgin(
+    #                     transaction_id=transaction_id,
+    #                     sample_rate=self._sample_rate,
+    #                     gains=new_gains,
+    #                 )
+    #             )
 
-                if result == 1:
-                    self.log_error("Failed to reconfigure VCC123 Channelizer with new gain values.", transaction_id)
-                    self.b123_vcc.configure(
-                        B123VccOsppfbChannelizerConfigureArgin(
-                            transaction_id=transaction_id,
-                            sample_rate=self._sample_rate,
-                            gains=self.vcc_gains,
-                        )
-                    )
-                    self._set_task_callback(
-                        task_callback,
-                        TaskStatus.COMPLETED,
-                        ResultCode.FAILED,
-                        "Failed to auto-set gains: failed to reconfigure VCC123 Channelizer with new gain values.",
-                    )
-                    self.long_running_command_result_buffer.insert(
-                        command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
-                    )
-                    return
+    #             if result == 1:
+    #                 self.log_error("Failed to reconfigure VCC123 Channelizer with new gain values.", transaction_id)
+    #                 self.b123_vcc.configure(
+    #                     B123VccOsppfbChannelizerConfigureArgin(
+    #                         transaction_id=transaction_id,
+    #                         sample_rate=self._sample_rate,
+    #                         gains=self.vcc_gains,
+    #                     )
+    #                 )
+    #                 self._set_task_callback(
+    #                     task_callback,
+    #                     TaskStatus.COMPLETED,
+    #                     ResultCode.FAILED,
+    #                     "Failed to auto-set gains: failed to reconfigure VCC123 Channelizer with new gain values.",
+    #                 )
+    #                 self.long_running_command_result_buffer.insert(
+    #                     command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+    #                 )
+    #                 return
 
-            else:
-                # TODO: Implement routing to the 5 Channelizer once outlined
-                self.long_running_command_result_buffer.insert(
-                    command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
-                )
-                self._set_task_callback(
-                    task_callback,
-                    TaskStatus.COMPLETED,
-                    ResultCode.FAILED,
-                    "Failed to auto-set gains: currently selected frequency band is not supported.",
-                )
-                return
-            # Update vccGains and publish change
-            self.vcc_gains = new_gains
-            self.last_requested_headrooms = headrooms
+    #         else:
+    #             # TODO: Implement routing to the 5 Channelizer once outlined
+    #             self.long_running_command_result_buffer.insert(
+    #                 command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+    #             )
+    #             self._set_task_callback(
+    #                 task_callback,
+    #                 TaskStatus.COMPLETED,
+    #                 ResultCode.FAILED,
+    #                 "Failed to auto-set gains: currently selected frequency band is not supported.",
+    #             )
+    #             return
+    #         # Update vccGains and publish change
+    #         self.vcc_gains = new_gains
+    #         self.last_requested_headrooms = headrooms
 
-            self.log_info(f"Successfully set Autofilter gains with headrooms {headrooms}", transaction_id)
+    #         self.log_info(f"Successfully set Autofilter gains with headrooms {headrooms}", transaction_id)
 
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.OK, transaction_id=transaction_id
-            )
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.OK,
-                "AutoSetFilterGains completed OK",
-            )
-        except FhsValidationError as exc:
-            transaction_id = exc.data.get("transaction_id", None) or self.transaction_ids_per_command.get(CommandType.AUTOSETFILTERGAINS, None)
-            self.log_exception("JSON validation failed for AutoSetFilterGains", transaction_id)
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.REJECTED, transaction_id=transaction_id
-            )
-            self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for AutoSetFilterGains")
-        except Exception as exc:
-            transaction_id = self.transaction_ids_per_command.get(CommandType.AUTOSETFILTERGAINS, None)
-            self.log_exception("An unexpected exception occurred during AutoSetFilterGains.", transaction_id)
-            self.long_running_command_result_buffer.insert(
-                command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
-            )
-            self._set_task_callback(
-                task_callback,
-                TaskStatus.COMPLETED,
-                ResultCode.FAILED,
-                textwrap.shorten(f"An unexpected exception occurred during AutoSetFilterGains: {exc}", width=400),
-            )
-        finally:
-            # Reset the ID so it's not used in a different Command call
-            self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = None
+    #         self.long_running_command_result_buffer.insert(
+    #             command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.OK, transaction_id=transaction_id
+    #         )
+    #         self._set_task_callback(
+    #             task_callback,
+    #             TaskStatus.COMPLETED,
+    #             ResultCode.OK,
+    #             "AutoSetFilterGains completed OK",
+    #         )
+    #     except FhsValidationError as exc:
+    #         transaction_id = exc.data.get("transaction_id", None) or self.transaction_ids_per_command.get(CommandType.AUTOSETFILTERGAINS, None)
+    #         self.log_exception("JSON validation failed for AutoSetFilterGains", transaction_id)
+    #         self.long_running_command_result_buffer.insert(
+    #             command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.REJECTED, transaction_id=transaction_id
+    #         )
+    #         self._set_task_callback(task_callback, TaskStatus.COMPLETED, ResultCode.REJECTED, "Arg provided does not match schema for AutoSetFilterGains")
+    #     except Exception as exc:
+    #         transaction_id = self.transaction_ids_per_command.get(CommandType.AUTOSETFILTERGAINS, None)
+    #         self.log_exception("An unexpected exception occurred during AutoSetFilterGains.", transaction_id)
+    #         self.long_running_command_result_buffer.insert(
+    #             command_type=CommandType.AUTOSETFILTERGAINS, result_code=ResultCode.FAILED, transaction_id=transaction_id
+    #         )
+    #         self._set_task_callback(
+    #             task_callback,
+    #             TaskStatus.COMPLETED,
+    #             ResultCode.FAILED,
+    #             textwrap.shorten(f"An unexpected exception occurred during AutoSetFilterGains: {exc}", width=400),
+    #         )
+    #     finally:
+    #         # Reset the ID so it's not used in a different Command call
+    #         self.transaction_ids_per_command[CommandType.AUTOSETFILTERGAINS] = None
 
     def _configure_vcc_bite(
         self,
@@ -1045,6 +1086,158 @@ class VCCAllBandsComponentManager(FhsControllerComponentManagerBase):
                 raise RuntimeError(f"Deconfiguration of VCC Stream Merge {i} failed.")
 
         self.log_info("Sucessfully deconfigured all IP Blocks", transaction_id)
+
+    def _create_power_meter_polling_thread(self) -> None:
+        """Create the polling thread which retrieves power measurements from the various power meters."""
+        self._power_meter_poll_count = 0
+        self._power_meter_polling_thread = PollingThread(
+            poll_interval=1.0,
+            poll_body=self._power_meter_poll_body,
+            poll_exc_body=self._power_meter_poll_exc_body,
+            name="VCCPowerMeterPollingThread",
+        )
+
+    def _recreate_power_meter_polling_thread(self) -> None:
+        """Recreate the polling thread which retrieves power measurements from the various power meters."""
+        if self._power_meter_polling_thread.is_alive():
+            self._power_meter_polling_thread.stop()
+        self._create_power_meter_polling_thread()
+
+    def _start_power_meter_polling(self) -> None:
+        """Start the polling thread which retrieves power measurements from the various power meters."""
+        self.logger.info("Starting power meter polling...")
+        self._power_meter_polling_thread.start()
+
+    def _stop_power_meter_polling(self) -> None:
+        """Stop the polling thread which retrieves power measurements from the various power meters."""
+        if self._power_meter_polling_thread.is_alive():
+            self.logger.info("Stopping power meter polling...")
+            self._power_meter_polling_thread.stop()
+        self._recreate_power_meter_polling_thread()
+
+    def _power_meter_poll_body(self) -> bool | None:
+        """Retrieve power measurements from the various power meters."""
+        if self.configuration_state is not FhsState.CONFIGURED:
+            return
+
+        if self.emulation_mode or self.simulation_mode is SimulationMode.TRUE:
+            power_measurements_response = self._read_simulated_emulated_power()
+        else:
+            # TODO: placeholder, get from gRPC
+            power_measurements_response: VCCPowerMeasurementResponse = VCCPowerMeasurementResponse(
+                b123=VCCXYPowerMeasurements(
+                    x=VCCPowerMeasurement(total=1.0, nd_off=1.0, nd_on=1.0),
+                    y=VCCPowerMeasurement(total=1.0, nd_off=1.0, nd_on=1.0),
+                    weight=1.0,
+                ),
+                b45a=VCCXYPowerMeasurements(
+                    x=VCCPowerMeasurement(total=1.0, nd_off=1.0, nd_on=1.0),
+                    y=VCCPowerMeasurement(total=1.0, nd_off=1.0, nd_on=1.0),
+                    weight=1.0,
+                ),
+                b5b=VCCXYPowerMeasurements(
+                    x=VCCPowerMeasurement(total=1.0, nd_off=1.0, nd_on=1.0),
+                    y=VCCPowerMeasurement(total=1.0, nd_off=1.0, nd_on=1.0),
+                    weight=1.0,
+                ),
+                fs={
+                    1: VCCXYPowerMeasurements(
+                        x=VCCPowerMeasurement(total=1.0, nd_off=1.0, nd_on=1.0),
+                        y=VCCPowerMeasurement(total=1.0, nd_off=1.0, nd_on=1.0),
+                        weight=1.0,
+                    ),
+                },
+                timestamp=int(time.time()),
+            )
+
+        # increment counter BEFORE using it so that the averaging is not triggered on the very first measurement (except PMs with itvl=1)
+        self._power_meter_poll_count = (self._power_meter_poll_count + 1) % self._power_meter_poll_reset
+
+        self._accumulate_power(VCCBandGroup.B123, power_measurements_response.b123)
+        self._accumulate_power(VCCBandGroup.B45A, power_measurements_response.b45a)
+        self._accumulate_power(VCCBandGroup.B5B, power_measurements_response.b5b)
+        for fs_id in range(1, self._num_fs + 1):
+            self._accumulate_power(fs_id, power_measurements_response.fs[fs_id])
+
+    def _power_meter_poll_exc_body(self, exception: Exception) -> None:
+        """Log an error if an exception occurs during power meter polling."""
+        self.log_exception("An unexpected exception occurred during power meter polling.")
+
+    def _accumulate_power(self, power_meter_id: VCCBandGroup | int, power_measurements: VCCXYPowerMeasurements):
+        """Accumulate power measurements for a single power meter."""
+        if self.configuration_state is not FhsState.CONFIGURED:
+            raise RuntimeError("Cannot calculate power before the VCC has been configured.")
+
+        itvl = self._power_meter_measurement_intervals[power_meter_id]
+        if power_meter_id not in range(8, 30):
+            self.logger.error(
+                f"ACCUMULATING POWER FOR METER: {power_meter_id} - ITVL={itvl}, "
+                f"MEAS_X_TOTAL={round(power_measurements.x.total, 8)}, "
+                f"MEAS_X_ON={round(power_measurements.x.nd_on, 8)}, "
+                f"MEAS_X_OFF={round(power_measurements.x.nd_off, 8)}, "
+                f"MEAS_Y_TOTAL={round(power_measurements.y.total, 8)}, "
+                f"MEAS_Y_ON={round(power_measurements.y.nd_on, 8)}, "
+                f"MEAS_Y_OFF={round(power_measurements.y.nd_off, 8)}, "
+                f"WEIGHT={round(power_measurements.weight, 8)}"
+            )
+        accumulator = self._power_meter_measurement_accums[power_meter_id]
+        accumulator.accumulate_from_measurements(power_measurements)
+
+        if not self._power_meter_poll_count % itvl:
+            xy_avg_power_db = accumulator.average_and_reset(convert_to_db=True)
+            if power_meter_id not in range(8, 30):
+                self.logger.error(
+                    f"AVERAGED POWER FOR METER: {power_meter_id} - ITVL={itvl}, COUNT={self._power_meter_poll_count}, "
+                    f"AVG_X_TOTAL={round(xy_avg_power_db.x.total, 8)}, "
+                    f"AVG_X_ON={round(xy_avg_power_db.x.nd_on, 8)}, "
+                    f"AVG_X_OFF={round(xy_avg_power_db.x.nd_off, 8)}, "
+                    f"AVG_Y_TOTAL={round(xy_avg_power_db.y.total, 8)}, "
+                    f"AVG_Y_ON={round(xy_avg_power_db.y.nd_on, 8)}, "
+                    f"AVG_Y_OFF={round(xy_avg_power_db.y.nd_off, 8)}"
+                )
+            if not isinstance(power_meter_id, VCCBandGroup):
+                xy_avg_power_db.apply_gain(self.fs_gains[0][power_meter_id - 1], self.fs_gains[1][power_meter_id - 1])
+            self.current_power[power_meter_id] = xy_avg_power_db
+
+    def _read_simulated_emulated_power(self) -> VCCPowerMeasurementResponse:
+        """Read power measurements from all power meter simulators or emulators.
+
+        Note that while this should technically also work when using FW,
+        the gRPC controller has a built-in `read_power()` method which does the same thing
+        and should be used instead to minimize the number of required gRPC calls.
+
+        This method also currently does NOT ensure that the timestamps of every power measurement match;
+        it simply uses the maximum retrieved timestamp across all measurements.
+        """
+        resp_dict: dict[str, Any] = {"fs": {}}
+        ts = -1
+        for id, power_meter in self.wideband_power_meters.items():
+            pm_status = power_meter.status()
+            ts = max(ts, pm_status.timestamp)
+            xy_power_measurements = VCCXYPowerMeasurements(
+                x=VCCPowerMeasurement(
+                    total=pm_status.avg_power_pol_x,
+                    nd_on=pm_status.nd_on_power_pol_x,
+                    nd_off=pm_status.nd_off_power_pol_x,
+                ),
+                y=VCCPowerMeasurement(
+                    total=pm_status.avg_power_pol_y,
+                    nd_on=pm_status.nd_on_power_pol_y,
+                    nd_off=pm_status.nd_off_power_pol_y,
+                ),
+                weight=pm_status.measured_sample_fraction,
+            )
+            match id:
+                case VCCBandGroup.B123:
+                    resp_dict["b123"] = xy_power_measurements
+                case VCCBandGroup.B45A:
+                    resp_dict["b45a"] = xy_power_measurements
+                case VCCBandGroup.B5B:
+                    resp_dict["b5b"] = xy_power_measurements
+                case _:
+                    resp_dict["fs"][id] = xy_power_measurements
+        resp_dict["timestamp"] = ts
+        return VCCPowerMeasurementResponse.from_dict(resp_dict)
 
     def _parse_vlan_mapping(self, vlan_file_loc):
         """

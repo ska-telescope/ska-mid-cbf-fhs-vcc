@@ -4,7 +4,6 @@ from ska_mid_cbf_fhs_vcc.packet_validation.packet_validation_manager import Pack
 
 
 class TestPacketValidation:
-
     @pytest.fixture(scope="function")
     def packet_validation(self):
         """Fixture to set up the Packet Validation block."""

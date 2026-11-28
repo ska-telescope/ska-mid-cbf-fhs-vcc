@@ -1,9 +1,9 @@
 import pytest
+
 from ska_mid_cbf_fhs_vcc.wideband_frequency_shifter.wideband_frequency_shifter_manager import WidebandFrequencyShifterConfig, WidebandFrequencyShifterManager
 
 
 class TestWidebandFrequencyShifter:
-
     @pytest.fixture(scope="function")
     def wideband_frequency_shifter(self):
         """Fixture to set up the Wideband Frequency Shifter."""
@@ -20,7 +20,7 @@ class TestWidebandFrequencyShifter:
 
     def test_configure(self, wideband_frequency_shifter: WidebandFrequencyShifterManager):
         """Test the configure method of the Wideband Frequency Shifter."""
-        with open("tests/test_data/device_config/wideband_frequency_shifter.json", "r") as f:
+        with open("tests/test_data/ip_block_config/wideband_frequency_shifter.json", "r") as f:
             config_json = f.read()
         result = wideband_frequency_shifter.configure(WidebandFrequencyShifterConfig.from_validated_json(config_json))
         assert result == 0, f"Expected return code 0, got {result}"

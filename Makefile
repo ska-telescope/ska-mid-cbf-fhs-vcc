@@ -103,7 +103,7 @@ PYTHON_RUNNER = uv run python3 -m
 UV_PYTHON_RUNNER = uv run python3 -m
 LOCAL_PYTHON_RUNNER = uv run python3 -m
 
-PYTHON_LINT_TARGET = ./src/
+PYTHON_LINT_TARGET = ./src/ ./tests/unit/
 K8S_VARS_AFTER_PYTEST = -s
 
 PYTHON_TEST_FILE = ./tests/unit/
